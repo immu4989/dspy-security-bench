@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual envs
+.venv/
+venv/
+ENV/
+
+# Test + cache
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.cache
+.ruff_cache/
+.mypy_cache/
+
+# Generated data (intentionally git-ignored — regenerate with the CLI)
+data/synthetic_train/
+data/results/
+logs/
+*.jsonl
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local config
+.env
+.env.local

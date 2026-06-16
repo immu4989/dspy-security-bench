@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: "dspy-security-bench: Measuring optimizer-induced robustness in agentic DSPy programs"
+authors:
+  - family-names: Ahamed
+    given-names: Imran
+    email: immu4989@gmail.com
+version: 0.1.0
+date-released: 2026-06-16
+license: Apache-2.0
+repository-code: "https://github.com/immu4989/dspy-security-bench"
+keywords:
+  - dspy
+  - agentdojo
+  - prompt-injection
+  - llm-security
+  - agent-evaluation
+  - robustness
+  - benchmark
+message: "If you use this benchmark in research or production, please cite as below."
+preferred-citation:
+  type: software
+  title: "dspy-security-bench"
+  authors:
+    - family-names: Ahamed
+      given-names: Imran
+  version: 0.1.0
+  year: 2026
+  url: "https://github.com/immu4989/dspy-security-bench"
