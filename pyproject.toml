@@ -34,7 +34,7 @@ classifiers = [
     "Topic :: Security",
 ]
 dependencies = [
-    "dspy>=3.2.1",
+    "dspy>=3.3.0b1",  # ReActV2 requires this beta — released as part of the canonical-tool-call work
     "agentdojo",
     "litellm>=1.50",
     "json-repair>=0.30",

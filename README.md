@@ -99,11 +99,9 @@ uv pip install -e .
 pip install -e .
 ```
 
-For development:
-
-```bash
-uv pip install -e ".[dev]"
-```
+Requires **Python 3.10+** and **dspy >= 3.3.0b1** (the canonical-tool-call
+release that adds `dspy.ReActV2`). pip/uv handle the pre-release pin
+automatically because the version is explicit in `pyproject.toml`.
 
 ## Quickstart
 
@@ -180,6 +178,25 @@ dspy-security-bench-validate workspace \
     --out data/synthetic_train/workspace_gpt4o.jsonl \
     --report data/synthetic_train/workspace_gpt4o_report.json
 ```
+
+## Development
+
+```bash
+# install with dev extras (pytest, ruff, pytest-cov)
+uv pip install -e ".[dev]"
+
+# run the full test suite (61 tests, all offline / mocked — no API key needed)
+pytest tests/ -v
+
+# linting
+ruff check dspy_security_bench/ tests/
+ruff format dspy_security_bench/ tests/
+```
+
+The test suite covers env-data extraction, synthesis helpers, validator
+checks, the AgentDojo wrapper (end-to-end against `user_task_0` with
+`DummyLM`), the optimizer harness, the LLM-as-judge metric, and the
+runner's orchestration (with `benchmark_suite_with_injections` mocked).
 
 ## Design decisions
 
