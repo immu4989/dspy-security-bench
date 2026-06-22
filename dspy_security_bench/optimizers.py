@@ -29,7 +29,7 @@ import dspy
 from agentdojo.functions_runtime import FunctionsRuntime
 from agentdojo.task_suite.load_suites import get_suite
 
-from dspy_security_bench.adapters.agentdojo import _make_dspy_tool
+from dspy_security_bench.adapters.agentdojo import _make_dspy_tool, make_reactv2_picklable
 
 logger = logging.getLogger(__name__)
 
@@ -113,11 +113,13 @@ def _make_agent_factory(
     if optimized_agent is None:
         # Unoptimized baseline: fresh agent each call
         def baseline_factory(tools, max_iters):
-            return dspy.ReActV2(
+            agent = dspy.ReActV2(
                 signature=base_signature,
                 tools=tools,
                 max_iters=max_iters,
             )
+            make_reactv2_picklable(agent)
+            return agent
         return baseline_factory
 
     # Pull optimized state off the inner Predict
@@ -130,6 +132,7 @@ def _make_agent_factory(
             tools=tools,
             max_iters=max_iters,
         )
+        make_reactv2_picklable(agent)
         # Apply optimized state to the inner predictor
         agent.react.signature = agent.react.signature.with_instructions(optimized_instructions)
         agent.react.demos = list(optimized_demos)
@@ -231,6 +234,7 @@ def build_agent_factories(
             tools=train_tools,
             max_iters=max_iters_train,
         )
+        make_reactv2_picklable(student)
 
         opt_fn = _OPTIMIZER_FNS[opt_name]
         opt_kw = optimizer_kwargs.get(opt_name, {})

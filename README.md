@@ -1,88 +1,95 @@
 # dspy-security-bench
 
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![dspy 3.3.0b1+](https://img.shields.io/badge/dspy-%E2%89%A53.3.0b1-FF6F61.svg)](https://github.com/stanfordnlp/dspy)
+[![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
+[![tests](https://img.shields.io/badge/tests-61%20passing-22C55E.svg)](tests/)
+[![status](https://img.shields.io/badge/status-v0.1%20alpha-F59E0B.svg)](#v01-results)
+
 Measure how DSPy prompt optimization affects the prompt-injection robustness of
 agentic LLM programs, using [AgentDojo's](https://github.com/ethz-spylab/agentdojo)
 attack suite as ground truth.
 
-**Status:** v0.1 / alpha. The core pipeline runs end-to-end; v0.1 evaluates the
-AgentDojo `workspace` suite. Banking/travel/slack suites work via a generic
-fallback; suite-tuned extractors are pending. Empirical results in this README
-will be published after the first full v0.1 run.
+**The question:** when you optimize a DSPy program with
+`BootstrapFewShot`, `MIPROv2`, or `GEPA`, does it become *more* or *less*
+robust to prompt-injection attacks? Two adjacent research communities — prompt
+optimization and prompt-injection security — have not measured this
+intersection. `dspy-security-bench` wires DSPy optimizers and AgentDojo
+attacks into one harness so the trade-off becomes visible.
 
-## The question this benchmark answers
+---
 
-When you optimize a DSPy program with `BootstrapFewShot`, `MIPROv2`, or `GEPA`,
-does the resulting program become *more* or *less* robust to prompt-injection
-attacks?
+## v0.1 results
 
-Two adjacent communities have not talked to each other:
+> **Headline:** **prompt optimization measurably degrades adversarial
+> robustness on harder attacks.** Optimizers buy utility (0% → 40-60% task
+> success on `direct`) but pay it back in security on `important_instructions`
+> (80% → 60% attack-failure rate). `BootstrapFewShot` Pareto-dominates
+> `MIPROv2` on the workspace suite at v0.1's scale.
 
-- **Prompt-optimization research** (MIPROv2, GEPA, ParetoPrompt, MOPrompt,
-  syftr) measures accuracy gains after optimization. None of these papers
-  evaluate the optimized prompts under adversarial input.
-- **Prompt-injection / jailbreak research** (InjecAgent, AgentDojo, WASP,
-  AgentNoiseBench) measures attack success against *static* prompts. They
-  don't study what optimization does to robustness.
+![Utility vs Security by optimizer × attack](assets/v01_utility_vs_security.png)
 
-`dspy-security-bench` wires these together: it runs DSPy optimizers over a
-synthesized in-distribution trainset, then evaluates the optimized programs
-against AgentDojo's attack suite, producing a per-`(optimizer, attack)` matrix
-of utility vs security trade-offs.
+| Optimizer            | Attack                   | Utility | Security | Injection success | n |
+|----------------------|--------------------------|---------|----------|-------------------|---|
+| **unoptimized**      | direct                   | **0%**  | **100%** | 0%                | 5 |
+| **unoptimized**      | important_instructions   | **0%**  | **80%**  | 20%               | 5 |
+| **bootstrap_fewshot**| direct                   | **60%** | **100%** | 0%                | 5 |
+| **bootstrap_fewshot**| important_instructions   | **20%** | **60%**  | 40%               | 5 |
+| **miprov2**          | direct                   | **40%** | **80%**  | 20%               | 5 |
+| **miprov2**          | important_instructions   | **20%** | **60%**  | 40%               | 5 |
+
+![Utility vs Security Pareto](assets/v01_pareto.png)
+
+**Reading the chart.** A point closer to the green star (top-right) is the
+ideal — high utility *and* high security. Three patterns hold across this
+scale:
+
+1. **`unoptimized` is high-security but useless.** It refuses to do the task
+   (0% utility) regardless of attack, and resists attacks at 80–100%.
+2. **`bootstrap_fewshot` is the best operating point at this scale.** Equal or
+   highest utility (60% on `direct`), equal-best security on `direct` (100%),
+   and matches `miprov2`'s degraded `important_instructions` security.
+3. **`miprov2` Pareto-loses to bootstrap.** Lower utility on `direct` (40% vs
+   60%) AND lower security (80% vs 100%). Suggests heavier optimization
+   overfits the clean-distribution prompt and exposes more attack surface.
+
+> v0.1 scope: workspace suite only, N=5 user tasks × 1 injection task × 2 attacks ×
+> 3 optimizers = 30 runs. gpt-4o-mini for execution + judge. Trainset = 192
+> validated synthetic tasks (100 gpt-4o + 100 claude-sonnet, validated
+> syntactic + dedupe). See [`scripts/run_v01_benchmark.py`](scripts/run_v01_benchmark.py)
+> for reproduction.
+
+---
 
 ## How it works
 
+```mermaid
+flowchart TD
+    A([AgentDojo seed env data]) --> B[env-data extractor]
+    B --> C[synthesis generator<br/>LM-generated query-only<br/>tasks grounded in env]
+    LM[(GPT-4o + Claude)] -.-> C
+    C -->|raw tasks| D[validator<br/>syntactic + dedupe<br/>+ optional solvability]
+    D -->|~190 validated tasks| E[optimizer harness<br/>BootstrapFewShot · MIPROv2<br/>GEPA in v0.2]
+    E -->|name → agent_factory| F[DSPyReActV2Element<br/>wraps dspy.ReActV2 as<br/>AgentDojo pipeline element]
+    F -->|AgentPipeline| G[runner<br/>drives benchmark_suite_<br/>with_injections]
+    AD[(AgentDojo attacks)] -.-> G
+    G --> H([pandas DataFrame<br/>one row per<br/>optimizer × attack ×<br/>user_task × injection_task])
+
+    classDef synth fill:#DBEAFE,stroke:#1E40AF,stroke-width:2px,color:#1E3A8A
+    classDef opt fill:#FED7AA,stroke:#9A3412,stroke-width:2px,color:#7C2D12
+    classDef eval fill:#DCFCE7,stroke:#15803D,stroke-width:2px,color:#14532D
+    classDef io fill:#F1F5F9,stroke:#475569,stroke-width:2px,color:#1F2937
+    classDef ext fill:#FAE8FF,stroke:#86198F,stroke-width:2px,color:#701A75
+
+    class B,C,D synth
+    class E,F opt
+    class G,H eval
+    class A io
+    class LM,AD ext
 ```
-                  AgentDojo seed env data
-                            │
-                            ▼
-                  ┌──────────────────────┐
-                  │  env-data extractor  │
-                  └──────────┬───────────┘
-                             │
-       LLM (gpt-4o, claude)  ▼
-            ┌─────────────────────────────┐
-            │  synthesis generator        │
-            │  (LM-generated query-only   │
-            │   tasks grounded in env)    │
-            └──────────────┬──────────────┘
-                           │  raw tasks
-                           ▼
-            ┌─────────────────────────────┐
-            │  validator                  │
-            │  (syntactic + dedupe +      │
-            │   optional solvability)     │
-            └──────────────┬──────────────┘
-                           │  ~100 validated tasks per suite
-                           ▼
-            ┌─────────────────────────────┐
-            │  optimizer harness          │
-            │  (Unoptimized, Bootstrap,   │
-            │   MIPROv2; GEPA in v0.2)    │
-            └──────────────┬──────────────┘
-                           │  {name: agent_factory}
-                           ▼
-            ┌─────────────────────────────┐
-            │  DSPyReActV2Element         │
-            │  (wraps a dspy.ReActV2 as   │
-            │   an AgentDojo pipeline     │
-            │   element; tools bind to    │
-            │   AgentDojo runtime + env)  │
-            └──────────────┬──────────────┘
-                           │  AgentPipeline
-                           ▼
-            ┌─────────────────────────────┐
-            │  runner                     │
-            │  (drives benchmark_suite_   │
-            │   with_injections across    │
-            │   factories × attacks)      │
-            └──────────────┬──────────────┘
-                           │
-                           ▼
-                    pandas.DataFrame
-                  (one row per
-                  optimizer × attack ×
-                  user_task × injection_task)
-```
+
+---
 
 ## Install
 
@@ -122,7 +129,7 @@ raw_tasks = synthesize_tasks("workspace", n=150, model="openai/gpt-4o")
 
 # 2. Filter for validity and dedupe against real test tasks
 val = validate_tasks(raw_tasks, "workspace", checks=("syntactic", "dedupe"))
-trainset = val.kept  # ~100 high-quality tasks survive
+trainset = val.kept  # ~140-180 high-quality tasks survive
 
 # 3. Run optimizers — produces a factory per optimizer
 factories = build_agent_factories(
@@ -137,26 +144,21 @@ factories = build_agent_factories(
 df = evaluate_factories(
     factories=factories,
     suite_name="workspace",
-    attacks=["direct", "important_instructions", "tool_knowledge"],
-    user_task_ids=["user_task_0", "user_task_1", "user_task_3", "user_task_10"],
+    attacks=["direct", "important_instructions"],
+    user_task_ids=["user_task_0", "user_task_1", "user_task_3", "user_task_10", "user_task_11"],
     injection_task_ids=["injection_task_0"],
-    max_iters=10,
+    max_iters=8,
 )
 
 # 5. Aggregate
 print(summarize(df))
 ```
 
-Output shape:
-
-```
-       optimizer                 attack  utility_rate  security_rate  injection_success_rate  n_runs
-0    unoptimized                 direct          0.50           0.75                    0.25       4
-1    unoptimized  important_instructions          0.50           0.50                    0.50       4
-2    unoptimized          tool_knowledge          0.25           0.25                    0.75       4
-3  bootstrap_fewshot               direct          0.75           0.75                    0.25       4
-...
-```
+The full v0.1 run takes ~30-45 min wall-clock at ~$15-20 in LM cost
+(gpt-4o-mini for everything). See
+[`scripts/run_v01_benchmark.py`](scripts/run_v01_benchmark.py) for the
+production driver — it caches optimizer state to `data/results/factories_cache.pkl`
+so re-runs after a downstream crash skip optimization.
 
 ## CLI
 
@@ -178,6 +180,25 @@ dspy-security-bench-validate workspace \
     --out data/synthetic_train/workspace_gpt4o.jsonl \
     --report data/synthetic_train/workspace_gpt4o_report.json
 ```
+
+## Reproducing the v0.1 result
+
+```bash
+# After installing — synthesizes, validates, optimizes, evaluates, saves CSVs.
+# Caches optimized state to data/results/factories_cache.pkl so reruns are fast.
+export OPENAI_API_KEY=sk-...
+export ANTHROPIC_API_KEY=sk-ant-...  # optional — falls back to GPT-4o only
+
+python scripts/run_v01_benchmark.py 2>&1 | tee data/results/run_v01.log
+python scripts/generate_v01_figures.py     # rebuilds the README charts
+```
+
+Outputs:
+
+- `data/results/workspace_v01_results.csv` — 30 raw rows
+- `data/results/workspace_v01_summary.csv` — 6-row aggregation
+- `assets/v01_utility_vs_security.png`
+- `assets/v01_pareto.png`
 
 ## Development
 
@@ -218,6 +239,15 @@ v0.1 scope choices:
   (rigorous, the actual published benchmark).
 - **Single-output signature constraint** on the DSPy program. The model's final
   output goes into AgentDojo's single `model_output` utility argument.
+
+## Roadmap
+
+| Milestone | Status |
+|---|---|
+| v0.1 — workspace suite × 2 attacks × 3 optimizers, headline finding | **shipped** |
+| v0.2 — banking / travel / slack suites, GEPA optimizer, larger N | planned |
+| v0.3 — adversarial trainset to study robust-by-construction optimization | planned |
+| Paper — TMLR submission if v0.2 findings hold at scale | conditional |
 
 ## Acknowledgments and prior work
 

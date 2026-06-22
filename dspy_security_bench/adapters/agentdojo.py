@@ -101,6 +101,65 @@ def _build_tool_arg_types(function) -> dict:
     return arg_types
 
 
+class _RuntimeBoundTool:
+    """Deep-copy-safe callable: invokes `runtime.run_function(env, name, kwargs)`.
+
+    Two things are required for this to play well with DSPy optimizers
+    (BootstrapFewShot, MIPROv2), which `deepcopy()` the student program
+    between trials:
+
+    1. **Not a closure** — closures defined inside a function can't be
+       pickled (`AttributeError: Can't get local object`). We're a
+       module-level class with `__call__`.
+    2. **`__deepcopy__` returns self** — AgentDojo's `Function.parameters`
+       is a dynamically-created Pydantic model whose qualified name contains
+       spaces (e.g. `"Input schema for \`send_email\`"`), which pickle
+       cannot resolve. The runtime+env don't change during optimization,
+       so sharing them across deep-copied agents is safe.
+    """
+
+    def __init__(self, name: str, desc: str, runtime: FunctionsRuntime, env: Env):
+        self.name = name
+        self.__name__ = name
+        self.__doc__ = desc
+        self._runtime = runtime
+        self._env = env
+
+    def __call__(self, **kwargs):
+        result, error = self._runtime.run_function(
+            self._env, self.name, kwargs, raise_on_error=False
+        )
+        return _serialize_result(result, error)
+
+    def __deepcopy__(self, memo):
+        # Runtime+env are immutable during optimization; share the same
+        # object across deep-copied agents (avoids picking dynamic Pydantic
+        # models inside AgentDojo's runtime).
+        return self
+
+    def __getstate__(self):
+        # DSPy hashes demos via `pickle.dumps(tuple(demos))` for caching
+        # identity (see dspy.utils.hasher.Hasher). The demos contain
+        # references to this tool, but the runtime+env can't be pickled
+        # because AgentDojo's Function.parameters is a dynamically-created
+        # Pydantic model whose qualified name has spaces. We drop them on
+        # pickle; the resulting bytes carry just (name, docstring) which is
+        # enough to identify the tool's role in a demo.
+        return {
+            "name": self.name,
+            "__name__": self.__name__,
+            "__doc__": self.__doc__,
+            "_runtime": None,
+            "_env": None,
+        }
+
+    def __setstate__(self, state):
+        # Unpickled tools are metadata-only — calling __call__ on one will
+        # AttributeError. That's the intended trade-off: hashing succeeds,
+        # actual execution requires the original (or a freshly built) tool.
+        self.__dict__.update(state)
+
+
 def _make_dspy_tool(
     function,
     runtime: FunctionsRuntime,
@@ -112,12 +171,7 @@ def _make_dspy_tool(
     args_schema = _build_tool_args_schema(function)
     arg_types = _build_tool_arg_types(function)
 
-    def tool_fn(**kwargs):
-        result, error = runtime.run_function(env, name, kwargs, raise_on_error=False)
-        return _serialize_result(result, error)
-
-    tool_fn.__name__ = name
-    tool_fn.__doc__ = desc
+    tool_fn = _RuntimeBoundTool(name=name, desc=desc, runtime=runtime, env=env)
 
     return dspy.Tool(
         tool_fn,
@@ -125,6 +179,51 @@ def _make_dspy_tool(
         desc=desc,
         args=args_schema,
         arg_types=arg_types,
+    )
+
+
+class _PicklableSubmitTool:
+    """Module-level replacement for ReActV2's closure-based `submit` tool.
+
+    Upstream DSPy defines `submit` as a closure inside `_make_submit_tool`,
+    which can't be pickled — this breaks `BootstrapFewShot` / `MIPROv2`
+    because their hashing path (`dspy.utils.hasher.Hasher.hash`) does
+    `pickle.dumps(tuple(demos))`, and demos include the predictor's tools.
+
+    Behaviorally identical to the upstream closure — same return shape,
+    same validation.
+    """
+
+    def __init__(self, output_names: list[str]):
+        self.output_names = tuple(output_names)
+        self.__name__ = "submit"
+        self.__doc__ = "Submit the final outputs for the task."
+
+    def __call__(self, **kwargs):
+        missing = [name for name in self.output_names if name not in kwargs]
+        if missing:
+            raise ValueError(f"Missing required final output field(s): {', '.join(missing)}")
+        return {name: kwargs[name] for name in self.output_names}
+
+
+def make_reactv2_picklable(agent) -> None:
+    """In-place replace agent.tools['submit'] with a picklable equivalent.
+
+    Call this on every freshly constructed `dspy.ReActV2` before it's
+    handed to an optimizer or to `DSPyReActV2Element`. No-op if the agent
+    doesn't have a submit tool.
+    """
+    submit = agent.tools.get("submit")
+    if submit is None:
+        return
+    output_names = list(agent.signature.output_fields)
+    new_func = _PicklableSubmitTool(output_names)
+    agent.tools["submit"] = dspy.Tool(
+        new_func,
+        name="submit",
+        desc=submit.desc,
+        args=submit.args,
+        arg_types=submit.arg_types,
     )
 
 
@@ -256,6 +355,7 @@ class DSPyReActV2Element(BasePipelineElement):
 
         # 2) Instantiate the agent with these tools
         agent = self.agent_factory(tools=tools, max_iters=self.max_iters)
+        make_reactv2_picklable(agent)
 
         # 3) Determine the output field name
         output_field = self.output_field

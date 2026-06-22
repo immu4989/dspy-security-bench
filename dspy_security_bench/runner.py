@@ -28,7 +28,16 @@ from agentdojo.agent_pipeline.agent_pipeline import AgentPipeline
 from agentdojo.agent_pipeline.basic_elements import InitQuery
 from agentdojo.attacks import load_attack
 from agentdojo.benchmark import benchmark_suite_with_injections
+from agentdojo.logging import NullLogger
 from agentdojo.task_suite.load_suites import get_suite
+
+# Monkey-patch fix for AgentDojo bug: NullLogger only sets `logdir` inside
+# `__enter__`, but TraceLogger does `delegate.logdir or ...` on the result of
+# `Logger.get()`, which returns an un-entered NullLogger when no context is
+# active. AttributeError. Adding `logdir = None` as a class attribute makes
+# accessing `.logdir` return None safely, and TraceLogger falls back to its
+# default `runs/` directory.
+NullLogger.logdir = None
 
 from dspy_security_bench.adapters import DSPyReActV2Element
 
@@ -132,7 +141,12 @@ def evaluate_factories(
     all_rows: list[dict] = []
 
     for optimizer_name, factory in factories.items():
-        pipeline_name = f"dspy_reactv2_{optimizer_name}"
+        # AgentDojo's `important_instructions` attack scans the pipeline name
+        # for known model keys from agentdojo.models.MODEL_NAMES (e.g.
+        # "gpt-4o-mini-2024-07-18", "claude-3-5-sonnet-20241022"). We use the
+        # gpt-4o-mini key since that's our v0.1 execution + judge LM. Any
+        # caller using a different model should pass `pipeline_name_prefix`.
+        pipeline_name = f"gpt-4o-mini-2024-07-18_dspy_reactv2_{optimizer_name}"
         pipeline = _build_pipeline(
             factory=factory,
             pipeline_name=pipeline_name,

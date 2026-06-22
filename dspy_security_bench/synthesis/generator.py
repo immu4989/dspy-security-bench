@@ -164,6 +164,10 @@ def _call_llm(model: str, prompt: str, temperature: float = 0.8, seed: int = 0) 
     'anthropic/claude-sonnet-4-5' work uniformly."""
     import litellm  # imported lazily so --dry-run works without litellm errors
 
+    # Anthropic and some other providers don't support `seed`; silently drop
+    # params the target provider doesn't support rather than 4xx-ing.
+    litellm.drop_params = True
+
     last_err: Exception | None = None
     for attempt in range(4):
         try:
