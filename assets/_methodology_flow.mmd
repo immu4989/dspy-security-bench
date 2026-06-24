@@ -1,0 +1,22 @@
+flowchart TD
+    A([AgentDojo seed env data]) --> B[env-data extractor]
+    B --> C[synthesis generator]
+    LM[(GPT-4o + Claude)] -.-> C
+    C -->|raw tasks| D[validator]
+    D -->|~190 validated tasks| E[optimizer harness]
+    E -->|name → agent_factory| F[DSPyReActV2Element]
+    F -->|AgentPipeline| G[runner]
+    AD[(AgentDojo attacks)] -.-> G
+    G --> H([pandas DataFrame])
+
+    classDef synth fill:#DBEAFE,stroke:#1E40AF,stroke-width:2px,color:#1E3A8A
+    classDef opt fill:#FED7AA,stroke:#9A3412,stroke-width:2px,color:#7C2D12
+    classDef eval fill:#DCFCE7,stroke:#15803D,stroke-width:2px,color:#14532D
+    classDef io fill:#F1F5F9,stroke:#475569,stroke-width:2px,color:#1F2937
+    classDef ext fill:#FAE8FF,stroke:#86198F,stroke-width:2px,color:#701A75
+
+    class B,C,D synth
+    class E,F opt
+    class G,H eval
+    class A io
+    class LM,AD ext
