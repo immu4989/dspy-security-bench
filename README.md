@@ -1,10 +1,11 @@
 # dspy security bench
 
+[![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![dspy 3.3.0b1+](https://img.shields.io/badge/dspy-%E2%89%A53.3.0b1-FF6F61.svg)](https://github.com/stanfordnlp/dspy)
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
-[![tests](https://img.shields.io/badge/tests-61%20passing-22C55E.svg)](tests/)
+[![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
 [![status](https://img.shields.io/badge/status-v0.1%20alpha-F59E0B.svg)](#v01-results)
 
 Measure how DSPy prompt optimization affects the prompt-injection robustness of
@@ -93,17 +94,21 @@ flowchart TD
 
 ## Install
 
+From PyPI:
+
+```bash
+pip install dspy-security-bench
+# or:  uv pip install dspy-security-bench
+```
+
+From source (for development):
+
 ```bash
 git clone https://github.com/immu4989/dspy-security-bench.git
 cd dspy-security-bench
-
-# either with uv:
 uv venv --python 3.12
 source .venv/bin/activate
-uv pip install -e .
-
-# or with pip:
-pip install -e .
+uv pip install -e ".[dev]"
 ```
 
 Requires **Python 3.10+** and **dspy >= 3.3.0b1** (the canonical-tool-call
