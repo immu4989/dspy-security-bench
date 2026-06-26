@@ -170,13 +170,53 @@ def _run_miprov2(
         metric=metric,
         auto=kwargs.get("auto", "light"),
         num_threads=kwargs.get("num_threads", 4),
+        seed=kwargs.get("seed", 9),  # MIPROv2's default; we override per-seed-sweep
     )
     return teleprompter.compile(student=student, trainset=trainset, requires_permission_to_run=False)
+
+
+class _GEPAMetricAdapter:
+    """Adapter from our (example, pred, trace) metric signature to GEPA's
+    5-arg Protocol (gold, pred, trace, pred_name, pred_trace).
+
+    GEPA accepts either a float or a ScoreWithFeedback. We return float —
+    GEPA falls back to a stock 'this trajectory got score X' feedback.
+    """
+
+    def __init__(self, base_metric: Callable):
+        self.base = base_metric
+        self.__name__ = getattr(base_metric, "__name__", "GEPAMetricAdapter")
+
+    def __call__(self, gold, pred, trace=None, pred_name=None, pred_trace=None) -> float:
+        return float(self.base(gold, pred, trace))
+
+
+def _run_gepa(
+    student: dspy.ReActV2,
+    trainset: list[dspy.Example],
+    metric: Callable,
+    **kwargs,
+) -> dspy.ReActV2:
+    """GEPA — reflective prompt optimizer. Requires:
+      - a metric matching its 5-arg Protocol (we wrap automatically)
+      - a `reflection_lm` (an LM that proposes new prompt phrasings); defaults
+        to `dspy.settings.lm` if not provided in kwargs."""
+    reflection_lm = kwargs.get("reflection_lm") or dspy.settings.lm
+    adapted_metric = metric if isinstance(metric, _GEPAMetricAdapter) else _GEPAMetricAdapter(metric)
+    teleprompter = dspy.GEPA(
+        metric=adapted_metric,
+        auto=kwargs.get("auto", "light"),
+        reflection_lm=reflection_lm,
+        num_threads=kwargs.get("num_threads", 4),
+        seed=kwargs.get("seed", 0),
+    )
+    return teleprompter.compile(student=student, trainset=trainset)
 
 
 _OPTIMIZER_FNS = {
     "bootstrap_fewshot": _run_bootstrap_fewshot,
     "miprov2": _run_miprov2,
+    "gepa": _run_gepa,
 }
 
 

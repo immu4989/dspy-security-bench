@@ -23,11 +23,24 @@ attacks into one harness so the trade-off becomes visible.
 
 ## v0.1 results
 
-> **Headline:** **prompt optimization measurably degrades adversarial
+> **Update (2026-06-26): a 3-seed sanity check changes the optimizer ordering shown here.**
+> The numbers below are the single-seed (seed=0) result. Aggregated over three seeds,
+> `BootstrapFewShot` is actually the *lowest* on `important_instructions` security (0.600),
+> and `MIPROv2` and `GEPA` tie at 0.733. Standard deviations at N=5 user tasks land in
+> the 0.4 to 0.5 range, so individual rankings here are dominated by noise.
+> What survives across seeds: `BootstrapFewShot`'s `direct`-attack Pareto win,
+> the unoptimized 0% utility floor, and the qualitative "optimization trends below
+> unoptimized on the harder attack" pattern. Full 3-seed numbers:
+> [`data/results/workspace_v02_phase1_seeds_summary.csv`](data/results/workspace_v02_phase1_seeds_summary.csv).
+> v0.2 phase 2 will scale N to put any optimizer-ranking claim on solid statistical
+> ground.
+
+> **Headline (seed=0):** **prompt optimization measurably degrades adversarial
 > robustness on harder attacks.** Optimizers buy utility (0% → 40-60% task
 > success on `direct`) but pay it back in security on `important_instructions`
 > (80% → 60% attack-failure rate). `BootstrapFewShot` Pareto-dominates
-> `MIPROv2` on the workspace suite at v0.1's scale.
+> `MIPROv2` on the workspace suite at v0.1's single-seed scale. See update note above
+> for what holds vs. what does not when averaged across 3 seeds.
 
 ![Utility vs Security by optimizer × attack](assets/v01_utility_vs_security.png)
 
