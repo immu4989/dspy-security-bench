@@ -7,6 +7,8 @@
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
 [![status](https://img.shields.io/badge/status-v0.1%20alpha-F59E0B.svg)](#v01-results)
+[![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
+[![HF results](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-v0.1%20results-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-v01-results)
 
 Measure how DSPy prompt optimization affects the prompt-injection robustness of
 agentic LLM programs, using [AgentDojo's](https://github.com/ethz-spylab/agentdojo)
