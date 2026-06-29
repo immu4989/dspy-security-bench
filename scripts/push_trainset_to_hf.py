@@ -4,8 +4,10 @@ This is the synthetic, env-grounded query-only trainset used by v0.1.
 192 records, ~30KB. Format: {"prompt": str, "ground_truth": str}.
 
 Run AFTER authenticating with HF:
-    huggingface-cli login        # paste a Write-scoped token from
+    hf auth login                # paste a Write-scoped token from
                                  # https://huggingface.co/settings/tokens
+                                 # (huggingface_hub >= 1.0 ships `hf`;
+                                 # the older `huggingface-cli login` also works)
 
 Then:
     python scripts/push_trainset_to_hf.py
@@ -133,7 +135,7 @@ def main():
     try:
         user = whoami()
     except Exception as e:
-        sys.exit(f"Not authenticated. Run `huggingface-cli login` first. ({type(e).__name__}: {e})")
+        sys.exit(f"Not authenticated. Run `hf auth login` first. ({type(e).__name__}: {e})")
     print(f"Authenticated as {user.get('name', '?')}")
 
     if not TRAINSET_PATH.exists():
