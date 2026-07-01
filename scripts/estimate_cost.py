@@ -47,6 +47,11 @@ PRICES = {
     # DeepSeek R1 (reasoner) — reasoning model, no tool-calling as of latest
     # API; usable as GEPA reflection LM only.
     "deepseek/deepseek-reasoner": {"in": 0.55, "out": 2.19},
+    # Mistral — several variants at different price/capability tiers
+    "mistral/mistral-small-latest":   {"in": 0.20, "out": 0.60},
+    "mistral/mistral-large-latest":   {"in": 2.00, "out": 6.00},
+    "mistral/ministral-8b-latest":    {"in": 0.10, "out": 0.10},
+    "mistral/codestral-latest":       {"in": 0.30, "out": 0.90},
 }
 
 

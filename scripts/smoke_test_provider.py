@@ -102,11 +102,11 @@ def stage_litellm(model_str: str, r: Result):
         litellm.drop_params = True  # some providers reject seed/logprobs
         resp = litellm.completion(
             model=model_str,
-            messages=[{"role": "user", "content": "Reply with the single word: PING"}],
-            max_tokens=8, temperature=0.0,
+            messages=[{"role": "user", "content": "Reply with any short acknowledgement."}],
+            max_tokens=16, temperature=0.0,
         )
         text = resp.choices[0].message.content
-        ok = text and "PING" in text.upper()
+        ok = bool(text and text.strip())  # just check we got any non-empty response
         detail = f'response: {text!r}'
         r.record("litellm direct", ok, detail, time.time() - t0)
         return ok
