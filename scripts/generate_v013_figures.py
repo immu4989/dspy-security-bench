@@ -32,8 +32,8 @@ MODELS = [
 ]
 
 PALETTE = {
-    "bootstrap_fewshot": "#3B82F6",  # blue-500
-    "miprov2":           "#F97316",  # orange-500
+    "bootstrap_fewshot": "#059669",  # emerald-600
+    "miprov2":           "#E11D48",  # rose-600
 }
 OPT_DISPLAY = {"bootstrap_fewshot": "BootstrapFewShot", "miprov2": "MIPROv2"}
 
