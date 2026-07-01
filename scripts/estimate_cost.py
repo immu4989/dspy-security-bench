@@ -41,6 +41,12 @@ PRICES = {
     "openai/gpt-4o":           {"in": 2.50, "out": 10.00},
     "anthropic/claude-3-5-haiku": {"in": 0.80, "out": 4.00},
     "anthropic/claude-3-5-sonnet": {"in": 3.00, "out": 15.00},
+    # DeepSeek V3 (deepseek-chat) — standard tier (non-cached input).
+    # Cache hits are $0.07/1M but we don't model cache-hit rate.
+    "deepseek/deepseek-chat":  {"in": 0.27, "out": 1.10},
+    # DeepSeek R1 (reasoner) — reasoning model, no tool-calling as of latest
+    # API; usable as GEPA reflection LM only.
+    "deepseek/deepseek-reasoner": {"in": 0.55, "out": 2.19},
 }
 
 
@@ -215,6 +221,36 @@ PRESETS = {
         exec_model="openai/gpt-4o-mini",
         judge_model="anthropic/claude-3-5-haiku",
         reflection_model="openai/gpt-4o-mini",
+    ),
+    # Same scope as `phase2` but swaps DeepSeek into the roles where it
+    # doesn't break v0.1 comparability: judge + GEPA reflection.
+    # Execution stays gpt-4o-mini so the "powered replication" story holds.
+    "phase2_ds_judge": dict(
+        suites=["workspace", "banking", "travel", "slack"],
+        attacks=["direct", "important_instructions", "tool_knowledge", "ignore_previous"],
+        optimizers=["unoptimized", "bootstrap_fewshot", "miprov2", "gepa"],
+        user_tasks_per_suite=20,
+        injection_tasks_per_suite=4,
+        seeds=3,
+        synthesis_tasks_per_suite=200,
+        exec_model="openai/gpt-4o-mini",
+        judge_model="deepseek/deepseek-chat",
+        reflection_model="deepseek/deepseek-reasoner",
+    ),
+    # Full swap: DeepSeek V3 everywhere. Loses v0.1 comparability but the
+    # smoke test suggests DeepSeek is much stronger unoptimized than
+    # gpt-4o-mini on workspace — reframes phase 2 as a cross-model study.
+    "phase2_ds_exec": dict(
+        suites=["workspace", "banking", "travel", "slack"],
+        attacks=["direct", "important_instructions", "tool_knowledge", "ignore_previous"],
+        optimizers=["unoptimized", "bootstrap_fewshot", "miprov2", "gepa"],
+        user_tasks_per_suite=20,
+        injection_tasks_per_suite=4,
+        seeds=3,
+        synthesis_tasks_per_suite=200,
+        exec_model="deepseek/deepseek-chat",
+        judge_model="deepseek/deepseek-chat",
+        reflection_model="deepseek/deepseek-reasoner",
     ),
 }
 
