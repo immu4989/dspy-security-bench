@@ -111,7 +111,11 @@ def main():
                    help="MIPROv2/BootstrapFewShot parallelism (default 4; drop to 1 for rate-limited providers)")
     p.add_argument("--num-retries", type=int, default=10,
                    help="litellm auto-retry count for transient errors like 429")
+    p.add_argument("--optimizers", nargs="+", default=OPTIMIZERS,
+                   help="optimizer subset (default: unoptimized bootstrap_fewshot miprov2). "
+                        "Use 'unoptimized bootstrap_fewshot' for rate-limited free-tier providers.")
     args = p.parse_args()
+    run_optimizers = args.optimizers
 
     slug = _slug(args.model)
     results_path = RESULTS_DIR / f"workspace_v01_{slug}_results.csv"
@@ -135,7 +139,7 @@ def main():
     # Per-optimizer compile — each caches independently so a mid-run rate-
     # limit crash on MIPROv2 doesn't force BootstrapFewShot to re-compile.
     factories: dict = {}
-    for opt in OPTIMIZERS:
+    for opt in run_optimizers:
         opt_cache = RESULTS_DIR / f"factories_cache_v01_{slug}_{opt}.pkl"
         if opt_cache.exists():
             log.info(f"  loading cached {opt} from {opt_cache.name}")
@@ -181,8 +185,8 @@ def main():
 
     # Eval
     t1 = time.time()
-    n_expected = len(USER_TASK_IDS) * len(INJECTION_TASK_IDS) * len(ATTACKS) * len(OPTIMIZERS)
-    log.info(f"eval: {n_expected} runs across {len(OPTIMIZERS)} optimizers × {len(ATTACKS)} attacks")
+    n_expected = len(USER_TASK_IDS) * len(INJECTION_TASK_IDS) * len(ATTACKS) * len(run_optimizers)
+    log.info(f"eval: {n_expected} runs across {len(run_optimizers)} optimizers × {len(ATTACKS)} attacks")
     df = evaluate_factories(
         factories=factories,
         suite_name=SUITE,
