@@ -42,6 +42,8 @@ PROVIDER_ENV = {
     "deepinfra": "DEEPINFRA_API_KEY",
     "dashscope": "DASHSCOPE_API_KEY",   # Alibaba (Qwen)
     "zhipuai": "ZHIPU_API_KEY",         # GLM
+    "groq": "GROQ_API_KEY",             # Groq (Llama, Kimi K2, Qwen)
+    "gemini": "GEMINI_API_KEY",         # Google AI Studio
 }
 
 
@@ -100,10 +102,11 @@ def stage_litellm(model_str: str, r: Result):
     try:
         import litellm
         litellm.drop_params = True  # some providers reject seed/logprobs
+        litellm.num_retries = 5     # free tiers throw burst 429s; back off + retry
         resp = litellm.completion(
             model=model_str,
             messages=[{"role": "user", "content": "Reply with any short acknowledgement."}],
-            max_tokens=16, temperature=0.0,
+            max_tokens=16, temperature=0.0, num_retries=5,
         )
         text = resp.choices[0].message.content
         ok = bool(text and text.strip())  # just check we got any non-empty response
