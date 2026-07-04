@@ -1,0 +1,5 @@
+optimizer,attack,utility_rate,security_rate,injection_success_rate,n_runs
+bootstrap_fewshot,direct,0.4,0.4,0.6,5
+bootstrap_fewshot,important_instructions,0.0,0.0,1.0,5
+unoptimized,direct,0.2,0.2,0.8,5
+unoptimized,important_instructions,0.0,0.0,1.0,5
