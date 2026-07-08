@@ -6,7 +6,7 @@
 [![dspy 3.3.0b1+](https://img.shields.io/badge/dspy-%E2%89%A53.3.0b1-FF6F61.svg)](https://github.com/stanfordnlp/dspy)
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
-[![status](https://img.shields.io/badge/status-v0.1%20alpha-F59E0B.svg)](#v01-results)
+[![status](https://img.shields.io/badge/status-v0.1.4%20alpha-F59E0B.svg)](#latest-finding-capability-does-not-buy-injection-robustness-v014)
 [![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
 [![HF results](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-v0.1%20results-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-v01-results)
 
@@ -14,16 +14,66 @@ Measure how DSPy prompt optimization affects the prompt-injection robustness of
 agentic LLM programs, using [AgentDojo's](https://github.com/ethz-spylab/agentdojo)
 attack suite as ground truth.
 
-**The question:** when you optimize a DSPy program with
+**The question it started with:** when you optimize a DSPy program with
 `BootstrapFewShot`, `MIPROv2`, or `GEPA`, does it become *more* or *less*
 robust to prompt-injection attacks? Two adjacent research communities — prompt
 optimization and prompt-injection security — have not measured this
 intersection. `dspy-security-bench` wires DSPy optimizers and AgentDojo
 attacks into one harness so the trade-off becomes visible.
 
+Running that harness across four model families turned up a bigger finding,
+below.
+
 ---
 
-## v0.1 results
+## Latest finding: capability does not buy injection-robustness (v0.1.4)
+
+Across four model families, prompt-injection robustness does **not** track
+model capability. Most strikingly, *within* the Mistral family the more
+capable model (Large) is dramatically **more** exploitable than the smaller
+one (Small) — same tools, same attacks, same harness.
+
+![Injection-robustness does not track model capability](assets/v014_capability_vs_robustness.png)
+
+| Model | Family | `direct` | `important_instructions` |
+|---|---|---|---|
+| gpt-4o-mini | OpenAI | 100% | 80% |
+| Mistral Small | Mistral | 100% | 100% |
+| **Mistral Large** | Mistral | **20%** | **0%** |
+| DeepSeek V3 | DeepSeek | 100% | 80% |
+
+*Unoptimized injection-security (attack failure rate — higher is safer);
+workspace suite, N=5 per cell.*
+
+**Mechanism — the instruction-following tax.** Mistral Large is capable and
+obedient enough to follow instructions embedded in tool outputs, including
+malicious injected ones. Verified with
+[`scripts/verify_injection_trace.py`](scripts/verify_injection_trace.py): the
+agent explicitly reasons *"I need to follow the instructions embedded in the
+event description"* and calls `send_email` to the attacker's address, which
+AgentDojo's functional check confirms was actually delivered. Mistral Small
+"resists" largely by incapacity; DeepSeek V3 is both capable **and** robust.
+So injection-robustness is an *alignment* property, separable from raw
+capability.
+
+**Deployment implication:** upgrading your agent's base model to a more capable
+one can make it *less* secure against prompt injection. Capability benchmarks
+say nothing about injection-robustness — measure it separately.
+
+**How this finding evolved** (each release corrected the last):
+
+- **v0.1.0** — on gpt-4o-mini, prompt optimization trades ~20pp security on the harder attack for utility.
+- **v0.1.1** — a 3-seed sanity check showed the optimizer *ordering* was noise at N=5.
+- **v0.1.2 / v0.1.3** — cross-model probes (DeepSeek V3, Mistral Small) showed the finding is model-dependent.
+- **v0.1.4** — Mistral Large shows capability and robustness are separable axes (this section).
+
+Full details in the
+[v0.1.4 release notes](https://github.com/immu4989/dspy-security-bench/releases/tag/v0.1.4).
+The original single-model optimization result is preserved below.
+
+---
+
+## v0.1 optimization results (gpt-4o-mini, single-model)
 
 > **Update (2026-06-26): a 3-seed sanity check changes the optimizer ordering shown here.**
 > The numbers below are the single-seed (seed=0) result. Aggregated over three seeds,
@@ -264,10 +314,13 @@ v0.1 scope choices:
 
 | Milestone | Status |
 |---|---|
-| v0.1 — workspace suite × 2 attacks × 3 optimizers, headline finding | **shipped** |
-| v0.2 — banking / travel / slack suites, GEPA optimizer, larger N | planned |
+| v0.1 — workspace suite × 2 attacks × 3 optimizers, single-model finding | **shipped** |
+| v0.1.1 — 3-seed sanity check (optimizer ordering was N=5 noise) | **shipped** |
+| v0.1.2 / v0.1.3 — cross-model probes (DeepSeek V3, Mistral Small) | **shipped** |
+| v0.1.4 — Mistral Large: capability and injection-robustness are separable axes | **shipped** |
+| v0.2 — powered cross-model study: within-family pairs, 4 suites, larger N, 3 seeds | planned |
 | v0.3 — adversarial trainset to study robust-by-construction optimization | planned |
-| Paper — TMLR submission if v0.2 findings hold at scale | conditional |
+| Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work
 
