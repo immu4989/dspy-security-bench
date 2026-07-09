@@ -32,6 +32,7 @@ def main():
     p.add_argument("--user-task", default="user_task_0")
     p.add_argument("--injection-task", default="injection_task_0")
     p.add_argument("--attack", default="important_instructions")
+    p.add_argument("--defense", default="none", help="defense name from dspy_security_bench.defenses")
     p.add_argument("--max-iters", type=int, default=8)
     args = p.parse_args()
 
@@ -41,8 +42,11 @@ def main():
 
     suite = get_suite("v1", "workspace")
 
+    from dspy_security_bench.defenses import get_defense
+    defense = get_defense(args.defense)
+
     factory = _make_agent_factory(None, base_signature="query -> answer")
-    element = DSPyReActV2Element(factory, max_iters=args.max_iters)
+    element = DSPyReActV2Element(factory, max_iters=args.max_iters, defense=defense)
     pipeline = AgentPipeline([InitQuery(), element])
     pipeline.name = f"gpt-4o-mini-2024-07-18_dspy_reactv2_unoptimized"
 

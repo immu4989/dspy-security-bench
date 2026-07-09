@@ -118,18 +118,28 @@ class _RuntimeBoundTool:
        so sharing them across deep-copied agents is safe.
     """
 
-    def __init__(self, name: str, desc: str, runtime: FunctionsRuntime, env: Env):
+    def __init__(self, name: str, desc: str, runtime: FunctionsRuntime, env: Env,
+                 defense=None, user_query: str = ""):
         self.name = name
         self.__name__ = name
         self.__doc__ = desc
         self._runtime = runtime
         self._env = env
+        # Defense hook: transform the (untrusted) tool output before the agent
+        # reads it. None == identity. Kept out of __getstate__ (see below).
+        self._defense = defense
+        self._user_query = user_query
 
     def __call__(self, **kwargs):
         result, error = self._runtime.run_function(
             self._env, self.name, kwargs, raise_on_error=False
         )
-        return _serialize_result(result, error)
+        output = _serialize_result(result, error)
+        if self._defense is not None:
+            output = self._defense.wrap_tool_output(
+                output, tool_name=self.name, user_query=self._user_query
+            )
+        return output
 
     def __deepcopy__(self, memo):
         # Runtime+env are immutable during optimization; share the same
@@ -151,6 +161,8 @@ class _RuntimeBoundTool:
             "__doc__": self.__doc__,
             "_runtime": None,
             "_env": None,
+            "_defense": None,
+            "_user_query": "",
         }
 
     def __setstate__(self, state):
@@ -164,14 +176,24 @@ def _make_dspy_tool(
     function,
     runtime: FunctionsRuntime,
     env: Env,
+    defense=None,
+    user_query: str = "",
 ) -> dspy.Tool:
-    """Wrap an AgentDojo `Function` as a dspy.Tool that calls back into the runtime."""
+    """Wrap an AgentDojo `Function` as a dspy.Tool that calls back into the runtime.
+
+    `defense` (if given) transforms tool output before the agent reads it;
+    `user_query` is threaded through so query-aware defenses (e.g. sandwich)
+    can re-assert the user's task.
+    """
     name = function.name
     desc = (function.description or "").strip()
     args_schema = _build_tool_args_schema(function)
     arg_types = _build_tool_arg_types(function)
 
-    tool_fn = _RuntimeBoundTool(name=name, desc=desc, runtime=runtime, env=env)
+    tool_fn = _RuntimeBoundTool(
+        name=name, desc=desc, runtime=runtime, env=env,
+        defense=defense, user_query=user_query,
+    )
 
     return dspy.Tool(
         tool_fn,
@@ -328,6 +350,7 @@ class DSPyReActV2Element(BasePipelineElement):
         agent_factory: Callable[..., Any],
         max_iters: int = 20,
         output_field: str | None = None,
+        defense=None,
     ):
         """
         Args:
@@ -337,10 +360,17 @@ class DSPyReActV2Element(BasePipelineElement):
             output_field: Name of the signature's single output field. If None,
                 inferred from the agent's signature at runtime (must be a
                 signature with exactly one output).
+            defense: an optional `Defense` (from dspy_security_bench.defenses)
+                applied across three channels — tool output, instructions, and
+                query. None == no defense (identity).
         """
         self.agent_factory = agent_factory
         self.max_iters = max_iters
         self.output_field = output_field
+        if defense is None:
+            from dspy_security_bench.defenses import NoDefense
+            defense = NoDefense()
+        self.defense = defense
 
     def query(
         self,
@@ -350,12 +380,28 @@ class DSPyReActV2Element(BasePipelineElement):
         messages: Sequence[ChatMessage] = (),
         extra_args: dict = {},
     ) -> tuple[str, FunctionsRuntime, Env, Sequence[ChatMessage], dict]:
-        # 1) Bind AgentDojo tools as dspy.Tool closures
-        tools = [_make_dspy_tool(fn, runtime, env) for fn in runtime.functions.values()]
+        # 0) Defense — query channel. Compute the (possibly rewritten) query
+        #    first so query-aware tool defenses (e.g. sandwich) re-assert the
+        #    same task text the agent actually receives.
+        defended_query = self.defense.rewrite_query(query)
+
+        # 1) Bind AgentDojo tools, threading the defense into the tool-output
+        #    channel (where injected content enters the context).
+        tools = [
+            _make_dspy_tool(fn, runtime, env, defense=self.defense, user_query=defended_query)
+            for fn in runtime.functions.values()
+        ]
 
         # 2) Instantiate the agent with these tools
         agent = self.agent_factory(tools=tools, max_iters=self.max_iters)
         make_reactv2_picklable(agent)
+
+        # 2b) Defense — instructions channel. Augment the agent's system-prompt
+        #     instructions (composes on top of any optimized instructions).
+        inner = getattr(agent, "react", None)
+        if inner is not None and hasattr(inner, "signature"):
+            new_instructions = self.defense.rewrite_instructions(inner.signature.instructions)
+            inner.signature = inner.signature.with_instructions(new_instructions)
 
         # 3) Determine the output field name
         output_field = self.output_field
@@ -368,8 +414,8 @@ class DSPyReActV2Element(BasePipelineElement):
                 )
             output_field = output_fields[0]
 
-        # 4) Run the agent
-        agent_result = agent(query=query)
+        # 4) Run the agent (on the defended query)
+        agent_result = agent(query=defended_query)
 
         # 5) Translate trajectory → AgentDojo ChatMessages
         out_messages = list(messages)

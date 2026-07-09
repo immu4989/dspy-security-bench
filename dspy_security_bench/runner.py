@@ -53,13 +53,15 @@ def _build_pipeline(
     pipeline_name: str,
     max_iters: int,
     output_field: str | None,
+    defense=None,
 ) -> AgentPipeline:
     """Wrap a DSPy factory in the standard AgentDojo pipeline:
-    [InitQuery, DSPyReActV2Element(factory)]."""
+    [InitQuery, DSPyReActV2Element(factory, defense=defense)]."""
     element = DSPyReActV2Element(
         agent_factory=factory,
         max_iters=max_iters,
         output_field=output_field,
+        defense=defense,
     )
     pipeline = AgentPipeline([InitQuery(), element])
     pipeline.name = pipeline_name  # attacks use this for logging / attack targeting
@@ -74,6 +76,7 @@ def _suite_results_to_rows(
     optimizer_name: str,
     attack_name: str,
     suite_results: dict,
+    defense_name: str = "none",
 ) -> list[dict]:
     """Flatten a SuiteResults dict into per-(user_task, injection_task) rows.
 
@@ -94,6 +97,7 @@ def _suite_results_to_rows(
     for user_task_id, injection_task_id in sorted(all_keys):
         rows.append({
             "optimizer": optimizer_name,
+            "defense": defense_name,
             "attack": attack_name,
             "user_task_id": user_task_id,
             "injection_task_id": injection_task_id,
@@ -120,6 +124,7 @@ def evaluate_factories(
     logdir: Path | None = None,
     force_rerun: bool = True,
     verbose: bool = False,
+    defenses: Sequence[str] = ("none",),
 ) -> pd.DataFrame:
     """Run each (factory, attack) combination across the suite's user-task
     × injection-task matrix; return a flat DataFrame of results.
@@ -137,51 +142,70 @@ def evaluate_factories(
         force_rerun: ignore cached AgentDojo results.
         verbose: AgentDojo verbose mode.
     """
+    from dspy_security_bench.defenses import get_defense
+
     suite = get_suite(version, suite_name)
     all_rows: list[dict] = []
 
     for optimizer_name, factory in factories.items():
-        # AgentDojo's `important_instructions` attack scans the pipeline name
-        # for known model keys from agentdojo.models.MODEL_NAMES (e.g.
-        # "gpt-4o-mini-2024-07-18", "claude-3-5-sonnet-20241022"). We use the
-        # gpt-4o-mini key since that's our v0.1 execution + judge LM. Any
-        # caller using a different model should pass `pipeline_name_prefix`.
-        pipeline_name = f"gpt-4o-mini-2024-07-18_dspy_reactv2_{optimizer_name}"
-        pipeline = _build_pipeline(
-            factory=factory,
-            pipeline_name=pipeline_name,
-            max_iters=max_iters,
-            output_field=output_field,
-        )
-
-        for attack_name in attacks:
-            logger.info(f"  running optimizer={optimizer_name} × attack={attack_name}")
-            attack = load_attack(attack_name, suite, pipeline)
-
-            suite_results = benchmark_suite_with_injections(
-                agent_pipeline=pipeline,
-                suite=suite,
-                attack=attack,
-                logdir=logdir,
-                force_rerun=force_rerun,
-                user_tasks=list(user_task_ids) if user_task_ids else None,
-                injection_tasks=list(injection_task_ids) if injection_task_ids else None,
-                verbose=verbose,
+        for defense_name in defenses:
+            defense = get_defense(defense_name)
+            # AgentDojo's `important_instructions` attack scans the pipeline
+            # name for known model keys from agentdojo.models.MODEL_NAMES (e.g.
+            # "gpt-4o-mini-2024-07-18"). We keep that key so the attack targets
+            # consistently, and append optimizer+defense so each run's log/cache
+            # key is distinct.
+            pipeline_name = (
+                f"gpt-4o-mini-2024-07-18_dspy_reactv2_{optimizer_name}_def-{defense_name}"
+            )
+            pipeline = _build_pipeline(
+                factory=factory,
+                pipeline_name=pipeline_name,
+                max_iters=max_iters,
+                output_field=output_field,
+                defense=defense,
             )
 
-            rows = _suite_results_to_rows(
-                optimizer_name=optimizer_name,
-                attack_name=attack_name,
-                suite_results=suite_results,
-            )
-            all_rows.extend(rows)
+            for attack_name in attacks:
+                logger.info(
+                    f"  running optimizer={optimizer_name} × defense={defense_name} "
+                    f"× attack={attack_name}"
+                )
+                attack = load_attack(attack_name, suite, pipeline)
+
+                suite_results = benchmark_suite_with_injections(
+                    agent_pipeline=pipeline,
+                    suite=suite,
+                    attack=attack,
+                    logdir=logdir,
+                    force_rerun=force_rerun,
+                    user_tasks=list(user_task_ids) if user_task_ids else None,
+                    injection_tasks=list(injection_task_ids) if injection_task_ids else None,
+                    verbose=verbose,
+                )
+
+                rows = _suite_results_to_rows(
+                    optimizer_name=optimizer_name,
+                    attack_name=attack_name,
+                    suite_results=suite_results,
+                    defense_name=defense_name,
+                )
+                all_rows.extend(rows)
 
     return pd.DataFrame(all_rows)
 
 
 def summarize(df: pd.DataFrame) -> pd.DataFrame:
-    """Quick aggregation: utility + security rates per (optimizer, attack)."""
-    grouped = df.groupby(["optimizer", "attack"]).agg(
+    """Quick aggregation: utility + security rates per group.
+
+    Groups by (optimizer, defense, attack) when a `defense` column is present
+    (defense-benchmark runs), else by (optimizer, attack) for backward
+    compatibility with pre-defenses result frames.
+    """
+    keys = ["optimizer", "attack"]
+    if "defense" in df.columns:
+        keys = ["optimizer", "defense", "attack"]
+    grouped = df.groupby(keys).agg(
         utility_rate=("utility", "mean"),
         security_rate=("security", "mean"),
         injection_success_rate=("injection_succeeded", "mean"),
