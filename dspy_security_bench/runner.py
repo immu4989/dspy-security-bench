@@ -165,34 +165,132 @@ def evaluate_factories(
                 output_field=output_field,
                 defense=defense,
             )
-
-            for attack_name in attacks:
-                logger.info(
-                    f"  running optimizer={optimizer_name} × defense={defense_name} "
-                    f"× attack={attack_name}"
-                )
-                attack = load_attack(attack_name, suite, pipeline)
-
-                suite_results = benchmark_suite_with_injections(
-                    agent_pipeline=pipeline,
-                    suite=suite,
-                    attack=attack,
-                    logdir=logdir,
-                    force_rerun=force_rerun,
-                    user_tasks=list(user_task_ids) if user_task_ids else None,
-                    injection_tasks=list(injection_task_ids) if injection_task_ids else None,
-                    verbose=verbose,
-                )
-
-                rows = _suite_results_to_rows(
-                    optimizer_name=optimizer_name,
-                    attack_name=attack_name,
-                    suite_results=suite_results,
-                    defense_name=defense_name,
-                )
-                all_rows.extend(rows)
+            all_rows.extend(_run_attack_matrix(
+                pipeline=pipeline,
+                suite=suite,
+                attacks=attacks,
+                subject_col="optimizer",
+                subject_name=optimizer_name,
+                defense_name=defense_name,
+                user_task_ids=user_task_ids,
+                injection_task_ids=injection_task_ids,
+                logdir=logdir,
+                force_rerun=force_rerun,
+                verbose=verbose,
+            ))
 
     return pd.DataFrame(all_rows)
+
+
+def _run_attack_matrix(
+    pipeline,
+    suite,
+    attacks: Sequence[str],
+    subject_col: str,
+    subject_name: str,
+    defense_name: str,
+    user_task_ids: Sequence[str] | None,
+    injection_task_ids: Sequence[str] | None,
+    logdir: Path | None,
+    force_rerun: bool,
+    verbose: bool,
+) -> list[dict]:
+    """Run every attack against one already-built pipeline and flatten to rows.
+
+    Shared by `evaluate_factories` (subject = optimizer) and `evaluate_agents`
+    (subject = agent). `subject_col` names the identity column in the output.
+    """
+    rows: list[dict] = []
+    for attack_name in attacks:
+        logger.info(
+            f"  running {subject_col}={subject_name} × defense={defense_name} "
+            f"× attack={attack_name}"
+        )
+        attack = load_attack(attack_name, suite, pipeline)
+        suite_results = benchmark_suite_with_injections(
+            agent_pipeline=pipeline,
+            suite=suite,
+            attack=attack,
+            logdir=logdir,
+            force_rerun=force_rerun,
+            user_tasks=list(user_task_ids) if user_task_ids else None,
+            injection_tasks=list(injection_task_ids) if injection_task_ids else None,
+            verbose=verbose,
+        )
+        for r in _suite_results_to_rows(
+            optimizer_name=subject_name,
+            attack_name=attack_name,
+            suite_results=suite_results,
+            defense_name=defense_name,
+        ):
+            # Rename the identity column so agent runs read as `agent`, not
+            # `optimizer`, while keeping the flatten helper generic.
+            if subject_col != "optimizer":
+                r[subject_col] = r.pop("optimizer")
+            rows.append(r)
+    return rows
+
+
+def evaluate_agents(
+    agents: dict,
+    suite_name: str = "workspace",
+    version: str = "v1",
+    attacks: Sequence[str] = ("direct",),
+    user_task_ids: Sequence[str] | None = None,
+    injection_task_ids: Sequence[str] | None = None,
+    logdir: Path | None = None,
+    force_rerun: bool = True,
+    verbose: bool = False,
+    defenses: Sequence[str] = ("none",),
+    pipeline_model_key: str = "gpt-4o-mini-2024-07-18",
+) -> pd.DataFrame:
+    """Benchmark generic `Agent` implementations (any framework) for
+    prompt-injection robustness across the defense × attack matrix.
+
+    The framework-agnostic sibling of `evaluate_factories`. Returns a flat
+    DataFrame with an `agent` column (instead of `optimizer`), plus `defense`,
+    `attack`, and per-task utility/security.
+
+    Args:
+        agents: mapping of display name → an object satisfying
+            `dspy_security_bench.agents.Agent`.
+        pipeline_model_key: a key present in agentdojo.models.MODEL_NAMES, used
+            so the `important_instructions` attack can target consistently
+            across agents (default: gpt-4o-mini's key, matching the rest of the
+            benchmark). Change only if you know what the attack does with it.
+    """
+    from dspy_security_bench.adapters.generic import GenericAgentElement
+    from dspy_security_bench.defenses import get_defense
+
+    suite = get_suite(version, suite_name)
+    all_rows: list[dict] = []
+
+    for agent_name, agent in agents.items():
+        for defense_name in defenses:
+            defense = get_defense(defense_name)
+            element = GenericAgentElement(agent=agent, defense=defense)
+            pipeline = AgentPipeline([InitQuery(), element])
+            pipeline.name = f"{pipeline_model_key}_generic_{_slug(agent_name)}_def-{defense_name}"
+            all_rows.extend(_run_attack_matrix(
+                pipeline=pipeline,
+                suite=suite,
+                attacks=attacks,
+                subject_col="agent",
+                subject_name=agent_name,
+                defense_name=defense_name,
+                user_task_ids=user_task_ids,
+                injection_task_ids=injection_task_ids,
+                logdir=logdir,
+                force_rerun=force_rerun,
+                verbose=verbose,
+            ))
+
+    return pd.DataFrame(all_rows)
+
+
+def _slug(s: str) -> str:
+    import re
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
 
 
 def summarize(df: pd.DataFrame) -> pd.DataFrame:
@@ -202,9 +300,10 @@ def summarize(df: pd.DataFrame) -> pd.DataFrame:
     (defense-benchmark runs), else by (optimizer, attack) for backward
     compatibility with pre-defenses result frames.
     """
-    keys = ["optimizer", "attack"]
+    subject = "agent" if "agent" in df.columns else "optimizer"
+    keys = [subject, "attack"]
     if "defense" in df.columns:
-        keys = ["optimizer", "defense", "attack"]
+        keys = [subject, "defense", "attack"]
     grouped = df.groupby(keys).agg(
         utility_rate=("utility", "mean"),
         security_rate=("security", "mean"),
