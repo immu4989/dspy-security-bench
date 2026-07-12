@@ -201,12 +201,18 @@ def _run_attack_matrix(
     (subject = agent). `subject_col` names the identity column in the output.
     """
     rows: list[dict] = []
+    from dspy_security_bench.attacks.adaptive import build_adaptive_attack, is_adaptive
+
     for attack_name in attacks:
         logger.info(
             f"  running {subject_col}={subject_name} × defense={defense_name} "
             f"× attack={attack_name}"
         )
-        attack = load_attack(attack_name, suite, pipeline)
+        if is_adaptive(attack_name):
+            # Defense-aware: the attack is crafted to defeat this cell's defense.
+            attack = build_adaptive_attack(attack_name, defense_name, suite, pipeline)
+        else:
+            attack = load_attack(attack_name, suite, pipeline)
         suite_results = benchmark_suite_with_injections(
             agent_pipeline=pipeline,
             suite=suite,
