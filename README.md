@@ -6,7 +6,7 @@
 [![dspy 3.3.0b1+](https://img.shields.io/badge/dspy-%E2%89%A53.3.0b1-FF6F61.svg)](https://github.com/stanfordnlp/dspy)
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
-[![status](https://img.shields.io/badge/status-v0.2.0-16A34A.svg)](#the-good-news-cheap-defenses-recover-it-v020)
+[![status](https://img.shields.io/badge/status-v0.3.0-16A34A.svg)](#scan-your-own-agent-v030)
 [![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
 [![HF results](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-v0.1%20results-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-v01-results)
 
@@ -21,8 +21,9 @@ optimization and prompt-injection security — have not measured this
 intersection. `dspy-security-bench` wires DSPy optimizers and AgentDojo
 attacks into one harness so the trade-off becomes visible.
 
-Running that harness across four model families turned up a bigger finding,
-below.
+Running that harness across four model families turned up a bigger finding
+(below) — and the benchmark has since grown into a tool you can point at your
+*own* agent and gate in CI ([jump to it](#scan-your-own-agent-v030)).
 
 ---
 
@@ -117,6 +118,57 @@ df = evaluate_factories(
     defenses=["none", "security_prompt", "spotlight_delim"],  # the new axis
 )
 ```
+
+---
+
+## Scan your own agent (v0.3.0)
+
+The findings above motivate a tool: if a routine model upgrade can silently
+take your agent from safe to exploitable, you want to *catch that in CI*.
+v0.3.0 makes the benchmark usable against **any** agent, not just the DSPy
+programs it was built on.
+
+**Benchmark any agent.** Implement a five-line `Agent`, or use the built-in
+function-calling agent over any litellm model (OpenAI, Anthropic, Mistral,
+DeepSeek, local vLLM/Ollama) — no DSPy required:
+
+```python
+from dspy_security_bench.agents import LiteLLMFunctionCallingAgent
+from dspy_security_bench.runner import evaluate_agents
+
+df = evaluate_agents(
+    agents={"my-agent": LiteLLMFunctionCallingAgent("openai/gpt-4o-mini")},
+    attacks=["direct", "important_instructions"],
+    defenses=["none", "security_prompt"],
+)
+```
+
+**Gate CI on it.** `dspy-security-bench scan` runs the benchmark, applies a
+pass/fail policy, and exits non-zero so a bad PR is blocked:
+
+```console
+$ dspy-security-bench scan --agent-model openai/gpt-4o --min-security 0.9
+ ✗ openai/gpt-4o   none   important_instructions   50%
+ [FAIL] followed injected instructions ... security 50% < gate 90%
+ Verdict: FAIL  (exit 1)
+```
+
+The flagship mode is **regression**: commit a baseline on `main`, and any PR
+that upgrades the model and loses injection-safety fails the check with the
+drop named — exactly the `Mistral Small → Large` collapse a capability
+benchmark would wave through.
+
+**Fits your existing security workflow.** Findings render to SARIF and map to
+**OWASP LLM01 (Prompt Injection)**, with **NIST AI 100-2** and **MITRE ATLAS**
+references, so they surface natively in the GitHub Security tab. Copy the
+[GitHub Action template](examples/injection-scan.yml) and see
+[`docs/ci.md`](docs/ci.md) for the full setup.
+
+> **What a PASS means:** the scan tests a *fixed* set of known attacks. A PASS
+> means the agent resisted those at the configured scale — a regression floor,
+> **not** a certificate against an adaptive adversary. Adaptive, defense-aware
+> attacks are on the roadmap; until then, treat green as "no known regression,"
+> not "safe."
 
 ---
 
@@ -323,7 +375,7 @@ Outputs:
 # install with dev extras (pytest, ruff, pytest-cov)
 uv pip install -e ".[dev]"
 
-# run the full test suite (61 tests, all offline / mocked — no API key needed)
+# run the full test suite (99 tests, all offline / no API key needed)
 pytest tests/ -v
 
 # linting
@@ -366,8 +418,9 @@ v0.1 scope choices:
 | v0.1.2 / v0.1.3 — cross-model probes (DeepSeek V3, Mistral Small) | **shipped** |
 | v0.1.4 — Mistral Large: capability and injection-robustness are separable axes | **shipped** |
 | v0.2.0 — defenses module: cheap mitigations fully recover Mistral Large's security | **shipped** |
-| v0.2.x — generalize the defense result to more vulnerable models / suites | planned |
-| v0.3 — powered cross-model study + adaptive attacks vs. the defenses | planned |
+| v0.3.0 — generic agent adapter + `scan` CI gate (SARIF, OWASP/NIST/ATLAS) — benchmark ANY agent | **shipped** |
+| v0.3.x — adaptive, defense-aware attacks (so a PASS means something vs. a real adversary) | planned |
+| v0.4 — generalize the capability-vs-robustness + defense results across more models / suites | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work
