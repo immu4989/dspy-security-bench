@@ -1,0 +1,44 @@
+# Copy to .github/workflows/injection-scan.yml in your repo.
+#
+# Gates PRs on the prompt-injection robustness of your agent and surfaces
+# findings in the GitHub Security tab. Fails the check (blocking merge) if the
+# agent regresses below the gate configured in .dspy-security-bench.yaml.
+name: injection-scan
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write   # required to upload SARIF to the Security tab
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install dspy-security-bench
+
+      - name: Run injection scan
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # add whichever provider keys your agent needs, e.g.:
+          # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+        run: |
+          dspy-security-bench scan \
+            --config .dspy-security-bench.yaml \
+            --sarif dsb.sarif
+
+      # Upload findings to the Security tab even if the gate failed.
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: dsb.sarif

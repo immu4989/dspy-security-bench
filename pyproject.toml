@@ -42,6 +42,7 @@ dependencies = [
     "numpy>=1.24",
     "sentence-transformers>=3.0",
     "pydantic>=2.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -61,6 +62,8 @@ Repository = "https://github.com/immu4989/dspy-security-bench"
 Issues = "https://github.com/immu4989/dspy-security-bench/issues"
 
 [project.scripts]
+dspy-security-bench = "dspy_security_bench.cli:main"
+dspy-security-bench-scan = "dspy_security_bench.scan.cli:main"
 dspy-security-bench-synthesize = "dspy_security_bench.synthesis.generator:_cli"
 dspy-security-bench-validate = "dspy_security_bench.synthesis.validator:_cli"
 
