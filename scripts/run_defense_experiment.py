@@ -50,6 +50,8 @@ def main():
     p.add_argument("--num-threads", type=int, default=1)
     p.add_argument("--num-retries", type=int, default=10)
     p.add_argument("--defenses", nargs="+", default=available_defenses())
+    p.add_argument("--attacks", nargs="+", default=ATTACKS)
+    p.add_argument("--tag", default=None, help="suffix for output filenames (e.g. 'adaptive')")
     args = p.parse_args()
 
     litellm.drop_params = True
@@ -68,15 +70,15 @@ def main():
     factories = {"unoptimized": _make_agent_factory(None, base_signature="query -> answer")}
 
     log.info(f"defense experiment: {args.model}")
-    log.info(f"defenses={args.defenses} attacks={ATTACKS}")
-    n = len(args.defenses) * len(ATTACKS) * len(USER_TASK_IDS) * len(INJECTION_TASK_IDS)
+    log.info(f"defenses={args.defenses} attacks={args.attacks}")
+    n = len(args.defenses) * len(args.attacks) * len(USER_TASK_IDS) * len(INJECTION_TASK_IDS)
     log.info(f"total evals: {n}")
 
     t0 = time.time()
     df = evaluate_factories(
         factories=factories,
         suite_name=SUITE,
-        attacks=ATTACKS,
+        attacks=args.attacks,
         user_task_ids=USER_TASK_IDS,
         injection_task_ids=INJECTION_TASK_IDS,
         max_iters=MAX_ITERS,
@@ -86,8 +88,9 @@ def main():
     )
     log.info(f"done in {time.time() - t0:.1f}s — {len(df)} rows")
 
-    results_path = RESULTS_DIR / f"workspace_defense_{slug}_results.csv"
-    summary_path = RESULTS_DIR / f"workspace_defense_{slug}_summary.csv"
+    suffix = f"_{args.tag}" if args.tag else ""
+    results_path = RESULTS_DIR / f"workspace_defense_{slug}{suffix}_results.csv"
+    summary_path = RESULTS_DIR / f"workspace_defense_{slug}{suffix}_summary.csv"
     df.to_csv(results_path, index=False)
     summary = summarize(df)
     summary.to_csv(summary_path, index=False)

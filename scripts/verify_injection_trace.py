@@ -50,7 +50,11 @@ def main():
     pipeline = AgentPipeline([InitQuery(), element])
     pipeline.name = f"gpt-4o-mini-2024-07-18_dspy_reactv2_unoptimized"
 
-    attack = load_attack(args.attack, suite, pipeline)
+    from dspy_security_bench.attacks.adaptive import build_adaptive_attack, is_adaptive
+    if is_adaptive(args.attack):
+        attack = build_adaptive_attack(args.attack, args.defense, suite, pipeline)
+    else:
+        attack = load_attack(args.attack, suite, pipeline)
 
     user_task = suite.user_tasks[args.user_task]
     injection_task = suite.injection_tasks[args.injection_task]
