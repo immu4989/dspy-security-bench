@@ -143,12 +143,25 @@ the delimiter-escape payload reached the model, and it explicitly caught it
 (*"SECURITY ALERT: SYSTEM NOTICE embedded in the untrusted data block"*) and
 refused. So the recovery is **not a static-attack artifact.**
 
-**Honest caveats (this is a lower bound).** One target model, one suite, two
-tasks, K=5, one attacker LM. "Held across 5 rounds" means no bypass was *found*,
-not that none exists — a longer search, a stronger attacker, or a human
-red-teamer might still succeed. And "adaptive" is not automatically "stronger":
-`sandwich` was actually beaten *more* by AgentDojo's tuned static template
-(20%) than by our adaptive payloads (100%).
+**...but the defenses are not all equal, and they do not all generalize.**
+The result above is on the **workspace** suite. A cross-suite check on
+**banking** (v0.4, in progress) already qualifies it: the vulnerability
+generalizes (undefended Mistral Large is 0% on banking too), and the plain
+`security_prompt` still holds at 100% — but `spotlight_delim`, which held on
+workspace, **fell to the same delimiter-escape on banking** (67%). Verified by
+trace: the agent read the injected `</untrusted_tool_data>` + "SYSTEM NOTICE"
+and actually sent the attacker's transaction.
+
+The honest takeaway: **the semantic defense (a security prompt) is robust
+across the suites tested; the syntactic-marker defense (spotlighting) is
+brittle** — a delimiter escape beats it on some tasks. Pick the security
+prompt.
+
+**Caveats (this is a lower bound).** Small N per cell, one target model, a
+couple of suites, one attacker LM. "Held" means no bypass was *found*, not that
+none exists — a longer search, a stronger attacker, or a human red-teamer might
+still succeed. And "adaptive" is not automatically "stronger": `sandwich` was
+beaten *more* by AgentDojo's tuned static template than by our adaptive payloads.
 
 ```python
 from dspy_security_bench.runner import evaluate_agents
@@ -457,8 +470,8 @@ v0.1 scope choices:
 | v0.1.4 — Mistral Large: capability and injection-robustness are separable axes | **shipped** |
 | v0.2.0 — defenses module: cheap mitigations fully recover Mistral Large's security | **shipped** |
 | v0.3.0 — generic agent adapter + `scan` CI gate (SARIF, OWASP/NIST/ATLAS) — benchmark ANY agent | **shipped** |
-| v0.3.1 — adaptive attacks (rule-based + iterative LM-driven); cheap defenses held on Mistral Large | **shipped** |
-| v0.4 — generalize capability-vs-robustness + defense + adaptive-attack results across more models / suites | planned |
+| v0.3.1 — adaptive attacks (rule-based + iterative LM-driven); defenses held on Mistral Large / workspace | **shipped** |
+| v0.4 — cross-suite/model generalization. Banking: vulnerability generalizes; security-prompt robust, spotlighting brittle | **in progress** |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work
