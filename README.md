@@ -6,7 +6,7 @@
 [![dspy 3.3.0b1+](https://img.shields.io/badge/dspy-%E2%89%A53.3.0b1-FF6F61.svg)](https://github.com/stanfordnlp/dspy)
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
-[![status](https://img.shields.io/badge/status-v0.3.0-16A34A.svg)](#scan-your-own-agent-v030)
+[![status](https://img.shields.io/badge/status-v0.3.1-16A34A.svg)](#but-do-the-defenses-survive-an-adaptive-attacker-v031)
 [![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
 [![HF results](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-v0.1%20results-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-v01-results)
 
@@ -121,6 +121,45 @@ df = evaluate_factories(
 
 ---
 
+## But do the defenses survive an *adaptive* attacker? (v0.3.1)
+
+The v0.2.0 recovery was measured against fixed attack templates. The obvious
+skeptical question: does it hold against an attacker who *knows* the defense is
+there and adapts? v0.3.1 adds two tiers of defense-aware attacks and answers it.
+
+![Do the cheap defenses survive an adaptive attacker?](assets/adaptive_attack_ladder.png)
+
+- **Rule-based adaptive** — hand-crafted payloads targeting each defense's
+  mechanism (delimiter escape vs. spotlighting, authority escalation vs. the
+  security prompt, task-hijack vs. sandwich).
+- **LM-driven adaptive** — an iterative attacker (PAIR/TAP-style): a strong
+  attacker LM proposes an injection, sees the defended agent's actual response,
+  and refines over K rounds.
+
+On Mistral Large / workspace, **all four cheap defenses held at every tier** —
+including against the LM-driven attacker, which **provably breaks the undefended
+agent** on both tasks (the control) with escalating payloads. Verified by trace:
+the delimiter-escape payload reached the model, and it explicitly caught it
+(*"SECURITY ALERT: SYSTEM NOTICE embedded in the untrusted data block"*) and
+refused. So the recovery is **not a static-attack artifact.**
+
+**Honest caveats (this is a lower bound).** One target model, one suite, two
+tasks, K=5, one attacker LM. "Held across 5 rounds" means no bypass was *found*,
+not that none exists — a longer search, a stronger attacker, or a human
+red-teamer might still succeed. And "adaptive" is not automatically "stronger":
+`sandwich` was actually beaten *more* by AgentDojo's tuned static template
+(20%) than by our adaptive payloads (100%).
+
+```python
+from dspy_security_bench.runner import evaluate_agents
+# rule-based adaptive: attack auto-targets the active defense per cell
+df = evaluate_agents(agents={"m": agent}, attacks=["adaptive"],
+                     defenses=["none", "spotlight_delim", "security_prompt"])
+# LM-driven iterative attacker: scripts/run_lm_driven_attack.py
+```
+
+---
+
 ## Scan your own agent (v0.3.0)
 
 The findings above motivate a tool: if a routine model upgrade can silently
@@ -164,11 +203,10 @@ references, so they surface natively in the GitHub Security tab. Copy the
 [GitHub Action template](examples/injection-scan.yml) and see
 [`docs/ci.md`](docs/ci.md) for the full setup.
 
-> **What a PASS means:** the scan tests a *fixed* set of known attacks. A PASS
-> means the agent resisted those at the configured scale — a regression floor,
-> **not** a certificate against an adaptive adversary. Adaptive, defense-aware
-> attacks are on the roadmap; until then, treat green as "no known regression,"
-> not "safe."
+> **What a PASS means:** the scan tests a set of known attacks (static, and — as
+> of v0.3.1 — defense-aware adaptive ones). A PASS means the agent resisted those
+> at the configured scale: a regression floor, **not** a certificate against an
+> unbounded adaptive adversary. Treat green as "no known bypass found," not "safe."
 
 ---
 
@@ -419,8 +457,8 @@ v0.1 scope choices:
 | v0.1.4 — Mistral Large: capability and injection-robustness are separable axes | **shipped** |
 | v0.2.0 — defenses module: cheap mitigations fully recover Mistral Large's security | **shipped** |
 | v0.3.0 — generic agent adapter + `scan` CI gate (SARIF, OWASP/NIST/ATLAS) — benchmark ANY agent | **shipped** |
-| v0.3.x — adaptive, defense-aware attacks (so a PASS means something vs. a real adversary) | planned |
-| v0.4 — generalize the capability-vs-robustness + defense results across more models / suites | planned |
+| v0.3.1 — adaptive attacks (rule-based + iterative LM-driven); cheap defenses held on Mistral Large | **shipped** |
+| v0.4 — generalize capability-vs-robustness + defense + adaptive-attack results across more models / suites | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work
