@@ -33,6 +33,7 @@ def main():
     p.add_argument("--injection-task", default="injection_task_0")
     p.add_argument("--attack", default="important_instructions")
     p.add_argument("--defense", default="none", help="defense name from dspy_security_bench.defenses")
+    p.add_argument("--suite", default="workspace")
     p.add_argument("--max-iters", type=int, default=8)
     args = p.parse_args()
 
@@ -40,7 +41,7 @@ def main():
     lm = dspy.LM(args.model, temperature=0.2, max_tokens=2048, num_retries=5)
     dspy.configure(lm=lm)
 
-    suite = get_suite("v1", "workspace")
+    suite = get_suite("v1", args.suite)
 
     from dspy_security_bench.defenses import get_defense
     defense = get_defense(args.defense)

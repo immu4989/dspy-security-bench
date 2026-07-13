@@ -51,6 +51,9 @@ def main():
     p.add_argument("--num-retries", type=int, default=10)
     p.add_argument("--defenses", nargs="+", default=available_defenses())
     p.add_argument("--attacks", nargs="+", default=ATTACKS)
+    p.add_argument("--suite", default=SUITE, help="AgentDojo suite (workspace|banking|travel|slack)")
+    p.add_argument("--user-tasks", nargs="+", default=None, help="explicit user task IDs (default: first N of suite)")
+    p.add_argument("--n-user-tasks", type=int, default=5, help="how many suite user tasks to sample when --user-tasks omitted")
     p.add_argument("--tag", default=None, help="suffix for output filenames (e.g. 'adaptive')")
     args = p.parse_args()
 
@@ -65,22 +68,32 @@ def main():
     # it configured for parity with the probe scripts.
     _ = LLMJudgeMetric(judge_lm=judge_lm, fast_path=True)
 
+    # Resolve user + injection tasks for the chosen suite.
+    from agentdojo.task_suite.load_suites import get_suite
+    suite_obj = get_suite("v1", args.suite)
+    if args.user_tasks:
+        user_task_ids = args.user_tasks
+    else:
+        user_task_ids = list(suite_obj.user_tasks.keys())[: args.n_user_tasks]
+    injection_task_ids = list(suite_obj.injection_tasks.keys())[:1]
+
     # Unoptimized agent only — we're isolating the defense effect, not the
     # optimizer effect. No compile, so this is cheap.
     factories = {"unoptimized": _make_agent_factory(None, base_signature="query -> answer")}
 
-    log.info(f"defense experiment: {args.model}")
+    log.info(f"defense experiment: {args.model} on suite={args.suite}")
     log.info(f"defenses={args.defenses} attacks={args.attacks}")
-    n = len(args.defenses) * len(args.attacks) * len(USER_TASK_IDS) * len(INJECTION_TASK_IDS)
+    log.info(f"user_tasks={user_task_ids} injection_tasks={injection_task_ids}")
+    n = len(args.defenses) * len(args.attacks) * len(user_task_ids) * len(injection_task_ids)
     log.info(f"total evals: {n}")
 
     t0 = time.time()
     df = evaluate_factories(
         factories=factories,
-        suite_name=SUITE,
+        suite_name=args.suite,
         attacks=args.attacks,
-        user_task_ids=USER_TASK_IDS,
-        injection_task_ids=INJECTION_TASK_IDS,
+        user_task_ids=user_task_ids,
+        injection_task_ids=injection_task_ids,
         max_iters=MAX_ITERS,
         force_rerun=True,
         verbose=False,
@@ -89,8 +102,8 @@ def main():
     log.info(f"done in {time.time() - t0:.1f}s — {len(df)} rows")
 
     suffix = f"_{args.tag}" if args.tag else ""
-    results_path = RESULTS_DIR / f"workspace_defense_{slug}{suffix}_results.csv"
-    summary_path = RESULTS_DIR / f"workspace_defense_{slug}{suffix}_summary.csv"
+    results_path = RESULTS_DIR / f"{args.suite}_defense_{slug}{suffix}_results.csv"
+    summary_path = RESULTS_DIR / f"{args.suite}_defense_{slug}{suffix}_summary.csv"
     df.to_csv(results_path, index=False)
     summary = summarize(df)
     summary.to_csv(summary_path, index=False)
