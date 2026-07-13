@@ -31,8 +31,8 @@ DEFENSE_LABEL = {
     "spotlight_delim": "spotlight\ndelimiting",
 }
 ATTACK_STYLE = {
-    "direct": ("#059669", "direct attack"),
-    "important_instructions": ("#E11D48", "important_instructions (harder)"),
+    "direct": ("#4F46E5", "direct attack"),
+    "important_instructions": ("#F59E0B", "important_instructions (harder)"),
 }
 
 

@@ -49,7 +49,7 @@ def _lm_driven_security() -> dict:
 TIERS = [
     ("static attack", "#94A3B8", STATIC),
     ("rule-based adaptive", "#F59E0B", RULE),
-    ("LM-driven adaptive (K=5)", "#E11D48", None),  # filled from audit log
+    ("LM-driven adaptive (K=5)", "#4F46E5", None),  # filled from audit log
 ]
 
 
