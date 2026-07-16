@@ -32,7 +32,7 @@ plt.rcParams["animation.ffmpeg_path"] = imageio_ffmpeg.get_ffmpeg_exe()
 plt.rcParams["font.family"] = "DejaVu Sans"
 
 # dark palette
-BG = "#0d1117"
+BG = "#12102e"  # deep indigo-navy, ties into the indigo/amber chart branding
 INK = "#e6edf3"
 INK2 = "#9aa4b2"
 MUTED = "#5b6673"
