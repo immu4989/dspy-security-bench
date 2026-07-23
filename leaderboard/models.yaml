@@ -47,3 +47,13 @@ models:
     family: Cerebras
     display_name: GLM 4.6
     provider_env: CEREBRAS_API_KEY
+
+  - model_id: together_ai/meta-llama/Llama-3.3-70B-Instruct-Turbo
+    family: Meta
+    display_name: Llama 3.3 70B
+    provider_env: TOGETHER_API_KEY
+
+  - model_id: together_ai/Qwen/Qwen2.5-7B-Instruct-Turbo
+    family: Alibaba
+    display_name: Qwen2.5 7B
+    provider_env: TOGETHER_API_KEY
