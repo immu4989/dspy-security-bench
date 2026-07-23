@@ -1,0 +1,49 @@
+# Leaderboard model registry.
+#
+# Each entry is one model to measure under leaderboard/protocol.yaml. `model_id`
+# MUST be a pinned version string (never a "-latest" alias) so a row means one
+# thing forever. To propose a model, open an "Add model" issue; the maintainer
+# runs the frozen runner and commits the result.
+#
+# `provider_env` names the env var that must hold the API key (never commit keys).
+
+models:
+  - model_id: openai/gpt-4o-mini-2024-07-18
+    family: OpenAI
+    display_name: gpt-4o-mini
+    provider_env: OPENAI_API_KEY
+
+  - model_id: mistral/mistral-large-2411
+    family: Mistral
+    display_name: Mistral Large
+    provider_env: MISTRAL_API_KEY
+
+  - model_id: mistral/mistral-medium-2505
+    family: Mistral
+    display_name: Mistral Medium
+    provider_env: MISTRAL_API_KEY
+
+  - model_id: mistral/mistral-small-2506
+    family: Mistral
+    display_name: Mistral Small
+    provider_env: MISTRAL_API_KEY
+
+  - model_id: deepseek/deepseek-chat
+    family: DeepSeek
+    display_name: DeepSeek V3
+    provider_env: DEEPSEEK_API_KEY
+
+  - model_id: gemini/gemini-2.0-flash
+    family: Google
+    display_name: Gemini 2.0 Flash
+    provider_env: GEMINI_API_KEY
+
+  - model_id: cerebras/gpt-oss-120b
+    family: Cerebras
+    display_name: gpt-oss-120b
+    provider_env: CEREBRAS_API_KEY
+
+  - model_id: cerebras/zai-glm-4.6
+    family: Cerebras
+    display_name: GLM 4.6
+    provider_env: CEREBRAS_API_KEY
