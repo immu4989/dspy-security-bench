@@ -55,8 +55,11 @@ def main() -> None:
         if not args.dry_run:
             row.update({
                 "combined_R": sc["combined_R"],
+                "combined_ci_low": sc["combined_ci_low"],
+                "combined_ci_high": sc["combined_ci_high"],
                 "bucket": sc["bucket"],
                 "ci_halfwidth": sc["ci_halfwidth"],
+                "ci_within_bucket": sc["ci_within_bucket"],
                 "bucket_stable": sc["bucket_stable"],
                 "combined_per_repeat_R": sc["combined_per_repeat_R"],
                 "status": new_status,
