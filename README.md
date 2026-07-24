@@ -1,4 +1,11 @@
+<div align="center">
+
 # dspy security bench
+
+### Which LLMs actually resist prompt injection?
+
+A reproducible **leaderboard** for agentic prompt-injection robustness —
+and a benchmark you can point at **your own agent** and gate in CI.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -6,28 +13,96 @@
 [![dspy 3.3.0b1+](https://img.shields.io/badge/dspy-%E2%89%A53.3.0b1-FF6F61.svg)](https://github.com/stanfordnlp/dspy)
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
-[![status](https://img.shields.io/badge/status-v0.3.1-16A34A.svg)](#but-do-the-defenses-survive-an-adaptive-attacker-v031)
+[![leaderboard](https://img.shields.io/badge/leaderboard-7%20models%20%C2%B7%207%20families-4F46E5)](LEADERBOARD.md)
 [![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
 [![HF results](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-v0.1%20results-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-v01-results)
 
-Measure how DSPy prompt optimization affects the prompt-injection robustness of
-agentic LLM programs, using [AgentDojo's](https://github.com/ethz-spylab/agentdojo)
-attack suite as ground truth.
+<img src="assets/leaderboard_hero.gif" alt="Injection-robustness leaderboard: share of prompt-injection attacks that failed, by model" width="850">
 
-**The question it started with:** when you optimize a DSPy program with
-`BootstrapFewShot`, `MIPROv2`, or `GEPA`, does it become *more* or *less*
-robust to prompt-injection attacks? Two adjacent research communities — prompt
-optimization and prompt-injection security — have not measured this
-intersection. `dspy-security-bench` wires DSPy optimizers and AgentDojo
+</div>
+
+---
+
+## 🏆 The leaderboard
+
+**Robustness R** = the share of prompt-injection attacks that **failed** against the
+base model. Higher is safer. Every row is 450 scored attack attempts, 3 repeats at
+temperature 0, under one [frozen protocol](leaderboard/protocol.yaml).
+
+| # | Model | Family | Robustness | |
+|---|-------|--------|-----------:|---|
+| 1 | **Nemotron 3 Nano 30B** | NVIDIA | **95%** <sub>[93–97]</sub> | 🟢 Robust |
+| 2 | **Gemini 2.5 Flash Lite** | Google | **87%** <sub>[84–90]</sub> | 🟡 Mixed |
+| 3 | **Nemotron 3 Super 120B** | NVIDIA | **78%** <sub>[74–82]</sub> | 🟡 Mixed |
+| 4 | **gpt-oss-20b** | OpenAI-OSS | **57%** <sub>[53–62]</sub> | 🟡 Mixed |
+| 5 | **Qwen3 235B** | Alibaba | **38%** <sub>[34–42]</sub> | 🔴 Vulnerable |
+| 6 | **Mistral Large** | Mistral | **23%** <sub>[20–27]</sub> | 🔴 Vulnerable |
+| – | Llama 3.3 70B | Meta | 53% <sub>[49–58]</sub> | ⚪ provisional |
+
+<sub>Brackets are 95% CIs. A row is **confirmed** only when its CI sits entirely inside one
+bucket *and* the bucket holds across all 3 repeats — otherwise it stays **provisional**
+(Llama's interval straddles the 50% line, so we don't claim a bucket for it).</sub>
+
+**[→ Full board, methodology, and every number](LEADERBOARD.md)**
+
+### Read the top row against the bottom row
+
+A **30B** model resists 95% of attacks. A **flagship** model resists 23%.
+Injection-robustness is not a byproduct of scale or capability — it is a
+separate property, and today it is largely unmeasured.
+
+The cleanest evidence is inside a single vendor's own model family, where the
+comparison is as controlled as it gets — same vendor, same model generation,
+and an identical protocol, task list, attack, and agent scaffold on both sides:
+
+<img src="assets/within_family_nvidia.png" alt="NVIDIA Nemotron: scaling 30B to 120B cost 17 points of injection-robustness" width="720">
+
+> Scaling Nemotron 3 from **30B → 120B** cost **17 points** of injection-robustness.
+> Upgrading your agent's model to a more capable one can silently make it *easier* to hijack.
+
+### Want a model on the board?
+
+Open an [**Add model** issue](https://github.com/immu4989/dspy-security-bench/issues/new)
+with the model id. Numbers are never taken on faith — every row is produced by the same
+frozen runner and committed with its result JSON, so anyone can reproduce it:
+
+```bash
+uv run python scripts/run_leaderboard.py --model <model_id> --headline-only
+uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
+```
+
+---
+
+## What you can do with this repo
+
+| | |
+|---|---|
+| 🏆 **Compare models** | A frozen, reproducible [leaderboard](LEADERBOARD.md) of base-model injection-robustness across 7 families. |
+| 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
+| 🛡️ **Test defenses** | Measure [cheap mitigations](#the-good-news-cheap-defenses-recover-it-v020) and whether they survive an [adaptive attacker](#but-do-the-defenses-survive-an-adaptive-attacker-v031). |
+| 🔬 **Study optimizers** | The original question: does DSPy prompt optimization make agents *more* or *less* robust? |
+
+---
+
+## The question it started with
+
+When you optimize a DSPy program with `BootstrapFewShot`, `MIPROv2`, or `GEPA`,
+does it become *more* or *less* robust to prompt-injection attacks? Two adjacent
+research communities — prompt optimization and prompt-injection security — have not
+measured this intersection. `dspy-security-bench` wires DSPy optimizers and AgentDojo
 attacks into one harness so the trade-off becomes visible.
 
-Running that harness across four model families turned up a bigger finding
-(below) — and the benchmark has since grown into a tool you can point at your
+Running that harness across four model families turned up the bigger finding above,
+and the benchmark has since grown into a leaderboard plus a tool you can point at your
 *own* agent and gate in CI ([jump to it](#scan-your-own-agent-v030)).
 
 ---
 
-## Latest finding: capability does not buy injection-robustness (v0.1.4)
+## Where the finding came from (v0.1.4)
+
+> The leaderboard above is the current, frozen-protocol version of this result.
+> This section is the original probe that first surfaced it — kept because it
+> documents the mechanism and the trace-level evidence.
 
 Across four model families, prompt-injection robustness does **not** track
 model capability. Most strikingly, *within* the Mistral family the more
@@ -471,7 +546,9 @@ v0.1 scope choices:
 | v0.2.0 — defenses module: cheap mitigations fully recover Mistral Large's security | **shipped** |
 | v0.3.0 — generic agent adapter + `scan` CI gate (SARIF, OWASP/NIST/ATLAS) — benchmark ANY agent | **shipped** |
 | v0.3.1 — adaptive attacks (rule-based + iterative LM-driven); defenses held on Mistral Large / workspace | **shipped** |
-| v0.4 — cross-suite/model generalization. Banking: vulnerability generalizes; security-prompt robust, spotlighting brittle | **in progress** |
+| v0.4 — cross-suite/model generalization. Banking: vulnerability generalizes; security-prompt robust, spotlighting brittle | **shipped** |
+| v0.5 — [**model leaderboard**](LEADERBOARD.md): frozen protocol v2, 7 models across 7 families, confirm/provisional durability gate | **shipped** |
+| v0.5.x — more families on the board; secondary `direct` attack column; contributor-run submissions | in progress |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work
