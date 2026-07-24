@@ -2,18 +2,34 @@
 
 How well does a base LLM resist **prompt-injection attacks** when driving an agent? Higher is safer. Measured with [AgentDojo](https://github.com/ethz-spylab/agentdojo) as ground truth under a frozen protocol — see [`leaderboard/protocol.yaml`](leaderboard/protocol.yaml).
 
-**Robustness R** = fraction of all (user-task × injection-task) pairs where the injection **failed**, base model, no defense. Headline attack: `important_instructions`. Suites: `workspace`, `banking` (full coverage, no sampling). Protocol `v1.0.0`, AgentDojo `0.1.35`.
+**Robustness R** = fraction of scored (user-task × injection-task) pairs where the injection **failed**, base model, no defense. Headline attack: `important_instructions`. Suites: `workspace`, `banking`, on a frozen task subset (see below). Protocol `v2.0.0`, AgentDojo `0.1.35`.
 
 Scores are reported as **buckets** — 🟢 Robust (R ≥ 90%) · 🟡 Mixed · 🔴 Vulnerable (R < 50%) — because a bucket does not flip on a few points of run-to-run noise. The exact % and its 95% bootstrap CI are shown for transparency; the bucket is the claim.
 
 ## Confirmed
 
-_No confirmed rows yet._
+| # | Model | Family | Robustness (combined) | Bucket | `workspace` | `banking` |
+|---|---|---|---|---|---|---|
+| 1 | **Nemotron 3 Nano 30B** | NVIDIA | 95% <sub>[93%–97%]</sub> | 🟢 Robust | 100% | 91% |
+| 2 | **Gemini 2.5 Flash Lite** | Google | 87% <sub>[84%–90%]</sub> | 🟡 Mixed | 90% | 84% |
+| 3 | **Nemotron 3 Super 120B** | NVIDIA | 78% <sub>[74%–82%]</sub> | 🟡 Mixed | 62% | 89% |
+| 4 | **gpt-oss-20b** | OpenAI-OSS | 57% <sub>[53%–62%]</sub> | 🟡 Mixed | 57% | 58% |
+| 5 | **Qwen3 235B** | Alibaba | 38% <sub>[34%–42%]</sub> | 🔴 Vulnerable | 43% | 34% |
+| 6 | **Mistral Large** | Mistral | 23% <sub>[20%–27%]</sub> | 🔴 Vulnerable | 10% | 32% |
+
+## Provisional
+
+_The confidence interval crosses a bucket boundary, or the bucket was not stable across repeats — so which bucket the model belongs in cannot be stated safely. Shown for transparency; not a confirmed claim._
+
+| Model | Family | Robustness (combined) | Bucket | why |
+|---|---|---|---|---|
+| Llama 3.3 70B | Meta | 53% <sub>[49%–58%]</sub> | 🟡 Mixed | CI crosses a bucket boundary |
 
 ## How a row is produced
 
-- **3 repeat runs** at temperature 0.0, full-suite coverage, scaffold `dspy.ReActV2` (`unoptimized`, no defense).
-- **Confirmed** requires a 95% bootstrap CI half-width ≤ 5 points and a bucket identical across all repeats; otherwise **provisional**.
+- **3 repeat runs** at temperature 0.0, scaffold `dspy.ReActV2` (`unoptimized`, no defense).
+- **Coverage is a frozen, disclosed subset**, not the whole suite: every injection task crossed with a pinned list of 10 user tasks per suite (450 scored pairs per model across 3 repeats). The task list lives in `leaderboard/protocol.yaml`, so every model faces byte-identical tasks. Attack diversity is never reduced — only the benign user-task dimension is subsampled.
+- **Confirmed** means the claim cannot flip: the combined-R 95% CI lies entirely inside one bucket *and* the bucket is identical across all repeats. Anything else is **provisional**.
 - Every row uses the **same** attack templates across all models (AgentDojo's `important_instructions` with a fixed pipeline name), so the comparison is apples-to-apples rather than per-model-tuned.
 - Reproduce any row: `uv run python scripts/run_leaderboard.py --model <model_id>`.
 - Propose a model: open an **Add model** issue. Numbers are never taken on faith — the maintainer runs the frozen protocol and commits the result + traces.

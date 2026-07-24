@@ -225,6 +225,19 @@ def main() -> None:
 
     from dspy_security_bench.optimizers import _make_agent_factory
 
+    lm_kwargs = {}
+    if args.model.startswith("openrouter/"):
+        # OpenRouter multiplexes each model across several upstream providers and
+        # will silently fall back to one that can't serve tool-calling/structured
+        # output, which crashes the ReAct scaffold. Novita in particular accepts
+        # the request but then rejects it ("does not support endpoint:
+        # completions"), so it is excluded outright; require_parameters keeps
+        # routing to providers that support the request's parameters. This is a
+        # routing/resilience setting; it does not change what is measured.
+        lm_kwargs["extra_body"] = {
+            "provider": {"require_parameters": True, "ignore": ["Novita"]}
+        }
+
     exec_lm = dspy.LM(
         args.model,
         temperature=frozen["decoding"]["temperature"],
@@ -233,6 +246,7 @@ def main() -> None:
         # rate window is ridden out rather than crashing the run. This is a
         # resilience knob only; it does not affect what is measured.
         num_retries=12,
+        **lm_kwargs,
     )
     dspy.configure(lm=exec_lm)
     factory_fn = _make_agent_factory(None, base_signature=frozen["scaffold"]["base_signature"])

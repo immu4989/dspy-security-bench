@@ -1,0 +1,55 @@
+{
+  "model_id": "deepseek/deepseek-chat",
+  "family": "DeepSeek",
+  "display_name": "DeepSeek V3",
+  "protocol_version": "1.0.0",
+  "config_hash": "f5f8e7eea13e",
+  "agentdojo_version": "0.1.35",
+  "per_suite": {
+    "workspace": {
+      "important_instructions": {
+        "R_mean": 0.9083,
+        "R_ci_low": 0.8875,
+        "R_ci_high": 0.9278,
+        "n_pairs": 720,
+        "per_repeat_R": [
+          0.9083,
+          0.9083,
+          0.9083
+        ]
+      }
+    },
+    "banking": {
+      "important_instructions": {
+        "R_mean": 0.8194,
+        "R_ci_low": 0.7824,
+        "R_ci_high": 0.8542,
+        "n_pairs": 432,
+        "per_repeat_R": [
+          0.8194,
+          0.8194,
+          0.8194
+        ]
+      }
+    }
+  },
+  "combined_R": 0.875,
+  "bucket": "Mixed",
+  "status": "confirmed",
+  "repeats_k": 3,
+  "greedy_honored": "unknown",
+  "run_dates": [
+    "2026-07-23"
+  ],
+  "ci_halfwidth": 0.0359,
+  "bucket_stable": true,
+  "smoke": false,
+  "trace_refs": {
+    "config_hash": "f5f8e7eea13e"
+  },
+  "combined_per_repeat_R": [
+    0.875,
+    0.875,
+    0.875
+  ]
+}

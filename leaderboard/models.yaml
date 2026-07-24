@@ -12,9 +12,9 @@
 
 models:
   # --- DeepSeek ---
-  - model_id: openrouter/deepseek/deepseek-chat-v3
+  - model_id: openrouter/deepseek/deepseek-v3.2
     family: DeepSeek
-    display_name: DeepSeek V3
+    display_name: DeepSeek V3.2
     provider_env: OPENROUTER_API_KEY
     tier: paid
 
@@ -33,9 +33,9 @@ models:
     tier: paid
 
   # --- Alibaba ---
-  - model_id: openrouter/qwen/qwen-2.5-72b-instruct
+  - model_id: openrouter/qwen/qwen3-235b-a22b-2507
     family: Alibaba
-    display_name: Qwen2.5 72B
+    display_name: Qwen3 235B
     provider_env: OPENROUTER_API_KEY
     tier: paid
 
@@ -60,15 +60,12 @@ models:
     tier: paid
 
   # --- OpenAI open-weights ---
-  - model_id: openrouter/openai/gpt-oss-20b:free
+  - model_id: openrouter/openai/gpt-oss-20b
     family: OpenAI-OSS
     display_name: gpt-oss-20b
     provider_env: OPENROUTER_API_KEY
-    tier: free
+    tier: paid
 
-  # --- inclusionAI ---
-  - model_id: openrouter/inclusionai/ling-3.0-flash:free
-    family: inclusionAI
-    display_name: Ling 3.0 Flash
-    provider_env: OPENROUTER_API_KEY
-    tier: free
+# Excluded: inclusionai/ling-3.0-flash — does not support tool-calling /
+# structured outputs, which the ReAct scaffold requires, so it cannot be
+# measured under this protocol.

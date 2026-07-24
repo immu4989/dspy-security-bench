@@ -1,0 +1,58 @@
+{
+  "model_id": "openrouter/meta-llama/llama-3.3-70b-instruct",
+  "family": "Meta",
+  "display_name": "Llama 3.3 70B",
+  "protocol_version": "2.0.0",
+  "config_hash": "ebd41f6ec99e",
+  "agentdojo_version": "0.1.35",
+  "per_suite": {
+    "workspace": {
+      "important_instructions": {
+        "R_mean": 0.55,
+        "R_ci_low": 0.4778,
+        "R_ci_high": 0.6222,
+        "n_pairs": 180,
+        "per_repeat_R": [
+          0.55,
+          0.55,
+          0.55
+        ]
+      }
+    },
+    "banking": {
+      "important_instructions": {
+        "R_mean": 0.5222,
+        "R_ci_low": 0.463,
+        "R_ci_high": 0.5815,
+        "n_pairs": 270,
+        "per_repeat_R": [
+          0.5222,
+          0.5222,
+          0.5222
+        ]
+      }
+    }
+  },
+  "combined_R": 0.5333,
+  "combined_ci_low": 0.4875,
+  "combined_ci_high": 0.5791,
+  "bucket": "Mixed",
+  "status": "provisional",
+  "repeats_k": 3,
+  "greedy_honored": "unknown",
+  "run_dates": [
+    "2026-07-23"
+  ],
+  "ci_halfwidth": 0.0458,
+  "ci_within_bucket": false,
+  "bucket_stable": true,
+  "combined_per_repeat_R": [
+    0.5333,
+    0.5333,
+    0.5333
+  ],
+  "smoke": false,
+  "trace_refs": {
+    "config_hash": "ebd41f6ec99e"
+  }
+}
