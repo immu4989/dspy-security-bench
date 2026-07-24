@@ -53,3 +53,6 @@ Thumbs.db
 # Local config
 .env
 .env.local
+
+# leaderboard run checkpoints (scratch state; the result JSON is the artifact)
+leaderboard/.checkpoints/

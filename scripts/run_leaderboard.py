@@ -10,6 +10,14 @@ This is the ONLY sanctioned way to produce a leaderboard row. It deliberately
 hard-codes nothing about the protocol: everything comes from protocol.yaml, so
 the board stays internally consistent and a protocol change is a single edit.
 
+Runs are checkpointed. Each (suite, attack, repeat) cell is written to
+`leaderboard/.checkpoints/<slug>.json` the moment it finishes, so a crash, a
+provider rate-limit abort, or a killed shell resumes from the last completed
+cell instead of re-measuring everything. A checkpoint is only reused when the
+protocol hash, repeat count, and attack set all match; otherwise it is
+discarded rather than mixing incomparable measurements. It is deleted once the
+final result JSON is written. Use `--no-resume` to force a clean re-measure.
+
 Usage
 -----
     # one model from the registry (full frozen protocol — paid, slow)
@@ -42,6 +50,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_PATH = REPO_ROOT / "leaderboard/protocol.yaml"
 REGISTRY_PATH = REPO_ROOT / "leaderboard/models.yaml"
 RESULTS_DIR = REPO_ROOT / "leaderboard/results"
+# Partial per-cell results, so an interrupted run resumes instead of restarting.
+# Not committed: these are scratch state, superseded by the final result JSON.
+CHECKPOINT_DIR = REPO_ROOT / "leaderboard/.checkpoints"
 
 
 def _slug(s: str) -> str:
@@ -158,6 +169,53 @@ def _bootstrap_ci(values: list[int], n_boot: int = 2000, seed: int = 0) -> tuple
     return (lo, hi)
 
 
+def _ckpt_path(model_id: str) -> Path:
+    return CHECKPOINT_DIR / f"{_slug(model_id)}.json"
+
+
+def _load_checkpoint(model_id: str, cfg_hash: str, k: int, attacks: list) -> dict:
+    """Return completed cells for this model, or {} if there is no usable one.
+
+    A checkpoint is only reused when it was produced by the *same* protocol
+    (config hash), repeat count, and attack set. Anything else is discarded
+    rather than silently mixing incomparable measurements into one row.
+    """
+    p = _ckpt_path(model_id)
+    if not p.exists():
+        return {}
+    try:
+        ck = json.loads(p.read_text())
+    except Exception:
+        log.warning("checkpoint unreadable, starting fresh")
+        return {}
+    if (ck.get("config_hash") != cfg_hash or ck.get("repeats_k") != k
+            or ck.get("attacks") != list(attacks)):
+        log.warning("checkpoint is from a different protocol/config — discarding it")
+        return {}
+    cells = ck.get("cells", {})
+    if cells:
+        log.info("resuming from checkpoint: %d/%d cells already done",
+                 len(cells), len(attacks) * k * len(ck.get("suites", [])) or len(cells))
+    return cells
+
+
+def _save_checkpoint(model_id: str, cfg_hash: str, k: int, attacks: list,
+                     suites: list, cells: dict) -> None:
+    CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "model_id": model_id,
+        "config_hash": cfg_hash,
+        "repeats_k": k,
+        "attacks": list(attacks),
+        "suites": list(suites),
+        "cells": cells,
+    }
+    # Write-then-rename so a crash mid-write cannot corrupt the checkpoint.
+    tmp = _ckpt_path(model_id).with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(payload))
+    tmp.replace(_ckpt_path(model_id))
+
+
 def _run_one_cell(factory_fn, suite: str, attack: str, max_iters: int,
                   user_task_ids, injection_task_ids):
     """Return the list of per-pair `security` values (1 = injection failed) for
@@ -188,6 +246,8 @@ def main() -> None:
     ap.add_argument("--headline-only", action="store_true",
                     help="run only the headline attack (skip secondary). A row published "
                          "this way is valid; the secondary column is backfilled later.")
+    ap.add_argument("--no-resume", action="store_true",
+                    help="ignore any checkpoint and re-measure every cell from scratch")
     args = ap.parse_args()
 
     proto = _load_protocol()
@@ -251,6 +311,9 @@ def main() -> None:
     dspy.configure(lm=exec_lm)
     factory_fn = _make_agent_factory(None, base_signature=frozen["scaffold"]["base_signature"])
 
+    # Completed (suite|attack|repeat) cells from a previous interrupted run.
+    cells: dict = {} if args.no_resume else _load_checkpoint(args.model, cfg_hash, k, attacks)
+
     # per_suite[suite][attack] = {R_mean, R_ci_low, R_ci_high, n_pairs, per_repeat_R}
     per_suite: dict = {}
     run_dates = [date.today().isoformat()]  # one run session; k repeats within it
@@ -262,10 +325,21 @@ def main() -> None:
         for attack in attacks:
             repeat_pairs: list[list[int]] = []
             for rep in range(k):
+                cell_key = f"{suite}|{attack}|{rep}"
+                cached = cells.get(cell_key)
+                if cached is not None:
+                    log.info("skip suite=%s attack=%s repeat=%d/%d (checkpointed, %d pairs)",
+                             suite, attack, rep + 1, k, len(cached))
+                    repeat_pairs.append(list(cached))
+                    continue
                 log.info("run suite=%s attack=%s repeat=%d/%d (users=%s)", suite, attack,
                          rep + 1, k, "subset-2" if args.smoke else f"{len(user_ids or [])}")
                 vals = _run_one_cell(factory_fn, suite, attack, max_iters, user_ids, inj_ids)
                 repeat_pairs.append(vals)
+                # Persist immediately: this cell cost real tokens and minutes, and
+                # must survive a crash, a rate-limit abort, or a session teardown.
+                cells[cell_key] = vals
+                _save_checkpoint(args.model, cfg_hash, k, attacks, suites, cells)
             pooled = [v for rep in repeat_pairs for v in rep]
             r_mean = sum(pooled) / len(pooled) if pooled else 0.0
             lo, hi = _bootstrap_ci(pooled)
@@ -317,6 +391,8 @@ def main() -> None:
     suffix = "_smoke" if args.smoke else ""
     out = RESULTS_DIR / f"{_slug(entry['model_id'])}{suffix}.json"
     out.write_text(json.dumps(row, indent=2))
+    # The row is now the durable artifact; the checkpoint has served its purpose.
+    _ckpt_path(args.model).unlink(missing_ok=True)
     log.info("wrote %s", out)
     log.info("combined_R=%.3f bucket=%s status=%s ci_halfwidth=%.3f",
              combined_r, combined_bucket, status, ci_halfwidth)
