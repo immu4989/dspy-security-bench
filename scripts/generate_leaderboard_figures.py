@@ -267,6 +267,76 @@ def within_family(rows: list[dict], out: Path) -> None:
     print(f"wrote {out}")
 
 
+def og_card(rows: list[dict], out: Path) -> None:
+    """GitHub social preview card — exactly 1280x640.
+
+    Optimised for a feed thumbnail, not for study: oversized type, the ranking
+    readable at a glance, and one sentence of payload. Dark ground so it does
+    not disappear among the mostly-white cards in a timeline.
+    """
+    BG = "#12102e"          # matches the repo's video branding
+    CARD_INK = "#F1F5F9"
+    CARD_MUTED = "#9AA4B2"
+
+    fig = plt.figure(figsize=(12.8, 6.4), dpi=100)
+    fig.patch.set_facecolor(BG)
+
+    fig.text(0.055, 0.885, "Which LLMs resist prompt injection?",
+             fontsize=33, fontweight="800", color=CARD_INK, va="top")
+    fig.text(0.055, 0.775,
+             "Share of prompt-injection attacks that failed  ·  higher is safer",
+             fontsize=14.5, color=CARD_MUTED, va="top")
+
+    # Show every row: the right rail calls out the top and bottom models, so
+    # truncating the list would highlight a number with no matching bar.
+    shown = rows
+    # Left edge leaves room for the model labels, which sit outside the axes.
+    ax = fig.add_axes([0.205, 0.165, 0.45, 0.55])
+    ax.set_facecolor(BG)
+    n = len(shown)
+    ys = list(range(n))[::-1]
+    for y, r in zip(ys, shown, strict=True):
+        c = _color(r)
+        prov = r["status"] != "confirmed"
+        ax.barh(y, r["combined_R"], height=0.66, color=c,
+                alpha=0.45 if prov else 1.0, zorder=3)
+        ax.text(r["combined_R"] + 0.02, y, f"{r['combined_R'] * 100:.0f}%",
+                va="center", fontsize=13.5, fontweight="800", color=CARD_INK, zorder=4)
+    ax.set_yticks(ys)
+    ax.set_yticklabels([r["display_name"] for r in shown], fontsize=11,
+                       color=CARD_INK, fontweight="600")
+    ax.set_xlim(0, 1.14)
+    ax.set_ylim(-0.6, n - 0.4)
+    ax.set_xticks([])
+    ax.xaxis.set_ticks_position("none")
+    ax.yaxis.set_ticks_position("none")
+    for s in ax.spines.values():
+        s.set_visible(False)
+
+    # Right rail: the contrast that makes the point, in two numbers.
+    top, bottom = rows[0], rows[-1]
+    fig.text(0.735, 0.66, f"{top['combined_R'] * 100:.0f}%", fontsize=52,
+             fontweight="800", color=ROBUST, va="center")
+    fig.text(0.735, 0.545, f"{top['display_name']}", fontsize=12.5,
+             color=CARD_MUTED, va="center")
+    fig.text(0.735, 0.40, f"{bottom['combined_R'] * 100:.0f}%", fontsize=52,
+             fontweight="800", color="#EF4444", va="center")
+    fig.text(0.735, 0.285, f"{bottom['display_name']}", fontsize=12.5,
+             color=CARD_MUTED, va="center")
+
+    fig.text(0.055, 0.075, "Capability does not buy injection-robustness.",
+             fontsize=17, fontweight="800", color="#FCA5A5", va="center")
+    fig.text(0.055, 0.028,
+             "github.com/immu4989/dspy-security-bench  ·  AgentDojo ground truth  ·  "
+             "frozen protocol, 3 repeats, 95% CIs",
+             fontsize=10.5, color=CARD_MUTED, va="center")
+
+    fig.savefig(out, dpi=100, facecolor=BG)
+    plt.close(fig)
+    size_kb = out.stat().st_size / 1024
+    print(f"wrote {out} ({size_kb:.0f} KB)")
+
+
 def main() -> None:
     ASSETS.mkdir(exist_ok=True)
     rows = load_rows()
@@ -275,6 +345,7 @@ def main() -> None:
     print(f"{len(rows)} rows")
     hero(rows, ASSETS / "leaderboard_hero.png")
     within_family(rows, ASSETS / "within_family_nvidia.png")
+    og_card(rows, ASSETS / "social_preview.png")
     hero_gif(rows, ASSETS / "leaderboard_hero.gif")
 
 
