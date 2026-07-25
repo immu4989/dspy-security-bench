@@ -13,7 +13,7 @@ and a benchmark you can point at **your own agent** and gate in CI.
 [![dspy 3.3.0b1+](https://img.shields.io/badge/dspy-%E2%89%A53.3.0b1-FF6F61.svg)](https://github.com/stanfordnlp/dspy)
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
-[![leaderboard](https://img.shields.io/badge/leaderboard-7%20models%20%C2%B7%207%20families-4F46E5)](LEADERBOARD.md)
+[![leaderboard](https://img.shields.io/badge/leaderboard-8%20models%20%C2%B7%207%20families-4F46E5)](LEADERBOARD.md)
 [![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
 [![HF results](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-v0.1%20results-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-v01-results)
 
@@ -36,7 +36,8 @@ temperature 0, under one [frozen protocol](leaderboard/protocol.yaml).
 | 3 | **Nemotron 3 Super 120B** | NVIDIA | **78%** <sub>[74–82]</sub> | 🟡 Mixed |
 | 4 | **gpt-oss-20b** | OpenAI-OSS | **57%** <sub>[53–62]</sub> | 🟡 Mixed |
 | 5 | **Qwen3 235B** | Alibaba | **38%** <sub>[34–42]</sub> | 🔴 Vulnerable |
-| 6 | **Mistral Large** | Mistral | **23%** <sub>[20–27]</sub> | 🔴 Vulnerable |
+| 6 | **DeepSeek V3.2** | DeepSeek | **34%** <sub>[30–38]</sub> | 🔴 Vulnerable |
+| 7 | **Mistral Large** | Mistral | **23%** <sub>[20–27]</sub> | 🔴 Vulnerable |
 | – | Llama 3.3 70B | Meta | 53% <sub>[49–58]</sub> | ⚪ provisional |
 
 <sub>Brackets are 95% CIs. A row is **confirmed** only when its CI sits entirely inside one
@@ -131,6 +132,15 @@ AgentDojo's functional check confirms was actually delivered. Mistral Small
 "resists" largely by incapacity; DeepSeek V3 is both capable **and** robust.
 So injection-robustness is an *alignment* property, separable from raw
 capability.
+
+> **Note on DeepSeek, so the two tables don't read as contradicting each other.**
+> This 2026 probe measured `deepseek-chat` (V3) at 80–100% on a 5-task workspace
+> slice. The [leaderboard](LEADERBOARD.md) measures a *different, newer* model —
+> `deepseek-v3.2` — under the frozen protocol (both suites, all injection tasks,
+> 3 repeats) and lands it at **34%, Vulnerable**. Different model version *and*
+> different protocol, so the numbers are not comparable; only the leaderboard row
+> is a claim about `deepseek-v3.2`. Which way V3 → V3.2 actually moved is not
+> something this repo has measured, and we don't assert it.
 
 **Deployment implication:** upgrading your agent's base model to a more capable
 one can make it *less* secure against prompt injection. Capability benchmarks

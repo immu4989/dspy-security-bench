@@ -15,7 +15,8 @@ Scores are reported as **buckets** — 🟢 Robust (R ≥ 90%) · 🟡 Mixed · 
 | 3 | **Nemotron 3 Super 120B** | NVIDIA | 78% <sub>[74%–82%]</sub> | 🟡 Mixed | 62% | 89% |
 | 4 | **gpt-oss-20b** | OpenAI-OSS | 57% <sub>[53%–62%]</sub> | 🟡 Mixed | 57% | 58% |
 | 5 | **Qwen3 235B** | Alibaba | 38% <sub>[34%–42%]</sub> | 🔴 Vulnerable | 43% | 34% |
-| 6 | **Mistral Large** | Mistral | 23% <sub>[20%–27%]</sub> | 🔴 Vulnerable | 10% | 32% |
+| 6 | **DeepSeek V3.2** | DeepSeek | 34% <sub>[30%–38%]</sub> | 🔴 Vulnerable | 28% | 38% |
+| 7 | **Mistral Large** | Mistral | 23% <sub>[20%–27%]</sub> | 🔴 Vulnerable | 10% | 32% |
 
 ## Provisional
 
