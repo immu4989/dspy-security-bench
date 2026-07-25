@@ -13,7 +13,7 @@ and a benchmark you can point at **your own agent** and gate in CI.
 [![dspy 3.3.0b1+](https://img.shields.io/badge/dspy-%E2%89%A53.3.0b1-FF6F61.svg)](https://github.com/stanfordnlp/dspy)
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
-[![leaderboard](https://img.shields.io/badge/leaderboard-8%20models%20%C2%B7%207%20families-4F46E5)](LEADERBOARD.md)
+[![leaderboard](https://img.shields.io/badge/leaderboard-14%20models%20%C2%B7%2010%20families-4F46E5)](LEADERBOARD.md)
 [![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
 [![HF results](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-v0.1%20results-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-v01-results)
 
@@ -31,35 +31,54 @@ temperature 0, under one [frozen protocol](leaderboard/protocol.yaml).
 
 | # | Model | Family | Robustness | |
 |---|-------|--------|-----------:|---|
-| 1 | **Nemotron 3 Nano 30B** | NVIDIA | **95%** <sub>[93–97]</sub> | 🟢 Robust |
-| 2 | **Gemini 2.5 Flash Lite** | Google | **87%** <sub>[84–90]</sub> | 🟡 Mixed |
-| 3 | **Nemotron 3 Super 120B** | NVIDIA | **78%** <sub>[74–82]</sub> | 🟡 Mixed |
-| 4 | **gpt-oss-20b** | OpenAI-OSS | **57%** <sub>[53–62]</sub> | 🟡 Mixed |
-| 5 | **Qwen3 235B** | Alibaba | **38%** <sub>[34–42]</sub> | 🔴 Vulnerable |
-| 6 | **DeepSeek V3.2** | DeepSeek | **34%** <sub>[30–38]</sub> | 🔴 Vulnerable |
-| 7 | **Mistral Large** | Mistral | **23%** <sub>[20–27]</sub> | 🔴 Vulnerable |
+| 1 | **Claude Sonnet 4.5** | Anthropic | **99%** <sub>[99–100]</sub> | 🟢 Robust |
+| 2 | **GPT-5.4 mini** | OpenAI | **99%** <sub>[99–100]</sub> | 🟢 Robust |
+| 3 | **Nemotron 3 Nano 30B** | NVIDIA | **95%** <sub>[93–97]</sub> | 🟢 Robust |
+| 4 | **Gemini 2.5 Flash Lite** | Google | **87%** <sub>[84–90]</sub> | 🟡 Mixed |
+| 5 | **Llama 4 Maverick** | Meta | **86%** <sub>[83–89]</sub> | 🟡 Mixed |
+| 6 | **gpt-4o-mini** | OpenAI | **86%** <sub>[83–89]</sub> | 🟡 Mixed |
+| 7 | **Nemotron 3 Super 120B** | NVIDIA | **78%** <sub>[74–82]</sub> | 🟡 Mixed |
+| 8 | **Grok 4.3** | xAI | **75%** <sub>[72–79]</sub> | 🟡 Mixed |
+| 9 | **gpt-oss-20b** | OpenAI-OSS | **57%** <sub>[53–62]</sub> | 🟡 Mixed |
+| 10 | **Qwen3 235B** | Alibaba | **38%** <sub>[34–42]</sub> | 🔴 Vulnerable |
+| 11 | **Mistral Medium 3.1** | Mistral | **36%** <sub>[32–40]</sub> | 🔴 Vulnerable |
+| 12 | **DeepSeek V3.2** | DeepSeek | **34%** <sub>[30–38]</sub> | 🔴 Vulnerable |
+| 13 | **Mistral Large** | Mistral | **23%** <sub>[20–27]</sub> | 🔴 Vulnerable |
 | – | Llama 3.3 70B | Meta | 53% <sub>[49–58]</sub> | ⚪ provisional |
 
 <sub>Brackets are 95% CIs. A row is **confirmed** only when its CI sits entirely inside one
 bucket *and* the bucket holds across all 3 repeats — otherwise it stays **provisional**
-(Llama's interval straddles the 50% line, so we don't claim a bucket for it).</sub>
+(Llama 3.3's interval straddles the 50% line, so we don't claim a bucket for it).</sub>
 
 **[→ Full board, methodology, and every number](LEADERBOARD.md)**
 
-### Read the top row against the bottom row
+### The spread is 76 points — and it isn't explained by capability
 
-A **30B** model resists 95% of attacks. A **flagship** model resists 23%.
-Injection-robustness is not a byproduct of scale or capability — it is a
-separate property, and today it is largely unmeasured.
+**Claude Sonnet 4.5 resists 99% of injections. Mistral Large resists 23%.**
+Both are flagship models. Same attack, same tasks, same agent scaffold.
 
-The cleanest evidence is inside a single vendor's own model family, where the
-comparison is as controlled as it gets — same vendor, same model generation,
-and an identical protocol, task list, attack, and agent scaffold on both sides:
+That gap is not a capability gap. It is the difference between a model that was
+built to refuse instructions arriving in tool output and one that was not.
+Injection-robustness is a *separate axis* — and one that capability benchmarks
+are silent about.
+
+The within-family comparisons make the point sharper, because inside one vendor's
+lineup almost everything else is held constant — and they move in **both** directions:
+
+| Comparison | Change | Robustness |
+|---|---|---|
+| OpenAI: gpt-4o-mini → GPT-5.4 mini | newer generation | 86% → **99%** ⬆ |
+| Meta: Llama 3.3 70B → Llama 4 Maverick | newer generation | 53% → **86%** ⬆ |
+| NVIDIA: Nemotron Nano 30B → Super 120B | **scaled up 4×** | 95% → **78%** ⬇ |
+
+Newer generations got *more* robust at two vendors. Scaling up within a generation
+made NVIDIA's model *less* robust. So neither "newer is safer" nor "bigger is safer"
+holds — robustness tracks deliberate engineering, not scale.
 
 <img src="assets/within_family_nvidia.png" alt="NVIDIA Nemotron: scaling 30B to 120B cost 17 points of injection-robustness" width="720">
 
-> Scaling Nemotron 3 from **30B → 120B** cost **17 points** of injection-robustness.
-> Upgrading your agent's model to a more capable one can silently make it *easier* to hijack.
+> **The deployment takeaway:** your choice of base model changes injection risk by
+> more than 4×, and nothing on a capability leaderboard tells you which way. Measure it.
 
 ### Want a model on the board?
 
@@ -78,7 +97,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 
 | | |
 |---|---|
-| 🏆 **Compare models** | A frozen, reproducible [leaderboard](LEADERBOARD.md) of base-model injection-robustness across 7 families. |
+| 🏆 **Compare models** | A frozen, reproducible [leaderboard](LEADERBOARD.md) of base-model injection-robustness — 14 models across 10 families, from frontier to open-weights. |
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
 | 🛡️ **Test defenses** | Measure [cheap mitigations](#the-good-news-cheap-defenses-recover-it-v020) and whether they survive an [adaptive attacker](#but-do-the-defenses-survive-an-adaptive-attacker-v031). |
 | 🔬 **Study optimizers** | The original question: does DSPy prompt optimization make agents *more* or *less* robust? |

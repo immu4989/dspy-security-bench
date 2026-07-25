@@ -292,11 +292,23 @@ def main() -> None:
         # output, which crashes the ReAct scaffold. Novita in particular accepts
         # the request but then rejects it ("does not support endpoint:
         # completions"), so it is excluded outright; require_parameters keeps
-        # routing to providers that support the request's parameters. This is a
-        # routing/resilience setting; it does not change what is measured.
-        lm_kwargs["extra_body"] = {
-            "provider": {"require_parameters": True, "ignore": ["Novita"]}
-        }
+        # routing to providers that support the request's parameters.
+        #
+        # require_parameters is too strict for some models: reasoning models
+        # (e.g. the gpt-5.x family) do not advertise `temperature` support at
+        # all, so requiring it filters out every endpoint and the run dies with
+        # "No endpoints found that can handle the requested parameters". Those
+        # models set `routing: relaxed` in the registry, which drops the
+        # requirement while still excluding known-bad providers.
+        #
+        # This is a routing/resilience setting; it does not change what is
+        # measured. Whether a provider actually honors temperature=0 is recorded
+        # separately in the row's `greedy_honored` field, and the k-repeat
+        # bucket-stability gate catches a model that turns out to be sampling.
+        provider_cfg: dict = {"ignore": ["Novita"]}
+        if entry.get("routing") != "relaxed":
+            provider_cfg["require_parameters"] = True
+        lm_kwargs["extra_body"] = {"provider": provider_cfg}
 
     exec_lm = dspy.LM(
         args.model,
