@@ -38,6 +38,18 @@ PROV = "#94A3B8"
 
 BUCKET_COLOR = {"Robust": ROBUST, "Mixed": MIXED, "Vulnerable": VULN}
 
+# Two themes over one set of drawing code, so a light and a dark rendering can
+# never drift apart. Dark uses the same indigo ground as the repo's video and
+# social card.
+LIGHT = {
+    "bg": "white", "ink": INK, "ink2": INK2, "muted": MUTED, "grid": GRID,
+    "zone_alpha": 0.05, "mixed_label": "#B45309",
+}
+DARK = {
+    "bg": "#12102e", "ink": "#F1F5F9", "ink2": "#CBD5E1", "muted": "#9AA4B2",
+    "grid": "#2C2A4A", "zone_alpha": 0.085, "mixed_label": MIXED,
+}
+
 
 def load_rows() -> list[dict]:
     rows = []
@@ -56,31 +68,34 @@ def _color(r: dict) -> str:
     return BUCKET_COLOR.get(r["bucket"], MUTED)
 
 
-def _style_axes(ax):
+def _style_axes(ax, th=LIGHT):
+    ax.set_facecolor(th["bg"])
     ax.set_xlim(0, 1.06)
     ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
-    ax.set_xticklabels(["0%", "25%", "50%", "75%", "100%"], fontsize=10, color=INK2)
+    ax.set_xticklabels(["0%", "25%", "50%", "75%", "100%"], fontsize=10, color=th["ink2"])
     ax.xaxis.set_ticks_position("none")
     ax.yaxis.set_ticks_position("none")
     for side in ("top", "right", "left", "bottom"):
         ax.spines[side].set_visible(False)
     ax.set_axisbelow(True)
-    ax.xaxis.grid(True, color=GRID, linewidth=1)
+    ax.xaxis.grid(True, color=th["grid"], linewidth=1)
 
 
-def _bucket_zones(ax, n):
+def _bucket_zones(ax, n, th=LIGHT):
     """Faint bands + boundary lines so the bucket thresholds are legible."""
-    ax.axvspan(0, 0.5, color=VULN, alpha=0.04, zorder=0)
-    ax.axvspan(0.5, 0.9, color=MIXED, alpha=0.05, zorder=0)
-    ax.axvspan(0.9, 1.0, color=ROBUST, alpha=0.06, zorder=0)
+    a = th["zone_alpha"]
+    ax.axvspan(0, 0.5, color=VULN, alpha=a * 0.8, zorder=0)
+    ax.axvspan(0.5, 0.9, color=MIXED, alpha=a, zorder=0)
+    ax.axvspan(0.9, 1.0, color=ROBUST, alpha=a * 1.2, zorder=0)
     for x in (0.5, 0.9):
-        ax.axvline(x, color=MUTED, linewidth=1, linestyle=(0, (4, 4)), alpha=0.55, zorder=1)
+        ax.axvline(x, color=th["muted"], linewidth=1, linestyle=(0, (4, 4)),
+                   alpha=0.55, zorder=1)
     ax.text(0.25, n - 0.35, "VULNERABLE", ha="center", fontsize=8.5, fontweight="700",
-            color=VULN, alpha=0.65)
+            color=VULN if th is LIGHT else "#F87171", alpha=0.75)
     ax.text(0.70, n - 0.35, "MIXED", ha="center", fontsize=8.5, fontweight="700",
-            color="#B45309", alpha=0.7)
+            color=th["mixed_label"], alpha=0.8)
     ax.text(0.95, n - 0.35, "ROBUST", ha="center", fontsize=8.5, fontweight="700",
-            color=ROBUST, alpha=0.75)
+            color=ROBUST if th is LIGHT else "#34D399", alpha=0.85)
 
 
 def hero(rows: list[dict], out: Path) -> None:
@@ -139,11 +154,11 @@ def hero(rows: list[dict], out: Path) -> None:
     print(f"wrote {out}")
 
 
-def hero_gif(rows: list[dict], out: Path) -> None:
+def hero_gif(rows: list[dict], out: Path, th=DARK) -> None:
     """Animated reveal: bars grow in rank order, then the headline lands."""
     n = len(rows)
     fig, ax = plt.subplots(figsize=(10.5, 0.62 * n + 3.0))
-    fig.patch.set_facecolor("white")
+    fig.patch.set_facecolor(th["bg"])
     # Fixed margins: ax.clear() runs every frame, so the layout must be set once
     # here (tight_layout per frame would jitter). Left margin fits the longest
     # model label; bottom leaves room for the closing line.
@@ -156,7 +171,7 @@ def hero_gif(rows: list[dict], out: Path) -> None:
 
     def draw(fr):
         ax.clear()
-        _bucket_zones(ax, n)
+        _bucket_zones(ax, n, th)
         for i, (y, r) in enumerate(zip(ys, rows, strict=True)):
             t = (fr - i * PER) / grow
             t = max(0.0, min(1.0, t))
@@ -166,20 +181,20 @@ def hero_gif(rows: list[dict], out: Path) -> None:
             c = _color(r)
             prov = r["status"] != "confirmed"
             ax.barh(y, r["combined_R"] * e, height=0.58, color=c, zorder=3,
-                    alpha=0.35 if prov else 1.0, edgecolor=c, linewidth=1.5,
+                    alpha=0.45 if prov else 1.0, edgecolor=c, linewidth=1.5,
                     hatch="//" if prov else None)
             if e > 0.98:
                 ax.text(r["combined_R"] + 0.015, y, f"{r['combined_R'] * 100:.0f}%",
                         va="center", fontsize=11.5, fontweight="800",
-                        color=INK if not prov else MUTED, zorder=5)
+                        color=th["ink"] if not prov else th["muted"], zorder=5)
         ax.set_yticks(ys)
         ax.set_yticklabels([f"{r['display_name']}\n{r['family']}" for r in rows],
-                           fontsize=10, color=INK, linespacing=1.3)
-        _style_axes(ax)
+                           fontsize=10, color=th["ink"], linespacing=1.3)
+        _style_axes(ax, th)
         ax.set_ylim(-0.7, n - 0.05)
         ax.set_title("Which LLMs resist prompt injection?\n"
                      "Share of attacks that failed — higher is safer",
-                     loc="left", fontsize=13.5, fontweight="800", color=INK, pad=14)
+                     loc="left", fontsize=13.5, fontweight="800", color=th["ink"], pad=14)
         if fr > total - HOLD:
             # Axes-relative so it sits below the tick labels, never over the bars.
             # Deliberately the decoupling claim, not "bigger = worse": the board
@@ -188,17 +203,17 @@ def hero_gif(rows: list[dict], out: Path) -> None:
             # the next model added.
             ax.text(0.5, -0.165, "Capability does not buy injection-robustness.",
                     transform=ax.transAxes, fontsize=12, fontweight="800",
-                    color=VULN, ha="center", va="top")
+                    color="#FCA5A5" if th is DARK else VULN, ha="center", va="top")
         return []
 
     anim = FuncAnimation(fig, draw, frames=total, interval=1000 / FPS, blit=False)
     anim.save(out, writer=PillowWriter(fps=FPS), dpi=95,
-              savefig_kwargs={"facecolor": "white"})
+              savefig_kwargs={"facecolor": th["bg"]})
     plt.close(fig)
     print(f"wrote {out}")
 
 
-def within_family(rows: list[dict], out: Path) -> None:
+def within_family(rows: list[dict], out: Path, th=DARK) -> None:
     """The airtight comparison: same vendor, same family, scaled up."""
     by_name = {r["display_name"]: r for r in rows}
     small = by_name.get("Nemotron 3 Nano 30B")
@@ -208,19 +223,20 @@ def within_family(rows: list[dict], out: Path) -> None:
         return
 
     fig, ax = plt.subplots(figsize=(9.2, 6.0))
-    fig.patch.set_facecolor("white")
+    fig.patch.set_facecolor(th["bg"])
+    ax.set_facecolor(th["bg"])
     xs = [0, 1]
     vals = [small["combined_R"], big["combined_R"]]
-    ax.plot(xs, vals, color=INK, linewidth=2.4, zorder=3, solid_capstyle="round")
+    ax.plot(xs, vals, color=th["ink"], linewidth=2.4, zorder=3, solid_capstyle="round")
     for x, r in zip(xs, (small, big), strict=True):
         ax.scatter([x], [r["combined_R"]], s=340, color=_color(r), zorder=4,
-                   edgecolor="white", linewidth=2.5)
+                   edgecolor=th["bg"], linewidth=2.5)
         ax.errorbar(x, r["combined_R"],
                     yerr=[[r["combined_R"] - r["combined_ci_low"]],
                           [r["combined_ci_high"] - r["combined_R"]]],
-                    color=INK, alpha=0.5, capsize=5, linewidth=1.6, zorder=3)
+                    color=th["ink"], alpha=0.55, capsize=5, linewidth=1.6, zorder=3)
         ax.text(x, r["combined_R"] + 0.055, f"{r['combined_R'] * 100:.0f}%",
-                ha="center", fontsize=17, fontweight="800", color=INK)
+                ha="center", fontsize=17, fontweight="800", color=th["ink"])
         ax.text(x, r["combined_R"] - 0.075, r["bucket"], ha="center", fontsize=10.5,
                 fontweight="700", color=_color(r))
 
@@ -228,41 +244,42 @@ def within_family(rows: list[dict], out: Path) -> None:
     # with that point's value label.
     drop = (small["combined_R"] - big["combined_R"]) * 100
     ax_x = 1.20
-    ax.plot([1.0, ax_x], [small["combined_R"]] * 2, color=VULN, linewidth=1,
+    DROP_C = "#F87171" if th is DARK else VULN
+    ax.plot([1.0, ax_x], [small["combined_R"]] * 2, color=DROP_C, linewidth=1,
             linestyle=(0, (3, 3)), alpha=0.5, zorder=2)
     ax.annotate("", xy=(ax_x, big["combined_R"]), xytext=(ax_x, small["combined_R"]),
-                arrowprops=dict(arrowstyle="-|>", color=VULN, linewidth=2.4, shrinkA=0, shrinkB=0))
+                arrowprops=dict(arrowstyle="-|>", color=DROP_C, linewidth=2.4, shrinkA=0, shrinkB=0))
     ax.text(ax_x + 0.05, (small["combined_R"] + big["combined_R"]) / 2,
-            f"−{drop:.0f}\npoints", fontsize=14, fontweight="800", color=VULN,
+            f"−{drop:.0f}\npoints", fontsize=14, fontweight="800", color=DROP_C,
             va="center", linespacing=1.25)
 
-    ax.axhspan(0.9, 1.02, color=ROBUST, alpha=0.06)
-    ax.axhspan(0.5, 0.9, color=MIXED, alpha=0.05)
+    ax.axhspan(0.9, 1.02, color=ROBUST, alpha=th["zone_alpha"] * 1.2)
+    ax.axhspan(0.5, 0.9, color=MIXED, alpha=th["zone_alpha"])
     ax.set_xticks(xs)
     ax.set_xticklabels(["Nemotron 3 Nano\n30B parameters", "Nemotron 3 Super\n120B parameters"],
-                       fontsize=11.5, color=INK, fontweight="600", linespacing=1.5)
+                       fontsize=11.5, color=th["ink"], fontweight="600", linespacing=1.5)
     ax.set_ylim(0.55, 1.06)
     ax.set_xlim(-0.42, 1.68)
     ax.set_yticks([0.6, 0.7, 0.8, 0.9, 1.0])
-    ax.set_yticklabels(["60%", "70%", "80%", "90%", "100%"], fontsize=10, color=INK2)
-    ax.set_ylabel("Injection-robustness", fontsize=11, color=INK2)
+    ax.set_yticklabels(["60%", "70%", "80%", "90%", "100%"], fontsize=10, color=th["ink2"])
+    ax.set_ylabel("Injection-robustness", fontsize=11, color=th["ink2"])
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
     for side in ("left", "bottom"):
-        ax.spines[side].set_color(GRID)
+        ax.spines[side].set_color(th["grid"])
     ax.set_axisbelow(True)
-    ax.yaxis.grid(True, color=GRID, linewidth=1)
+    ax.yaxis.grid(True, color=th["grid"], linewidth=1)
     ax.xaxis.set_ticks_position("none")
     ax.yaxis.set_ticks_position("none")
 
     fig.suptitle("Same family. Same vendor. Scaled up 4×.", x=0.02, ha="left",
-                 fontsize=18, fontweight="800", color=INK, y=0.98)
+                 fontsize=18, fontweight="800", color=th["ink"], y=0.98)
     ax.set_title("The only comparison where nothing else varies — and robustness still falls.",
-                 loc="left", fontsize=11, color=INK2, pad=18)
+                 loc="left", fontsize=11, color=th["ink2"], pad=18)
     fig.text(0.02, 0.015, "Same protocol, tasks, attack, and scaffold for both models. "
-                          "Error bars are 95% CIs.", fontsize=8.8, color=MUTED)
+                          "Error bars are 95% CIs.", fontsize=8.8, color=th["muted"])
     fig.tight_layout(rect=[0, 0.03, 1, 0.93])
-    fig.savefig(out, dpi=200, facecolor="white")
+    fig.savefig(out, dpi=200, facecolor=th["bg"])
     plt.close(fig)
     print(f"wrote {out}")
 
