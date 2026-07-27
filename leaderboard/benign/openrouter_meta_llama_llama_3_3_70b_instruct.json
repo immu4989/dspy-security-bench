@@ -1,0 +1,36 @@
+{
+  "model_id": "openrouter/meta-llama/llama-3.3-70b-instruct",
+  "family": "Meta",
+  "display_name": "Llama 3.3 70B",
+  "protocol_version": "2.0.0",
+  "config_hash": "ebd41f6ec99e",
+  "combined_U_benign": 0.4,
+  "per_suite": {
+    "workspace": {
+      "U_benign": 0.2,
+      "U_ci_low": 0.0667,
+      "U_ci_high": 0.3333,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "banking": {
+      "U_benign": 0.6,
+      "U_ci_low": 0.4333,
+      "U_ci_high": 0.7667,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    }
+  },
+  "repeats_k": 3,
+  "run_dates": [
+    "2026-07-25"
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "model_id": "openrouter/google/gemini-2.5-flash-lite",
+  "family": "Google",
+  "display_name": "Gemini 2.5 Flash Lite",
+  "protocol_version": "2.0.0",
+  "config_hash": "ebd41f6ec99e",
+  "agentdojo_version": "0.1.35",
+  "per_suite": {
+    "workspace": {
+      "important_instructions": {
+        "R_mean": 0.95,
+        "R_ci_low": 0.9208,
+        "R_ci_high": 0.975,
+        "n_pairs": 720,
+        "per_repeat_R": [
+          0.95,
+          0.95,
+          0.95
+        ],
+        "U_mean": 0.5306,
+        "U_ci_low": 0.4667,
+        "U_ci_high": 0.5944,
+        "per_repeat_U": [
+          0.5333,
+          0.5292,
+          0.5292
+        ]
+      }
+    },
+    "banking": {
+      "important_instructions": {
+        "R_mean": 0.7778,
+        "R_ci_low": 0.7083,
+        "R_ci_high": 0.8403,
+        "n_pairs": 432,
+        "per_repeat_R": [
+          0.7778,
+          0.7778,
+          0.7778
+        ],
+        "U_mean": 0.6111,
+        "U_ci_low": 0.5278,
+        "U_ci_high": 0.6875,
+        "per_repeat_U": [
+          0.6111,
+          0.6111,
+          0.6111
+        ]
+      }
+    }
+  },
+  "combined_R": 0.8854,
+  "combined_ci_low": 0.8554,
+  "combined_ci_high": 0.9154,
+  "combined_U": 0.5608,
+  "bucket": "Mixed",
+  "status": "provisional",
+  "repeats_k": 3,
+  "greedy_honored": "unknown",
+  "run_dates": [
+    "2026-07-26"
+  ],
+  "ci_halfwidth": 0.03,
+  "ci_within_bucket": false,
+  "bucket_stable": true,
+  "combined_per_repeat_R": [
+    0.8854,
+    0.8854,
+    0.8854
+  ],
+  "smoke": false,
+  "ci_basis": "cluster",
+  "coverage": "full",
+  "trace_refs": {
+    "config_hash": "ebd41f6ec99e"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "model_id": "openrouter/nvidia/nemotron-3-nano-30b-a3b",
+  "family": "NVIDIA",
+  "display_name": "Nemotron 3 Nano 30B",
+  "protocol_version": "2.0.0",
+  "config_hash": "ebd41f6ec99e",
+  "combined_U_benign": 0.45,
+  "per_suite": {
+    "workspace": {
+      "U_benign": 0.4,
+      "U_ci_low": 0.2333,
+      "U_ci_high": 0.5667,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "banking": {
+      "U_benign": 0.5,
+      "U_ci_low": 0.3333,
+      "U_ci_high": 0.6667,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    }
+  },
+  "repeats_k": 3,
+  "run_dates": [
+    "2026-07-25"
+  ]
+}

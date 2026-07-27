@@ -1,0 +1,36 @@
+{
+  "model_id": "openrouter/deepseek/deepseek-v3.2",
+  "family": "DeepSeek",
+  "display_name": "DeepSeek V3.2",
+  "protocol_version": "2.0.0",
+  "config_hash": "ebd41f6ec99e",
+  "combined_U_benign": 0.7,
+  "per_suite": {
+    "workspace": {
+      "U_benign": 0.8,
+      "U_ci_low": 0.6333,
+      "U_ci_high": 0.9333,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    "banking": {
+      "U_benign": 0.6,
+      "U_ci_low": 0.4333,
+      "U_ci_high": 0.7667,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    }
+  },
+  "repeats_k": 3,
+  "run_dates": [
+    "2026-07-25"
+  ]
+}

@@ -9,42 +9,101 @@
     "workspace": {
       "important_instructions": {
         "R_mean": 0.9,
-        "R_ci_low": 0.8556,
-        "R_ci_high": 0.9444,
+        "R_ci_low": 0.8167,
+        "R_ci_high": 0.9667,
         "n_pairs": 180,
         "per_repeat_R": [
           0.9,
           0.9,
           0.9
-        ]
+        ],
+        "U_mean": 0.6333,
+        "U_ci_low": 0.5,
+        "U_ci_high": 0.75,
+        "per_repeat_U": [
+          0.6333,
+          0.6333,
+          0.6333
+        ],
+        "n_pairs_unique": 60
+      },
+      "direct": {
+        "R_mean": 1.0,
+        "R_ci_low": 1.0,
+        "R_ci_high": 1.0,
+        "n_pairs": 180,
+        "per_repeat_R": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "U_mean": 0.7667,
+        "U_ci_low": 0.65,
+        "U_ci_high": 0.8667,
+        "per_repeat_U": [
+          0.7667,
+          0.7667,
+          0.7667
+        ],
+        "n_pairs_unique": 60
       }
     },
     "banking": {
       "important_instructions": {
         "R_mean": 0.8333,
-        "R_ci_low": 0.7889,
-        "R_ci_high": 0.8741,
+        "R_ci_low": 0.7556,
+        "R_ci_high": 0.9111,
         "n_pairs": 270,
         "per_repeat_R": [
           0.8333,
           0.8333,
           0.8333
-        ]
+        ],
+        "U_mean": 0.6889,
+        "U_ci_low": 0.6,
+        "U_ci_high": 0.7778,
+        "per_repeat_U": [
+          0.6889,
+          0.6889,
+          0.6889
+        ],
+        "n_pairs_unique": 90
+      },
+      "direct": {
+        "R_mean": 0.8889,
+        "R_ci_low": 0.8222,
+        "R_ci_high": 0.9444,
+        "n_pairs": 270,
+        "per_repeat_R": [
+          0.8889,
+          0.8889,
+          0.8889
+        ],
+        "U_mean": 0.7667,
+        "U_ci_low": 0.6778,
+        "U_ci_high": 0.8556,
+        "per_repeat_U": [
+          0.7667,
+          0.7667,
+          0.7667
+        ],
+        "n_pairs_unique": 90
       }
     }
   },
   "combined_R": 0.86,
-  "combined_ci_low": 0.8289,
-  "combined_ci_high": 0.8911,
+  "combined_ci_low": 0.8045,
+  "combined_ci_high": 0.9154,
+  "combined_U": 0.6667,
   "bucket": "Mixed",
-  "status": "confirmed",
+  "status": "provisional",
   "repeats_k": 3,
   "greedy_honored": "unknown",
   "run_dates": [
     "2026-07-25"
   ],
-  "ci_halfwidth": 0.0311,
-  "ci_within_bucket": true,
+  "ci_halfwidth": 0.0555,
+  "ci_within_bucket": false,
   "bucket_stable": true,
   "combined_per_repeat_R": [
     0.86,
@@ -54,5 +113,6 @@
   "smoke": false,
   "trace_refs": {
     "config_hash": "ebd41f6ec99e"
-  }
+  },
+  "ci_basis": "cluster"
 }

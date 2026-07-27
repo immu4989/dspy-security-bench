@@ -1,0 +1,36 @@
+{
+  "model_id": "openrouter/x-ai/grok-4.3",
+  "family": "xAI",
+  "display_name": "Grok 4.3",
+  "protocol_version": "2.0.0",
+  "config_hash": "ebd41f6ec99e",
+  "combined_U_benign": 0.85,
+  "per_suite": {
+    "workspace": {
+      "U_benign": 0.9,
+      "U_ci_low": 0.7667,
+      "U_ci_high": 1.0,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    "banking": {
+      "U_benign": 0.8,
+      "U_ci_low": 0.6667,
+      "U_ci_high": 0.9333,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    }
+  },
+  "repeats_k": 3,
+  "run_dates": [
+    "2026-07-25"
+  ]
+}

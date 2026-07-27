@@ -17,6 +17,9 @@ models:
     display_name: DeepSeek V3.2
     provider_env: OPENROUTER_API_KEY
     tier: paid
+    # Pinned: OpenRouter serves this across 8 providers and routing to a slow
+    # one (GMICloud ~7.5s/call vs DeepInfra ~0.24s) caused a 13h run that died.
+    provider_order: [DeepInfra, AtlasCloud]
 
   # --- Mistral (headline within-family pair) ---
   - model_id: openrouter/mistralai/mistral-large-2512
@@ -46,11 +49,14 @@ models:
     provider_env: OPENROUTER_API_KEY
     tier: paid
 
-  - model_id: openrouter/nvidia/nemotron-3-nano-30b-a3b:free
+  - model_id: openrouter/nvidia/nemotron-3-nano-30b-a3b
     family: NVIDIA
     display_name: Nemotron 3 Nano 30B
     provider_env: OPENROUTER_API_KEY
-    tier: free
+    # Paid endpoint rather than the ":free" variant: free endpoints are routed
+    # opportunistically and their availability fluctuates, which is not
+    # reproducible. At $0.05/M the cost is negligible.
+    tier: paid
 
   # --- Google (reached via OpenRouter, sidestepping the AQ-key bug) ---
   - model_id: openrouter/google/gemini-2.5-flash-lite

@@ -10,19 +10,14 @@ Scores are reported as **buckets** — 🟢 Robust (R ≥ 90%) · 🟡 Mixed · 
 
 | # | Model | Family | Robustness (combined) | Bucket | `workspace` | `banking` |
 |---|---|---|---|---|---|---|
-| 1 | **Claude Sonnet 4.5** | Anthropic | 99% <sub>[99%–100%]</sub> | 🟢 Robust | 98% | 100% |
-| 2 | **GPT-5.4 mini** | OpenAI | 99% <sub>[99%–100%]</sub> | 🟢 Robust | 100% | 99% |
-| 3 | **Nemotron 3 Nano 30B** | NVIDIA | 95% <sub>[93%–97%]</sub> | 🟢 Robust | 100% | 91% |
-| 4 | **Gemini 2.5 Flash Lite** | Google | 87% <sub>[84%–90%]</sub> | 🟡 Mixed | 90% | 84% |
-| 5 | **Llama 4 Maverick** | Meta | 86% <sub>[83%–89%]</sub> | 🟡 Mixed | 90% | 83% |
-| 6 | **gpt-4o-mini** | OpenAI | 86% <sub>[83%–89%]</sub> | 🟡 Mixed | 91% | 82% |
-| 7 | **Nemotron 3 Super 120B** | NVIDIA | 78% <sub>[74%–82%]</sub> | 🟡 Mixed | 62% | 89% |
-| 8 | **Grok 4.3** | xAI | 75% <sub>[72%–79%]</sub> | 🟡 Mixed | 58% | 87% |
-| 9 | **gpt-oss-20b** | OpenAI-OSS | 57% <sub>[53%–62%]</sub> | 🟡 Mixed | 57% | 58% |
-| 10 | **Qwen3 235B** | Alibaba | 38% <sub>[34%–42%]</sub> | 🔴 Vulnerable | 43% | 34% |
-| 11 | **Mistral Medium 3.1** | Mistral | 36% <sub>[32%–40%]</sub> | 🔴 Vulnerable | 32% | 39% |
-| 12 | **DeepSeek V3.2** | DeepSeek | 34% <sub>[30%–38%]</sub> | 🔴 Vulnerable | 28% | 38% |
-| 13 | **Mistral Large** | Mistral | 23% <sub>[20%–27%]</sub> | 🔴 Vulnerable | 10% | 32% |
+| 1 | **Claude Sonnet 4.5** | Anthropic | 99% <sub>[98%–100%]</sub> | 🟢 Robust | 98% | 100% |
+| 2 | **GPT-5.4 mini** | OpenAI | 99% <sub>[98%–100%]</sub> | 🟢 Robust | 100% | 99% |
+| 3 | **Nemotron 3 Super 120B** | NVIDIA | 81% <sub>[75%–87%]</sub> | 🟡 Mixed | 72% | 88% |
+| 4 | **Grok 4.3** | xAI | 75% <sub>[68%–82%]</sub> | 🟡 Mixed | 58% | 87% |
+| 5 | **Qwen3 235B** | Alibaba | 38% <sub>[30%–46%]</sub> | 🔴 Vulnerable | 43% | 34% |
+| 6 | **Mistral Medium 3.1** | Mistral | 37% <sub>[29%–44%]</sub> | 🔴 Vulnerable | 33% | 39% |
+| 7 | **DeepSeek V3.2** | DeepSeek | 34% <sub>[26%–42%]</sub> | 🔴 Vulnerable | 28% | 38% |
+| 8 | **Mistral Large** | Mistral | 25% <sub>[18%–31%]</sub> | 🔴 Vulnerable | 12% | 33% |
 
 ## Provisional
 
@@ -30,7 +25,12 @@ _The confidence interval crosses a bucket boundary, or the bucket was not stable
 
 | Model | Family | Robustness (combined) | Bucket | why |
 |---|---|---|---|---|
-| Llama 3.3 70B | Meta | 53% <sub>[49%–58%]</sub> | 🟡 Mixed | CI crosses a bucket boundary |
+| Nemotron 3 Nano 30B | NVIDIA | 93% <sub>[89%–97%]</sub> | 🟢 Robust | CI crosses a bucket boundary |
+| Gemini 2.5 Flash Lite | Google | 88% <sub>[83%–93%]</sub> | 🟡 Mixed | CI crosses a bucket boundary |
+| Llama 4 Maverick | Meta | 86% <sub>[80%–92%]</sub> | 🟡 Mixed | CI crosses a bucket boundary |
+| gpt-4o-mini | OpenAI | 85% <sub>[80%–91%]</sub> | 🟡 Mixed | CI crosses a bucket boundary |
+| gpt-oss-20b | OpenAI-OSS | 58% <sub>[50%–66%]</sub> | 🟡 Mixed | CI crosses a bucket boundary |
+| Llama 3.3 70B | Meta | 55% <sub>[47%–63%]</sub> | 🟡 Mixed | CI crosses a bucket boundary |
 
 ## How a row is produced
 

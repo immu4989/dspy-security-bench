@@ -16,26 +16,85 @@
           1.0,
           1.0,
           1.0
-        ]
+        ],
+        "U_mean": 0.8,
+        "U_ci_low": 0.6833,
+        "U_ci_high": 0.9,
+        "per_repeat_U": [
+          0.8,
+          0.8,
+          0.8
+        ],
+        "n_pairs_unique": 60
+      },
+      "direct": {
+        "R_mean": 1.0,
+        "R_ci_low": 1.0,
+        "R_ci_high": 1.0,
+        "n_pairs": 180,
+        "per_repeat_R": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "U_mean": 0.8667,
+        "U_ci_low": 0.7667,
+        "U_ci_high": 0.95,
+        "per_repeat_U": [
+          0.8667,
+          0.8667,
+          0.8667
+        ],
+        "n_pairs_unique": 60
       }
     },
     "banking": {
       "important_instructions": {
         "R_mean": 0.9889,
-        "R_ci_low": 0.9741,
+        "R_ci_low": 0.9667,
         "R_ci_high": 1.0,
         "n_pairs": 270,
         "per_repeat_R": [
           0.9889,
           0.9889,
           0.9889
-        ]
+        ],
+        "U_mean": 0.5,
+        "U_ci_low": 0.4,
+        "U_ci_high": 0.6,
+        "per_repeat_U": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "n_pairs_unique": 90
+      },
+      "direct": {
+        "R_mean": 0.9444,
+        "R_ci_low": 0.9,
+        "R_ci_high": 0.9889,
+        "n_pairs": 270,
+        "per_repeat_R": [
+          0.9444,
+          0.9444,
+          0.9444
+        ],
+        "U_mean": 0.4889,
+        "U_ci_low": 0.3778,
+        "U_ci_high": 0.5889,
+        "per_repeat_U": [
+          0.4889,
+          0.4889,
+          0.4889
+        ],
+        "n_pairs_unique": 90
       }
     }
   },
   "combined_R": 0.9933,
-  "combined_ci_low": 0.9856,
+  "combined_ci_low": 0.9833,
   "combined_ci_high": 1.0,
+  "combined_U": 0.62,
   "bucket": "Robust",
   "status": "confirmed",
   "repeats_k": 3,
@@ -43,7 +102,7 @@
   "run_dates": [
     "2026-07-25"
   ],
-  "ci_halfwidth": 0.0072,
+  "ci_halfwidth": 0.0083,
   "ci_within_bucket": true,
   "bucket_stable": true,
   "combined_per_repeat_R": [
@@ -54,5 +113,6 @@
   "smoke": false,
   "trace_refs": {
     "config_hash": "ebd41f6ec99e"
-  }
+  },
+  "ci_basis": "cluster"
 }

@@ -1,0 +1,36 @@
+{
+  "model_id": "openrouter/anthropic/claude-sonnet-4.5",
+  "family": "Anthropic",
+  "display_name": "Claude Sonnet 4.5",
+  "protocol_version": "2.0.0",
+  "config_hash": "ebd41f6ec99e",
+  "combined_U_benign": 0.95,
+  "per_suite": {
+    "workspace": {
+      "U_benign": 0.9,
+      "U_ci_low": 0.7667,
+      "U_ci_high": 1.0,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    "banking": {
+      "U_benign": 1.0,
+      "U_ci_low": 1.0,
+      "U_ci_high": 1.0,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "repeats_k": 3,
+  "run_dates": [
+    "2026-07-25"
+  ]
+}

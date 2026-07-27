@@ -27,6 +27,40 @@ _spec = importlib.util.spec_from_file_location("run_leaderboard", Path(__file__)
 _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 score_row = _mod.score_row
+_bootstrap_ci = _mod._bootstrap_ci
+
+
+def _fix_repeat_inflated_ci(row: dict, k: int) -> None:
+    """Recompute per-suite CIs that were bootstrapped over pooled repeats.
+
+    Rows produced before the cluster-bootstrap fix resampled k*n observations as
+    if they were independent, when the independent unit is the task pair. That
+    understates every interval by roughly sqrt(k) and made the confirm gate far
+    too permissive (it wrongly confirmed 5 of 14 rows).
+
+    The raw per-pair values are not retained in the result JSON, so the pair-level
+    vector is reconstructed from the cell mean over n_pairs/k unique pairs. This
+    is exact whenever the k repeats were identical, which held for 54 of 56
+    measured cells. Where repeats differed, the true per-pair values include
+    fractions (e.g. 2/3), which have strictly lower variance than the 0/1 vector
+    reconstructed here — so the recomputed interval is conservative, never
+    optimistic. Rows already carrying `ci_basis == "cluster"` are left alone.
+    """
+    if row.get("ci_basis") == "cluster":
+        return
+    for suite, attacks in row.get("per_suite", {}).items():  # noqa: B007 - suite unused
+        for cell in attacks.values():
+            n_unique = max(1, cell["n_pairs"] // k)
+            for mean_key, lo_key, hi_key in (("R_mean", "R_ci_low", "R_ci_high"),
+                                             ("U_mean", "U_ci_low", "U_ci_high")):
+                if mean_key not in cell:
+                    continue
+                ones = round(cell[mean_key] * n_unique)
+                vec = [1.0] * ones + [0.0] * (n_unique - ones)
+                lo, hi = _bootstrap_ci(vec)
+                cell[lo_key], cell[hi_key] = round(lo, 4), round(hi, 4)
+            cell["n_pairs_unique"] = n_unique
+    row["ci_basis"] = "cluster"
 
 
 def main() -> None:
@@ -46,6 +80,7 @@ def main() -> None:
         present = [s for s in suites if s in row.get("per_suite", {}) and head in row["per_suite"][s]]
         if not present:
             continue
+        _fix_repeat_inflated_ci(row, k)
         sc = score_row(row["per_suite"], head, present, proto["buckets"], proto["durability"], k)
         new_status = "confirmed" if (sc["confirmed"] and not row.get("smoke")) else "provisional"
         old = (row.get("status"), row.get("ci_halfwidth"), row.get("bucket"))

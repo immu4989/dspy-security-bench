@@ -1,0 +1,36 @@
+{
+  "model_id": "openrouter/openai/gpt-4o-mini",
+  "family": "OpenAI",
+  "display_name": "gpt-4o-mini",
+  "protocol_version": "2.0.0",
+  "config_hash": "ebd41f6ec99e",
+  "combined_U_benign": 0.2,
+  "per_suite": {
+    "workspace": {
+      "U_benign": 0.1,
+      "U_ci_low": 0.0,
+      "U_ci_high": 0.2333,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.1,
+        0.1,
+        0.1
+      ]
+    },
+    "banking": {
+      "U_benign": 0.3,
+      "U_ci_low": 0.1667,
+      "U_ci_high": 0.4667,
+      "n_tasks": 30,
+      "per_repeat_U": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    }
+  },
+  "repeats_k": 3,
+  "run_dates": [
+    "2026-07-25"
+  ]
+}

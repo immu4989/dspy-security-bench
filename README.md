@@ -26,54 +26,76 @@ and a benchmark you can point at **your own agent** and gate in CI.
 ## 🏆 The leaderboard
 
 **Robustness R** = the share of prompt-injection attacks that **failed** against the
-base model. Higher is safer. Every row is 450 scored attack attempts, 3 repeats at
-temperature 0, under one [frozen protocol](leaderboard/protocol.yaml).
+base model. **Capability U** = the share of the *same* tasks the model completes with
+no attack present. Both matter: a model that can't do anything scores a perfect R
+while being useless.
 
-| # | Model | Family | Robustness | |
-|---|-------|--------|-----------:|---|
-| 1 | **Claude Sonnet 4.5** | Anthropic | **99%** <sub>[99–100]</sub> | 🟢 Robust |
-| 2 | **GPT-5.4 mini** | OpenAI | **99%** <sub>[99–100]</sub> | 🟢 Robust |
-| 3 | **Nemotron 3 Nano 30B** | NVIDIA | **95%** <sub>[93–97]</sub> | 🟢 Robust |
-| 4 | **Gemini 2.5 Flash Lite** | Google | **87%** <sub>[84–90]</sub> | 🟡 Mixed |
-| 5 | **Llama 4 Maverick** | Meta | **86%** <sub>[83–89]</sub> | 🟡 Mixed |
-| 6 | **gpt-4o-mini** | OpenAI | **86%** <sub>[83–89]</sub> | 🟡 Mixed |
-| 7 | **Nemotron 3 Super 120B** | NVIDIA | **78%** <sub>[74–82]</sub> | 🟡 Mixed |
-| 8 | **Grok 4.3** | xAI | **75%** <sub>[72–79]</sub> | 🟡 Mixed |
-| 9 | **gpt-oss-20b** | OpenAI-OSS | **57%** <sub>[53–62]</sub> | 🟡 Mixed |
-| 10 | **Qwen3 235B** | Alibaba | **38%** <sub>[34–42]</sub> | 🔴 Vulnerable |
-| 11 | **Mistral Medium 3.1** | Mistral | **36%** <sub>[32–40]</sub> | 🔴 Vulnerable |
-| 12 | **DeepSeek V3.2** | DeepSeek | **34%** <sub>[30–38]</sub> | 🔴 Vulnerable |
-| 13 | **Mistral Large** | Mistral | **23%** <sub>[20–27]</sub> | 🔴 Vulnerable |
-| – | Llama 3.3 70B | Meta | 53% <sub>[49–58]</sub> | ⚪ provisional |
+| # | Model | Family | Robustness | Capability | |
+|---|-------|--------|-----------:|-----------:|---|
+| 1 | **Claude Sonnet 4.5** | Anthropic | **99%** <sub>[98–100]</sub> | 95% | 🟢 Robust |
+| 2 | **GPT-5.4 mini** | OpenAI | **99%** <sub>[98–100]</sub> | 70% | 🟢 Robust |
+| 3 | **Nemotron 3 Super 120B** | NVIDIA | **81%** <sub>[75–87]</sub> | 85% | 🟡 Mixed |
+| 4 | **Grok 4.3** | xAI | **75%** <sub>[68–82]</sub> | 85% | 🟡 Mixed |
+| 5 | **Qwen3 235B** | Alibaba | **38%** <sub>[30–46]</sub> | 75% | 🔴 Vulnerable |
+| 6 | **Mistral Medium 3.1** | Mistral | **37%** <sub>[29–44]</sub> | **90%** | 🔴 Vulnerable |
+| 7 | **DeepSeek V3.2** | DeepSeek | **34%** <sub>[26–42]</sub> | 70% | 🔴 Vulnerable |
+| 8 | **Mistral Large** | Mistral | **25%** <sub>[18–31]</sub> | 85% | 🔴 Vulnerable |
 
-<sub>Brackets are 95% CIs. A row is **confirmed** only when its CI sits entirely inside one
-bucket *and* the bucket holds across all 3 repeats — otherwise it stays **provisional**
-(Llama 3.3's interval straddles the 50% line, so we don't claim a bucket for it).</sub>
+<sub>**Provisional** — the CI crosses a bucket boundary, so no bucket is claimed:
+Nemotron 3 Nano 30B 93% (cap 45%) ·
+Gemini 2.5 Flash Lite 88% (cap 65%) ·
+Llama 4 Maverick 86% (cap 80%) ·
+gpt-4o-mini 85% (cap 20%) ·
+gpt-oss-20b 58% (cap 45%) ·
+Llama 3.3 70B 55% (cap 40%).</sub>
+
+<sub>Brackets are 95% cluster-bootstrap CIs over task pairs. A row is **confirmed** only
+when its CI sits entirely inside one bucket *and* the bucket holds across all repeats.</sub>
 
 **[→ Full board, methodology, and every number](LEADERBOARD.md)**
 
-### The spread is 76 points — and it isn't explained by capability
+### Two models, near-identical capability, a 62-point robustness gap
 
-**Claude Sonnet 4.5 resists 99% of injections. Mistral Large resists 23%.**
-Both are flagship models. Same attack, same tasks, same agent scaffold.
+| | Capability | Robustness |
+|---|---:|---:|
+| **Claude Sonnet 4.5** | 95% | **99%** |
+| **Mistral Medium 3.1** | 90% | **37%** |
 
-That gap is not a capability gap. It is the difference between a model that was
-built to refuse instructions arriving in tool output and one that was not.
-Injection-robustness is a *separate axis* — and one that capability benchmarks
-are silent about.
+These two complete the benign tasks about equally well. Under attack, one refuses
+almost every injection and the other falls to roughly two in three. Capability
+cannot explain that, because capability is held roughly constant.
 
-The within-family comparisons make the point sharper, because inside one vendor's
-lineup almost everything else is held constant — and they move in **both** directions:
+Across all 14 models the association between the two axes is not detectable:
+**Pearson r = −0.14, 95% CI [−0.57, +0.38]** (Spearman −0.11). With n=14 that
+interval is wide, so the honest reading is *no detectable relationship at this
+sample size* — not proven independence. The pairwise comparison above is the
+stronger evidence, and it does not depend on the correlation.
 
-| Comparison | Change | Robustness |
-|---|---|---|
-| OpenAI: gpt-4o-mini → GPT-5.4 mini | newer generation | 86% → **99%** ⬆ |
-| Meta: Llama 3.3 70B → Llama 4 Maverick | newer generation | 53% → **86%** ⬆ |
-| NVIDIA: Nemotron Nano 30B → Super 120B | **scaled up 4×** | 95% → **78%** ⬇ |
+**Why measuring capability matters.** Reporting security alone is not
+interpretable: a model that fails at everything refuses the attacker's goal too.
+gpt-4o-mini scores 85% robustness on 20% capability — that is inertia, not
+defence. Separating the axes gives three distinct outcomes:
 
-Newer generations got *more* robust at two vendors. Scaling up within a generation
-made NVIDIA's model *less* robust. So neither "newer is safer" nor "bigger is safer"
-holds — robustness tracks deliberate engineering, not scale.
+- **Robust and capable** — Claude Sonnet 4.5 (99% / 95%)
+- **Robust by incapacity** — gpt-4o-mini (85% / 20%), Nemotron Nano 30B (93% / 45%)
+- **Capable but exploitable** — Mistral Medium 3.1, Mistral Large, Qwen3 235B, DeepSeek V3.2
+
+### The task subset does not bias the result
+
+The board scores a frozen subset of tasks rather than the full suites. To check
+that this is not distorting anything, four models spanning the range were re-run
+over **every** task in both suites:
+
+| Model | Full coverage | Subset | Inside subset CI? |
+|---|---:|---:|:--:|
+| Claude Sonnet 4.5 | 99.7% | 99.3% | yes |
+| Gemini 2.5 Flash Lite | 88.5% | 88.0% | yes |
+| Qwen3 235B | 39.9% | 38.0% | yes |
+| Mistral Large | 20.4% | 24.7% | yes |
+
+Every full-coverage value falls inside the subset's confidence interval and every
+bucket assignment agrees. Mistral Large moves 4.3 points, the largest shift, and
+still sits well within its subset interval of [18, 31].
 
 <img src="assets/within_family_nvidia.png" alt="NVIDIA Nemotron: scaling 30B to 120B cost 17 points of injection-robustness" width="720">
 

@@ -81,8 +81,14 @@ frozen:
 # was an arbitrary precision bar unrelated to whether the claim was safe.
 durability:
   repeats_k: 3                 # repeat the full run k times, even at temp 0
-  ci: bootstrap_95             # 95% bootstrap CI over pairs x repeats, per suite;
-                               # combined-R CI via variance propagation across suites
+  # CLUSTER bootstrap: the independent unit is the (user_task, injection_task)
+  # PAIR, not the individual repeat. At temperature 0 the repeats are technical
+  # replicates — measured, 54 of 56 cells returned byte-identical repeats — so
+  # resampling k*n pooled observations would claim k times more independent data
+  # than exists and shrink every interval by ~sqrt(k). Each pair is averaged
+  # across repeats first, then pairs are resampled. The combined-R CI propagates
+  # the per-suite CIs through the coverage-weighted mean.
+  ci: cluster_bootstrap_95
   confirm_ci_within_bucket: true   # combined-R CI must not cross a bucket boundary
   confirm_bucket_stable: true      # same combined bucket in all k repeats
 
