@@ -1,28 +1,79 @@
 cff-version: 1.2.0
-title: "dspy-security-bench: Measuring optimizer-induced robustness in agentic DSPy programs"
+title: >-
+  dspy-security-bench: a reproducible harness for measuring prompt-injection
+  robustness in tool-using LLM agents
+message: >-
+  If you use this software or its leaderboard results, please cite it using the
+  metadata below.
+type: software
 authors:
   - family-names: Ahamed
     given-names: Imran
     email: immu4989@gmail.com
-version: 0.1.0
-date-released: 2026-06-16
+    # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
+version: 0.3.1
+date-released: 2026-07-13
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
+url: "https://github.com/immu4989/dspy-security-bench"
+abstract: >-
+  A Python harness for measuring how well language-model agents resist indirect
+  prompt injection. It wraps the AgentDojo task environments and adds a frozen,
+  hashed measurement protocol, joint reporting of task utility alongside attack
+  resistance, cluster-bootstrap confidence intervals over task pairs, and a
+  confirmed/provisional criterion that decides when a result is stable enough to
+  state as a claim. Results are published as a leaderboard generated directly
+  from committed per-run result files, so any row can be audited or reproduced.
 keywords:
-  - dspy
-  - agentdojo
   - prompt-injection
   - llm-security
   - agent-evaluation
-  - robustness
   - benchmark
-message: "If you use this benchmark in research or production, please cite as below."
-preferred-citation:
-  type: software
-  title: "dspy-security-bench"
-  authors:
-    - family-names: Ahamed
-      given-names: Imran
-  version: 0.1.0
-  year: 2026
-  url: "https://github.com/immu4989/dspy-security-bench"
+  - reproducibility
+  - agentdojo
+  - dspy
+# doi: "10.5281/zenodo.XXXXXXX"
+# Deliberately left commented: add the Zenodo concept DOI only once the
+# GitHub-Zenodo integration has archived a release and actually issued one. A
+# placeholder DOI is worse than none, because tools will try to resolve it.
+references:
+  - type: conference-paper
+    title: >-
+      AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and
+      Defenses for LLM Agents
+    authors:
+      - family-names: Debenedetti
+        given-names: Edoardo
+      - family-names: Zhang
+        given-names: Jie
+      - family-names: Balunović
+        given-names: Mislav
+      - family-names: Beurer-Kellner
+        given-names: Luca
+      - family-names: Fischer
+        given-names: Marc
+      - family-names: Tramèr
+        given-names: Florian
+    year: 2024
+    collection-title: >-
+      Advances in Neural Information Processing Systems, Datasets and Benchmarks
+      Track
+    url: "https://arxiv.org/abs/2406.13352"
+  - type: conference-paper
+    title: >-
+      DSPy: Compiling Declarative Language Model Calls into Self-Improving
+      Pipelines
+    authors:
+      - family-names: Khattab
+        given-names: Omar
+      - family-names: Singhvi
+        given-names: Arnav
+      - family-names: Maheshwari
+        given-names: Paridhi
+      - family-names: Zaharia
+        given-names: Matei
+      - family-names: Potts
+        given-names: Christopher
+    year: 2024
+    collection-title: International Conference on Learning Representations
+    url: "https://arxiv.org/abs/2310.03714"
