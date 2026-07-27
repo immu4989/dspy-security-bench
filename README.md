@@ -54,6 +54,25 @@ when its CI sits entirely inside one bucket *and* the bucket holds across all re
 
 **[→ Full board, methodology, and every number](LEADERBOARD.md)**
 
+> **What this board is, and is not.** The capability–robustness decoupling shown
+> below is an **established result**, not a discovery here — see
+> [Gray Swan ART](https://arxiv.org/abs/2507.20526), the
+> [multi-lab IPI competition](https://arxiv.org/abs/2603.15714) (OpenAI, Anthropic,
+> Meta, UK AISI, US CAISI) and
+> [Google DeepMind](https://arxiv.org/abs/2505.14534). These measurements are
+> **consistent with** that work: this board puts Claude Sonnet 4.5 at 99.3%
+> robustness, against the 1.0% ASR independently measured for the same model in
+> the competition.
+>
+> What this repository adds is **reproducibility at low cost** — a frozen
+> protocol, committed per-row results, and a runner you can point at a new model
+> for a few dollars. It measures **static, fixed-template attacks at k=1 on one
+> agent surface**, which is a narrow slice: published work shows adaptive attacks
+> and larger attack budgets raise attack success substantially on the same models.
+> Read these numbers as a **lower bound on attackability**.
+> Full context in [RELATED_WORK.md](RELATED_WORK.md) ·
+> methods in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
+
 ### Two models, near-identical capability, a 62-point robustness gap
 
 | | Capability | Robustness |
@@ -97,10 +116,14 @@ Every full-coverage value falls inside the subset's confidence interval and ever
 bucket assignment agrees. Mistral Large moves 4.3 points, the largest shift, and
 still sits well within its subset interval of [18, 31].
 
-<img src="assets/within_family_nvidia.png" alt="NVIDIA Nemotron: scaling 30B to 120B cost 17 points of injection-robustness" width="720">
+<img src="assets/within_family_nvidia.png" alt="NVIDIA Nemotron: scaling 30B to 120B lowers injection-robustness" width="720">
 
-> **The deployment takeaway:** your choice of base model changes injection risk by
-> more than 4×, and nothing on a capability leaderboard tells you which way. Measure it.
+> Within one vendor's own family, scaling Nemotron 3 from 30B to 120B moves
+> robustness from 93% to 81%, an 11-point drop. The 30B row is *provisional* — its interval crosses
+> the Robust boundary — so read this as suggestive rather than settled.
+>
+> **The deployment takeaway:** base-model choice moves injection risk by roughly
+> 4× across this board, and a capability leaderboard will not tell you which way.
 
 ### Want a model on the board?
 
@@ -123,6 +146,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
 | 🛡️ **Test defenses** | Measure [cheap mitigations](#the-good-news-cheap-defenses-recover-it-v020) and whether they survive an [adaptive attacker](#but-do-the-defenses-survive-an-adaptive-attacker-v031). |
 | 🔬 **Study optimizers** | The original question: does DSPy prompt optimization make agents *more* or *less* robust? |
+| 📚 **Get oriented in the literature** | [RELATED_WORK.md](RELATED_WORK.md) — a sourced map of agentic prompt-injection work as of July 2026, including which well-known "leaderboards" rank detectors or humans rather than models. |
 
 ---
 
