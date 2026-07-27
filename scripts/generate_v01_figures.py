@@ -23,8 +23,8 @@ ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 # at a glance even on a small screen.
 PALETTE = {
     "unoptimized": "#94A3B8",        # slate-400 — neutral baseline
-    "bootstrap_fewshot": "#3B82F6",  # blue-500
-    "miprov2": "#F97316",            # orange-500
+    "bootstrap_fewshot": "#E11D48",  # blue-500
+    "miprov2": "#059669",            # orange-500
 }
 ATTACK_HATCHES = {
     "direct": "",
@@ -127,10 +127,10 @@ def plot_pareto(df: pd.DataFrame, out_path: Path) -> None:
         )
 
     # Ideal corner
-    ax.scatter([1.0], [1.0], s=120, marker="*", c="#10B981",
+    ax.scatter([1.0], [1.0], s=120, marker="*", c="#64748B",
                edgecolors="#1F2937", linewidths=1.2, zorder=4)
     ax.annotate("ideal", (1.0, 1.0), textcoords="offset points",
-                xytext=(-32, -16), fontsize=10, color="#047857", fontweight="700")
+                xytext=(-32, -16), fontsize=10, color="#475569", fontweight="700")
 
     ax.set_xlim(-0.08, 1.15)
     ax.set_ylim(-0.08, 1.15)
@@ -142,8 +142,8 @@ def plot_pareto(df: pd.DataFrame, out_path: Path) -> None:
     )
     ax.grid(alpha=0.25, linestyle="--")
     ax.set_axisbelow(True)
-    ax.axhline(1.0, color="#10B981", alpha=0.3, linewidth=1, linestyle=":")
-    ax.axvline(1.0, color="#10B981", alpha=0.3, linewidth=1, linestyle=":")
+    ax.axhline(1.0, color="#64748B", alpha=0.3, linewidth=1, linestyle=":")
+    ax.axvline(1.0, color="#64748B", alpha=0.3, linewidth=1, linestyle=":")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 

@@ -31,8 +31,8 @@ DEFENSE_LABEL = {
     "spotlight_delim": "spotlight\ndelimiting",
 }
 ATTACK_STYLE = {
-    "direct": ("#4F46E5", "direct attack"),
-    "important_instructions": ("#F59E0B", "important_instructions (harder)"),
+    "direct": ("#E11D48", "direct attack"),
+    "important_instructions": ("#059669", "important_instructions (harder)"),
 }
 
 
@@ -73,7 +73,7 @@ def main():
     ax.text(0, 1.13, "undefended", ha="center", fontsize=9.5, color="#B91C1C",
             style="italic", fontweight="600")
     ax.text(2.5, 1.13, "with a deployable defense", ha="center", fontsize=9.5,
-            color="#047857", style="italic", fontweight="600")
+            color="#475569", style="italic", fontweight="600")
 
     ax.set_xticks(x)
     ax.set_xticklabels([DEFENSE_LABEL[d] for d in defenses], fontsize=10.5, fontweight="600")

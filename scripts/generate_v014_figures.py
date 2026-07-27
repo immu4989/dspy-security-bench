@@ -38,8 +38,8 @@ MODELS = [
 ]
 
 ATTACK_STYLE = {
-    "direct":                 ("#4F46E5", "direct attack"),           # indigo
-    "important_instructions": ("#F59E0B", "important_instructions"),   # amber
+    "direct":                 ("#E11D48", "direct attack"),           # indigo
+    "important_instructions": ("#059669", "important_instructions"),   # amber
 }
 
 
