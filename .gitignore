@@ -36,7 +36,12 @@ htmlcov/
 
 # Generated data (intentionally git-ignored — regenerate with the CLI)
 data/synthetic_train/
-data/results/
+# Exclude generated results, EXCEPT the adaptive-budget experiment: it corrects
+# a previously published claim, so the raw runs behind it must be auditable.
+# (Must exclude the contents, not the directory, or git will not descend to
+# find the negated path below.)
+data/results/*
+!data/results/adaptive_budget/
 logs/
 *.jsonl
 

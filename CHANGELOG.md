@@ -8,6 +8,16 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+### Corrected
+- **`security_prompt` does not survive an adaptive attacker.** v0.3.1 reported
+  that the cheap defenses held against an LM-driven iterative attacker. That was
+  measured at K=5 rounds. Re-run at K=50 over 10 independent runs, the defense is
+  defeated in 9 of them (median 13 rounds; fastest 5). The v0.3.1 budget sat at
+  the extreme tail of the rounds-to-break distribution. The README section and
+  the adaptive-attack chart are annotated accordingly; raw runs are in
+  `data/results/adaptive_budget/`. Total cost of the corrected experiment: ~$0.30.
+  The attacker is stochastic, so a single run at any budget is not a measurement.
+
 ### Added
 - **Model leaderboard** (`LEADERBOARD.md`, `leaderboard/`): a frozen measurement
   protocol, a per-model result JSON for every row, and a generator so the board
@@ -53,6 +63,9 @@ several of them changed published numbers.
 ### Notes
 - On Mistral Large / workspace the cheap defenses held at every attacker tier.
   Sample sizes here are small (n=3–5 per cell); treat as a pilot.
+- **Superseded.** That conclusion held only at the K=5 attacker budget this
+  release tested. At K=50 the `security_prompt` defense is defeated in 9 of 10
+  runs. See the Corrected entry under Unreleased.
 
 ## [0.3.0] — 2026-07-12
 ### Added
