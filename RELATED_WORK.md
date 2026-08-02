@@ -80,6 +80,71 @@ this one included — has to be read with that in mind.
 
 ---
 
+## 2b. What a reported attack-success number is contingent on
+
+A single ASR figure is under-determined along at least five axes. Each is
+published, several of them long before the LLM era. Anyone measuring defenses —
+including this repository — is choosing a point on all five whether or not they
+say so.
+
+| Axis | Established by |
+|---|---|
+| **Attack budget** (iterations, restarts, rounds) | [Carlini et al. 2019](https://arxiv.org/abs/1902.06705); [Tramèr et al. 2020](https://arxiv.org/abs/2002.08347); [BoN, 2412.03556](https://arxiv.org/abs/2412.03556) |
+| **Attack method** (static template vs adaptive search) | [The Attacker Moves Second, 2510.09023](https://arxiv.org/abs/2510.09023); [2505.14534](https://arxiv.org/abs/2505.14534) |
+| **Attacker model identity** | [PAIR, 2310.08419](https://arxiv.org/abs/2310.08419); [2505.20162](https://arxiv.org/abs/2505.20162); **for prompt injection specifically:** [2606.10525](https://arxiv.org/abs/2606.10525) |
+| **Random seed / run-to-run variance** | [2605.14418](https://arxiv.org/abs/2605.14418); [2512.12066](https://arxiv.org/abs/2512.12066) |
+| **Judge / evaluator model** | [TAP, 2312.02119](https://arxiv.org/abs/2312.02119) Table 4 |
+
+### Budget
+
+Carlini et al.'s 2019 evaluation checklist already says it plainly:
+
+> *"Verify that doubling the number of iterations does not increase attack
+> success rate."* … *"There are few reasonable threat models under which an
+> attacker can compute 100 iterations of gradient descent, but not 1000."*
+
+Tramèr et al. 2020 shows the same collapse for defenses, noting that published
+evaluations used *"only 10 iterations … unlikely to allow the attacks to
+converge."* [Andriushchenko et al. 2024](https://arxiv.org/abs/2404.02151)
+Table 15 has the cleanest exhibit: Claude 2.0 moves **2% → 12% → 48%** at 1, 10
+and 100 restarts. Nothing about the defense changed.
+
+### Attacker model, in prompt injection
+
+[arXiv:2606.10525](https://arxiv.org/abs/2606.10525) (Debenedetti, Tramèr — the
+AgentDojo authors) holds target, defense, task and budget fixed and swaps only
+the attacker LM:
+
+> *"TAP's effectiveness depends on the attacker model, as both general
+> capability and safety tuning affect attack success — stronger models produce
+> more effective injections, while safety-tuned attackers can refuse to generate
+> adversarial prompts."*
+
+GPT-5-mini → GPT-5 as attacker moves ASR 36.6% → 44.6% (single-task) and
+10.7% → 45.2% (universal).
+
+Counter-intuitively, a *more capable* attacker is not always better: PAIR's
+attacker ablation finds GPT-3.5 the **worst** of three, behind Mixtral and
+Vicuna, because *"Mixtral and Vicuna lack the safety alignment of GPT-3.5, which
+is helpful for red-teaming."* Attacker-side refusal is a confound in its own
+right.
+
+### Variance
+
+> *"ASR is not a stable quantity … published ASR numbers are therefore
+> systematically inflated and incomparable across papers."*
+> — [2605.14418](https://arxiv.org/abs/2605.14418)
+
+[2512.12066](https://arxiv.org/abs/2512.12066) finds 18–28% of prompts flip
+decision across seeds and temperatures, and recommends at least 3 samples per
+prompt. A single run is not a measurement.
+
+Worth noting what the major benchmarks do about this: JailbreakBench answers
+"No" to the error-bar checklist item and puts attack randomness out of scope;
+HarmBench assumes deterministic greedy decoding; AgentDojo *does* report 95%
+confidence intervals, but they are binomial over its fixed test cases rather
+than over repeated runs. The distinction matters and is rarely drawn.
+
 ## 3. Attack budget dominates the headline number
 
 The same model produces wildly different ASRs depending only on how many attempts

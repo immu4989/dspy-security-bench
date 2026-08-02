@@ -309,11 +309,27 @@ there and adapts? v0.3.1 adds two tiers of defense-aware attacks and answers it.
 > Reproduce with `scripts/run_lm_driven_attack.py --rounds 50`. The whole
 > experiment cost about 30 cents.
 >
-> This is the failure mode Google DeepMind documents in
+> None of this is a new observation — it is a well-established evaluation
+> failure that this project walked into anyway.
+> [Carlini et al. (2019)](https://arxiv.org/abs/1902.06705) already prescribe the
+> check that would have caught it: *"Verify that doubling the number of
+> iterations does not increase attack success rate."*
+> [Tramèr et al. (2020)](https://arxiv.org/abs/2002.08347) document the same
+> collapse in defenses evaluated at too small a budget, and Google DeepMind
+> restate it for LLMs in
 > [arXiv:2505.14534](https://arxiv.org/abs/2505.14534): *"Had we not conducted
 > further adaptive attacks and evaluations, we would have incorrectly concluded
-> that Gemini 2.5 exhibits a higher degree of robustness than it does."* The
-> chart above reflects the original K=5 experiment and is retained for the
+> that Gemini 2.5 exhibits a higher degree of robustness than it does."*
+>
+> A second lesson from the same experiment: a first pass that varied the budget
+> (K=10/25/50/100, one run each) produced survive / survive / break-at-22 /
+> break-at-3, which is impossible for a deterministic attacker. The attacker is
+> stochastic, so **a single run at any budget is not a measurement** — see
+> [arXiv:2605.14418](https://arxiv.org/abs/2605.14418) and
+> [arXiv:2512.12066](https://arxiv.org/abs/2512.12066). The 9-of-10 figure above
+> comes from ten independent runs at a fixed budget for that reason.
+>
+> The chart above reflects the original K=5 experiment and is retained for the
 > record, not as a current claim.
 
 For the record, what v0.3.1 did establish: the LM-driven attacker **provably
