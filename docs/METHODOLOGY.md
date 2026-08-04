@@ -146,5 +146,15 @@ These are real and bound how the numbers should be read. See
    between browser, coding and chat surfaces.
 4. **One scaffold.** `dspy.ReActV2`. Whether the ranking survives a different
    agent implementation is not established here.
-5. **Point-in-time.** Models are served endpoints that change. Rows record their
+5. **One scaffold *version*.** Every published row was measured under
+   `dspy==3.3.0b1` (pinned in `leaderboard/protocol.yaml` and enforced by the
+   runner). This is not pedantry: dspy 3.3.0 changed the tool JSON schema the
+   model receives — defaulted arguments left the `required` list
+   ([stanfordnlp/dspy#9971](https://github.com/stanfordnlp/dspy/pull/9971)) and
+   tool-call args gained `additionalProperties: true`
+   ([#10012](https://github.com/stanfordnlp/dspy/pull/10012)). For a benchmark
+   whose stimulus includes the tool schema, that is a protocol change. Whether
+   it moves any score has not been measured; until it is, rows from different
+   dspy versions do not share a board.
+6. **Point-in-time.** Models are served endpoints that change. Rows record their
    run date.

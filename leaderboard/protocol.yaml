@@ -19,6 +19,20 @@
 
 protocol_version: "2.0.0"
 
+# Measured environment — pinned provenance for every published row. Kept
+# OUTSIDE `frozen:` so recording it does not perturb the config hash that
+# existing rows were stamped with; it is enforced by the runner all the same.
+#
+# Why the dspy version matters: the scaffold's tool JSON schema is part of the
+# stimulus the model sees. dspy 3.3.0 changed it — defaulted arguments left the
+# `required` list (stanfordnlp/dspy#9971) and ToolCall args gained
+# `additionalProperties: true` (#10012) — so scores measured under a different
+# dspy are not comparable to this board even with `frozen:` untouched. The
+# runner refuses a mismatched dspy unless --allow-dspy-mismatch is passed, and
+# every row records the version that actually produced it.
+environment:
+  dspy_version: "3.3.0b1"
+
 frozen:
   # Ground-truth attack suite. Pinned exactly — silent drift here would
   # silently change every score.

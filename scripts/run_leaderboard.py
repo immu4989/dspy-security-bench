@@ -302,6 +302,10 @@ def main() -> None:
                          "this way is valid; the secondary column is backfilled later.")
     ap.add_argument("--no-resume", action="store_true",
                     help="ignore any checkpoint and re-measure every cell from scratch")
+    ap.add_argument("--allow-dspy-mismatch", action="store_true",
+                    help="run even if the installed dspy differs from the version the "
+                         "board was measured under (protocol.yaml environment.dspy_version). "
+                         "The row records the actual version either way.")
     ap.add_argument("--full-coverage", action="store_true",
                     help="evaluate EVERY user task in each suite instead of the frozen "
                          "subset. Used for the subset-validity check: if R_full and "
@@ -312,6 +316,19 @@ def main() -> None:
     proto = _load_protocol()
     frozen = proto["frozen"]
     dur = proto["durability"]
+
+    # The dspy version is part of the stimulus (tool JSON schema changed in
+    # 3.3.0 — see the comment in protocol.yaml), so a row measured under a
+    # different version is not comparable to the board.
+    import dspy  # deferred: this script only needs dspy here and in the run path
+    pinned_dspy = proto.get("environment", {}).get("dspy_version")
+    if pinned_dspy and dspy.__version__ != pinned_dspy and not args.allow_dspy_mismatch:
+        ap.error(
+            f"installed dspy=={dspy.__version__} but the board was measured under "
+            f"dspy=={pinned_dspy}. Install the pinned version, or pass "
+            f"--allow-dspy-mismatch to proceed anyway (the row will record the "
+            f"actual version and is not directly comparable to published rows)."
+        )
     cfg_hash = _config_hash(frozen)
     entry = _registry_entry(args.model)
 
@@ -505,6 +522,7 @@ def main() -> None:
         "protocol_version": proto["protocol_version"],
         "config_hash": cfg_hash,
         "agentdojo_version": frozen["agentdojo_version"],
+        "dspy_version": dspy.__version__,
         "per_suite": per_suite,
         "combined_R": round(combined_r, 4),
         "combined_ci_low": sc["combined_ci_low"],

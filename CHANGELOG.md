@@ -19,6 +19,15 @@ several of them changed published numbers.
   The attacker is stochastic, so a single run at any budget is not a measurement.
 
 ### Added
+- **dspy version pinned as measurement provenance.** dspy 3.3.0 (released
+  2026-08-03) changed the tool JSON schema the model receives — defaulted args
+  left the `required` list (stanfordnlp/dspy#9971) and tool-call args gained
+  `additionalProperties: true` (#10012). The tool schema is part of the
+  stimulus, so `protocol.yaml` now records `dspy==3.3.0b1` as the measured
+  environment, the runner refuses a mismatched dspy without
+  `--allow-dspy-mismatch`, and every new row records the version that produced
+  it. Whether the schema change moves any score has not been measured; until it
+  is, rows from different dspy versions do not share a board.
 - **Model leaderboard** (`LEADERBOARD.md`, `leaderboard/`): a frozen measurement
   protocol, a per-model result JSON for every row, and a generator so the board
   can never drift from its data. 14 models across 10 families.
