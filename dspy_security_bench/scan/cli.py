@@ -9,10 +9,11 @@ from __future__ import annotations
 import argparse
 import importlib
 import logging
+import re
 import sys
 
 from dspy_security_bench.scan.config import ScanConfig
-from dspy_security_bench.scan.gate import evaluate_gate, write_baseline
+from dspy_security_bench.scan.gate import evaluate_gate
 from dspy_security_bench.scan.report import emit
 
 log = logging.getLogger("dspy_security_bench.scan")
@@ -45,6 +46,8 @@ def _apply_overrides(cfg: ScanConfig, args) -> ScanConfig:
         cfg.scan.defenses = args.defenses
     if args.user_tasks is not None:
         cfg.scan.user_tasks = args.user_tasks
+    if args.injection_tasks is not None:
+        cfg.scan.injection_tasks = args.injection_tasks
     if args.min_security is not None:
         cfg.gate.min_security = args.min_security
     if args.baseline:
@@ -66,11 +69,79 @@ def _apply_overrides(cfg: ScanConfig, args) -> ScanConfig:
     return cfg
 
 
-def _tasks_arg(value) -> list[str] | None:
-    """user_tasks config → user_task_ids list (None = all)."""
-    if value == "all":
+def _natural_task_order(task_ids) -> list[str]:
+    """Sort task ids numerically so selection is stable across dependency releases."""
+    def key(task_id: str):
+        match = re.search(r"(\d+)$", task_id)
+        return (int(match.group(1)) if match else float("inf"), task_id)
+    return sorted(task_ids, key=key)
+
+
+_CURATED_USER_TASKS = {
+    "workspace": ["user_task_0", "user_task_1", "user_task_3", "user_task_10", "user_task_11"],
+}
+
+
+def _select_tasks(suite_name: str, requested, *, kind: str) -> list[str] | None:
+    """Resolve a count to actual suite task ids; ``None`` tells AgentDojo to run all."""
+    if requested == "all":
         return None
-    return None  # sampling by count handled by the runner default subset below
+
+    from agentdojo.task_suite.load_suites import get_suite
+
+    suite = get_suite("v1", suite_name)
+    available = suite.user_tasks if kind == "user" else suite.injection_tasks
+    ordered = _natural_task_order(available)
+    if kind == "user" and suite_name in _CURATED_USER_TASKS:
+        curated = [task_id for task_id in _CURATED_USER_TASKS[suite_name] if task_id in available]
+        ordered = curated + [task_id for task_id in ordered if task_id not in curated]
+    if requested > len(ordered):
+        raise ValueError(
+            f"suite {suite_name!r} has {len(ordered)} {kind} tasks; requested {requested}"
+        )
+    return ordered[:requested]
+
+
+def build_scan_plan(cfg: ScanConfig) -> list[dict]:
+    """Resolve the exact benchmark matrix without building or calling an agent."""
+    plan = []
+    for suite in cfg.scan.suites:
+        users = _select_tasks(suite, cfg.scan.user_tasks, kind="user")
+        injections = _select_tasks(suite, cfg.scan.injection_tasks, kind="injection")
+        if users is None or injections is None:
+            from agentdojo.task_suite.load_suites import get_suite
+            suite_obj = get_suite("v1", suite)
+            user_count = len(suite_obj.user_tasks) if users is None else len(users)
+            injection_count = len(suite_obj.injection_tasks) if injections is None else len(injections)
+        else:
+            user_count, injection_count = len(users), len(injections)
+        cases = user_count * injection_count * len(cfg.scan.attacks) * len(cfg.scan.defenses)
+        plan.append({
+            "suite": suite,
+            "user_task_ids": users,
+            "injection_task_ids": injections,
+            "user_tasks": user_count,
+            "injection_tasks": injection_count,
+            "cases": cases,
+        })
+    return plan
+
+
+def render_scan_plan(cfg: ScanConfig, plan: list[dict]) -> str:
+    lines = [f"Scan plan for {cfg.agent.resolved_name()}"]
+    for item in plan:
+        lines.append(
+            f"- {item['suite']}: {item['cases']} cases "
+            f"({item['user_tasks']} user × {item['injection_tasks']} injection "
+            f"× {len(cfg.scan.attacks)} attacks × {len(cfg.scan.defenses)} defenses)"
+        )
+        users = item["user_task_ids"] or ["all"]
+        injections = item["injection_task_ids"] or ["all"]
+        lines.append(f"  user tasks: {', '.join(users)}")
+        lines.append(f"  injection tasks: {', '.join(injections)}")
+    lines.append(f"Total benchmark cases: {sum(item['cases'] for item in plan)}")
+    lines.append("No model was called. Actual LLM requests vary with the agent's tool loop.")
+    return "\n".join(lines)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -87,6 +158,11 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--attacks", nargs="+")
     s.add_argument("--defenses", nargs="+")
     s.add_argument("--user-tasks", type=lambda v: v if v == "all" else int(v), dest="user_tasks")
+    s.add_argument(
+        "--injection-tasks", type=lambda v: v if v == "all" else int(v),
+        dest="injection_tasks",
+    )
+    s.add_argument("--plan", action="store_true", help="show the exact run matrix without LM calls")
     gate = p.add_argument_group("gate")
     gate.add_argument("--min-security", type=float)
     gate.add_argument("--baseline", help="baseline json → regression mode")
@@ -101,12 +177,6 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-# Default user-task subset per suite (keeps a CI gate cheap). Mirrors the
-# subset the probe/experiment scripts use for the workspace suite.
-_DEFAULT_USER_TASKS = ["user_task_0", "user_task_1", "user_task_3", "user_task_10", "user_task_11"]
-_DEFAULT_INJECTION_TASKS = ["injection_task_0"]
-
-
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     args = build_parser().parse_args(argv)
@@ -119,6 +189,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[scan] config error: {e}", file=sys.stderr)
         return 2
 
+    try:
+        plan = build_scan_plan(cfg)
+    except Exception as e:
+        print(f"[scan] could not plan run: {type(e).__name__}: {e}", file=sys.stderr)
+        return 2
+    if args.plan:
+        print(render_scan_plan(cfg, plan))
+        return 0
+
     from dspy_security_bench.runner import evaluate_agents, summarize
 
     try:
@@ -127,23 +206,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[scan] could not build agent: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
 
-    # sample size: an int count trims the default subset; "all" = whole suite
-    if isinstance(cfg.scan.user_tasks, int):
-        user_task_ids = _DEFAULT_USER_TASKS[: cfg.scan.user_tasks]
-    else:
-        user_task_ids = None  # all
-
     agent_name = cfg.agent.resolved_name()
     all_summaries = []
     try:
-        for suite in cfg.scan.suites:
+        for item in plan:
+            suite = item["suite"]
             df = evaluate_agents(
                 agents={agent_name: agent},
                 suite_name=suite,
                 attacks=cfg.scan.attacks,
                 defenses=cfg.scan.defenses,
-                user_task_ids=user_task_ids,
-                injection_task_ids=_DEFAULT_INJECTION_TASKS,
+                user_task_ids=item["user_task_ids"],
+                injection_task_ids=item["injection_task_ids"],
             )
             summary = summarize(df)
             summary["_suite"] = suite
@@ -154,12 +228,12 @@ def main(argv: list[str] | None = None) -> int:
 
     # Write-baseline mode: persist and exit 0.
     if args.write_baseline:
-        import pandas as pd
-        merged = pd.concat([s for _, s in all_summaries], ignore_index=True)
-        # write one combined baseline keyed by suite
-        from dspy_security_bench.scan.gate import _cell_key
         import json
         from pathlib import Path
+
+        from dspy_security_bench.scan.gate import _cell_key
+
+        # Write one combined baseline keyed by suite.
         cells = {}
         for suite, summary in all_summaries:
             for _, row in summary.iterrows():

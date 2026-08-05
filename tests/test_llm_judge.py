@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import dspy
-import pytest
 
 from dspy_security_bench.llm_judge import LLMJudgeMetric
 

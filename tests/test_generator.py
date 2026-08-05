@@ -3,8 +3,6 @@ from __future__ import annotations
 
 import types
 
-import pytest
-
 from dspy_security_bench.synthesis.generator import (
     _is_query_only_task,
     _parse_json_array,
@@ -12,7 +10,6 @@ from dspy_security_bench.synthesis.generator import (
     extract_tool_specs,
     get_query_only_examples,
 )
-
 
 # ---------------------------------------------------------------------------
 # _is_query_only_task

@@ -94,10 +94,14 @@ class GenericAgentElement(BasePipelineElement):
         self,
         query: str,
         runtime: FunctionsRuntime,
-        env: Env = EmptyEnv(),
+        env: Env | None = None,
         messages: Sequence[ChatMessage] = (),
-        extra_args: dict = {},
+        extra_args: dict | None = None,
     ) -> tuple[str, FunctionsRuntime, Env, Sequence[ChatMessage], dict]:
+        if env is None:
+            env = EmptyEnv()
+        if extra_args is None:
+            extra_args = {}
         # Defense — query + instruction channels.
         defended_query = self.defense.rewrite_query(query)
         # The pure defense directive: apply rewrite_instructions to an empty

@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dspy-security-bench"
-version = "0.1.0"
-description = "Measure how DSPy prompt optimization affects the prompt-injection robustness of agentic LLM programs, using AgentDojo's attack suite."
+version = "0.5.0"
+description = "Reproducible LLM prompt-injection leaderboard and CI security gate for tool-using agents."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
@@ -40,16 +40,19 @@ dependencies = [
     "json-repair>=0.30",
     "pandas>=2.0",
     "numpy>=1.24",
-    "sentence-transformers>=3.0",
     "pydantic>=2.0",
     "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
+synthesis = [
+    "sentence-transformers>=3.0",
+]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
     "ruff>=0.6",
+    "sentence-transformers>=3.0",
 ]
 docs = [
     "mkdocs>=1.6",
@@ -60,6 +63,8 @@ docs = [
 Homepage = "https://github.com/immu4989/dspy-security-bench"
 Repository = "https://github.com/immu4989/dspy-security-bench"
 Issues = "https://github.com/immu4989/dspy-security-bench/issues"
+Changelog = "https://github.com/immu4989/dspy-security-bench/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/immu4989/dspy-security-bench/tree/main/docs"
 
 [project.scripts]
 dspy-security-bench = "dspy_security_bench.cli:main"

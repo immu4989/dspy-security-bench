@@ -34,7 +34,6 @@ from typing import Protocol, runtime_checkable
 from agentdojo.attacks.base_attacks import FixedJailbreakAttack
 from agentdojo.attacks.important_instructions_attacks import get_model_name_from_pipeline
 
-
 # ---------------------------------------------------------------------------
 # Bypass strategies — each returns a jailbreak template with {goal}/{user}/
 # {model}/{task} placeholders, tailored to defeat a target defense.

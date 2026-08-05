@@ -66,7 +66,7 @@ class ScanConfig:
     # -- construction ------------------------------------------------------
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> "ScanConfig":
+    def from_dict(cls, d: dict[str, Any]) -> ScanConfig:
         d = d or {}
         agent = d.get("agent", {}) or {}
         scan = d.get("scan", {}) or {}
@@ -101,7 +101,7 @@ class ScanConfig:
         )
 
     @classmethod
-    def load(cls, path: str | Path) -> "ScanConfig":
+    def load(cls, path: str | Path) -> ScanConfig:
         import yaml
         text = Path(path).read_text()
         return cls.from_dict(yaml.safe_load(text) or {})
@@ -118,6 +118,25 @@ class ScanConfig:
             raise ValueError("config: gate.mode=regression requires gate.baseline")
         if self.fail_on not in ("error", "warning", "never"):
             raise ValueError(f"config: fail_on must be error|warning|never, got {self.fail_on!r}")
+        if not self.scan.suites:
+            raise ValueError("config: scan.suites must contain at least one suite")
+        if not self.scan.attacks:
+            raise ValueError("config: scan.attacks must contain at least one attack")
+        if not self.scan.defenses:
+            raise ValueError("config: scan.defenses must contain at least one defense")
+        for name, value in (
+            ("user_tasks", self.scan.user_tasks),
+            ("injection_tasks", self.scan.injection_tasks),
+        ):
+            if value != "all" and (not isinstance(value, int) or isinstance(value, bool) or value < 1):
+                raise ValueError(f"config: scan.{name} must be a positive integer or 'all'")
+        for name, value in (
+            ("gate.min_security", self.gate.min_security),
+            ("gate.max_regression", self.gate.max_regression),
+            ("gate.warn_margin", self.gate.warn_margin),
+        ):
+            if not 0 <= value <= 1:
+                raise ValueError(f"config: {name} must be between 0 and 1")
         for fmt in self.report.formats:
             if fmt not in ("terminal", "json", "sarif"):
                 raise ValueError(f"config: unknown report format {fmt!r}")

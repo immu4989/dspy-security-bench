@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import pytest
 
+from dspy_security_bench.adapters.generic import GenericAgentElement, _make_bench_tool
 from dspy_security_bench.agents.base import (
     Agent,
     AgentResult,
@@ -14,9 +15,7 @@ from dspy_security_bench.agents.base import (
     ToolCall,
     apply_system_directive,
 )
-from dspy_security_bench.adapters.generic import GenericAgentElement, _make_bench_tool
 from dspy_security_bench.defenses import get_defense
-
 
 # ---------------------------------------------------------------------------
 # Minimal stubs for the AgentDojo runtime interface our code actually uses:

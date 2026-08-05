@@ -20,7 +20,6 @@ import re
 import sys
 import time
 from pathlib import Path
-from typing import Any
 
 import json_repair
 
@@ -184,7 +183,7 @@ def _call_llm(model: str, prompt: str, temperature: float = 0.8, seed: int = 0) 
             wait = 2 ** attempt
             print(f"  [retry {attempt+1}/4 after {wait}s] {type(e).__name__}: {e}", file=sys.stderr)
             time.sleep(wait)
-    raise RuntimeError(f"LLM call failed after retries") from last_err
+    raise RuntimeError("LLM call failed after retries") from last_err
 
 
 def _parse_json_array(text: str) -> list[dict]:

@@ -35,3 +35,9 @@ jobs:
         run: |
           source .venv/bin/activate
           pytest tests/ -v --tb=short
+
+      - name: Run Ruff
+        if: matrix.python-version == '3.12'
+        run: |
+          source .venv/bin/activate
+          ruff check dspy_security_bench/ tests/

@@ -20,7 +20,6 @@ from dspy_security_bench.attacks.adaptive import (
     is_adaptive,
 )
 
-
 # ---------------------------------------------------------------------------
 # Strategy templates
 # ---------------------------------------------------------------------------
@@ -95,6 +94,7 @@ def test_build_adaptive_unknown_strategy_raises():
 def _workspace_pipeline():
     from agentdojo.agent_pipeline.agent_pipeline import AgentPipeline
     from agentdojo.agent_pipeline.basic_elements import InitQuery
+
     from dspy_security_bench.adapters.generic import GenericAgentElement
     from dspy_security_bench.agents.base import AgentResult
 

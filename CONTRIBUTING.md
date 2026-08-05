@@ -16,8 +16,8 @@ git clone https://github.com/immu4989/dspy-security-bench
 cd dspy-security-bench
 uv pip install -e ".[dev]"
 
-pytest tests/ -v          # ~99 tests, all offline, no API key needed
-ruff check dspy_security_bench/ scripts/ tests/
+pytest tests/ -v          # all offline, no API key needed
+ruff check dspy_security_bench/ tests/
 ```
 
 The test suite does not make network calls. You only need provider API keys to
@@ -70,7 +70,7 @@ Two are load-bearing and easy to get wrong. Both are explained in
 
 ## Code style
 
-- `ruff` for linting and formatting; CI enforces it.
+- `ruff` for linting and formatting; CI enforces it for the package and tests.
 - Comments should explain *why*, particularly where a choice is non-obvious or
   where a previous approach was wrong.
 - New behaviour needs a test. Tests must run offline.
@@ -80,6 +80,12 @@ Two are load-bearing and easy to get wrong. Both are explained in
 This project studies attacks, so a bug here is not usually sensitive. If you
 believe you have found something that should not be public, open an issue asking
 for a private channel rather than posting details.
+
+## Maintainer releases
+
+Releases are built, checked, and published from a `vX.Y.Z` tag. See
+[`docs/releasing.md`](docs/releasing.md) for the one-time PyPI Trusted Publisher
+setup and the release checklist. Do not upload a wheel from a local machine.
 
 ## Conduct
 

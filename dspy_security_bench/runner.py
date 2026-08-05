@@ -21,7 +21,6 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 from agentdojo.agent_pipeline.agent_pipeline import AgentPipeline
@@ -31,6 +30,8 @@ from agentdojo.benchmark import benchmark_suite_with_injections
 from agentdojo.logging import NullLogger
 from agentdojo.task_suite.load_suites import get_suite
 
+from dspy_security_bench.adapters import DSPyReActV2Element
+
 # Monkey-patch fix for AgentDojo bug: NullLogger only sets `logdir` inside
 # `__enter__`, but TraceLogger does `delegate.logdir or ...` on the result of
 # `Logger.get()`, which returns an un-entered NullLogger when no context is
@@ -38,8 +39,6 @@ from agentdojo.task_suite.load_suites import get_suite
 # accessing `.logdir` return None safely, and TraceLogger falls back to its
 # default `runs/` directory.
 NullLogger.logdir = None
-
-from dspy_security_bench.adapters import DSPyReActV2Element
 
 logger = logging.getLogger(__name__)
 

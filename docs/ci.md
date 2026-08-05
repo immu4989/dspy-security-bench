@@ -12,6 +12,17 @@ that upgrade an improvement. This gate catches it.
 
 ## 1. Configure
 
+Generate the config and workflow in one command:
+
+```bash
+dspy-security-bench init --model openai/gpt-4o-mini
+# Or wrap your application agent:
+dspy-security-bench init --agent mypkg.agents:build
+```
+
+Existing files are never overwritten unless you pass `--force`. You can also
+copy the templates manually:
+
 Copy [`examples/.dspy-security-bench.yaml`](../examples/.dspy-security-bench.yaml)
 to your repo root and point it at your agent — either a model (uses the
 built-in function-calling agent) or your own `Agent` factory:
@@ -38,6 +49,16 @@ pip install dspy-security-bench
 export OPENAI_API_KEY=sk-...
 dspy-security-bench scan --config .dspy-security-bench.yaml
 ```
+
+Before using an API key, inspect the exact matrix at no cost:
+
+```bash
+dspy-security-bench scan --config .dspy-security-bench.yaml --plan
+```
+
+The plan resolves suite-specific task IDs and reports the total benchmark
+cases. `user_tasks` and `injection_tasks` each accept a positive count or
+`"all"`.
 
 Exit code: `0` pass · `1` gate failed · `2` could not run.
 

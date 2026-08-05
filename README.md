@@ -393,6 +393,18 @@ df = evaluate_agents(
 **Gate CI on it.** `dspy-security-bench scan` runs the benchmark, applies a
 pass/fail policy, and exits non-zero so a bad PR is blocked:
 
+```bash
+pip install dspy-security-bench
+dspy-security-bench init --model openai/gpt-4o-mini
+dspy-security-bench scan --config .dspy-security-bench.yaml --plan  # no API calls
+```
+
+`init` creates both the config and a GitHub Actions workflow. It preserves
+existing files unless you explicitly pass `--force`. The plan shows the exact
+user-task × injection-task × attack × defense matrix before you spend API
+credits. Then export your provider key and run the same command without
+`--plan`.
+
 ```console
 $ dspy-security-bench scan --agent-model openai/gpt-4o --min-security 0.9
  ✗ openai/gpt-4o   none   important_instructions   50%
@@ -525,7 +537,29 @@ Requires **Python 3.10+** and **dspy >= 3.3.0b1** (the canonical-tool-call
 release that adds `dspy.ReActV2`). pip/uv handle the pre-release pin
 automatically because the version is explicit in `pyproject.toml`.
 
-## Quickstart
+The default install contains the leaderboard runner and CI scanner. Install
+`dspy-security-bench[synthesis]` only if you need embedding-based synthetic
+trainset deduplication.
+
+## Five-minute CI quickstart
+
+```bash
+pip install dspy-security-bench
+
+# Built-in function-calling agent; use --agent mypackage:build_agent for yours.
+dspy-security-bench init --model openai/gpt-4o-mini
+
+# Inspect the exact matrix. This validates task availability and makes no LM calls.
+dspy-security-bench scan --config .dspy-security-bench.yaml --plan
+
+# Then set OPENAI_API_KEY (or your provider's key) and run the gate.
+dspy-security-bench scan --config .dspy-security-bench.yaml
+```
+
+The generated workflow uploads SARIF findings to GitHub's Security tab. See
+[`docs/ci.md`](docs/ci.md) for absolute and regression gates.
+
+## Research pipeline quickstart
 
 The full pipeline in Python:
 
@@ -577,7 +611,15 @@ so re-runs after a downstream crash skip optimization.
 
 ## CLI
 
-The synthesis and validation steps have CLIs that produce JSONL files:
+The umbrella CLI exposes project setup, security scanning, synthesis, and validation:
+
+```bash
+dspy-security-bench --version
+dspy-security-bench init --help
+dspy-security-bench scan --help
+```
+
+The synthesis and validation steps also have direct CLIs that produce JSONL files:
 
 ```bash
 # Synthesize (dry-run prints the prompt without calling the API)

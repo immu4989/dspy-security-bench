@@ -5,10 +5,8 @@ import types
 from unittest.mock import patch
 
 import pandas as pd
-import pytest
 
 from dspy_security_bench.runner import _suite_results_to_rows, evaluate_factories, summarize
-
 
 # ---------------------------------------------------------------------------
 # _suite_results_to_rows

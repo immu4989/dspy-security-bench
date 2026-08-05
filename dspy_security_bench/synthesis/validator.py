@@ -230,7 +230,6 @@ def validate_tasks(
             from sentence_transformers import SentenceTransformer
         except ImportError:
             sys.exit("dedupe check requires sentence-transformers: uv pip install sentence-transformers")
-        import numpy as np
         encoder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
         real_prompts = get_real_user_task_prompts(suite_name, version)
         real_embeddings = encoder.encode(real_prompts, normalize_embeddings=True)

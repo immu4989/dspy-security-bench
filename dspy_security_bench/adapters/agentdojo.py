@@ -39,7 +39,6 @@ from agentdojo.types import (
     text_content_block_from_string,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -113,7 +112,7 @@ class _RuntimeBoundTool:
        module-level class with `__call__`.
     2. **`__deepcopy__` returns self** — AgentDojo's `Function.parameters`
        is a dynamically-created Pydantic model whose qualified name contains
-       spaces (e.g. `"Input schema for \`send_email\`"`), which pickle
+       spaces (e.g. `"Input schema for `send_email`"`), which pickle
        cannot resolve. The runtime+env don't change during optimization,
        so sharing them across deep-copied agents is safe.
     """
@@ -376,10 +375,14 @@ class DSPyReActV2Element(BasePipelineElement):
         self,
         query: str,
         runtime: FunctionsRuntime,
-        env: Env = EmptyEnv(),
+        env: Env | None = None,
         messages: Sequence[ChatMessage] = (),
-        extra_args: dict = {},
+        extra_args: dict | None = None,
     ) -> tuple[str, FunctionsRuntime, Env, Sequence[ChatMessage], dict]:
+        if env is None:
+            env = EmptyEnv()
+        if extra_args is None:
+            extra_args = {}
         # 0) Defense — query channel. Compute the (possibly rewritten) query
         #    first so query-aware tool defenses (e.g. sandwich) re-assert the
         #    same task text the agent actually receives.

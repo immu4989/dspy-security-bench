@@ -13,7 +13,6 @@ from dspy_security_bench.adapters.agentdojo import (
     _tool_call_to_function_call,
 )
 
-
 # ---------------------------------------------------------------------------
 # _serialize_result
 # ---------------------------------------------------------------------------

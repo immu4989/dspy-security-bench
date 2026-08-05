@@ -8,6 +8,30 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-08-05
+
+### Added
+- `dspy-security-bench init` generates a ready-to-run config and GitHub Actions
+  SARIF workflow while preserving existing files by default.
+- `scan --plan` resolves and prints the exact benchmark matrix without building
+  an agent or making LM calls.
+- Trusted Publishing release workflow with tag/package version verification,
+  distribution validation, and a separately permissioned PyPI publish job.
+
+### Fixed
+- `scan.injection_tasks` was accepted in YAML but ignored; scans always used
+  `injection_task_0`, which is not even present in every AgentDojo suite. Both
+  user and injection task counts now resolve to valid, deterministic per-suite
+  IDs and reject impossible counts before any LM call.
+- Scan configuration now rejects empty matrices, invalid sample sizes, and
+  gate thresholds outside `[0, 1]` before starting a paid run.
+
+### Changed
+- Package metadata now reflects the shipped v0.5 feature set instead of the
+  stale v0.1 metadata still visible on PyPI.
+- `sentence-transformers` moved to the optional `synthesis` extra, keeping the
+  default scanner installation lighter.
+
 ### Corrected
 - **`security_prompt` does not survive an adaptive attacker.** v0.3.1 reported
   that the cheap defenses held against an LM-driven iterative attacker. That was
@@ -112,7 +136,8 @@ several of them changed published numbers.
 - First end-to-end run: DSPy optimizers × AgentDojo attacks in one harness,
   workspace suite, single model.
 
-[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.3.1...v0.5.0
 [0.3.1]: https://github.com/immu4989/dspy-security-bench/releases/tag/v0.3.1
 [0.3.0]: https://github.com/immu4989/dspy-security-bench/releases/tag/v0.3.0
 [0.2.0]: https://github.com/immu4989/dspy-security-bench/releases/tag/v0.2.0

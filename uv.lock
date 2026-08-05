@@ -968,7 +968,7 @@ wheels = [
 
 [[package]]
 name = "dspy-security-bench"
-version = "0.1.0"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "agentdojo" },
@@ -981,7 +981,7 @@ dependencies = [
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pandas", version = "3.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pydantic" },
-    { name = "sentence-transformers" },
+    { name = "pyyaml" },
 ]
 
 [package.optional-dependencies]
@@ -989,10 +989,14 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
+    { name = "sentence-transformers" },
 ]
 docs = [
     { name = "mkdocs" },
     { name = "mkdocs-material" },
+]
+synthesis = [
+    { name = "sentence-transformers" },
 ]
 
 [package.metadata]
@@ -1008,10 +1012,12 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
-    { name = "sentence-transformers", specifier = ">=3.0" },
+    { name = "sentence-transformers", marker = "extra == 'dev'", specifier = ">=3.0" },
+    { name = "sentence-transformers", marker = "extra == 'synthesis'", specifier = ">=3.0" },
 ]
-provides-extras = ["dev", "docs"]
+provides-extras = ["synthesis", "dev", "docs"]
 
 [[package]]
 name = "email-validator"

@@ -10,6 +10,7 @@ import json
 import pandas as pd
 import pytest
 
+from dspy_security_bench.scan.cli import build_scan_plan, render_scan_plan
 from dspy_security_bench.scan.config import ScanConfig
 from dspy_security_bench.scan.gate import (
     GateSpec,
@@ -17,7 +18,7 @@ from dspy_security_bench.scan.gate import (
     load_baseline,
     write_baseline,
 )
-from dspy_security_bench.scan.report import render_sarif, render_json, render_terminal, RULE_ID
+from dspy_security_bench.scan.report import RULE_ID, render_json, render_sarif, render_terminal
 
 
 def _summary(rows):
@@ -181,3 +182,37 @@ def test_config_regression_needs_baseline():
     cfg = ScanConfig.from_dict({"agent": {"model": "m"}, "gate": {"mode": "regression"}})
     with pytest.raises(ValueError, match="requires gate.baseline"):
         cfg.validate()
+
+
+@pytest.mark.parametrize("value", [0, -1, "five", True])
+def test_config_rejects_invalid_task_counts(value):
+    cfg = ScanConfig.from_dict({"agent": {"model": "m"}, "scan": {"user_tasks": value}})
+    with pytest.raises(ValueError, match="positive integer"):
+        cfg.validate()
+
+
+def test_plan_resolves_both_task_counts_without_calling_agent():
+    cfg = ScanConfig.from_dict({
+        "agent": {"model": "openai/gpt-4o-mini"},
+        "scan": {
+            "suites": ["workspace"],
+            "attacks": ["direct", "important_instructions"],
+            "defenses": ["none", "security_prompt"],
+            "user_tasks": 2,
+            "injection_tasks": 2,
+        },
+    })
+    plan = build_scan_plan(cfg)
+    assert plan[0]["user_task_ids"] == ["user_task_0", "user_task_1"]
+    assert plan[0]["injection_task_ids"] == ["injection_task_0", "injection_task_1"]
+    assert plan[0]["cases"] == 16
+    assert "No model was called" in render_scan_plan(cfg, plan)
+
+
+def test_plan_uses_valid_suite_specific_injection_ids():
+    cfg = ScanConfig.from_dict({
+        "agent": {"model": "m"},
+        "scan": {"suites": ["slack"], "injection_tasks": 1},
+    })
+    plan = build_scan_plan(cfg)
+    assert plan[0]["injection_task_ids"] == ["injection_task_1"]

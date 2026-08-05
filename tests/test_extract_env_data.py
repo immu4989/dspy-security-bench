@@ -34,5 +34,5 @@ def test_generic_fallback_works_for_banking():
 
 
 def test_unknown_suite_raises():
-    with pytest.raises(Exception):
+    with pytest.raises(KeyError):
         extract_env_summary("bogus_suite_does_not_exist")

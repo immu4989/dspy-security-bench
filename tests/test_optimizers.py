@@ -10,7 +10,6 @@ from dspy_security_bench.optimizers import (
     substring_match_metric,
 )
 
-
 # ---------------------------------------------------------------------------
 # substring_match_metric
 # ---------------------------------------------------------------------------
