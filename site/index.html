@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="A reproducible leaderboard and CI gate for LLM prompt-injection robustness.">
+  <meta property="og:title" content="DSPy Security Bench — measure before you trust">
+  <meta property="og:description" content="Compare models, inspect evidence, and gate your own agent against prompt injection.">
+  <meta property="og:image" content="assets/security-bench-hero-v2.png">
+  <title>DSPy Security Bench — Measure before you trust</title>
+  <link rel="icon" href="assets/dsb-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#leaderboard">Skip to leaderboard</a>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="nav-shell">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="DSPy Security Bench home">
+        <img src="assets/dsb-mark.svg" width="38" height="38" alt="">
+        <span>DSPy <b>Security Bench</b></span>
+      </a>
+      <div class="nav-links">
+        <a href="#leaderboard">Leaderboard</a>
+        <a href="#evidence">Evidence</a>
+        <a href="#scan">CI scanner</a>
+        <a class="nav-cta" href="https://github.com/immu4989/dspy-security-bench">View on GitHub <span aria-hidden="true">↗</span></a>
+      </div>
+      <button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-art" aria-hidden="true"></div>
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-content reveal">
+        <div class="eyebrow"><span class="pulse"></span> Protocol v2 · committed evidence</div>
+        <h1>Measure before<br><em>you trust.</em></h1>
+        <p class="hero-copy">A reproducible leaderboard for agentic prompt-injection robustness—and a security gate you can point at your own tool-using agent.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#leaderboard">Explore the evidence <span aria-hidden="true">↓</span></a>
+          <a class="button secondary" href="#scan">Protect your agent <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="trust-note"><span>Not a safety certificate.</span> A measurable regression floor with every limitation visible.</div>
+      </div>
+      <div class="hero-reading reveal" aria-label="Headline benchmark reading">
+        <span class="reading-label">Observed robustness spread</span>
+        <strong><span data-min-robustness>25</span><i>→</i><span data-max-robustness>99</span><sup>%</sup></strong>
+        <span class="reading-caption">Same harness. Same attacks.<br>Different base models.</span>
+      </div>
+    </section>
+
+    <section class="metrics" aria-label="Benchmark summary">
+      <div class="metric reveal"><span class="metric-value" data-model-count>14</span><span class="metric-label">models measured</span></div>
+      <div class="metric reveal"><span class="metric-value" data-family-count>10</span><span class="metric-label">model families</span></div>
+      <div class="metric reveal"><span class="metric-value">2 axes</span><span class="metric-label">robustness + capability</span></div>
+      <div class="metric reveal"><span class="metric-value">100%</span><span class="metric-label">rows backed by JSON</span></div>
+    </section>
+
+    <section class="section thesis" id="evidence">
+      <div class="section-kicker reveal">The signal capability charts miss</div>
+      <div class="thesis-layout">
+        <div class="thesis-copy reveal">
+          <h2>Capability and security are <em>different axes.</em></h2>
+          <p>Two models can complete benign tasks at nearly the same rate and still have radically different prompt-injection failure profiles. Security must be measured directly.</p>
+          <div class="finding">
+            <span class="finding-number">62</span>
+            <span class="finding-unit">point</span>
+            <span class="finding-copy">robustness gap between two models with near-identical capability</span>
+          </div>
+        </div>
+        <div class="chart-card reveal">
+          <div class="card-head">
+            <div><span class="card-kicker">Interactive map</span><h3>Capability × robustness</h3></div>
+            <div class="legend"><span class="robust">Robust</span><span class="mixed">Mixed</span><span class="vulnerable">Vulnerable</span><span class="provisional">Provisional</span></div>
+          </div>
+          <div id="scatter" class="scatter" role="img" aria-label="Scatter plot comparing model capability and prompt-injection robustness"></div>
+          <p class="chart-note">Hover or focus a model. Provisional measurements use a dashed ring.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section board-section" id="leaderboard">
+      <div class="board-heading reveal">
+        <div><span class="section-kicker">Frozen protocol leaderboard</span><h2>See which models<br><em>hold the boundary.</em></h2></div>
+        <p>Robustness is the share of prompt-injection attacks that failed. Capability is benign task completion. Confidence intervals are cluster-bootstrapped over task pairs.</p>
+      </div>
+      <div class="board-toolbar reveal">
+        <div class="filters" role="group" aria-label="Filter leaderboard">
+          <button class="filter active" data-filter="all" type="button">All models</button>
+          <button class="filter" data-filter="Robust" type="button">Robust</button>
+          <button class="filter" data-filter="Mixed" type="button">Mixed</button>
+          <button class="filter" data-filter="Vulnerable" type="button">Vulnerable</button>
+          <button class="filter" data-filter="Provisional" type="button">Provisional</button>
+        </div>
+        <label class="search"><span class="sr-only">Search models</span><input id="model-search" type="search" placeholder="Search model or family…"><span aria-hidden="true">⌕</span></label>
+      </div>
+      <div class="table-wrap reveal">
+        <table>
+          <thead><tr><th>Rank / model</th><th>Family</th><th>Robustness</th><th>Capability</th><th>Evidence</th></tr></thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+        <div id="empty-state" class="empty-state" hidden>No models match that view.</div>
+      </div>
+      <div class="board-footer"><span>Confirmed only when the full CI stays inside one bucket across all repeats.</span><a href="https://github.com/immu4989/dspy-security-bench/blob/main/LEADERBOARD.md">Read the complete methodology <span aria-hidden="true">→</span></a></div>
+    </section>
+
+    <section class="section scan-section" id="scan">
+      <div class="scan-glow" aria-hidden="true"></div>
+      <div class="scan-copy reveal">
+        <span class="section-kicker">From benchmark to guardrail</span>
+        <h2>Make injection safety<br><em>a merge condition.</em></h2>
+        <p>Scaffold a config and GitHub Action, preview the exact test matrix without spending API credits, then block regressions with terminal, JSON, and SARIF reports.</p>
+        <ul class="feature-list">
+          <li><span>01</span>Works with DSPy or any Python agent factory</li>
+          <li><span>02</span>Absolute security floors or baseline regression gates</li>
+          <li><span>03</span>OWASP LLM01 · NIST AI 100-2 · MITRE ATLAS mappings</li>
+        </ul>
+      </div>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div><i></i><i></i><i></i></div><span>quickstart.sh</span><button id="copy-code" type="button">Copy</button></div>
+        <pre><code id="quickstart-code"><span class="muted"># install and create a ready-to-run gate</span>
+<span class="prompt">$</span> pip install dspy-security-bench
+<span class="prompt">$</span> dspy-security-bench init --model openai/gpt-4o-mini
+
+<span class="muted"># inspect the matrix — zero model calls</span>
+<span class="prompt">$</span> dspy-security-bench scan --config .dspy-security-bench.yaml --plan
+
+<span class="success">✓ 10 benchmark cases planned</span>
+<span class="success">✓ no model was called</span></code></pre>
+        <a class="terminal-link" href="https://github.com/immu4989/dspy-security-bench#five-minute-ci-quickstart">Open the five-minute guide <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="section principles">
+      <div class="principles-heading reveal"><span class="section-kicker">Research you can inspect</span><h2>Built for scrutiny,<br><em>not screenshots.</em></h2></div>
+      <div class="principle-grid">
+        <article class="principle reveal"><span>01</span><h3>Frozen protocol</h3><p>Suites, attacks, scaffold, task subset, and decoding settings are hashed and versioned.</p></article>
+        <article class="principle reveal"><span>02</span><h3>Every row reproducible</h3><p>Per-model result JSON, run metadata, confidence intervals, and generation scripts live beside the board.</p></article>
+        <article class="principle reveal"><span>03</span><h3>Honest uncertainty</h3><p>Rows remain provisional when confidence intervals cross a bucket boundary. Green means no known bypass—not safe.</p></article>
+      </div>
+    </section>
+
+    <section class="final-cta reveal">
+      <img src="assets/dsb-mark.svg" width="64" height="64" alt="">
+      <p>Prompt injection is a model property.<br><strong>Measure it like one.</strong></p>
+      <div><a class="button primary" href="https://github.com/immu4989/dspy-security-bench">Star on GitHub <span aria-hidden="true">★</span></a><a class="button secondary" href="https://github.com/immu4989/dspy-security-bench/fork">Fork the benchmark <span aria-hidden="true">↗</span></a></div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand" href="#top"><img src="assets/dsb-mark.svg" width="32" height="32" alt=""><span>DSPy <b>Security Bench</b></span></a>
+    <p>Apache-2.0 · Built in public · Numbers over vibes.</p>
+    <div><a href="https://github.com/immu4989/dspy-security-bench">GitHub</a><a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/METHODOLOGY.md">Methodology</a><a href="https://github.com/immu4989/dspy-security-bench/blob/main/CONTRIBUTING.md">Contribute</a></div>
+  </footer>
+
+  <div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>

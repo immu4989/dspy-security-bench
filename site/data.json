@@ -1,0 +1,355 @@
+{
+  "protocol": "2.0.0",
+  "modelCount": 14,
+  "familyCount": 10,
+  "families": [
+    "Alibaba",
+    "Anthropic",
+    "DeepSeek",
+    "Google",
+    "Meta",
+    "Mistral",
+    "NVIDIA",
+    "OpenAI",
+    "OpenAI-OSS",
+    "xAI"
+  ],
+  "models": [
+    {
+      "name": "Claude Sonnet 4.5",
+      "family": "Anthropic",
+      "modelId": "openrouter/anthropic/claude-sonnet-4.5",
+      "robustness": 0.9933,
+      "ciLow": 0.9833,
+      "ciHigh": 1.0,
+      "capability": 0.8867,
+      "bucket": "Robust",
+      "status": "confirmed",
+      "classification": "Robust",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.9833,
+          "capability": 0.8667
+        },
+        "banking": {
+          "robustness": 1.0,
+          "capability": 0.9
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_anthropic_claude_sonnet_4_5.json"
+    },
+    {
+      "name": "GPT-5.4 mini",
+      "family": "OpenAI",
+      "modelId": "openrouter/openai/gpt-5.4-mini",
+      "robustness": 0.9933,
+      "ciLow": 0.9833,
+      "ciHigh": 1.0,
+      "capability": 0.62,
+      "bucket": "Robust",
+      "status": "confirmed",
+      "classification": "Robust",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 1.0,
+          "capability": 0.8
+        },
+        "banking": {
+          "robustness": 0.9889,
+          "capability": 0.5
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_openai_gpt_5_4_mini.json"
+    },
+    {
+      "name": "Nemotron 3 Nano 30B",
+      "family": "NVIDIA",
+      "modelId": "openrouter/nvidia/nemotron-3-nano-30b-a3b",
+      "robustness": 0.9267,
+      "ciLow": 0.8867,
+      "ciHigh": 0.9667,
+      "capability": 0.3466,
+      "bucket": "Robust",
+      "status": "provisional",
+      "classification": "Provisional",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 1.0,
+          "capability": 0.35
+        },
+        "banking": {
+          "robustness": 0.8778,
+          "capability": 0.3444
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_nvidia_nemotron_3_nano_30b_a3b.json"
+    },
+    {
+      "name": "Gemini 2.5 Flash Lite",
+      "family": "Google",
+      "modelId": "openrouter/google/gemini-2.5-flash-lite",
+      "robustness": 0.88,
+      "ciLow": 0.8273,
+      "ciHigh": 0.9327,
+      "capability": 0.6266,
+      "bucket": "Mixed",
+      "status": "provisional",
+      "classification": "Provisional",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.9167,
+          "capability": 0.6
+        },
+        "banking": {
+          "robustness": 0.8556,
+          "capability": 0.6444
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_google_gemini_2_5_flash_lite.json"
+    },
+    {
+      "name": "Llama 4 Maverick",
+      "family": "Meta",
+      "modelId": "openrouter/meta-llama/llama-4-maverick",
+      "robustness": 0.86,
+      "ciLow": 0.8045,
+      "ciHigh": 0.9154,
+      "capability": 0.6667,
+      "bucket": "Mixed",
+      "status": "provisional",
+      "classification": "Provisional",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.9,
+          "capability": 0.6333
+        },
+        "banking": {
+          "robustness": 0.8333,
+          "capability": 0.6889
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_meta_llama_llama_4_maverick.json"
+    },
+    {
+      "name": "gpt-4o-mini",
+      "family": "OpenAI",
+      "modelId": "openrouter/openai/gpt-4o-mini",
+      "robustness": 0.8511,
+      "ciLow": 0.7956,
+      "ciHigh": 0.9066,
+      "capability": 0.2134,
+      "bucket": "Mixed",
+      "status": "provisional",
+      "classification": "Provisional",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.8944,
+          "capability": 0.1167
+        },
+        "banking": {
+          "robustness": 0.8222,
+          "capability": 0.2778
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_openai_gpt_4o_mini.json"
+    },
+    {
+      "name": "Nemotron 3 Super 120B",
+      "family": "NVIDIA",
+      "modelId": "openrouter/nvidia/nemotron-3-super-120b-a12b",
+      "robustness": 0.8134,
+      "ciLow": 0.7544,
+      "ciHigh": 0.8723,
+      "capability": 0.5933,
+      "bucket": "Mixed",
+      "status": "confirmed",
+      "classification": "Mixed",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.7167,
+          "capability": 0.5167
+        },
+        "banking": {
+          "robustness": 0.8778,
+          "capability": 0.6444
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_nvidia_nemotron_3_super_120b_a12b.json"
+    },
+    {
+      "name": "Grok 4.3",
+      "family": "xAI",
+      "modelId": "openrouter/x-ai/grok-4.3",
+      "robustness": 0.7533,
+      "ciLow": 0.6846,
+      "ciHigh": 0.8221,
+      "capability": 0.6733,
+      "bucket": "Mixed",
+      "status": "confirmed",
+      "classification": "Mixed",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.5833,
+          "capability": 0.5333
+        },
+        "banking": {
+          "robustness": 0.8667,
+          "capability": 0.7667
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_x_ai_grok_4_3.json"
+    },
+    {
+      "name": "gpt-oss-20b",
+      "family": "OpenAI-OSS",
+      "modelId": "openrouter/openai/gpt-oss-20b",
+      "robustness": 0.58,
+      "ciLow": 0.4972,
+      "ciHigh": 0.6628,
+      "capability": 0.2933,
+      "bucket": "Mixed",
+      "status": "provisional",
+      "classification": "Provisional",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.5833,
+          "capability": 0.0333
+        },
+        "banking": {
+          "robustness": 0.5778,
+          "capability": 0.4667
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_openai_gpt_oss_20b.json"
+    },
+    {
+      "name": "Llama 3.3 70B",
+      "family": "Meta",
+      "modelId": "openrouter/meta-llama/llama-3.3-70b-instruct",
+      "robustness": 0.5489,
+      "ciLow": 0.4682,
+      "ciHigh": 0.6296,
+      "capability": 0.3267,
+      "bucket": "Mixed",
+      "status": "provisional",
+      "classification": "Provisional",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.5222,
+          "capability": 0.0833
+        },
+        "banking": {
+          "robustness": 0.5667,
+          "capability": 0.4889
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_meta_llama_llama_3_3_70b_instruct.json"
+    },
+    {
+      "name": "Qwen3 235B",
+      "family": "Alibaba",
+      "modelId": "openrouter/qwen/qwen3-235b-a22b-2507",
+      "robustness": 0.38,
+      "ciLow": 0.3044,
+      "ciHigh": 0.4555,
+      "capability": 0.5267,
+      "bucket": "Vulnerable",
+      "status": "confirmed",
+      "classification": "Vulnerable",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.4333,
+          "capability": 0.25
+        },
+        "banking": {
+          "robustness": 0.3444,
+          "capability": 0.7111
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_qwen_qwen3_235b_a22b_2507.json"
+    },
+    {
+      "name": "Mistral Medium 3.1",
+      "family": "Mistral",
+      "modelId": "openrouter/mistralai/mistral-medium-3.1",
+      "robustness": 0.3667,
+      "ciLow": 0.2886,
+      "ciHigh": 0.4448,
+      "capability": 0.6134,
+      "bucket": "Vulnerable",
+      "status": "confirmed",
+      "classification": "Vulnerable",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.3333,
+          "capability": 0.25
+        },
+        "banking": {
+          "robustness": 0.3889,
+          "capability": 0.8556
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_mistralai_mistral_medium_3_1.json"
+    },
+    {
+      "name": "DeepSeek V3.2",
+      "family": "DeepSeek",
+      "modelId": "openrouter/deepseek/deepseek-v3.2",
+      "robustness": 0.34,
+      "ciLow": 0.264,
+      "ciHigh": 0.416,
+      "capability": 0.42,
+      "bucket": "Vulnerable",
+      "status": "confirmed",
+      "classification": "Vulnerable",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.2833,
+          "capability": 0.0
+        },
+        "banking": {
+          "robustness": 0.3778,
+          "capability": 0.7
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_deepseek_deepseek_v3_2.json"
+    },
+    {
+      "name": "Mistral Large",
+      "family": "Mistral",
+      "modelId": "openrouter/mistralai/mistral-large-2512",
+      "robustness": 0.2467,
+      "ciLow": 0.1825,
+      "ciHigh": 0.3108,
+      "capability": 0.4733,
+      "bucket": "Vulnerable",
+      "status": "confirmed",
+      "classification": "Vulnerable",
+      "pairs": 300,
+      "suites": {
+        "workspace": {
+          "robustness": 0.1167,
+          "capability": 0.1
+        },
+        "banking": {
+          "robustness": 0.3333,
+          "capability": 0.7222
+        }
+      },
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_mistralai_mistral_large_2512.json"
+    }
+  ]
+}

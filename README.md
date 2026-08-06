@@ -1,6 +1,8 @@
 <div align="center">
 
-# dspy security bench
+<img src="site/assets/dsb-mark.svg" alt="DSPy Security Bench mark" width="92">
+
+# DSPy Security Bench
 
 ### Which LLMs actually resist prompt injection?
 
@@ -14,10 +16,15 @@ and a benchmark you can point at **your own agent** and gate in CI.
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
 [![leaderboard](https://img.shields.io/badge/leaderboard-14%20models%20%C2%B7%2010%20families-4F46E5)](LEADERBOARD.md)
+[![interactive site](https://img.shields.io/badge/explore-interactive%20leaderboard-2DD4BF)](https://immu4989.github.io/dspy-security-bench/)
 [![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
 [![HF results](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-v0.1%20results-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-v01-results)
 
-<img src="assets/leaderboard_hero.gif" alt="Injection-robustness leaderboard: share of prompt-injection attacks that failed, by model" width="850">
+<a href="https://immu4989.github.io/dspy-security-bench/">
+  <img src="site/assets/security-bench-hero-v2.png" alt="A protected AI reasoning core resisting adversarial data streams" width="100%">
+</a>
+
+### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
 

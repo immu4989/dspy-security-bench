@@ -8,6 +8,15 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+### Added
+- A fully responsive interactive leaderboard and product site with model
+  filtering, search, evidence links, capability–robustness scatter plot, and a
+  CI-scanner quickstart.
+- A generated website data layer sourced directly from committed leaderboard
+  result JSON, plus a drift check and GitHub Pages deployment workflow.
+- A new visual identity and cinematic hero artwork designed around the
+  benchmark's trust-boundary concept.
+
 ## [0.5.0] — 2026-08-05
 
 ### Added
