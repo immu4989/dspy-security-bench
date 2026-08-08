@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/policy.schema.json",
+  "title": "DSPy Security Bench Tool Policy",
+  "description": "Deterministic allow, deny, and human-approval rules for agent tool calls.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "name", "default", "rules"],
+  "properties": {
+    "version": {"const": 1},
+    "name": {"type": "string", "minLength": 1},
+    "description": {"type": "string"},
+    "default": {"enum": ["allow", "deny"]},
+    "rules": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/rule"}
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "tool": {"type": "string", "minLength": 1},
+        "tools": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "action": {"enum": ["allow", "deny", "require_approval"]},
+        "reason": {"type": "string"},
+        "when": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/condition"}
+        }
+      },
+      "oneOf": [
+        {"required": ["tool"], "not": {"required": ["tools"]}},
+        {"required": ["tools"], "not": {"required": ["tool"]}}
+      ]
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["arg", "op", "value"],
+      "properties": {
+        "arg": {"type": "string", "minLength": 1},
+        "op": {
+          "enum": [
+            "equals", "not_equals", "in", "not_in", "contains", "matches",
+            "not_matches", "less_than_or_equal", "greater_than_or_equal",
+            "any_matches", "any_not_matches", "exists"
+          ]
+        },
+        "value": {}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"op": {"enum": ["matches", "not_matches", "any_matches", "any_not_matches"]}}},
+          "then": {"properties": {"value": {"type": "string"}}}
+        },
+        {
+          "if": {"properties": {"op": {"enum": ["in", "not_in"]}}},
+          "then": {"properties": {"value": {"type": "array"}}}
+        },
+        {
+          "if": {"properties": {"op": {"const": "exists"}}},
+          "then": {"properties": {"value": {"type": "boolean"}}}
+        }
+      ]
+    }
+  }
+}

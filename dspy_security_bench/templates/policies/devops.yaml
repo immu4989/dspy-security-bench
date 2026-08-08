@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/policy.schema.json
+version: 1
+name: devops
+description: Production operations boundary for inspection, controlled changes, and destructive-action denial.
+default: deny
+
+rules:
+  - id: allow-observability
+    tools: [get_*, list_*, describe_*, read_*, query_logs, inspect_*, diff_*]
+    action: allow
+    reason: Read-only inspection and observability are permitted.
+
+  - id: deny-destructive-operations
+    tools: [delete_*, drop_*, destroy_*, wipe_*, exec_shell, raw_sql, force_push]
+    action: deny
+    reason: Destructive or arbitrary execution is never delegated to the agent.
+
+  - id: deny-production-target-from-freeform-command
+    tools: [run_command, execute_command]
+    action: deny
+    reason: Free-form command execution is not an acceptable production control plane.
+    when:
+      - arg: environment
+        op: equals
+        value: production
+
+  - id: approve-production-change
+    tools: [deploy_*, restart_*, scale_*, apply_*, rollback_*]
+    action: require_approval
+    reason: Production mutations require review of the exact tool name and arguments.

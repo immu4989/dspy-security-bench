@@ -151,6 +151,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 |---|---|
 | 🏆 **Compare models** | A frozen, reproducible [leaderboard](LEADERBOARD.md) of base-model injection-robustness — 14 models across 10 families, from frontier to open-weights. |
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
+| 🔐 **Enforce least agency** | Put deterministic policy around live tool calls: allow, deny, or require approval. Includes [production profiles](docs/use-cases.md) for support, finance, RAG, and DevOps. |
 | 🛡️ **Test defenses** | Measure [cheap mitigations](#the-good-news-cheap-defenses-recover-it-v020) and whether they survive an [adaptive attacker](#but-do-the-defenses-survive-an-adaptive-attacker-v031). |
 | 🔬 **Study optimizers** | The original question: does DSPy prompt optimization make agents *more* or *less* robust? |
 | 📚 **Get oriented in the literature** | [RELATED_WORK.md](RELATED_WORK.md) — a sourced map of agentic prompt-injection work as of July 2026, including which well-known "leaderboards" rank detectors or humans rather than models. |
@@ -434,6 +435,23 @@ references, so they surface natively in the GitHub Security tab. Copy the
 > of v0.3.1 — defense-aware adaptive ones). A PASS means the agent resisted those
 > at the configured scale: a regression floor, **not** a certificate against an
 > unbounded adaptive adversary. Treat green as "no known bypass found," not "safe."
+
+### Stop dangerous tool calls even when the model fails
+
+Scanning tells you where an agent breaks. The policy layer limits the blast
+radius when it does. It wraps any supported agent and evaluates the exact tool
+name and arguments before the live side effect executes:
+
+```bash
+dspy-security-bench policy init --profile customer-support --out agent-policy.yaml
+dspy-security-bench policy check --policy agent-policy.yaml \
+  --tool send_email --args '{"recipients":["audit@attacker.test"]}'
+# [DENY] send_email — customer data must not leave the trusted domain
+```
+
+Profiles cover customer support, accounts payable, research/RAG, and DevOps.
+See the [real-world use-case guide](docs/use-cases.md) and the fully offline
+[`policy_support_agent.py`](examples/policy_support_agent.py) demonstration.
 
 ---
 

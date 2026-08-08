@@ -25,6 +25,10 @@ The output is a `pandas.DataFrame` with one row per
 
 ```
 dspy_security_bench/
+├── agents/                     # framework-neutral Agent + BenchTool contract
+├── policy.py                   # deterministic live tool-call boundary
+├── policy_cli.py               # scaffold, validate, and check policies offline
+├── scan/                       # CI gate, baseline comparison, JSON/SARIF reports
 ├── synthesis/
 │   ├── extract_env_data.py    # markdown summary of suite seed env
 │   ├── generator.py           # LLM-based task synthesis
@@ -35,6 +39,28 @@ dspy_security_bench/
 ├── llm_judge.py               # LLM-as-judge metric (fast-path substring)
 └── runner.py                  # benchmark orchestration + DataFrame
 ```
+
+### `policy.py` — deterministic execution boundary
+
+The benchmark measures whether an agent is persuaded by injected content. The
+policy layer limits what happens when persuasion succeeds. `PolicyEnforcedAgent`
+wraps any framework-neutral `Agent` and replaces each live `BenchTool` with a
+guarded callable. Before delegating to the original tool it evaluates, in order:
+
+1. glob matching over the tool name;
+2. typed predicates over exact tool arguments;
+3. the first matching `allow`, `deny`, or `require_approval` rule;
+4. a fail-closed default when no rule matches.
+
+Denied tools never reach AgentDojo's live environment, so security remains
+functionally measurable. Approval rules also fail closed when their handler is
+missing or raises. Audit records omit arguments unless explicitly enabled,
+preventing the audit log from silently becoming a sensitive-data store.
+
+Policy is intentionally separate from prompt defenses. A system prompt tries to
+influence model behavior; policy constrains authority at the execution sink.
+Teams should measure both the raw model and the policy-wrapped deployment when
+they need to attribute an improvement to one layer or the other.
 
 ### `synthesis/extract_env_data.py`
 

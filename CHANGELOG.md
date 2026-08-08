@@ -9,6 +9,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- A deterministic policy-as-code execution boundary for any supported agent,
+  with allow, deny, and fail-closed human-approval decisions before live tools
+  are invoked.
+- Offline `policy init`, `policy validate`, `policy check`, and `policy profiles`
+  commands, structured audit records, and safe-by-default argument logging.
+- Production policy profiles and use-case guides for customer support, accounts
+  payable, research/RAG memory protection, and SRE/DevOps copilots.
 - A fully responsive interactive leaderboard and product site with model
   filtering, search, evidence links, capability–robustness scatter plot, and a
   CI-scanner quickstart.

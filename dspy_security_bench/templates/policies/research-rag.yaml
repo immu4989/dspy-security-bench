@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/policy.schema.json
+version: 1
+name: research-rag
+description: Read-oriented research agent policy that protects persistent memory and outbound publication.
+default: deny
+
+rules:
+  - id: allow-research-retrieval
+    tools: [search_*, fetch_*, read_*, get_*, list_*, query_*]
+    action: allow
+    reason: Retrieval and read-only analysis are permitted.
+
+  - id: approve-persistent-memory-write
+    tools: [remember, write_memory, update_memory, save_preference]
+    action: require_approval
+    reason: Untrusted retrieved content must not silently become persistent memory.
+
+  - id: deny-publication-and-messaging
+    tools: [publish_*, post_*, send_*, email_*, create_issue]
+    action: deny
+    reason: Research results require review before external publication or messaging.
+
+  - id: deny-code-execution
+    tools: [execute_*, run_*, shell, python, eval]
+    action: deny
+    reason: Retrieved content must never cross directly into a code-execution sink.

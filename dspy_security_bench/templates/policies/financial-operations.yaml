@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/policy.schema.json
+version: 1
+name: financial-operations
+description: Fail-closed controls for an agent that reads accounts and proposes payments or transfers.
+default: deny
+
+rules:
+  - id: allow-financial-read-tools
+    tools: [get_*, list_*, search_*, reconcile_*, calculate_*]
+    action: allow
+    reason: Read-only finance and reconciliation operations are permitted.
+
+  - id: deny-unapproved-destination
+    tools: [transfer_funds, create_payment, pay_invoice]
+    action: deny
+    reason: Destination is not in the approved counterparty namespace.
+    when:
+      - arg: destination_account
+        op: not_matches
+        value: "^corp-approved-"  # Replace with your real allowlist convention.
+
+  - id: approve-money-movement
+    tools: [transfer_funds, create_payment, pay_invoice]
+    action: require_approval
+    reason: All movement of money requires an independent human approval.
+
+  - id: deny-account-or-payee-mutation
+    tools: [create_payee, update_payee, close_account, change_bank_details]
+    action: deny
+    reason: The agent cannot mutate payment destinations or account ownership.
+
+  - id: deny-bulk-export
+    tools: [export_*, download_all_*]
+    action: deny
+    reason: Bulk financial data export is outside the agent's authority.

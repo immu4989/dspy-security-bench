@@ -34,3 +34,8 @@ def test_init_supports_custom_agent_factory(tmp_path):
     assert "import: my_agent:build" in (tmp_path / ".dspy-security-bench.yaml").read_text()
     workflow = (tmp_path / ".github/workflows/injection-scan.yml").read_text()
     assert "pip install -e ." in workflow
+
+
+def test_umbrella_cli_dispatches_policy_profiles(capsys):
+    assert main(["policy", "profiles"]) == 0
+    assert "customer-support" in capsys.readouterr().out

@@ -27,6 +27,7 @@
       </a>
       <div class="nav-links">
         <a href="#leaderboard">Leaderboard</a>
+        <a href="#use-cases">Use cases</a>
         <a href="#evidence">Evidence</a>
         <a href="#scan">CI scanner</a>
         <a class="nav-cta" href="https://github.com/immu4989/dspy-security-bench">View on GitHub <span aria-hidden="true">↗</span></a>
@@ -135,6 +136,52 @@
 <span class="success">✓ 10 benchmark cases planned</span>
 <span class="success">✓ no model was called</span></code></pre>
         <a class="terminal-link" href="https://github.com/immu4989/dspy-security-bench#five-minute-ci-quickstart">Open the five-minute guide <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="section cases-section" id="use-cases">
+      <div class="cases-heading reveal">
+        <div><span class="section-kicker">Real systems. Real authority.</span><h2>Secure the moment<br><em>intent becomes action.</em></h2></div>
+        <p>Every production pattern pairs an untrusted input with a dangerous sink. Included policies enforce least agency before the side effect—not after an incident.</p>
+      </div>
+      <div class="case-grid">
+        <article class="case-card support reveal">
+          <div class="case-top"><span class="case-number">01</span><span class="case-state">Profile included</span></div>
+          <div class="case-icon" aria-hidden="true">CS</div>
+          <h3>Customer support</h3>
+          <p>Resolve tickets without turning a poisoned CRM note into data exfiltration, unlimited refunds, or identity changes.</p>
+          <dl><div><dt>Untrusted</dt><dd>Tickets · email · CRM</dd></div><div><dt>Boundary</dt><dd>Refund cap · recipient domain</dd></div></dl>
+          <code>--profile customer-support</code>
+        </article>
+        <article class="case-card finance reveal">
+          <div class="case-top"><span class="case-number">02</span><span class="case-state">Profile included</span></div>
+          <div class="case-icon" aria-hidden="true">AP</div>
+          <h3>Accounts payable</h3>
+          <p>Extract and reconcile invoices while preventing vendor impersonation from becoming an unauthorized transfer.</p>
+          <dl><div><dt>Untrusted</dt><dd>Invoices · vendor email</dd></div><div><dt>Boundary</dt><dd>Payee allowlist · approval</dd></div></dl>
+          <code>--profile financial-operations</code>
+        </article>
+        <article class="case-card research reveal">
+          <div class="case-top"><span class="case-number">03</span><span class="case-state">Profile included</span></div>
+          <div class="case-icon" aria-hidden="true">RAG</div>
+          <h3>Research &amp; RAG</h3>
+          <p>Search broadly without letting a hostile page become persistent memory, published content, or executable code.</p>
+          <dl><div><dt>Untrusted</dt><dd>Web · docs · retrieved chunks</dd></div><div><dt>Boundary</dt><dd>Memory · publish · execute</dd></div></dl>
+          <code>--profile research-rag</code>
+        </article>
+        <article class="case-card devops reveal">
+          <div class="case-top"><span class="case-number">04</span><span class="case-state">Profile included</span></div>
+          <div class="case-icon" aria-hidden="true">SRE</div>
+          <h3>DevOps copilots</h3>
+          <p>Accelerate diagnosis with broad observability while keeping deletion, shell access, and production mutation constrained.</p>
+          <dl><div><dt>Untrusted</dt><dd>Logs · issues · repository</dd></div><div><dt>Boundary</dt><dd>Deploy · shell · delete</dd></div></dl>
+          <code>--profile devops</code>
+        </article>
+      </div>
+      <div class="cases-command reveal">
+        <span>Start offline. No API key required.</span>
+        <code><i>$</i> dspy-security-bench policy init --profile customer-support</code>
+        <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/use-cases.md">Open implementation guide <span aria-hidden="true">→</span></a>
       </div>
     </section>
 

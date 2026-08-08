@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/policy.schema.json
+version: 1
+name: customer-support
+description: Least-agency boundary for a support agent that can inspect accounts, issue refunds, and email users.
+default: deny
+
+# Rules are evaluated top to bottom; the first match wins.
+rules:
+  - id: allow-read-only-account-tools
+    tools: [get_*, list_*, search_*, lookup_*]
+    action: allow
+    reason: Read-only customer context is permitted.
+
+  - id: deny-email-to-external-domain
+    tool: send_email
+    action: deny
+    reason: Support agents must not send customer data outside the company domain.
+    when:
+      - arg: recipients
+        op: any_not_matches
+        value: "@example\\.com$"  # Replace with your company domain.
+
+  - id: approve-outbound-email
+    tool: send_email
+    action: require_approval
+    reason: A human must review every outbound support email.
+
+  - id: allow-small-usd-refund
+    tool: issue_refund
+    action: allow
+    reason: Refund is within the auto-approval limit.
+    when:
+      - arg: amount
+        op: less_than_or_equal
+        value: 100
+      - arg: currency
+        op: equals
+        value: USD
+
+  - id: approve-large-or-non-usd-refund
+    tool: issue_refund
+    action: require_approval
+    reason: Refund exceeds the automatic authority delegated to the agent.
+
+  - id: deny-privilege-changes
+    tools: [change_user_role, grant_*, reset_mfa]
+    action: deny
+    reason: A support agent may not change identity or authorization controls.
