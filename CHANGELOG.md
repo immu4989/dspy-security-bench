@@ -9,6 +9,18 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **ImpactTwin / ProcureBench**, a public-interest procurement mission-assurance
+  specialty built from five clean/poisoned counterfactual twin pairs. It scores
+  utility, causal decision drift, source-selection disclosure, vendor identity
+  and eligibility mutation, award-approval bypass, synthetic funds at risk, and
+  avoidable price premium from live environment state.
+- Offline `impact describe`, `impact manifest`, and `impact demo` commands plus
+  `impact run` for any supported agent or LiteLLM model, with a CI resistance
+  floor, versioned JSON evidence, frozen-protocol SHA-256 identity, and
+  FAR-mapped SARIF findings.
+- A procurement policy profile and a public-interest implementation guide with
+  methodology, novelty audit, regulatory context, limitations, and extension
+  criteria.
 - A deterministic policy-as-code execution boundary for any supported agent,
   with allow, deny, and fail-closed human-approval decisions before live tools
   are invoked.

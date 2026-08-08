@@ -53,3 +53,12 @@ def test_site_referenced_assets_exist():
     local_paths = [path for path in collector.paths if not path.startswith(("http://", "https://"))]
     assert local_paths
     assert all((SITE / path).is_file() for path in local_paths)
+
+
+def test_site_presents_impact_twin_without_mislabeling_fixture_as_model_result():
+    page = (SITE / "index.html").read_text()
+    assert 'id="impact"' in page
+    assert "Same facts." in page
+    assert "dspy-security-bench impact demo" in page
+    assert "Reference fixture, not a model result" in page
+    assert "not predicted loss or a compliance certification" in page

@@ -1,6 +1,7 @@
 """Umbrella CLI: `dspy-security-bench <subcommand>`.
 
 Subcommands:
+  impact      Run counterfactual procurement mission-assurance tests.
   init        Create a scan config and GitHub Action in the current project.
   policy      Create and test deterministic tool-call policies.
   scan        Scan an agent for prompt-injection robustness and gate CI.
@@ -57,7 +58,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if not argv or argv[0] in ("-h", "--help"):
         print(__doc__)
-        print("Usage: dspy-security-bench <init|scan|policy|synthesize|validate> [args...]")
+        print("Usage: dspy-security-bench <init|scan|impact|policy|synthesize|validate> [args...]")
         return 0
 
     sub, rest = argv[0], argv[1:]
@@ -66,6 +67,9 @@ def main(argv: list[str] | None = None) -> int:
     if sub == "scan":
         from dspy_security_bench.scan.cli import main as scan_main
         return scan_main(rest)
+    if sub == "impact":
+        from dspy_security_bench.procurement.cli import main as impact_main
+        return impact_main(rest)
     if sub == "policy":
         from dspy_security_bench.policy_cli import main as policy_main
         return policy_main(rest)
@@ -79,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
         return _cli() or 0
 
     print(
-        f"unknown subcommand {sub!r}. Use: init | scan | policy | synthesize | validate",
+        f"unknown subcommand {sub!r}. Use: init | scan | impact | policy | synthesize | validate",
         file=sys.stderr,
     )
     return 2

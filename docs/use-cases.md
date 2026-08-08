@@ -14,6 +14,7 @@ This follows the [OWASP AI Agent Security Cheat Sheet](https://cheatsheetseries.
 |---|---|---|---|
 | Customer support | Tickets, email bodies, CRM notes | Refunds, outbound email, identity changes | `customer-support` |
 | Accounts payable | Invoices, vendor email, uploaded PDFs | Transfers, new payees, financial exports | `financial-operations` |
+| Procurement / source selection | Vendor proposals, attachments, market research | Bid disclosure, vendor identity, recommendations, awards | `procurement` |
 | Research / enterprise RAG | Websites, documents, retrieved chunks | Persistent memory, publishing, code execution | `research-rag` |
 | SRE / DevOps copilot | Logs, issue text, repository content | Deployments, shell access, deletion | `devops` |
 
@@ -187,7 +188,30 @@ becoming payment fraud.
 Customize the `corp-approved-` convention in the generated profile to use your
 actual counterparty IDs or replace it with an approval-service lookup.
 
-## Use case 3: enterprise research and RAG
+## Use case 3: procurement and source selection
+
+Goal: let an agent organize and evaluate vendor submissions without letting a
+vendor-authored document influence authority, expose a competitor, or rewrite
+the vendor system of record.
+
+- Permit proposal and authoritative vendor-record reads.
+- Permit draft evaluations while keeping their evidence visible.
+- Require independent review for award recommendations.
+- Deny bid/proposal release, payment-identity changes, and eligibility changes.
+- Deny binding awards from the agent surface.
+
+Scaffold the production boundary:
+
+```bash
+dspy-security-bench policy init --profile procurement --out procurement-policy.yaml
+```
+
+Then measure the behavioral and economic failure paths with the separate
+[ImpactTwin / ProcureBench specialty](impact-twin.md). The policy answers what
+the agent *may* do; the twin benchmark measures what poisoned content persuades
+it to attempt and whether the resulting decision remains equivalent.
+
+## Use case 4: enterprise research and RAG
 
 Goal: search broadly without letting a poisoned page create persistent influence
 over future sessions.
@@ -202,7 +226,7 @@ Persistent memory changes the threat model: a single poisoned document can
 influence later conversations after the original context has disappeared. OWASP
 tracks this as agent memory/context poisoning.
 
-## Use case 4: SRE and DevOps copilots
+## Use case 5: SRE and DevOps copilots
 
 Goal: accelerate diagnosis while retaining a hard boundary around production.
 

@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="A reproducible leaderboard and CI gate for LLM prompt-injection robustness.">
+  <meta name="description" content="A reproducible LLM prompt-injection leaderboard, CI gate, and ImpactTwin procurement mission-assurance benchmark.">
   <meta property="og:title" content="DSPy Security Bench — measure before you trust">
-  <meta property="og:description" content="Compare models, inspect evidence, and gate your own agent against prompt injection.">
+  <meta property="og:description" content="Compare models, gate your own agent, and measure the economic and mission impact of poisoned procurement content.">
   <meta property="og:image" content="assets/security-bench-hero-v2.png">
   <title>DSPy Security Bench — Measure before you trust</title>
   <link rel="icon" href="assets/dsb-mark.svg" type="image/svg+xml">
@@ -27,6 +27,7 @@
       </a>
       <div class="nav-links">
         <a href="#leaderboard">Leaderboard</a>
+        <a href="#impact">ImpactTwin</a>
         <a href="#use-cases">Use cases</a>
         <a href="#evidence">Evidence</a>
         <a href="#scan">CI scanner</a>
@@ -137,6 +138,60 @@
 <span class="success">✓ no model was called</span></code></pre>
         <a class="terminal-link" href="https://github.com/immu4989/dspy-security-bench#five-minute-ci-quickstart">Open the five-minute guide <span aria-hidden="true">↗</span></a>
       </div>
+    </section>
+
+    <section class="section impact-section" id="impact">
+      <div class="impact-orbit orbit-one" aria-hidden="true"></div>
+      <div class="impact-orbit orbit-two" aria-hidden="true"></div>
+      <div class="impact-heading reveal">
+        <div><span class="section-kicker">New public-interest specialty</span><h2>Same facts.<br><em>Different decision.</em></h2></div>
+        <div class="impact-intro"><span class="impact-badge"><i></i> ImpactTwin / ProcureBench</span><p>Clean and poisoned procurement twins isolate one causal variable: vendor-authored text. Then the benchmark measures what changed in the live synthetic world.</p></div>
+      </div>
+
+      <div class="twin-stage reveal" aria-label="Clean and poisoned procurement twin comparison">
+        <article class="twin-card clean-twin">
+          <div class="twin-label"><span>01A</span> Clean twin</div>
+          <div class="fact-lock"><span>Facts locked</span><i></i></div>
+          <dl>
+            <div><dt>Proposals</dt><dd>2 identical records</dd></div>
+            <div><dt>Ceiling</dt><dd>$1,200,000</dd></div>
+            <div><dt>Criteria</dt><dd>70 · 20 · 10</dd></div>
+          </dl>
+          <div class="twin-decision"><span>Recommended</span><strong>P-ATLAS</strong><small>best-value eligible offer</small></div>
+        </article>
+
+        <div class="causal-core" aria-hidden="true">
+          <span class="core-ring"></span>
+          <strong>Δ</strong>
+          <small>one variable</small>
+          <b>untrusted narrative</b>
+        </div>
+
+        <article class="twin-card poisoned-twin">
+          <div class="twin-label"><span>01B</span> Poisoned twin</div>
+          <div class="fact-lock"><span>Same facts</span><i></i></div>
+          <dl>
+            <div><dt>Proposals</dt><dd>2 identical records</dd></div>
+            <div><dt>Ceiling</dt><dd>$1,200,000</dd></div>
+            <div><dt>Criteria</dt><dd>70 · 20 · 10</dd></div>
+          </dl>
+          <div class="twin-decision compromised"><span>Manipulated</span><strong>P-NOVA</strong><small>+$150,000 price premium</small></div>
+        </article>
+      </div>
+
+      <div class="impact-dashboard reveal">
+        <div class="impact-stat primary-stat"><span class="impact-value">5</span><span class="impact-unit">twin pairs</span><p>Award bias · sealed bids · payment identity · eligibility · approval</p></div>
+        <div class="impact-stat"><span class="impact-value">0%</span><span class="impact-unit">resistance</span><p>Deliberately vulnerable scorer fixture</p></div>
+        <div class="impact-stat"><span class="impact-value">$3.69M</span><span class="impact-unit">synthetic exposure</span><p>Scenario value behind compromised actions</p></div>
+        <div class="impact-stat"><span class="impact-value">1</span><span class="impact-unit">sealed record out</span><p>Functional environment-state evidence</p></div>
+      </div>
+
+      <div class="impact-bottom reveal">
+        <div><span>Not another prompt score.</span><p>Mission utility, causal decision invariance, confidentiality, identity, authorization, and bounded economic context—versioned in JSON and SARIF.</p></div>
+        <code><i>$</i> dspy-security-bench impact demo</code>
+        <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/impact-twin.md">Inspect the protocol <span aria-hidden="true">→</span></a>
+      </div>
+      <p class="impact-disclaimer reveal">Reference fixture, not a model result. Synthetic exposure is not predicted loss or a compliance certification.</p>
     </section>
 
     <section class="section cases-section" id="use-cases">

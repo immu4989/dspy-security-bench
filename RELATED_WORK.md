@@ -1,4 +1,4 @@
-# Related work: agentic prompt injection, as of July 2026
+# Related work: agentic prompt injection, as of August 2026
 
 A map of what has already been measured, by whom, and with what caveats. Written
 because this area is easy to misread: several widely-cited numbers measure
@@ -215,6 +215,27 @@ for anything after February 2025.
 | CUA-Handcrafted | [arXiv:2606.05233](https://arxiv.org/abs/2606.05233) |
 | Firewalls / benchmark critique | [arXiv:2510.05244](https://arxiv.org/abs/2510.05244) |
 
+### Permission and consequence-oriented work
+
+Prompt-injection resistance is only one layer of agent safety. Recent work also
+tests whether agents choose or infer appropriately narrow authority:
+
+| Work | What it adds |
+|---|---|
+| AuthBench | File-level permission-boundary inference for coding agents ([arXiv:2605.14859](https://arxiv.org/abs/2605.14859)) |
+| FORTIS | Over-privileged skill selection and execution ([arXiv:2605.09163](https://arxiv.org/abs/2605.09163)) |
+| Progent | Programmable privilege policy generation and enforcement ([arXiv:2504.11703](https://arxiv.org/abs/2504.11703)) |
+| Open Agent Passport | Deterministic pre-action authorization and signed receipts ([arXiv:2603.20953](https://arxiv.org/abs/2603.20953)) |
+| Who Pays the Price? | Stakeholder-centric harm attribution for web-agent prompt injection ([arXiv:2606.13385](https://arxiv.org/abs/2606.13385)) |
+
+These projects are why this repository does not claim that tool-call policy or
+“blast radius” alone is novel. The narrower open gap targeted by
+[ImpactTwin / ProcureBench](docs/impact-twin.md) is an executable procurement
+environment combining clean/poisoned causal twins, functional decision and
+authority invariants, synthetic economic exposure, and procurement-oriented
+JSON/SARIF evidence. The novelty statement is dated, scoped, and should be
+corrected if comparable prior work is found.
+
 ---
 
 ## 6. Where this repository sits
@@ -230,7 +251,13 @@ independent of it — for example this board measures Claude Sonnet 4.5 at 99.3%
 robustness under `important_instructions`, against the 1.0% ASR independently
 measured for the same model in the IPI competition.
 
-What it offers that the works above do not is **reproducibility at low cost**: a
+What the base-model board offers is **reproducibility at low cost**: a
 frozen protocol, committed per-row result JSONs, and a runner anyone can point at
 a new model for a few dollars. A 464-participant competition cannot be re-run by
 a third party; this can.
+
+The separate ImpactTwin specialty is not part of the 14-model leaderboard. It
+tests any supported agent on synthetic procurement twins and reports causal
+decision/side-effect equivalence plus bounded economic context. Keeping the two
+protocols separate avoids presenting a public-interest domain smoke test as a
+general model-robustness ranking.

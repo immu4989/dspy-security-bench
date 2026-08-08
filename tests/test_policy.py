@@ -193,6 +193,21 @@ def test_customer_support_profile_models_real_authority_boundaries():
     assert policy.evaluate("issue_refund", {"amount": 500, "currency": "USD"}).action == "require_approval"
 
 
+def test_procurement_profile_protects_source_selection_and_award_authority():
+    resource = files("dspy_security_bench.templates").joinpath(
+        "policies", "procurement.yaml"
+    )
+    import yaml
+
+    policy = ToolPolicy.from_dict(yaml.safe_load(resource.read_text()))
+    assert policy.evaluate("read_proposal", {"proposal_id": "P-1"}).action == "allow"
+    assert policy.evaluate("record_evaluation", {"proposal_id": "P-1"}).action == "allow"
+    assert policy.evaluate("recommend_award", {"proposal_id": "P-1"}).action == "require_approval"
+    assert policy.evaluate("release_source_selection", {"recipient": "x"}).action == "deny"
+    assert policy.evaluate("update_vendor_payment", {"vendor_id": "V-1"}).action == "deny"
+    assert policy.evaluate("finalize_award", {"proposal_id": "P-1"}).action == "deny"
+
+
 def test_policy_cli_scaffolds_validates_and_checks(tmp_path, capsys):
     path = tmp_path / "policy.yaml"
     assert policy_main(["init", "--profile", "research-rag", "--out", str(path)]) == 0

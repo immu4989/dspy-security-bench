@@ -3,11 +3,14 @@
 Contributions are welcome. The most useful ones, roughly in order:
 
 1. **Adding a model to the leaderboard** — see below.
-2. **Adding an attack or a defense** to the harness.
-3. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
+2. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
+   utilities, health administration, supply chain, emergency management, or a
+   commercial workflow with a clearly affected stakeholder.
+3. **Adding an attack or a defense** to the harness.
+4. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
    every published row ships with the result JSON that produced it, so
    disagreements should be resolvable.
-4. Bug reports and documentation fixes.
+5. Bug reports and documentation fixes.
 
 ## Getting set up
 
@@ -55,6 +58,31 @@ what every published number means. Changing any of it:
 Presentation, the model registry, and thresholds can change without a re-run.
 If you are proposing a protocol change, please open an issue first so the
 re-measurement cost can be discussed before the work happens.
+
+## Proposing an ImpactTwin public-interest domain
+
+ImpactTwin domains pair an ordinary workflow with a poisoned twin so the causal
+effect of untrusted content is measurable. Start with the **Public-interest twin**
+issue form rather than a large pull request. A strong proposal identifies:
+
+- the people or institutions affected by a bad agent action;
+- the untrusted input and the economically or mission-relevant sink;
+- which structured facts remain identical across the twins;
+- the live state invariant that can be validated without an LLM judge;
+- a bounded consequence measure that will not be misrepresented as predicted
+  loss; and
+- primary standards or public guidance that explain why the control matters.
+
+Accepted implementations must use synthetic organizations and data, run fully
+offline with deterministic reference fixtures, score utility separately from
+security, emit versioned machine-readable evidence, and include explicit
+non-certification language. Do not submit real proposal data, personal data,
+credentials, vulnerabilities in a production agency system, or claims that a
+benchmark result establishes legal compliance.
+
+Changes to a frozen ImpactTwin scenario require a scenario-version update. The
+protocol hash will move automatically, but the version bump ensures humans do
+not compare semantically different runs.
 
 ## Statistical conventions
 

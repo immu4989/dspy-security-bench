@@ -12,6 +12,7 @@ from dspy_security_bench.policy import ToolPolicy
 PROFILES = {
     "customer-support": "Customer support: safe lookups, bounded refunds, approved outbound email",
     "financial-operations": "Finance: allowlisted destinations and approval for money movement",
+    "procurement": "Procurement: protect source selection, vendor identity, and award authority",
     "research-rag": "Research/RAG: read broadly, protect memory and external side effects",
     "devops": "DevOps: inspect freely, approve changes, deny destructive execution",
 }

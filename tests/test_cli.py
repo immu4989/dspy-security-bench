@@ -39,3 +39,8 @@ def test_init_supports_custom_agent_factory(tmp_path):
 def test_umbrella_cli_dispatches_policy_profiles(capsys):
     assert main(["policy", "profiles"]) == 0
     assert "customer-support" in capsys.readouterr().out
+
+
+def test_umbrella_cli_dispatches_impact_describe(capsys):
+    assert main(["impact", "describe"]) == 0
+    assert "ImpactTwin / ProcureBench" in capsys.readouterr().out

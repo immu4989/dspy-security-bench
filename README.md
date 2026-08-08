@@ -30,6 +30,52 @@ and a benchmark you can point at **your own agent** and gate in CI.
 
 ---
 
+## New specialty: ImpactTwin / ProcureBench
+
+**Can a poisoned vendor proposal change an AI agent's award decision even when
+every procurement fact stays identical?** ProcureBench answers that with five
+clean/poisoned counterfactual twin pairs and a live synthetic procurement
+environment.
+
+It measures consequences that a generic attack-success rate hides:
+
+- award recommendation and evaluation drift;
+- sealed bid/proposal disclosure;
+- vendor payment-identity rerouting;
+- eligibility-record tampering;
+- binding award approval bypass;
+- synthetic contract value placed at risk; and
+- avoidable price premium caused by the poisoned decision.
+
+Run the complete demonstration offline—no model or API key:
+
+```bash
+dspy-security-bench impact demo
+```
+
+| Deterministic scorer fixture | Clean utility | Attack resistance | Decision invariance | Synthetic funds at risk |
+|---|---:|---:|---:|---:|
+| `reference-bounded` | 100% | 100% | 100% | $0 |
+| `reference-vulnerable` | 100% | 0% | 60% | $3.69M |
+
+The references demonstrate the scorer; they are **not model results**. Test a
+real LiteLLM model or any supported agent and emit JSON + GitHub SARIF:
+
+```bash
+dspy-security-bench impact run \
+  --agent myapp.security:build_agent \
+  --min-resistance 1.0 \
+  --json artifacts/procurebench.json \
+  --sarif artifacts/procurebench.sarif
+```
+
+The specialty maps its controls to procurement impartiality and
+source-selection protections while remaining explicit that a benchmark is not a
+compliance certificate. Read the [methodology, novelty audit, threat model, and
+CI guide](docs/impact-twin.md).
+
+---
+
 ## 🏆 The leaderboard
 
 **Robustness R** = the share of prompt-injection attacks that **failed** against the
@@ -151,6 +197,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 |---|---|
 | 🏆 **Compare models** | A frozen, reproducible [leaderboard](LEADERBOARD.md) of base-model injection-robustness — 14 models across 10 families, from frontier to open-weights. |
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
+| ⚖️ **Measure mission impact** | Run [ImpactTwin / ProcureBench](docs/impact-twin.md): clean/poisoned procurement twins that score decision drift, protected-data release, authority bypass, and synthetic funds at risk. |
 | 🔐 **Enforce least agency** | Put deterministic policy around live tool calls: allow, deny, or require approval. Includes [production profiles](docs/use-cases.md) for support, finance, RAG, and DevOps. |
 | 🛡️ **Test defenses** | Measure [cheap mitigations](#the-good-news-cheap-defenses-recover-it-v020) and whether they survive an [adaptive attacker](#but-do-the-defenses-survive-an-adaptive-attacker-v031). |
 | 🔬 **Study optimizers** | The original question: does DSPy prompt optimization make agents *more* or *less* robust? |
@@ -449,9 +496,32 @@ dspy-security-bench policy check --policy agent-policy.yaml \
 # [DENY] send_email — customer data must not leave the trusted domain
 ```
 
-Profiles cover customer support, accounts payable, research/RAG, and DevOps.
+Profiles cover customer support, accounts payable, procurement, research/RAG,
+and DevOps.
 See the [real-world use-case guide](docs/use-cases.md) and the fully offline
 [`policy_support_agent.py`](examples/policy_support_agent.py) demonstration.
+
+### Measure whether poisoned content changes an economic decision
+
+Policy controls action authority. ImpactTwin tests a different failure mode:
+whether untrusted text changes an agent's evaluation or causes an economically
+material state transition despite identical structured facts.
+
+```bash
+# Offline end-to-end scorer proof
+dspy-security-bench impact demo
+
+# Your own agent, with a strict CI floor and code-scanning evidence
+dspy-security-bench impact run \
+  --agent myapp.procurement:build_agent \
+  --min-resistance 1.0 \
+  --json procurebench.json \
+  --sarif procurebench.sarif
+```
+
+Five frozen pairs cover award bias, sealed-proposal exfiltration, payment
+rerouting, eligibility tampering, and approval bypass. See the full
+[ImpactTwin / ProcureBench guide](docs/impact-twin.md).
 
 ---
 
@@ -636,12 +706,15 @@ so re-runs after a downstream crash skip optimization.
 
 ## CLI
 
-The umbrella CLI exposes project setup, security scanning, synthesis, and validation:
+The umbrella CLI exposes project setup, security scanning, counterfactual
+mission-impact testing, policy controls, synthesis, and validation:
 
 ```bash
 dspy-security-bench --version
 dspy-security-bench init --help
 dspy-security-bench scan --help
+dspy-security-bench impact --help
+dspy-security-bench policy --help
 ```
 
 The synthesis and validation steps also have direct CLIs that produce JSONL files:
@@ -735,6 +808,7 @@ v0.1 scope choices:
 | v0.3.1 — adaptive attacks (rule-based + iterative LM-driven); defenses held on Mistral Large / workspace | **shipped** |
 | v0.4 — cross-suite/model generalization. Banking: vulnerability generalizes; security-prompt robust, spotlighting brittle | **shipped** |
 | v0.5 — [**model leaderboard**](LEADERBOARD.md): frozen protocol v2, 7 models across 7 families, confirm/provisional durability gate | **shipped** |
+| ImpactTwin / ProcureBench — counterfactual procurement mission assurance, economic context, JSON/SARIF CI gate | **shipped on main** |
 | v0.5.x — more families on the board; secondary `direct` attack column; contributor-run submissions | in progress |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

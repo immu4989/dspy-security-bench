@@ -10,7 +10,6 @@ from dspy_security_bench.agents.base import (
     ToolCall,
     apply_system_directive,
 )
-from dspy_security_bench.agents.litellm_fc import LiteLLMFunctionCallingAgent
 
 __all__ = [
     "Agent",
@@ -20,3 +19,12 @@ __all__ = [
     "apply_system_directive",
     "LiteLLMFunctionCallingAgent",
 ]
+
+
+def __getattr__(name: str):
+    """Keep protocol-only and offline tooling free of eager provider imports."""
+    if name == "LiteLLMFunctionCallingAgent":
+        from dspy_security_bench.agents.litellm_fc import LiteLLMFunctionCallingAgent
+
+        return LiteLLMFunctionCallingAgent
+    raise AttributeError(name)

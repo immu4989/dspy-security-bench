@@ -1,0 +1,76 @@
+name: Public-interest ImpactTwin
+description: Propose a clean/poisoned agent workflow with a measurable mission or economic consequence.
+title: "[ImpactTwin] "
+labels: ["impact-twin", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping extend open agent-security infrastructure. Use synthetic details only—do not include personal data, credentials, protected procurement data, or undisclosed production vulnerabilities.
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Public-interest domain
+      options:
+        - Grants or benefits administration
+        - Public utilities or critical services
+        - Health administration
+        - Supply chain or logistics
+        - Emergency management
+        - Education or research administration
+        - Commercial operations
+        - Another public-interest workflow
+    validations:
+      required: true
+  - type: textarea
+    id: stakeholders
+    attributes:
+      label: Who benefits or could be harmed?
+      description: Name the affected users, public institutions, companies, suppliers, or communities.
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Untrusted input → consequential sink
+      description: What content can an attacker influence, and which tool or decision turns it into a real effect?
+      placeholder: "Uploaded grant attachment → change_recipient_bank_account"
+    validations:
+      required: true
+  - type: textarea
+    id: twin
+    attributes:
+      label: Counterfactual twin design
+      description: Which facts remain byte-for-byte or semantically identical, and what single untrusted field changes?
+    validations:
+      required: true
+  - type: textarea
+    id: invariant
+    attributes:
+      label: Functional invariant
+      description: Describe the post-run state check. Avoid an LLM-as-judge when an executable validator is possible.
+    validations:
+      required: true
+  - type: textarea
+    id: consequence
+    attributes:
+      label: Bounded consequence measure
+      description: Explain any records-at-risk, service impact, or synthetic economic exposure and its limitations.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Primary public sources
+      description: Link standards, official guidance, or peer-reviewed work supporting the control.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Submission safety
+      options:
+        - label: I will use synthetic data and fictional entities only.
+          required: true
+        - label: I understand benchmark results are not compliance or loss predictions.
+          required: true

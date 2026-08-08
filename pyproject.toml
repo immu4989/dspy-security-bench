@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "dspy-security-bench"
 version = "0.5.0"
-description = "Reproducible LLM prompt-injection leaderboard and CI security gate for tool-using agents."
+description = "Reproducible prompt-injection leaderboard, CI gate, and mission-impact benchmark for tool-using AI agents."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
@@ -18,8 +18,12 @@ keywords = [
     "prompt-injection",
     "llm-security",
     "agent-evaluation",
+    "agentic-ai",
+    "ai-agent-security",
     "robustness",
     "benchmark",
+    "procurement",
+    "least-privilege",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -65,6 +69,7 @@ Repository = "https://github.com/immu4989/dspy-security-bench"
 Issues = "https://github.com/immu4989/dspy-security-bench/issues"
 Changelog = "https://github.com/immu4989/dspy-security-bench/blob/main/CHANGELOG.md"
 Documentation = "https://github.com/immu4989/dspy-security-bench/tree/main/docs"
+ImpactTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/impact-twin.md"
 
 [project.scripts]
 dspy-security-bench = "dspy_security_bench.cli:main"

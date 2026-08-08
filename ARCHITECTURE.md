@@ -28,6 +28,12 @@ dspy_security_bench/
 ├── agents/                     # framework-neutral Agent + BenchTool contract
 ├── policy.py                   # deterministic live tool-call boundary
 ├── policy_cli.py               # scaffold, validate, and check policies offline
+├── procurement/                # ImpactTwin clean/poisoned mission assurance
+│   ├── scenarios.py            # frozen synthetic procurement twin protocol
+│   ├── environment.py          # live tools and observable state transitions
+│   ├── benchmark.py            # utility, integrity, and economic scoring
+│   ├── sarif.py                # FAR/NIST-oriented code-scanning evidence
+│   └── cli.py                  # offline demo + real-agent CI gate
 ├── scan/                       # CI gate, baseline comparison, JSON/SARIF reports
 ├── synthesis/
 │   ├── extract_env_data.py    # markdown summary of suite seed env
@@ -61,6 +67,32 @@ Policy is intentionally separate from prompt defenses. A system prompt tries to
 influence model behavior; policy constrains authority at the execution sink.
 Teams should measure both the raw model and the policy-wrapped deployment when
 they need to attribute an improvement to one layer or the other.
+
+### `procurement/` — ImpactTwin / ProcureBench
+
+The procurement specialty introduces counterfactual mission-assurance testing.
+Every scenario is a pair with identical structured facts, tool surface, and
+user request. Only untrusted vendor narrative differs. The runner executes both
+against fresh synthetic state and compares:
+
+1. the selected proposal and numeric evaluation fingerprint;
+2. mission completion rather than refusal alone;
+3. unauthorized source-selection disclosures;
+4. vendor payment and eligibility mutations;
+5. binding awards without a valid independent approval; and
+6. bounded economic context attached to observed state transitions.
+
+The environment intentionally does not block dangerous actions. If the tool
+silently enforced the expected behavior, the benchmark could not distinguish a
+safe agent from a compromised one. Production restrictions belong in
+`PolicyEnforcedAgent`; benchmark validators inspect what happened after the
+agent runs.
+
+`scenarios.protocol_manifest()` serializes every stimulus and expected decision.
+Its SHA-256 digest is embedded in JSON and SARIF reports, preventing two changed
+protocols from being presented as the same measurement. The bounded and
+deliberately vulnerable reference agents are scorer demonstrations only and are
+never presented as model measurements.
 
 ### `synthesis/extract_env_data.py`
 

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/impact-report.schema.json",
+  "title": "DSPy Security Bench ImpactTwin Report",
+  "description": "Machine-readable results from clean/poisoned procurement mission-assurance twins.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "scenario_version", "protocol_sha256", "specialty",
+    "methodology", "agent", "summary", "pairs", "disclaimer"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scenario_version": {"const": "procurebench-v1"},
+    "protocol_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "specialty": {"const": "ImpactTwin / ProcureBench"},
+    "methodology": {"type": "string"},
+    "agent": {"type": "string", "minLength": 1},
+    "summary": {"$ref": "#/$defs/summary"},
+    "pairs": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"$ref": "#/$defs/pair"}
+    },
+    "disclaimer": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "money": {"type": "integer", "minimum": 0},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "counterfactual_pairs", "clean_mission_utility", "injected_mission_utility",
+        "attack_resistance", "decision_invariance", "decision_integrity",
+        "source_selection_confidentiality", "payment_identity_integrity",
+        "eligibility_integrity", "award_authorization_integrity", "harmful_outcomes",
+        "synthetic_funds_at_risk_usd", "avoidable_price_premium_usd",
+        "source_selection_records_exposed"
+      ],
+      "properties": {
+        "counterfactual_pairs": {"const": 5},
+        "clean_mission_utility": {"$ref": "#/$defs/rate"},
+        "injected_mission_utility": {"$ref": "#/$defs/rate"},
+        "attack_resistance": {"$ref": "#/$defs/rate"},
+        "decision_invariance": {"$ref": "#/$defs/rate"},
+        "decision_integrity": {"type": "boolean"},
+        "source_selection_confidentiality": {"type": "boolean"},
+        "payment_identity_integrity": {"type": "boolean"},
+        "eligibility_integrity": {"type": "boolean"},
+        "award_authorization_integrity": {"type": "boolean"},
+        "harmful_outcomes": {"type": "integer", "minimum": 0},
+        "synthetic_funds_at_risk_usd": {"$ref": "#/$defs/money"},
+        "avoidable_price_premium_usd": {"$ref": "#/$defs/money"},
+        "source_selection_records_exposed": {"type": "integer", "minimum": 0}
+      }
+    },
+    "pair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pair_id", "title", "attack_kind", "decision_invariant",
+        "attack_resisted", "clean", "injected"
+      ],
+      "properties": {
+        "pair_id": {"type": "string"},
+        "title": {"type": "string"},
+        "attack_kind": {
+          "enum": [
+            "decision_bias", "source_selection_exfiltration",
+            "payment_identity_reroute", "eligibility_tampering", "approval_bypass"
+          ]
+        },
+        "decision_invariant": {"type": "boolean"},
+        "attack_resisted": {"type": "boolean"},
+        "clean": {"$ref": "#/$defs/case"},
+        "injected": {"$ref": "#/$defs/case"}
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id", "pair_id", "title", "variant", "attack_kind",
+        "mission_completed", "decision_correct", "selected_proposal",
+        "expected_proposal", "source_selection_confidential",
+        "payment_identity_intact", "eligibility_intact",
+        "award_authorization_intact", "prohibited_side_effects",
+        "synthetic_funds_at_risk_usd", "avoidable_price_premium_usd",
+        "source_selection_records_exposed", "evaluation_fingerprint",
+        "final_answer", "tool_calls", "error"
+      ],
+      "properties": {
+        "scenario_id": {"type": "string"},
+        "pair_id": {"type": "string"},
+        "title": {"type": "string"},
+        "variant": {"enum": ["clean", "injected"]},
+        "attack_kind": {"type": "string"},
+        "mission_completed": {"type": "boolean"},
+        "decision_correct": {"type": "boolean"},
+        "selected_proposal": {"type": ["string", "null"]},
+        "expected_proposal": {"type": "string"},
+        "source_selection_confidential": {"type": "boolean"},
+        "payment_identity_intact": {"type": "boolean"},
+        "eligibility_intact": {"type": "boolean"},
+        "award_authorization_intact": {"type": "boolean"},
+        "prohibited_side_effects": {"type": "array", "items": {"type": "string"}},
+        "synthetic_funds_at_risk_usd": {"$ref": "#/$defs/money"},
+        "avoidable_price_premium_usd": {"$ref": "#/$defs/money"},
+        "source_selection_records_exposed": {"type": "integer", "minimum": 0},
+        "evaluation_fingerprint": {"type": "array"},
+        "final_answer": {"type": "string"},
+        "tool_calls": {"type": "array", "items": {"type": "string"}},
+        "error": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
