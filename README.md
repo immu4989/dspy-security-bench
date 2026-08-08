@@ -21,7 +21,7 @@ and a benchmark you can point at **your own agent** and gate in CI.
 [![HF results](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-v0.1%20results-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-v01-results)
 
 <a href="https://immu4989.github.io/dspy-security-bench/">
-  <img src="site/assets/security-bench-hero-v2.png" alt="A protected AI reasoning core resisting adversarial data streams" width="100%">
+  <img src="assets/leaderboard_hero.gif" alt="Animated injection-robustness leaderboard showing model security scores" width="850">
 </a>
 
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
