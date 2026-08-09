@@ -23,6 +23,8 @@ Usage:
 """
 from __future__ import annotations
 
+import re
+
 
 class Defense:
     """Base prompt-injection defense. Override only the channels you use.
@@ -145,10 +147,10 @@ class SpotlightDatamarking(Defense):
     name = "spotlight_datamark"
 
     def wrap_tool_output(self, output: str, *, tool_name: str, user_query: str) -> str:
-        # Replace runs of whitespace with the marker so the whole payload is
-        # interleaved. Preserves readability while making the mark pervasive.
-        parts = output.split(" ")
-        return _DATAMARK_CHAR.join(parts)
+        # Replace every Unicode whitespace run, not only literal spaces. Tool
+        # results are commonly multiline, and leaving newlines or tabs intact
+        # creates an unmarked injection channel.
+        return re.sub(r"\s+", _DATAMARK_CHAR, output)
 
     def rewrite_instructions(self, instructions: str) -> str:
         return _SPOTLIGHT_DATAMARK_NOTE + (instructions or "")

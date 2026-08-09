@@ -7,14 +7,15 @@
   "additionalProperties": false,
   "required": [
     "schema_version", "scenario_version", "protocol_sha256", "specialty",
-    "methodology", "agent", "summary", "pairs", "disclaimer"
+    "methodology", "evidence_method", "agent", "summary", "pairs", "disclaimer"
   ],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {"const": 2},
     "scenario_version": {"const": "procurebench-v1"},
     "protocol_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "specialty": {"const": "ImpactTwin / ProcureBench"},
     "methodology": {"type": "string"},
+    "evidence_method": {"const": "instrumented environment BoundaryDiff"},
     "agent": {"type": "string", "minLength": 1},
     "summary": {"$ref": "#/$defs/summary"},
     "pairs": {
@@ -61,7 +62,7 @@
       "additionalProperties": false,
       "required": [
         "pair_id", "title", "attack_kind", "decision_invariant",
-        "attack_resisted", "clean", "injected"
+        "attack_resisted", "causal_evidence", "clean", "injected"
       ],
       "properties": {
         "pair_id": {"type": "string"},
@@ -74,6 +75,7 @@
         },
         "decision_invariant": {"type": "boolean"},
         "attack_resisted": {"type": "boolean"},
+        "causal_evidence": {"$ref": "#/$defs/causal_evidence"},
         "clean": {"$ref": "#/$defs/case"},
         "injected": {"$ref": "#/$defs/case"}
       }
@@ -89,7 +91,7 @@
         "award_authorization_intact", "prohibited_side_effects",
         "synthetic_funds_at_risk_usd", "avoidable_price_premium_usd",
         "source_selection_records_exposed", "evaluation_fingerprint",
-        "final_answer", "tool_calls", "error"
+        "final_answer", "tool_calls", "action_trace", "error"
       ],
       "properties": {
         "scenario_id": {"type": "string"},
@@ -112,7 +114,67 @@
         "evaluation_fingerprint": {"type": "array"},
         "final_answer": {"type": "string"},
         "tool_calls": {"type": "array", "items": {"type": "string"}},
+        "action_trace": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/boundary_event"}
+        },
         "error": {"type": ["string", "null"]}
+      }
+    },
+    "boundary_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["index", "kind", "tool", "arguments"],
+      "properties": {
+        "index": {"type": "integer", "minimum": 0},
+        "kind": {"type": "string", "minLength": 1},
+        "tool": {"type": "string", "minLength": 1},
+        "arguments": {"type": "object"}
+      }
+    },
+    "recommended_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "rule_id", "tool", "action", "rationale"],
+      "properties": {
+        "profile": {"const": "procurement"},
+        "rule_id": {"type": "string", "minLength": 1},
+        "tool": {"type": "string", "minLength": 1},
+        "action": {"enum": ["deny", "require_approval"]},
+        "rationale": {"type": "string", "minLength": 1}
+      }
+    },
+    "causal_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_source", "evidence_strength", "attribution_scope",
+        "first_divergence_index", "clean_event", "injected_event",
+        "injected_only_events", "observed_harms", "recommended_control"
+      ],
+      "properties": {
+        "trace_source": {"const": "instrumented_benchmark_environment"},
+        "evidence_strength": {
+          "enum": [
+            "no_observed_divergence",
+            "boundary_trace_divergence_without_detected_harm",
+            "functional_side_effect_and_boundary_trace"
+          ]
+        },
+        "attribution_scope": {"type": "string", "minLength": 1},
+        "first_divergence_index": {"type": ["integer", "null"], "minimum": 0},
+        "clean_event": {
+          "anyOf": [{"$ref": "#/$defs/boundary_event"}, {"type": "null"}]
+        },
+        "injected_event": {
+          "anyOf": [{"$ref": "#/$defs/boundary_event"}, {"type": "null"}]
+        },
+        "injected_only_events": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/boundary_event"}
+        },
+        "observed_harms": {"type": "array", "items": {"type": "string"}},
+        "recommended_control": {"$ref": "#/$defs/recommended_control"}
       }
     }
   }

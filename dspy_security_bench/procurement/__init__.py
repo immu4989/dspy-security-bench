@@ -9,5 +9,16 @@ from dspy_security_bench.procurement.benchmark import (
     ImpactTwinReport,
     run_impact_twin,
 )
+from dspy_security_bench.procurement.evidence import (
+    BoundaryEvent,
+    CausalEvidence,
+    RecommendedControl,
+)
 
-__all__ = ["ImpactTwinReport", "run_impact_twin"]
+__all__ = [
+    "BoundaryEvent",
+    "CausalEvidence",
+    "ImpactTwinReport",
+    "RecommendedControl",
+    "run_impact_twin",
+]

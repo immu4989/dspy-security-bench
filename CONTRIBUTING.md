@@ -24,7 +24,9 @@ ruff check dspy_security_bench/ tests/
 ```
 
 The test suite does not make network calls. You only need provider API keys to
-run the benchmark itself.
+run the benchmark itself. Contributors changing embedding-based synthesis or
+deduplication should install `.[dev,synthesis]`; the ordinary development and
+CI environment intentionally avoids the large optional ML runtime.
 
 ## Adding a model to the leaderboard
 

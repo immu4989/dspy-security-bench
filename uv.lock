@@ -989,7 +989,6 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
-    { name = "sentence-transformers" },
 ]
 docs = [
     { name = "mkdocs" },
@@ -1014,7 +1013,6 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
-    { name = "sentence-transformers", marker = "extra == 'dev'", specifier = ">=3.0" },
     { name = "sentence-transformers", marker = "extra == 'synthesis'", specifier = ">=3.0" },
 ]
 provides-extras = ["synthesis", "dev", "docs"]

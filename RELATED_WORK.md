@@ -227,6 +227,8 @@ tests whether agents choose or infer appropriately narrow authority:
 | Progent | Programmable privilege policy generation and enforcement ([arXiv:2504.11703](https://arxiv.org/abs/2504.11703)) |
 | Open Agent Passport | Deterministic pre-action authorization and signed receipts ([arXiv:2603.20953](https://arxiv.org/abs/2603.20953)) |
 | Who Pays the Price? | Stakeholder-centric harm attribution for web-agent prompt injection ([arXiv:2606.13385](https://arxiv.org/abs/2606.13385)) |
+| Counterfactual Trace Auditing | Aligns paired agent traces to expose behavioral influence that endpoint pass rates miss ([arXiv:2605.11946](https://arxiv.org/abs/2605.11946)) |
+| ContainmentBench | Separates endpoint compliance, logged propagation, recovery, and authorized utility ([arXiv:2607.23999](https://arxiv.org/abs/2607.23999)) |
 
 These projects are why this repository does not claim that tool-call policy or
 “blast radius” alone is novel. The narrower open gap targeted by
@@ -235,6 +237,11 @@ environment combining clean/poisoned causal twins, functional decision and
 authority invariants, synthetic economic exposure, and procurement-oriented
 JSON/SARIF evidence. The novelty statement is dated, scoped, and should be
 corrected if comparable prior work is found.
+
+BoundaryDiff is informed by—not presented as prior to—the trace-oriented work
+above. Its narrower engineering contribution is to make each ProcureBench
+failure inspectable from environment-owned events and connect that evidence to
+an executable least-authority rule already shipped with the benchmark.
 
 ---
 
@@ -257,7 +264,7 @@ a new model for a few dollars. A 464-participant competition cannot be re-run by
 a third party; this can.
 
 The separate ImpactTwin specialty is not part of the 14-model leaderboard. It
-tests any supported agent on synthetic procurement twins and reports causal
-decision/side-effect equivalence plus bounded economic context. Keeping the two
-protocols separate avoids presenting a public-interest domain smoke test as a
-general model-robustness ranking.
+tests any supported agent on synthetic procurement twins and reports
+controlled-pair decision/side-effect equivalence plus bounded economic context.
+Keeping the two protocols separate avoids presenting a public-interest domain
+smoke test as a general model-robustness ranking.

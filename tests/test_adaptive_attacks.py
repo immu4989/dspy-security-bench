@@ -15,6 +15,7 @@ from dspy_security_bench.attacks.adaptive import (
     DelimiterEscape,
     MarkerClaim,
     TaskHijack,
+    WhitespaceSeparatorEvasion,
     best_strategy_for,
     build_adaptive_attack,
     is_adaptive,
@@ -41,6 +42,14 @@ def test_marker_claim_flips_marker_meaning():
     tpl = MarkerClaim().jailbreak_template("spotlight_datamark")
     assert "VERIFIED" in tpl or "AUTHORIZED" in tpl
     assert "{goal}" in tpl
+
+
+def test_whitespace_evasion_has_no_literal_space_boundaries():
+    tpl = WhitespaceSeparatorEvasion().jailbreak_template("spotlight_datamark")
+    assert "{goal}" in tpl
+    fixed = tpl.replace("{goal}", "SEND")
+    assert " " not in fixed
+    assert "\n" in fixed
 
 
 def test_authority_escalation_claims_not_tool_output():

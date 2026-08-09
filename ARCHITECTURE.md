@@ -32,8 +32,9 @@ dspy_security_bench/
 │   ├── scenarios.py            # frozen synthetic procurement twin protocol
 │   ├── environment.py          # live tools and observable state transitions
 │   ├── benchmark.py            # utility, integrity, and economic scoring
+│   ├── evidence.py             # BoundaryDiff trace evidence + remediation
 │   ├── sarif.py                # FAR/NIST-oriented code-scanning evidence
-│   └── cli.py                  # offline demo + real-agent CI gate
+│   └── cli.py                  # offline demo, explain, and real-agent CI gate
 ├── scan/                       # CI gate, baseline comparison, JSON/SARIF reports
 ├── synthesis/
 │   ├── extract_env_data.py    # markdown summary of suite seed env
@@ -93,6 +94,15 @@ Its SHA-256 digest is embedded in JSON and SARIF reports, preventing two changed
 protocols from being presented as the same measurement. The bounded and
 deliberately vulnerable reference agents are scorer demonstrations only and are
 never presented as model measurements.
+
+Every successfully executed tool also writes an environment-owned
+`ActionRecord`. `evidence.py` normalizes those records into portable boundary
+events, compares each clean and poisoned sequence, and emits the first
+divergence plus poisoned-only events. Calls rejected before execution are not
+part of the environment trace. This avoids trusting an agent's optional
+self-reported trace for functional evidence. Each failure maps to a rule in the
+packaged procurement policy, so the report connects a measured failure to a
+deterministic execution boundary without silently applying a fix.
 
 ### `synthesis/extract_env_data.py`
 

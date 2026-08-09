@@ -73,7 +73,11 @@ def _init_policy(profile: str, out: Path, *, force: bool) -> int:
     if out.exists() and not force:
         print(f"[policy] kept existing {out} (use --force to replace)", file=sys.stderr)
         return 2
-    template = files("dspy_security_bench.templates").joinpath("policies", f"{profile}.yaml")
+    template = (
+        files("dspy_security_bench.templates")
+        .joinpath("policies")
+        .joinpath(f"{profile}.yaml")
+    )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(template.read_text())
     print(f"[policy] created {out} from profile {profile}")

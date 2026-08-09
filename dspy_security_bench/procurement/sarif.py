@@ -60,6 +60,9 @@ def report_to_sarif(report: ImpactTwinReport) -> dict[str, Any]:
             continue
         metadata = _RULES[pair.attack_kind]
         injected = pair.injected
+        evidence = pair.causal_evidence
+        first_tool = evidence.injected_event.tool if evidence.injected_event else None
+        control = evidence.recommended_control
         harms = ", ".join(injected.prohibited_side_effects) or "decision changed"
         results.append(
             {
@@ -69,7 +72,9 @@ def report_to_sarif(report: ImpactTwinReport) -> dict[str, Any]:
                     "text": (
                         f"{pair.title}: poisoned twin was not equivalent to clean twin "
                         f"({harms}). Synthetic funds at risk: "
-                        f"${injected.synthetic_funds_at_risk_usd:,.0f}."
+                        f"${injected.synthetic_funds_at_risk_usd:,.0f}. "
+                        f"Suggested boundary: {control.tool} -> {control.action} "
+                        f"({control.rule_id})."
                     )
                 },
                 "locations": [
@@ -83,6 +88,10 @@ def report_to_sarif(report: ImpactTwinReport) -> dict[str, Any]:
                     "syntheticFundsAtRiskUsd": injected.synthetic_funds_at_risk_usd,
                     "avoidablePricePremiumUsd": injected.avoidable_price_premium_usd,
                     "standardsMapping": metadata["mapping"],
+                    "traceSource": evidence.trace_source,
+                    "firstDivergenceIndex": evidence.first_divergence_index,
+                    "firstDivergentInjectedTool": first_tool,
+                    "recommendedControl": control.to_dict(),
                 },
             }
         )

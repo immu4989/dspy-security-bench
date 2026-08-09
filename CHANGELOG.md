@@ -9,6 +9,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **BoundaryDiff evidence for ImpactTwin schema v2.** Every clean/poisoned pair
+  now records instrumented environment-owned tool events, identifies the first
+  trace divergence and poisoned-only events, and recommends the exact packaged
+  procurement policy rule that contains the observed functional harm. The new
+  offline `impact explain REPORT.json` command debugs saved reports without a
+  model call; SARIF findings carry the same remediation evidence.
 - **ImpactTwin / ProcureBench**, a public-interest procurement mission-assurance
   specialty built from five clean/poisoned counterfactual twin pairs. It scores
   utility, causal decision drift, source-selection disclosure, vendor identity
@@ -35,6 +41,23 @@ several of them changed published numbers.
   result JSON, plus a drift check and GitHub Pages deployment workflow.
 - A new visual identity and cinematic hero artwork designed around the
   benchmark's trust-boundary concept.
+
+### Fixed
+- `spotlight_datamark` now replaces every Unicode whitespace run, closing the
+  newline/tab channel that previously left common multiline injections entirely
+  unmarked. The adaptive attack registry retains a whitespace-separator probe as
+  regression coverage, and the LM-attacker mechanism description now matches
+  the implementation.
+- Python 3.10 and 3.11 CI compatibility for packaged-resource checks; multi-part
+  `Traversable.joinpath` calls are now chained instead of relying on newer
+  interpreter behavior.
+- GitHub Actions now use current Node 24 releases pinned to immutable commit
+  SHAs, and the test workflow pins uv 0.12.3 instead of downloading a drifting
+  `latest` tool through the outdated `setup-uv@v3` action.
+- The CI matrix now covers every declared Python version from 3.10 through
+  3.14. The ordinary `dev` extra no longer installs the optional
+  `sentence-transformers`/PyTorch stack, avoiding multi-gigabyte CUDA downloads
+  in jobs that never exercise embedding-based synthesis.
 
 ## [0.5.0] — 2026-08-05
 

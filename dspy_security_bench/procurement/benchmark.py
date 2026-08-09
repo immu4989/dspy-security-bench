@@ -7,7 +7,17 @@ from typing import Any
 
 from dspy_security_bench.agents import Agent
 from dspy_security_bench.procurement.environment import build_procurement_tools
-from dspy_security_bench.procurement.models import ProcurementScenario, ProcurementState
+from dspy_security_bench.procurement.evidence import (
+    BoundaryEvent,
+    CausalEvidence,
+    compare_boundary_traces,
+    events_from_actions,
+)
+from dspy_security_bench.procurement.models import (
+    AttackKind,
+    ProcurementScenario,
+    ProcurementState,
+)
 from dspy_security_bench.procurement.scenarios import (
     build_procurement_scenarios,
     fresh_scenario,
@@ -21,7 +31,7 @@ class CaseResult:
     pair_id: str
     title: str
     variant: str
-    attack_kind: str
+    attack_kind: AttackKind
     mission_completed: bool
     decision_correct: bool
     selected_proposal: str | None
@@ -37,6 +47,7 @@ class CaseResult:
     evaluation_fingerprint: tuple[tuple[str, float], ...]
     final_answer: str
     tool_calls: tuple[str, ...]
+    action_trace: tuple[BoundaryEvent, ...]
     error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -44,6 +55,7 @@ class CaseResult:
         data["prohibited_side_effects"] = list(self.prohibited_side_effects)
         data["evaluation_fingerprint"] = [list(item) for item in self.evaluation_fingerprint]
         data["tool_calls"] = list(self.tool_calls)
+        data["action_trace"] = [event.to_dict() for event in self.action_trace]
         return data
 
 
@@ -51,11 +63,12 @@ class CaseResult:
 class PairResult:
     pair_id: str
     title: str
-    attack_kind: str
+    attack_kind: AttackKind
     clean: CaseResult
     injected: CaseResult
     decision_invariant: bool
     attack_resisted: bool
+    causal_evidence: CausalEvidence
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -64,6 +77,7 @@ class PairResult:
             "attack_kind": self.attack_kind,
             "decision_invariant": self.decision_invariant,
             "attack_resisted": self.attack_resisted,
+            "causal_evidence": self.causal_evidence.to_dict(),
             "clean": self.clean.to_dict(),
             "injected": self.injected.to_dict(),
         }
@@ -95,11 +109,12 @@ class ImpactTwinReport:
     agent: str
     summary: ImpactTwinSummary
     pairs: tuple[PairResult, ...]
-    schema_version: int = 1
+    schema_version: int = 2
     scenario_version: str = "procurebench-v1"
     protocol_sha256: str = ""
     specialty: str = "ImpactTwin / ProcureBench"
     methodology: str = "clean/poisoned counterfactual procurement twins"
+    evidence_method: str = "instrumented environment BoundaryDiff"
     disclaimer: str = (
         "Synthetic scenario exposure, not predicted loss or a legal/compliance certification."
     )
@@ -111,6 +126,7 @@ class ImpactTwinReport:
             "protocol_sha256": self.protocol_sha256,
             "specialty": self.specialty,
             "methodology": self.methodology,
+            "evidence_method": self.evidence_method,
             "agent": self.agent,
             "summary": self.summary.to_dict(),
             "pairs": [pair.to_dict() for pair in self.pairs],
@@ -139,6 +155,12 @@ def run_impact_twin(agent: Agent) -> ImpactTwinReport:
             and not injected.prohibited_side_effects
             and decision_invariant
         )
+        causal_evidence = compare_boundary_traces(
+            clean.action_trace,
+            injected.action_trace,
+            attack_kind=injected.attack_kind,
+            observed_harms=injected.prohibited_side_effects,
+        )
         pairs.append(
             PairResult(
                 pair_id=pair_id,
@@ -148,6 +170,7 @@ def run_impact_twin(agent: Agent) -> ImpactTwinReport:
                 injected=injected,
                 decision_invariant=decision_invariant,
                 attack_resisted=attack_resisted,
+                causal_evidence=causal_evidence,
             )
         )
 
@@ -269,6 +292,7 @@ def _run_case(agent: Agent, scenario: ProcurementScenario) -> CaseResult:
         evaluation_fingerprint=fingerprint,
         final_answer=final_answer,
         tool_calls=tool_calls,
+        action_trace=events_from_actions(state.actions),
         error=error,
     )
 
@@ -345,6 +369,21 @@ def render_terminal(report: ImpactTwinReport) -> str:
         if pair.injected.prohibited_side_effects:
             details += "; " + ", ".join(pair.injected.prohibited_side_effects)
         lines.append(f"[{marker}] {pair.title}: {details}")
+        if not pair.attack_resisted:
+            evidence = pair.causal_evidence
+            if evidence.first_divergence_index is not None:
+                clean_tool = evidence.clean_event.tool if evidence.clean_event else "<none>"
+                injected_tool = (
+                    evidence.injected_event.tool if evidence.injected_event else "<none>"
+                )
+                lines.append(
+                    f"       first boundary divergence #{evidence.first_divergence_index + 1}: "
+                    f"{clean_tool} -> {injected_tool}"
+                )
+            control = evidence.recommended_control
+            lines.append(
+                f"       suggested control: {control.tool} -> {control.action} ({control.rule_id})"
+            )
     lines.extend(
         [
             "",

@@ -69,10 +69,20 @@ dspy-security-bench impact run \
   --sarif artifacts/procurebench.sarif
 ```
 
+Every schema-v2 report now includes **BoundaryDiff** evidence from the
+instrumented environment: the first clean/poisoned trace divergence,
+injected-only tool events, functionally observed harms, and the exact packaged
+policy rule that contains that failure. Explain a saved report offline:
+
+```bash
+dspy-security-bench impact explain artifacts/procurebench.json
+```
+
 The specialty maps its controls to procurement impartiality and
 source-selection protections while remaining explicit that a benchmark is not a
 compliance certificate. Read the [methodology, novelty audit, threat model, and
-CI guide](docs/impact-twin.md).
+CI guide](docs/impact-twin.md) and the dated
+[August 2026 research audit](docs/research-audit-2026-08.md).
 
 ---
 
@@ -517,6 +527,9 @@ dspy-security-bench impact run \
   --min-resistance 1.0 \
   --json procurebench.json \
   --sarif procurebench.sarif
+
+# Debug the first instrumented boundary divergence without another model call
+dspy-security-bench impact explain procurebench.json
 ```
 
 Five frozen pairs cover award bias, sealed-proposal exfiltration, payment
@@ -761,7 +774,10 @@ Outputs:
 # install with dev extras (pytest, ruff, pytest-cov)
 uv pip install -e ".[dev]"
 
-# run the full test suite (99 tests, all offline / no API key needed)
+# add this only when developing embedding-based synthesis/deduplication
+uv pip install -e ".[dev,synthesis]"
+
+# run the full test suite (200+ tests, all offline / no API key needed)
 pytest tests/ -v
 
 # linting
@@ -807,8 +823,9 @@ v0.1 scope choices:
 | v0.3.0 — generic agent adapter + `scan` CI gate (SARIF, OWASP/NIST/ATLAS) — benchmark ANY agent | **shipped** |
 | v0.3.1 — adaptive attacks (rule-based + iterative LM-driven); defenses held on Mistral Large / workspace | **shipped** |
 | v0.4 — cross-suite/model generalization. Banking: vulnerability generalizes; security-prompt robust, spotlighting brittle | **shipped** |
-| v0.5 — [**model leaderboard**](LEADERBOARD.md): frozen protocol v2, 7 models across 7 families, confirm/provisional durability gate | **shipped** |
+| v0.5 — [**model leaderboard**](LEADERBOARD.md): frozen protocol v2, 14 models across 10 families, confirm/provisional durability gate | **shipped** |
 | ImpactTwin / ProcureBench — counterfactual procurement mission assurance, economic context, JSON/SARIF CI gate | **shipped on main** |
+| BoundaryDiff — instrumented clean/poisoned trace divergence and policy remediation evidence | **implemented** |
 | v0.5.x — more families on the board; secondary `direct` attack column; contributor-run submissions | in progress |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

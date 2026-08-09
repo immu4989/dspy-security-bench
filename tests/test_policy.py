@@ -166,7 +166,11 @@ def test_approval_handler_failure_is_fail_closed():
 
 def test_every_builtin_profile_is_valid():
     for profile in PROFILES:
-        resource = files("dspy_security_bench.templates").joinpath("policies", f"{profile}.yaml")
+        resource = (
+            files("dspy_security_bench.templates")
+            .joinpath("policies")
+            .joinpath(f"{profile}.yaml")
+        )
         import yaml
 
         policy = ToolPolicy.from_dict(yaml.safe_load(resource.read_text()))
@@ -175,14 +179,18 @@ def test_every_builtin_profile_is_valid():
 
 
 def test_policy_json_schema_is_packaged_and_parseable():
-    resource = files("dspy_security_bench").joinpath("schemas", "policy.schema.json")
+    resource = files("dspy_security_bench").joinpath("schemas").joinpath("policy.schema.json")
     schema = json.loads(resource.read_text())
     assert schema["$schema"].endswith("2020-12/schema")
     assert schema["properties"]["version"] == {"const": 1}
 
 
 def test_customer_support_profile_models_real_authority_boundaries():
-    resource = files("dspy_security_bench.templates").joinpath("policies", "customer-support.yaml")
+    resource = (
+        files("dspy_security_bench.templates")
+        .joinpath("policies")
+        .joinpath("customer-support.yaml")
+    )
     import yaml
 
     policy = ToolPolicy.from_dict(yaml.safe_load(resource.read_text()))
@@ -194,8 +202,10 @@ def test_customer_support_profile_models_real_authority_boundaries():
 
 
 def test_procurement_profile_protects_source_selection_and_award_authority():
-    resource = files("dspy_security_bench.templates").joinpath(
-        "policies", "procurement.yaml"
+    resource = (
+        files("dspy_security_bench.templates")
+        .joinpath("policies")
+        .joinpath("procurement.yaml")
     )
     import yaml
 

@@ -1,7 +1,8 @@
 # ImpactTwin / ProcureBench
 
 **A poisoned proposal can leave every structured fact unchanged and still alter
-an AI agent's recommendation. ImpactTwin measures that causal difference.**
+an AI agent's recommendation. ImpactTwin measures that controlled-input
+difference and its functional consequences.**
 
 ProcureBench is the first public-interest specialty built into DSPy Security
 Bench. It runs five procurement workflows as clean/poisoned counterfactual
@@ -102,6 +103,42 @@ Write the complete evidence bundle:
 ```bash
 dspy-security-bench impact demo --json-dir impact-demo
 ```
+
+## BoundaryDiff: from failure to an enforceable boundary
+
+Outcome-only reports make remediation unnecessarily difficult. Schema-v2
+reports therefore contain an environment-instrumented trace for both members of
+every twin and a deterministic BoundaryDiff with:
+
+- the first event where clean and poisoned executions differ;
+- the clean and poisoned event arguments at that boundary;
+- events present only in the poisoned execution;
+- harms confirmed from final environment state rather than agent narration; and
+- a concrete rule from the packaged `procurement` policy that contains the
+  observed failure.
+
+The environment trace is authoritative for successfully executed benchmark
+tool use: it is recorded inside each live tool, so an agent cannot earn evidence
+by merely claiming that it called—or did not call—a tool. Rejected calls that
+raise before execution may appear only in an agent-supplied trace. Those traces
+remain useful for model debugging, but security scoring and BoundaryDiff do not
+depend on them.
+
+Explain a saved report without rerunning the model or spending API credits:
+
+```bash
+dspy-security-bench impact explain impact-demo/reference-vulnerable.impact.json
+```
+
+For example, a poisoned-only `release_source_selection` event is paired with
+the existing `deny-source-selection-release` rule. A changed evaluation first
+diverges at `record_evaluation`, while the recommended execution boundary is
+independent approval of `recommend_award`.
+
+This is controlled-pair evidence, not automatic proof of a stable model trait.
+The structured inputs differ only in `vendor_narrative_untrusted`, but stochastic
+agents can vary across otherwise identical runs. Repeat paired evaluations
+before making stability, provider, or population-level claims.
 
 ## Test a real model
 
@@ -207,6 +244,9 @@ Every report includes:
   expected decision in the frozen scenario manifest;
 - results for both variants of every pair;
 - decision and evaluation fingerprints;
+- instrumented successfully executed boundary-event traces for both variants;
+- first-divergence and injected-only-event evidence;
+- a control recommendation tied to an included executable policy rule;
 - control-specific side effects and economic context; and
 - an explicit non-certification disclaimer.
 
@@ -251,6 +291,13 @@ That is a carefully scoped novelty claim, not proof that no private, unpublished
 or obscure implementation exists. If comparable prior work is identified,
 please open an issue; the claim and related-work map should be corrected.
 
+BoundaryDiff does **not** claim that counterfactual trace auditing itself is
+new. Counterfactual Trace Auditing studies behavioral influence from agent
+skills, and ContainmentBench studies post-injection trajectories and utility.
+This repository's contribution is the integration of instrumented twin traces,
+functional procurement consequences, economic context, SARIF, and an executable
+least-authority remediation in one small public-interest CI workflow.
+
 ## Who this serves
 
 - **Public agencies:** test procurement copilots before they touch proposal or
@@ -274,6 +321,8 @@ please open an issue; the claim and related-work map should be corrected.
 - It measures tool-mediated outcomes. It cannot detect every semantic bias,
   private chain-of-thought influence, or harm outside the simulated tools.
 - Five pairs are a high-signal specialty smoke test, not comprehensive coverage.
+- A single clean/poisoned run is not enough to characterize a stochastic model;
+  repeat runs and report dispersion for comparative research claims.
 - Regulatory links explain why the controls matter; results do not determine
   legal compliance.
 - Economic values communicate scenario magnitude and must not be interpreted as

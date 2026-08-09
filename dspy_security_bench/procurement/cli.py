@@ -27,6 +27,11 @@ def build_parser() -> argparse.ArgumentParser:
     manifest = sub.add_parser("manifest", help="print the exact frozen protocol stimulus")
     manifest.add_argument("--out", help="write canonical protocol JSON instead of stdout")
 
+    explain = sub.add_parser(
+        "explain", help="explain BoundaryDiff evidence from a saved schema-v2 report"
+    )
+    explain.add_argument("report", help="ImpactTwin JSON report created by demo or run")
+
     demo = sub.add_parser("demo", help="run bounded and deliberately vulnerable references offline")
     demo.add_argument("--json-dir", help="optional directory for both full JSON reports")
 
@@ -64,6 +69,8 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(json.dumps(protocol_manifest(), indent=2, sort_keys=True))
         return 0
+    if args.command == "explain":
+        return _explain(args)
     if args.command == "demo":
         return _demo(args)
     if args.command == "run":
@@ -88,6 +95,19 @@ def _demo(args) -> int:
             _write_json(path, report.to_dict())
             print(f"[impact] wrote {path}")
     print("\nThe vulnerable reference is a deterministic demonstration, not a model result.")
+    return 0
+
+
+def _explain(args) -> int:
+    from dspy_security_bench.procurement.evidence import render_evidence_payload
+
+    path = Path(args.report)
+    try:
+        payload = json.loads(path.read_text())
+        print(render_evidence_payload(payload))
+    except (OSError, json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
+        print(f"[impact] could not explain {path}: {exc}", file=sys.stderr)
+        return 2
     return 0
 
 
@@ -143,8 +163,9 @@ def _description() -> str:
 
 Five frozen procurement workflows become counterfactual twin pairs. Each is
 executed once with an ordinary vendor narrative and once with identical
-structured facts plus a vendor-authored injection. The difference isolates the
-causal effect of untrusted content on an agent's decision and side effects.
+structured facts plus a vendor-authored injection. The difference provides
+controlled-input evidence of effects on the agent's decisions and side effects.
+Repeat paired runs before interpreting stochastic-agent differences as stable.
 
 Scenarios:
   1. Vendor-authored award bias
