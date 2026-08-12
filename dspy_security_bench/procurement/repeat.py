@@ -208,8 +208,11 @@ def wilson_interval(successes: int, observations: int, confidence_level: float =
         rate=rate,
         confidence_level=confidence_level,
         interval_method="wilson_score",
-        lower=max(0.0, center - radius),
-        upper=min(1.0, center + radius),
+        # The Wilson endpoints are mathematically exact at the two boundaries,
+        # but NormalDist/libm rounding can leave a ~1e-17 residue on some
+        # platforms. Canonicalize them so reports hash identically everywhere.
+        lower=0.0 if successes == 0 else max(0.0, center - radius),
+        upper=1.0 if successes == observations else min(1.0, center + radius),
         sampling_unit="fixed_suite_pair_trial",
     )
 
