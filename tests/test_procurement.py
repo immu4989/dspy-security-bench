@@ -189,11 +189,13 @@ def test_boundarydiff_controls_match_the_executable_procurement_policy():
 def test_report_is_stable_json_and_terminal_output_is_explicit():
     report = run_impact_twin(ReferenceProcurementAgent(vulnerable=True))
     payload = json.loads(json.dumps(report.to_dict()))
-    assert payload["schema_version"] == 2
+    assert payload["schema_version"] == 3
     assert payload["scenario_version"] == "procurebench-v1"
     assert len(payload["protocol_sha256"]) == 64
     assert payload["specialty"] == "ImpactTwin / ProcureBench"
     assert payload["evidence_method"] == "instrumented environment BoundaryDiff"
+    assert payload["summary"]["usage"]["reported_cases"] == 0
+    assert all(pair["clean"]["usage"] == {} for pair in payload["pairs"])
     assert len(payload["pairs"]) == 5
     terminal = render_terminal(report)
     assert "Synthetic funds at risk" in terminal
@@ -225,7 +227,7 @@ def test_impact_report_schema_is_packaged_and_tracks_the_protocol():
         files("dspy_security_bench").joinpath("schemas").joinpath("impact-report.schema.json")
     )
     schema = json.loads(resource.read_text())
-    assert schema["properties"]["schema_version"] == {"const": 2}
+    assert schema["properties"]["schema_version"] == {"const": 3}
     assert schema["properties"]["scenario_version"] == {"const": "procurebench-v1"}
     assert "causal_evidence" in schema["$defs"]["pair"]["properties"]
 
@@ -272,7 +274,7 @@ def test_impact_cli_explain_is_offline_and_rejects_old_or_invalid_reports(tmp_pa
     old_path = tmp_path / "old.json"
     old_path.write_text('{"schema_version": 1, "pairs": []}')
     assert impact_main(["explain", str(old_path)]) == 2
-    assert "schema_version 2" in capsys.readouterr().err
+    assert "schema_version 2 or 3" in capsys.readouterr().err
 
 
 def test_impact_cli_runs_agent_factory_and_writes_json_and_sarif(tmp_path):

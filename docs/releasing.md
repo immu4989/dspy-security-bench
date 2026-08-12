@@ -1,8 +1,8 @@
 # Releasing to PyPI
 
-The release workflow builds the sdist and wheel once, validates them, and then
-publishes the same artifacts with PyPI Trusted Publishing. No long-lived PyPI
-token is stored in GitHub.
+The release workflow builds the sdist and wheel once, validates them, creates
+GitHub/Sigstore provenance attestations, and then publishes the same artifacts
+with PyPI Trusted Publishing. No long-lived PyPI token is stored in GitHub.
 
 ## One-time repository setup
 
@@ -19,7 +19,13 @@ token is stored in GitHub.
 3. Run `pytest` and `ruff check dspy_security_bench/ tests/`.
 4. Build locally with `uv build` and inspect the artifacts if package data
    changed.
-5. Create and push a matching tag, for example `v0.5.0` for version `0.5.0`.
+5. Create and push a matching tag, for example `v0.6.0` for version `0.6.0`.
+6. Confirm the workflow and PyPI publication succeeded, then create the GitHub
+   release from the tag and attach the exact workflow-built artifacts.
 
 The workflow rejects a tag that does not exactly match the package version. It
-also runs `twine check` before the separately permissioned publish job begins.
+runs `twine check` and attests the distributions before the separately
+permissioned publish job begins. Consumers can verify downloaded artifacts with
+`gh attestation verify FILE -R immu4989/dspy-security-bench`; provenance links a
+file to the workflow and source commit but is not a claim that the package is
+free of vulnerabilities.

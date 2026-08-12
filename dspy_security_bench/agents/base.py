@@ -90,10 +90,14 @@ class AgentResult:
             scoring — security is measured from env state, not the trace — but
             it improves logging and lets message-inspecting attacks target the
             agent. Provide it if it's cheap.
+        usage: optional non-negative numeric usage reported by the provider or
+            agent, such as prompt_tokens, completion_tokens, total_tokens, and
+            estimated_cost_usd. Missing usage remains unknown rather than zero.
     """
 
     final_answer: str
     tool_calls: list[ToolCall] = field(default_factory=list)
+    usage: dict[str, int | float] = field(default_factory=dict)
 
 
 @runtime_checkable

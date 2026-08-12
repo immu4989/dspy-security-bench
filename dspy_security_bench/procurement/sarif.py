@@ -111,8 +111,10 @@ def report_to_sarif(report: ImpactTwinReport) -> dict[str, Any]:
                 "results": results,
                 "properties": {
                     "agent": report.agent,
+                    "reportSchemaVersion": report.schema_version,
                     "scenarioVersion": report.scenario_version,
                     "protocolSha256": report.protocol_sha256,
+                    "usage": report.summary.usage.to_dict(),
                     "disclaimer": report.disclaimer,
                 },
             }

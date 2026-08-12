@@ -61,6 +61,7 @@ class LiteLLMFunctionCallingAgent:
 
         trace: list[ToolCall] = []
         final_answer = ""
+        usage: dict[str, int | float] = {}
 
         for _ in range(self.max_iters):
             resp = litellm.completion(
@@ -72,6 +73,7 @@ class LiteLLMFunctionCallingAgent:
                 max_tokens=self.max_tokens,
                 num_retries=self.num_retries,
             )
+            _merge_usage(usage, _response_usage(resp))
             msg = resp.choices[0].message
             tool_calls = getattr(msg, "tool_calls", None)
 
@@ -122,9 +124,32 @@ class LiteLLMFunctionCallingAgent:
                     max_tokens=self.max_tokens,
                     num_retries=self.num_retries,
                 )
+                _merge_usage(usage, _response_usage(resp))
                 final_answer = resp.choices[0].message.content or ""
             except Exception as e:  # pragma: no cover - defensive
                 logger.warning("final-answer call failed: %s", e)
                 final_answer = ""
 
-        return AgentResult(final_answer=final_answer, tool_calls=trace)
+        return AgentResult(final_answer=final_answer, tool_calls=trace, usage=usage)
+
+
+def _response_usage(response) -> dict[str, int | float]:
+    """Extract portable token/cost fields without depending on provider shape."""
+    raw = getattr(response, "usage", None)
+    values: dict[str, int | float] = {}
+    for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
+        value = getattr(raw, key, None)
+        if value is None and isinstance(raw, dict):
+            value = raw.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+            values[key] = value
+    hidden = getattr(response, "_hidden_params", None)
+    cost = hidden.get("response_cost") if isinstance(hidden, dict) else None
+    if isinstance(cost, (int, float)) and not isinstance(cost, bool) and cost >= 0:
+        values["estimated_cost_usd"] = float(cost)
+    return values
+
+
+def _merge_usage(total: dict[str, int | float], addition: dict[str, int | float]) -> None:
+    for key, value in addition.items():
+        total[key] = total.get(key, 0) + value

@@ -1,0 +1,35 @@
+name: community submissions
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "submissions/impact/**"
+      - "scripts/validate_impact_submissions.py"
+      - "dspy_security_bench/procurement/**"
+      - "dspy_security_bench/schemas/**"
+  push:
+    branches: [main]
+    paths:
+      - "submissions/impact/**"
+      - "scripts/validate_impact_submissions.py"
+      - "dspy_security_bench/procurement/**"
+      - "dspy_security_bench/schemas/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          version: "0.12.3"
+      - run: uv python install 3.12
+      - run: uv sync --locked --extra dev --python 3.12
+      - name: Recompute and verify every submission
+        run: uv run --locked --no-sync python scripts/validate_impact_submissions.py

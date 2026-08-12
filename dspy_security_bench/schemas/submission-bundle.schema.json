@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/submission-bundle.schema.json",
+  "title": "DSPy Security Bench Community Submission Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "bundle_schema_version", "bundle_type", "submission", "producer",
+    "report_sha256", "report", "bundle_sha256"
+  ],
+  "properties": {
+    "bundle_schema_version": {"const": 1},
+    "bundle_type": {"const": "dspy-security-bench-community-submission"},
+    "submission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["submitter", "agent_source_url", "notes", "created_at", "attestation"],
+      "properties": {
+        "submitter": {"type": "string", "minLength": 1},
+        "agent_source_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "notes": {"type": "string"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "attestation": {"const": "self_attested_content_addressed"}
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["package", "package_version", "python_version", "platform"],
+      "properties": {
+        "package": {"const": "dspy-security-bench"},
+        "package_version": {"type": "string"},
+        "python_version": {"type": "string"},
+        "platform": {"type": "string"}
+      }
+    },
+    "report_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "report": {"type": "object"},
+    "bundle_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

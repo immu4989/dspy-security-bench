@@ -11,8 +11,8 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.3.1
-date-released: 2026-07-13
+version: 0.6.0
+date-released: 2026-08-12
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
 url: "https://github.com/immu4989/dspy-security-bench"
@@ -22,8 +22,10 @@ abstract: >-
   hashed measurement protocol, joint reporting of task utility alongside attack
   resistance, cluster-bootstrap confidence intervals over task pairs, and a
   confirmed/provisional criterion that decides when a result is stable enough to
-  state as a claim. Results are published as a leaderboard generated directly
-  from committed per-run result files, so any row can be audited or reproduced.
+  state as a claim. ImpactTwin adds controlled procurement pairs, functional
+  side-effect evidence, repeated-execution uncertainty, and content-addressed
+  community submissions. Results are generated from committed evidence so rows
+  and submissions can be audited offline.
 keywords:
   - prompt-injection
   - llm-security

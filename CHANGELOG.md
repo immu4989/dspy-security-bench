@@ -1,6 +1,7 @@
 # Changelog
 
-Notable changes to this project. Versions follow the tagged GitHub releases.
+Notable changes to this project. Tagged versions link to GitHub releases; the
+untagged v0.5.0 source milestone is labeled explicitly below.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Entries that **corrected an earlier result** are called out explicitly, because
@@ -8,8 +9,26 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-08-12
+
 ### Added
-- **BoundaryDiff evidence for ImpactTwin schema v2.** Every clean/poisoned pair
+- **RepeatTwin uncertainty for stochastic agents.** `impact repeat` retains
+  every complete ImpactTwin trial and reports successes, observations,
+  pair-specific and aggregate Wilson score intervals, outcome instability,
+  trace equivalence, case errors, elapsed time, and optional provider-reported
+  token/cost coverage. CI can gate on the confidence lower bound instead of a
+  deceptively perfect point estimate.
+- **Fork-to-contribute community result pipeline.** `impact submit-result`
+  creates a canonical SHA-256 content-addressed bundle; `impact verify`
+  recomputes protocol identity, raw-trial statistics, intervals, outcome
+  classes, usage totals, and hashes offline. Pull-request CI validates bundles
+  in `submissions/impact/` while explicitly labeling execution metadata as
+  self-attested rather than cryptographic provenance.
+- ImpactTwin schema v3 adds optional per-case provider usage and aggregate
+  coverage. The built-in LiteLLM agent now reports prompt, completion, and total
+  tokens plus estimated cost when the provider exposes it.
+- **BoundaryDiff evidence (introduced in ImpactTwin schema v2 and retained in
+  v3).** Every clean/poisoned pair
   now records instrumented environment-owned tool events, identifies the first
   trace divergence and poisoned-only events, and recommends the exact packaged
   procurement policy rule that contains the observed functional harm. The new
@@ -17,7 +36,7 @@ several of them changed published numbers.
   model call; SARIF findings carry the same remediation evidence.
 - **ImpactTwin / ProcureBench**, a public-interest procurement mission-assurance
   specialty built from five clean/poisoned counterfactual twin pairs. It scores
-  utility, causal decision drift, source-selection disclosure, vendor identity
+  utility, controlled-input decision drift, source-selection disclosure, vendor identity
   and eligibility mutation, award-approval bypass, synthetic funds at risk, and
   avoidable price premium from live environment state.
 - Offline `impact describe`, `impact manifest`, and `impact demo` commands plus
@@ -59,7 +78,7 @@ several of them changed published numbers.
   `sentence-transformers`/PyTorch stack, avoiding multi-gigabyte CUDA downloads
   in jobs that never exercise embedding-based synthesis.
 
-## [0.5.0] — 2026-08-05
+## [0.5.0] — 2026-08-05 (source milestone; not tagged)
 
 ### Added
 - `dspy-security-bench init` generates a ready-to-run config and GitHub Actions
@@ -187,8 +206,9 @@ several of them changed published numbers.
 - First end-to-end run: DSPy optimizers × AgentDojo attacks in one harness,
   workspace suite, single model.
 
-[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.5.0...HEAD
-[0.5.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.3.1...v0.5.0
+[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.3.1...v0.6.0
+[0.5.0]: https://github.com/immu4989/dspy-security-bench/tree/4a50f129890657f80dd34a71f73a44cbeead9452
 [0.3.1]: https://github.com/immu4989/dspy-security-bench/releases/tag/v0.3.1
 [0.3.0]: https://github.com/immu4989/dspy-security-bench/releases/tag/v0.3.0
 [0.2.0]: https://github.com/immu4989/dspy-security-bench/releases/tag/v0.2.0

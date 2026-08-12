@@ -33,8 +33,9 @@ dspy_security_bench/
 │   ├── environment.py          # live tools and observable state transitions
 │   ├── benchmark.py            # utility, integrity, and economic scoring
 │   ├── evidence.py             # BoundaryDiff trace evidence + remediation
+│   ├── repeat.py               # repeated trials, Wilson intervals, submissions
 │   ├── sarif.py                # FAR/NIST-oriented code-scanning evidence
-│   └── cli.py                  # offline demo, explain, and real-agent CI gate
+│   └── cli.py                  # demo, repeat, explain, submit, verify, and gate
 ├── scan/                       # CI gate, baseline comparison, JSON/SARIF reports
 ├── synthesis/
 │   ├── extract_env_data.py    # markdown summary of suite seed env
@@ -103,6 +104,16 @@ part of the environment trace. This avoids trusting an agent's optional
 self-reported trace for functional evidence. Each failure maps to a rule in the
 packaged procurement policy, so the report connects a measured failure to a
 deterministic execution boundary without silently applying a fix.
+
+`repeat.py` treats one execution of one frozen twin pair as the declared
+sampling unit. It retains complete ImpactTwin trials, computes pair-level and
+aggregate Wilson score intervals, classifies repeated functional outcomes, and
+aggregates optional provider usage. CLI runs instantiate a fresh agent for each
+case to prevent cross-twin memory contamination, and record that isolation mode
+in the report. Its community bundle uses canonical JSON
+SHA-256 digests and then recomputes every published statistic during offline
+verification. These hashes provide tamper evidence, not signer provenance;
+execution metadata remains explicitly self-attested.
 
 ### `synthesis/extract_env_data.py`
 

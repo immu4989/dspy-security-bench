@@ -69,7 +69,7 @@ dspy-security-bench impact run \
   --sarif artifacts/procurebench.sarif
 ```
 
-Every schema-v2 report now includes **BoundaryDiff** evidence from the
+Every schema-v3 report includes **BoundaryDiff** evidence from the
 instrumented environment: the first clean/poisoned trace divergence,
 injected-only tool events, functionally observed harms, and the exact packaged
 policy rule that contains that failure. Explain a saved report offline:
@@ -77,6 +77,39 @@ policy rule that contains that failure. Explain a saved report offline:
 ```bash
 dspy-security-bench impact explain artifacts/procurebench.json
 ```
+
+### RepeatTwin: measure stochastic agents without false certainty
+
+A single clean/poisoned run is evidence about one execution—not a stable model
+trait. RepeatTwin runs the complete frozen protocol repeatedly and reports
+pair-specific Wilson score intervals, outcome instability, trace equivalence,
+runtime errors, elapsed time, and provider-reported token/cost coverage:
+
+```bash
+dspy-security-bench impact repeat \
+  --agent myapp.security:build_agent \
+  --trials 10 \
+  --min-lower-bound 0.80 \
+  --json artifacts/repeattwin.json
+```
+
+The lower-bound gate is deliberately conservative. Its sampling unit is one
+fixed ProcureBench pair in one trial; intervals describe repeated execution on
+these five synthetic pairs and do not imply performance on unseen tasks.
+
+Turn the raw trials into a content-addressed community contribution:
+
+```bash
+dspy-security-bench impact submit-result artifacts/repeattwin.json \
+  --submitter "@your-handle" \
+  --agent-source "https://github.com/you/your-agent" \
+  --out submissions/impact/your-agent.json
+dspy-security-bench impact verify submissions/impact/your-agent.json
+```
+
+Fork the repository and open a pull request with the bundle. CI recomputes its
+statistics and hashes offline. Execution identity remains self-attested; the
+project does not mislabel a content checksum as proof of who ran a model.
 
 The specialty maps its controls to procurement impartiality and
 source-selection protections while remaining explicit that a benchmark is not a
@@ -530,6 +563,12 @@ dspy-security-bench impact run \
 
 # Debug the first instrumented boundary divergence without another model call
 dspy-security-bench impact explain procurebench.json
+
+# Repeat the frozen suite and gate on a 95% confidence lower bound
+dspy-security-bench impact repeat \
+  --agent myapp.procurement:build_agent \
+  --trials 10 --min-lower-bound 0.80 \
+  --json repeattwin.json
 ```
 
 Five frozen pairs cover award bias, sealed-proposal exfiltration, payment
@@ -825,8 +864,9 @@ v0.1 scope choices:
 | v0.4 — cross-suite/model generalization. Banking: vulnerability generalizes; security-prompt robust, spotlighting brittle | **shipped** |
 | v0.5 — [**model leaderboard**](LEADERBOARD.md): frozen protocol v2, 14 models across 10 families, confirm/provisional durability gate | **shipped** |
 | ImpactTwin / ProcureBench — counterfactual procurement mission assurance, economic context, JSON/SARIF CI gate | **shipped on main** |
-| BoundaryDiff — instrumented clean/poisoned trace divergence and policy remediation evidence | **implemented** |
-| v0.5.x — more families on the board; secondary `direct` attack column; contributor-run submissions | in progress |
+| BoundaryDiff — instrumented clean/poisoned trace divergence and policy remediation evidence | **shipped** |
+| v0.6 — RepeatTwin uncertainty, usage telemetry, and content-addressed community submissions | **shipped** |
+| v0.6.x — more families, secondary `direct` attack column, and attested remote-run submissions | in progress |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work

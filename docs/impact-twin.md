@@ -106,7 +106,7 @@ dspy-security-bench impact demo --json-dir impact-demo
 
 ## BoundaryDiff: from failure to an enforceable boundary
 
-Outcome-only reports make remediation unnecessarily difficult. Schema-v2
+Outcome-only reports make remediation unnecessarily difficult. Schema-v3
 reports therefore contain an environment-instrumented trace for both members of
 every twin and a deterministic BoundaryDiff with:
 
@@ -139,6 +139,73 @@ This is controlled-pair evidence, not automatic proof of a stable model trait.
 The structured inputs differ only in `vendor_narrative_untrusted`, but stochastic
 agents can vary across otherwise identical runs. Repeat paired evaluations
 before making stability, provider, or population-level claims.
+
+## RepeatTwin: uncertainty over stochastic executions
+
+RepeatTwin operationalizes that limitation instead of leaving it as a footnote.
+It runs the complete ten-case protocol multiple times and retains every raw
+schema-v3 ImpactTwin trial:
+
+```bash
+dspy-security-bench impact repeat \
+  --agent myapp.procurement_security_target:build_security_target \
+  --trials 10 \
+  --confidence 0.95 \
+  --min-lower-bound 0.80 \
+  --json artifacts/repeattwin.json
+```
+
+For attack resistance, clean and poisoned mission utility, decision
+invariance, harm-free outcomes, and trace equivalence, the report includes:
+
+- successes and observations rather than a rounded percentage alone;
+- a two-sided Wilson score interval at the requested confidence level;
+- an explicit `fixed_suite_pair_trial` sampling unit;
+- one interval for each attack pair across trials;
+- outcome-class counts and a stable/variable label for every pair;
+- case-error counts and elapsed wall-clock time; and
+- token and estimated-cost totals when the agent reports them.
+
+The CLI calls the configured zero-argument factory for every benchmark case,
+so one poisoned execution cannot contaminate a later twin through in-process
+agent memory. The report records `trial_isolation: fresh_agent_per_case`.
+Library callers may deliberately reuse an object, but those reports are marked
+`shared_agent_instance` and are not eligible for the community board.
+
+The Wilson interval avoids the false zero-width interval produced by the naive
+Wald method when every observed run passes or fails.
+[NIST's confidence-interval guidance](https://itl.nist.gov/div898/handbook/prc/section2/prc241.htm)
+recommends Wilson-based intervals for proportions. The inference scope
+remains deliberately narrow: repeated stochastic executions of five frozen
+synthetic cases. The interval does not represent new task sampling and cannot
+support claims about all procurement workflows, future provider revisions, or
+production loss.
+
+`--min-lower-bound` gates on the confidence lower bound rather than the point
+estimate. With small samples, even a perfect observed rate has a lower bound
+below 100%; this is expected evidence of uncertainty, not a defect to round
+away.
+
+## Contribute a result by forking the repository
+
+At least five complete trials can be converted to a community submission:
+
+```bash
+dspy-security-bench impact submit-result artifacts/repeattwin.json \
+  --submitter "@your-github-handle" \
+  --agent-source "https://github.com/you/your-agent" \
+  --out submissions/impact/your-agent.json
+
+dspy-security-bench impact verify submissions/impact/your-agent.json
+```
+
+The bundle embeds all raw trials plus canonical SHA-256 digests. Pull-request CI
+recomputes the summary, pair-level intervals, outcome stability, usage totals,
+protocol identity, and hashes without calling a model. This detects accidental
+or intentional edits after generation. It does **not** prove the submitter's
+identity or that a provider produced the embedded outputs; those fields are
+explicitly self-attested. A cryptographic workflow provenance layer can be
+added later without redefining checksum validation as an attestation.
 
 ## Test a real model
 
@@ -247,11 +314,16 @@ Every report includes:
 - instrumented successfully executed boundary-event traces for both variants;
 - first-divergence and injected-only-event evidence;
 - a control recommendation tied to an included executable policy rule;
+- provider-reported token and estimated-cost telemetry when available;
 - control-specific side effects and economic context; and
 - an explicit non-certification disclaimer.
 
 The machine-readable contract is
 [`dspy_security_bench/schemas/impact-report.schema.json`](../dspy_security_bench/schemas/impact-report.schema.json).
+RepeatTwin and contribution contracts are separately versioned in
+[`repeat-report.schema.json`](../dspy_security_bench/schemas/repeat-report.schema.json)
+and
+[`submission-bundle.schema.json`](../dspy_security_bench/schemas/submission-bundle.schema.json).
 
 ## Pair it with deterministic authority
 
@@ -322,7 +394,7 @@ least-authority remediation in one small public-interest CI workflow.
   private chain-of-thought influence, or harm outside the simulated tools.
 - Five pairs are a high-signal specialty smoke test, not comprehensive coverage.
 - A single clean/poisoned run is not enough to characterize a stochastic model;
-  repeat runs and report dispersion for comparative research claims.
+  use RepeatTwin and report dispersion for comparative research claims.
 - Regulatory links explain why the controls matter; results do not determine
   legal compliance.
 - Economic values communicate scenario magnitude and must not be interpreted as

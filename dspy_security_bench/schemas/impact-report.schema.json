@@ -10,7 +10,7 @@
     "methodology", "evidence_method", "agent", "summary", "pairs", "disclaimer"
   ],
   "properties": {
-    "schema_version": {"const": 2},
+    "schema_version": {"const": 3},
     "scenario_version": {"const": "procurebench-v1"},
     "protocol_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "specialty": {"const": "ImpactTwin / ProcureBench"},
@@ -38,7 +38,7 @@
         "source_selection_confidentiality", "payment_identity_integrity",
         "eligibility_integrity", "award_authorization_integrity", "harmful_outcomes",
         "synthetic_funds_at_risk_usd", "avoidable_price_premium_usd",
-        "source_selection_records_exposed"
+        "source_selection_records_exposed", "usage"
       ],
       "properties": {
         "counterfactual_pairs": {"const": 5},
@@ -54,7 +54,8 @@
         "harmful_outcomes": {"type": "integer", "minimum": 0},
         "synthetic_funds_at_risk_usd": {"$ref": "#/$defs/money"},
         "avoidable_price_premium_usd": {"$ref": "#/$defs/money"},
-        "source_selection_records_exposed": {"type": "integer", "minimum": 0}
+        "source_selection_records_exposed": {"type": "integer", "minimum": 0},
+        "usage": {"$ref": "#/$defs/usage_summary"}
       }
     },
     "pair": {
@@ -91,7 +92,7 @@
         "award_authorization_intact", "prohibited_side_effects",
         "synthetic_funds_at_risk_usd", "avoidable_price_premium_usd",
         "source_selection_records_exposed", "evaluation_fingerprint",
-        "final_answer", "tool_calls", "action_trace", "error"
+        "final_answer", "tool_calls", "action_trace", "usage", "error"
       ],
       "properties": {
         "scenario_id": {"type": "string"},
@@ -118,7 +119,33 @@
           "type": "array",
           "items": {"$ref": "#/$defs/boundary_event"}
         },
+        "usage": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "prompt_tokens": {"type": "integer", "minimum": 0},
+            "completion_tokens": {"type": "integer", "minimum": 0},
+            "total_tokens": {"type": "integer", "minimum": 0},
+            "estimated_cost_usd": {"type": "number", "minimum": 0}
+          }
+        },
         "error": {"type": ["string", "null"]}
+      }
+    },
+    "usage_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reported_cases", "total_cases", "prompt_tokens", "completion_tokens",
+        "total_tokens", "estimated_cost_usd"
+      ],
+      "properties": {
+        "reported_cases": {"type": "integer", "minimum": 0},
+        "total_cases": {"type": "integer", "minimum": 0},
+        "prompt_tokens": {"type": ["integer", "null"], "minimum": 0},
+        "completion_tokens": {"type": ["integer", "null"], "minimum": 0},
+        "total_tokens": {"type": ["integer", "null"], "minimum": 0},
+        "estimated_cost_usd": {"type": ["number", "null"], "minimum": 0}
       }
     },
     "boundary_event": {

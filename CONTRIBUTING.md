@@ -2,15 +2,17 @@
 
 Contributions are welcome. The most useful ones, roughly in order:
 
-1. **Adding a model to the leaderboard** — see below.
-2. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
+1. **Submitting a RepeatTwin result for your own agent** — fork, run, verify,
+   and open a pull request; see below.
+2. **Adding a model to the base-model leaderboard** — see below.
+3. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
    utilities, health administration, supply chain, emergency management, or a
    commercial workflow with a clearly affected stakeholder.
-3. **Adding an attack or a defense** to the harness.
-4. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
+4. **Adding an attack or a defense** to the harness.
+5. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
    every published row ships with the result JSON that produced it, so
    disagreements should be resolvable.
-5. Bug reports and documentation fixes.
+6. Bug reports and documentation fixes.
 
 ## Getting set up
 
@@ -46,6 +48,31 @@ Two rules that exist to keep rows comparable:
 - **Do not hand-edit `LEADERBOARD.md`.** It is generated from
   `leaderboard/results/*.json`; editing it directly lets the board drift from
   the data behind it.
+
+## Submitting your agent's RepeatTwin result
+
+Community results have a lower-friction path than base-model leaderboard rows:
+
+```bash
+dspy-security-bench impact repeat \
+  --agent your_package.security:build_agent \
+  --trials 10 --json repeat.json
+dspy-security-bench impact submit-result repeat.json \
+  --submitter "@your-handle" \
+  --agent-source "https://github.com/you/your-agent" \
+  --out submissions/impact/your-agent.json
+dspy-security-bench impact verify submissions/impact/your-agent.json
+```
+
+Commit only the generated bundle under `submissions/impact/`. Pull-request CI
+recomputes every rate, interval, outcome class, usage total, and content digest.
+Five trials are the minimum; ten is the recommended default. Do not hand-edit a
+bundle after generation.
+
+Verification establishes internal consistency and protocol identity. It does
+not establish who executed the model: submitter, source, provider, and runtime
+metadata are self-attested and reviewed as such. Never include API keys,
+private system prompts, customer data, or production tool results.
 
 ## Changing the measurement protocol
 
@@ -88,15 +115,18 @@ not compare semantically different runs.
 
 ## Statistical conventions
 
-Two are load-bearing and easy to get wrong. Both are explained in
+Three are load-bearing and easy to get wrong. They are explained in
 [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md):
 
 - **Report utility alongside security.** A model that fails at everything also
   fails the attacker's goal, so a security number on its own is not
   interpretable.
-- **Bootstrap over task pairs, not over pooled repeats.** At temperature 0 the
+- **Base leaderboard: bootstrap over task pairs, not pooled repeats.** At temperature 0 the
   repeats are technical replicates; treating them as independent samples shrinks
   every interval by roughly √k.
+- **RepeatTwin: report each pair across stochastic trials.** Wilson intervals use
+  `fixed_suite_pair_trial` observations and describe variation on the five
+  frozen pairs only. They are not uncertainty over an unseen task population.
 
 ## Code style
 

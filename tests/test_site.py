@@ -59,6 +59,8 @@ def test_site_presents_impact_twin_without_mislabeling_fixture_as_model_result()
     page = (SITE / "index.html").read_text()
     assert 'id="impact"' in page
     assert "Same facts." in page
-    assert "dspy-security-bench impact demo" in page
+    assert "dspy-security-bench impact repeat --trials 10" in page
+    assert "95% Wilson interval" in page
+    assert "content addressed" in page
     assert "Reference fixture, not a model result" in page
     assert "not predicted loss or a compliance certification" in page

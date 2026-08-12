@@ -28,12 +28,49 @@ def build_parser() -> argparse.ArgumentParser:
     manifest.add_argument("--out", help="write canonical protocol JSON instead of stdout")
 
     explain = sub.add_parser(
-        "explain", help="explain BoundaryDiff evidence from a saved schema-v2 report"
+        "explain", help="explain BoundaryDiff evidence from a saved schema-v2/v3 report"
     )
     explain.add_argument("report", help="ImpactTwin JSON report created by demo or run")
 
     demo = sub.add_parser("demo", help="run bounded and deliberately vulnerable references offline")
     demo.add_argument("--json-dir", help="optional directory for both full JSON reports")
+
+    repeat = sub.add_parser(
+        "repeat", help="repeat all twins and report stochastic uncertainty and stability"
+    )
+    repeat_target = repeat.add_mutually_exclusive_group(required=True)
+    repeat_target.add_argument("--agent", help="module:callable returning an Agent")
+    repeat_target.add_argument("--agent-model", help="LiteLLM model id for the built-in tool agent")
+    repeat.add_argument("--name", help="display name override for --agent-model")
+    repeat.add_argument("--trials", type=int, default=10, help="complete protocol trials (default: 10)")
+    repeat.add_argument(
+        "--confidence", type=float, default=0.95, help="Wilson interval confidence (default: 0.95)"
+    )
+    repeat.add_argument("--json", help="write the complete RepeatTwin report")
+    repeat.add_argument(
+        "--min-lower-bound",
+        type=float,
+        help="fail unless the attack-resistance confidence lower bound reaches this value",
+    )
+
+    submit = sub.add_parser(
+        "submit-result", help="create a content-addressed community submission from RepeatTwin JSON"
+    )
+    submit.add_argument("report", help="RepeatTwin JSON report")
+    submit.add_argument("--out", required=True, help="destination submission JSON")
+    submit.add_argument("--submitter", required=True, help="GitHub handle or organization")
+    submit.add_argument(
+        "--agent-source", required=True, help="https URL describing or implementing the agent"
+    )
+    submit.add_argument("--notes", default="", help="short public context for reviewers")
+
+    verify = sub.add_parser(
+        "verify", help="verify community submission integrity and leaderboard eligibility offline"
+    )
+    verify.add_argument("bundles", nargs="+", help="one or more submission JSON files")
+    verify.add_argument(
+        "--minimum-trials", type=int, default=5, help="eligibility floor (default: 5)"
+    )
 
     run = sub.add_parser("run", help="evaluate your own agent and gate on attack resistance")
     target = run.add_mutually_exclusive_group(required=True)
@@ -73,6 +110,12 @@ def main(argv: list[str] | None = None) -> int:
         return _explain(args)
     if args.command == "demo":
         return _demo(args)
+    if args.command == "repeat":
+        return _repeat(args)
+    if args.command == "submit-result":
+        return _submit_result(args)
+    if args.command == "verify":
+        return _verify(args)
     if args.command == "run":
         return _run(args)
     return 2
@@ -111,13 +154,119 @@ def _explain(args) -> int:
     return 0
 
 
+def _repeat(args) -> int:
+    from dspy_security_bench.procurement.repeat import (
+        render_repeat_terminal,
+        run_repeat_twin,
+    )
+
+    if args.trials < 2:
+        print("[impact] --trials must be at least 2", file=sys.stderr)
+        return 2
+    if not 0 < args.confidence < 1:
+        print("[impact] --confidence must be between 0 and 1", file=sys.stderr)
+        return 2
+    if args.min_lower_bound is not None and not 0 <= args.min_lower_bound <= 1:
+        print("[impact] --min-lower-bound must be between 0 and 1", file=sys.stderr)
+        return 2
+    try:
+        agent_factory = _resolve_agent_factory(args)
+        agent = agent_factory()
+        report = run_repeat_twin(
+            agent,
+            trials=args.trials,
+            confidence_level=args.confidence,
+            agent_factory=agent_factory,
+            progress=lambda current, total: print(
+                f"[impact] completed trial {current}/{total}", file=sys.stderr
+            ),
+        )
+    except Exception as exc:
+        print(f"[impact] repeat failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 2
+    print(render_repeat_terminal(report))
+    if args.json:
+        _write_json(Path(args.json), report.to_dict())
+        print(f"[impact] wrote {args.json}")
+    if args.trials < 5:
+        print("[impact] note: community submissions require at least 5 trials", file=sys.stderr)
+    if (
+        args.min_lower_bound is not None
+        and report.summary.attack_resistance.lower < args.min_lower_bound
+    ):
+        print(
+            f"[impact] gate failed: lower bound "
+            f"{report.summary.attack_resistance.lower:.1%} < {args.min_lower_bound:.1%}",
+            file=sys.stderr,
+        )
+        return 1
+    if args.min_lower_bound is not None:
+        print(
+            f"[impact] gate passed: lower bound "
+            f"{report.summary.attack_resistance.lower:.1%} >= {args.min_lower_bound:.1%}"
+        )
+    return 0
+
+
+def _submit_result(args) -> int:
+    from dspy_security_bench.procurement.repeat import create_submission_bundle
+
+    source = Path(args.report)
+    try:
+        report = json.loads(source.read_text())
+        bundle = create_submission_bundle(
+            report,
+            submitter=args.submitter,
+            agent_source_url=args.agent_source,
+            notes=args.notes,
+        )
+        destination = Path(args.out)
+        _write_json(destination, bundle)
+    except (OSError, json.JSONDecodeError, ValueError, TypeError) as exc:
+        print(f"[impact] could not create submission: {exc}", file=sys.stderr)
+        return 2
+    print(f"[impact] wrote content-addressed submission {destination}")
+    print(f"[impact] bundle sha256: {bundle['bundle_sha256']}")
+    print(f"Next: dspy-security-bench impact verify {destination}")
+    return 0
+
+
+def _verify(args) -> int:
+    from dspy_security_bench.procurement.repeat import verify_submission_bundle
+
+    if args.minimum_trials < 2:
+        print("[impact] --minimum-trials must be at least 2", file=sys.stderr)
+        return 2
+    passed = True
+    for raw_path in args.bundles:
+        path = Path(raw_path)
+        try:
+            bundle = json.loads(path.read_text())
+            result = verify_submission_bundle(bundle, minimum_trials=args.minimum_trials)
+        except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+            print(f"[INVALID] {path}: {exc}", file=sys.stderr)
+            passed = False
+            continue
+        marker = "VERIFIED" if result.community_eligible else "NOT ELIGIBLE"
+        print(f"[{marker}] {path}")
+        for error in result.errors:
+            print(f"  error: {error}")
+        for warning in result.warnings:
+            print(f"  note: {warning}")
+        if result.bundle_sha256:
+            print(f"  sha256: {result.bundle_sha256}")
+        passed = passed and result.community_eligible
+    return 0 if passed else 1
+
+
 def _run(args) -> int:
     if not 0 <= args.min_resistance <= 1:
         print("[impact] --min-resistance must be between 0 and 1", file=sys.stderr)
         return 2
     try:
-        agent = _resolve_agent(args)
-        report = run_impact_twin(agent)
+        agent_factory = _resolve_agent_factory(args)
+        agent = agent_factory()
+        report = run_impact_twin(agent, agent_factory=agent_factory)
     except Exception as exc:
         print(f"[impact] run failed: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 2
@@ -141,16 +290,17 @@ def _run(args) -> int:
     return 0
 
 
-def _resolve_agent(args):
+def _resolve_agent_factory(args):
     if args.agent:
         module_name, separator, attribute = args.agent.partition(":")
         if not separator or not module_name or not attribute:
             raise ValueError(f"--agent must be module:callable, got {args.agent!r}")
-        factory = getattr(importlib.import_module(module_name), attribute)
-        return factory()
+        return getattr(importlib.import_module(module_name), attribute)
     from dspy_security_bench.agents import LiteLLMFunctionCallingAgent
 
-    return LiteLLMFunctionCallingAgent(args.agent_model, name=args.name or args.agent_model)
+    return lambda: LiteLLMFunctionCallingAgent(
+        args.agent_model, name=args.name or args.agent_model
+    )
 
 
 def _write_json(path: Path, payload: dict) -> None:

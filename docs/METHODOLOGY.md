@@ -67,6 +67,21 @@ For comparison, AgentDojo runs a single greedy pass per configuration with no
 repeats, and reports binomial confidence intervals over the fixed task set —
 which captures sampling error over tasks but not run-to-run variance.
 
+### RepeatTwin uses a different estimand
+
+ImpactTwin's `repeat` command is not the base-model leaderboard. It asks how a
+possibly stochastic agent varies when the same five clean/poisoned procurement
+pairs are executed repeatedly. Each pair-trial outcome is retained, each attack
+pair gets a Wilson score interval across trials, and the aggregate rate is
+reported over all fixed-suite pair-trials.
+
+The report labels the sampling unit `fixed_suite_pair_trial`. That is
+load-bearing: its interval describes repeated executions on the committed five
+pairs, not uncertainty from sampling a broader population of procurement tasks.
+Outcome-class counts and stable/variable labels remain visible so an aggregate
+rate cannot hide a pair whose behavior flips between runs. See
+[`docs/impact-twin.md`](impact-twin.md) for the command and submission format.
+
 ---
 
 ## Confirmed vs provisional

@@ -183,10 +183,10 @@ def compare_boundary_traces(
 
 
 def render_evidence_payload(payload: dict[str, Any]) -> str:
-    """Explain a saved schema-v2 report without rerunning an agent."""
+    """Explain a saved BoundaryDiff report without rerunning an agent."""
     pairs = payload.get("pairs")
-    if payload.get("schema_version") != 2 or not isinstance(pairs, list):
-        raise ValueError("BoundaryDiff requires an ImpactTwin schema_version 2 report")
+    if payload.get("schema_version") not in {2, 3} or not isinstance(pairs, list):
+        raise ValueError("BoundaryDiff requires an ImpactTwin schema_version 2 or 3 report")
     lines = [
         f"BoundaryDiff — {payload.get('agent', 'unknown agent')}",
         "Instrumented clean ↔ poisoned environment trace comparison",

@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/repeat-report.schema.json",
+  "title": "DSPy Security Bench RepeatTwin Report",
+  "description": "Repeated fixed-suite ImpactTwin trials with Wilson score uncertainty.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "report_type", "scenario_version", "protocol_sha256",
+    "agent", "confidence_level", "statistical_method", "inference_scope",
+    "trial_isolation", "summary", "pair_summaries", "trials"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "RepeatTwin / ProcureBench"},
+    "scenario_version": {"const": "procurebench-v1"},
+    "protocol_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "agent": {"type": "string", "minLength": 1},
+    "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "statistical_method": {"const": "pair-trial Wilson score intervals"},
+    "inference_scope": {"type": "string", "minLength": 1},
+    "trial_isolation": {"enum": ["fresh_agent_per_case", "shared_agent_instance"]},
+    "summary": {"$ref": "#/$defs/summary"},
+    "pair_summaries": {
+      "type": "array", "minItems": 5, "maxItems": 5,
+      "items": {"$ref": "#/$defs/pair_summary"}
+    },
+    "trials": {
+      "type": "array", "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "protocol_sha256", "agent", "summary", "pairs"],
+        "properties": {
+          "schema_version": {"enum": [2, 3]},
+          "protocol_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "agent": {"type": "string"},
+          "summary": {"type": "object"},
+          "pairs": {"type": "array", "minItems": 5, "maxItems": 5}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "rate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "successes", "observations", "rate", "confidence_level",
+        "interval_method", "lower", "upper", "sampling_unit"
+      ],
+      "properties": {
+        "successes": {"type": "integer", "minimum": 0},
+        "observations": {"type": "integer", "minimum": 1},
+        "rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+        "interval_method": {"const": "wilson_score"},
+        "lower": {"type": "number", "minimum": 0, "maximum": 1},
+        "upper": {"type": "number", "minimum": 0, "maximum": 1},
+        "sampling_unit": {"const": "fixed_suite_pair_trial"}
+      }
+    },
+    "usage": {
+      "type": "object",
+      "required": [
+        "reported_cases", "total_cases", "prompt_tokens", "completion_tokens",
+        "total_tokens", "estimated_cost_usd"
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trials", "pair_trials", "attack_resistance", "clean_mission_utility",
+        "injected_mission_utility", "decision_invariance", "harm_free",
+        "trace_equivalence", "unstable_pairs", "case_errors", "elapsed_seconds", "usage"
+      ],
+      "properties": {
+        "trials": {"type": "integer", "minimum": 2},
+        "pair_trials": {"type": "integer", "minimum": 10},
+        "attack_resistance": {"$ref": "#/$defs/rate"},
+        "clean_mission_utility": {"$ref": "#/$defs/rate"},
+        "injected_mission_utility": {"$ref": "#/$defs/rate"},
+        "decision_invariance": {"$ref": "#/$defs/rate"},
+        "harm_free": {"$ref": "#/$defs/rate"},
+        "trace_equivalence": {"$ref": "#/$defs/rate"},
+        "unstable_pairs": {"type": "integer", "minimum": 0, "maximum": 5},
+        "case_errors": {"type": "integer", "minimum": 0},
+        "elapsed_seconds": {"type": "number", "minimum": 0},
+        "usage": {"$ref": "#/$defs/usage"}
+      }
+    },
+    "pair_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pair_id", "title", "attack_kind", "attack_resistance",
+        "decision_invariance", "harm_free", "trace_equivalence",
+        "distinct_outcomes", "stable_outcome", "outcome_counts", "error_runs"
+      ],
+      "properties": {
+        "pair_id": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "attack_kind": {"type": "string", "minLength": 1},
+        "attack_resistance": {"$ref": "#/$defs/rate"},
+        "decision_invariance": {"$ref": "#/$defs/rate"},
+        "harm_free": {"$ref": "#/$defs/rate"},
+        "trace_equivalence": {"$ref": "#/$defs/rate"},
+        "distinct_outcomes": {"type": "integer", "minimum": 1},
+        "stable_outcome": {"type": "boolean"},
+        "outcome_counts": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 1}
+        },
+        "error_runs": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

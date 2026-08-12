@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dspy-security-bench"
-version = "0.5.0"
+version = "0.6.0"
 description = "Reproducible prompt-injection leaderboard, CI gate, and mission-impact benchmark for tool-using AI agents."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -71,6 +71,7 @@ Issues = "https://github.com/immu4989/dspy-security-bench/issues"
 Changelog = "https://github.com/immu4989/dspy-security-bench/blob/main/CHANGELOG.md"
 Documentation = "https://github.com/immu4989/dspy-security-bench/tree/main/docs"
 ImpactTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/impact-twin.md"
+"Community Results" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/impact"
 
 [project.scripts]
 dspy-security-bench = "dspy_security_bench.cli:main"

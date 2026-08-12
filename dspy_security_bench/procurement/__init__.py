@@ -14,11 +14,23 @@ from dspy_security_bench.procurement.evidence import (
     CausalEvidence,
     RecommendedControl,
 )
+from dspy_security_bench.procurement.repeat import (
+    RateEstimate,
+    RepeatTwinReport,
+    create_submission_bundle,
+    run_repeat_twin,
+    verify_submission_bundle,
+)
 
 __all__ = [
     "BoundaryEvent",
     "CausalEvidence",
     "ImpactTwinReport",
     "RecommendedControl",
+    "RateEstimate",
+    "RepeatTwinReport",
+    "create_submission_bundle",
     "run_impact_twin",
+    "run_repeat_twin",
+    "verify_submission_bundle",
 ]

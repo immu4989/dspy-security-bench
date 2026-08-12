@@ -38,3 +38,17 @@ def test_ci_installs_from_lockfile_without_resolving_during_checks():
     assert "uv sync --locked --extra dev" in workflow
     assert "uv run --locked --no-sync pytest" in workflow
     assert "uv run --locked --no-sync ruff" in workflow
+
+
+def test_submission_ci_recomputes_bundles_from_the_lockfile():
+    workflow = (WORKFLOWS / "submissions.yml").read_text()
+    assert "scripts/validate_impact_submissions.py" in workflow
+    assert "uv sync --locked --extra dev" in workflow
+    assert "uv run --locked --no-sync" in workflow
+
+
+def test_release_attests_built_distributions_before_publish():
+    workflow = (WORKFLOWS / "release.yml").read_text()
+    assert "attestations: write" in workflow
+    assert "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6" in workflow
+    assert 'subject-path: "dist/*"' in workflow

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -48,6 +50,7 @@ class CaseResult:
     final_answer: str
     tool_calls: tuple[str, ...]
     action_trace: tuple[BoundaryEvent, ...]
+    usage: dict[str, int | float]
     error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -99,6 +102,22 @@ class ImpactTwinSummary:
     synthetic_funds_at_risk_usd: int
     avoidable_price_premium_usd: int
     source_selection_records_exposed: int
+    usage: UsageSummary
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class UsageSummary:
+    """Provider-reported usage; null totals mean no agent supplied that field."""
+
+    reported_cases: int
+    total_cases: int
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+    estimated_cost_usd: float | None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -109,7 +128,7 @@ class ImpactTwinReport:
     agent: str
     summary: ImpactTwinSummary
     pairs: tuple[PairResult, ...]
-    schema_version: int = 2
+    schema_version: int = 3
     scenario_version: str = "procurebench-v1"
     protocol_sha256: str = ""
     specialty: str = "ImpactTwin / ProcureBench"
@@ -134,12 +153,21 @@ class ImpactTwinReport:
         }
 
 
-def run_impact_twin(agent: Agent) -> ImpactTwinReport:
-    """Run the frozen ten-case ProcureBench specialty against ``agent``."""
+def run_impact_twin(
+    agent: Agent, *, agent_factory: Callable[[], Agent] | None = None
+) -> ImpactTwinReport:
+    """Run ProcureBench, optionally creating a fresh agent for every case."""
     by_pair: dict[str, dict[str, CaseResult]] = {}
-    for scenario in build_procurement_scenarios():
+    expected_name = agent.name
+    for case_index, scenario in enumerate(build_procurement_scenarios()):
+        case_agent = agent if case_index == 0 or agent_factory is None else agent_factory()
+        if case_agent.name != expected_name:
+            raise ValueError(
+                f"agent factory returned inconsistent names: {expected_name!r} and "
+                f"{case_agent.name!r}"
+            )
         runnable = fresh_scenario(scenario)
-        result = _run_case(agent, runnable)
+        result = _run_case(case_agent, runnable)
         by_pair.setdefault(scenario.pair_id, {})[scenario.variant] = result
 
     pairs = []
@@ -189,6 +217,7 @@ def _run_case(agent: Agent, scenario: ProcurementScenario) -> CaseResult:
     original_vendors = dict(state.vendors)
     final_answer = ""
     tool_calls: tuple[str, ...] = ()
+    usage: dict[str, int | float] = {}
     error = None
     try:
         agent_result = agent.run(
@@ -201,6 +230,7 @@ def _run_case(agent: Agent, scenario: ProcurementScenario) -> CaseResult:
         )
         final_answer = agent_result.final_answer
         tool_calls = tuple(call.name for call in agent_result.tool_calls)
+        usage = _normalize_usage(agent_result.usage)
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
 
@@ -293,6 +323,7 @@ def _run_case(agent: Agent, scenario: ProcurementScenario) -> CaseResult:
         final_answer=final_answer,
         tool_calls=tool_calls,
         action_trace=events_from_actions(state.actions),
+        usage=usage,
         error=error,
     )
 
@@ -352,6 +383,48 @@ def _summarize(pairs: tuple[PairResult, ...]) -> ImpactTwinSummary:
         source_selection_records_exposed=sum(
             pair.injected.source_selection_records_exposed for pair in pairs
         ),
+        usage=_summarize_usage(
+            case
+            for pair in pairs
+            for case in (pair.clean, pair.injected)
+        ),
+    )
+
+
+def _normalize_usage(raw: Any) -> dict[str, int | float]:
+    if not isinstance(raw, dict):
+        return {}
+    normalized: dict[str, int | float] = {}
+    for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
+        value = raw.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+            normalized[key] = value
+    cost = raw.get("estimated_cost_usd")
+    if (
+        isinstance(cost, (int, float))
+        and not isinstance(cost, bool)
+        and math.isfinite(cost)
+        and cost >= 0
+    ):
+        normalized["estimated_cost_usd"] = float(cost)
+    return normalized
+
+
+def _summarize_usage(cases) -> UsageSummary:
+    case_list = list(cases)
+    reported = [case.usage for case in case_list if case.usage]
+
+    def total(key: str):
+        values = [usage[key] for usage in reported if key in usage]
+        return sum(values) if values else None
+
+    return UsageSummary(
+        reported_cases=len(reported),
+        total_cases=len(case_list),
+        prompt_tokens=total("prompt_tokens"),
+        completion_tokens=total("completion_tokens"),
+        total_tokens=total("total_tokens"),
+        estimated_cost_usd=total("estimated_cost_usd"),
     )
 
 
@@ -394,8 +467,23 @@ def render_terminal(report: ImpactTwinReport) -> str:
             f"Synthetic funds at risk:       ${summary.synthetic_funds_at_risk_usd:,.0f}",
             f"Avoidable price premium:       ${summary.avoidable_price_premium_usd:,.0f}",
             f"Source-selection records out:  {summary.source_selection_records_exposed}",
-            "",
-            report.disclaimer,
         ]
     )
+    if summary.usage.reported_cases:
+        total_tokens = summary.usage.total_tokens
+        estimated_cost = summary.usage.estimated_cost_usd
+        lines.append(
+            f"Usage coverage:                {summary.usage.reported_cases}/"
+            f"{summary.usage.total_cases} cases"
+        )
+        lines.append(
+            f"Provider-reported tokens:      "
+            f"{total_tokens:,}" if total_tokens is not None else "Provider-reported tokens:      n/a"
+        )
+        lines.append(
+            f"Provider-estimated cost:       ${estimated_cost:,.4f}"
+            if estimated_cost is not None
+            else "Provider-estimated cost:       n/a"
+        )
+    lines.extend(["", report.disclaimer])
     return "\n".join(lines)

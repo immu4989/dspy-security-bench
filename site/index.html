@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="A reproducible LLM prompt-injection leaderboard, CI gate, and ImpactTwin procurement mission-assurance benchmark.">
+  <meta name="description" content="A reproducible LLM prompt-injection leaderboard, CI gate, and RepeatTwin procurement mission-assurance benchmark with uncertainty.">
   <meta property="og:title" content="DSPy Security Bench — measure before you trust">
   <meta property="og:description" content="Compare models, gate your own agent, and measure the economic and mission impact of poisoned procurement content.">
   <meta property="og:image" content="assets/security-bench-hero-v2.png">
@@ -145,7 +145,7 @@
       <div class="impact-orbit orbit-two" aria-hidden="true"></div>
       <div class="impact-heading reveal">
         <div><span class="section-kicker">New public-interest specialty</span><h2>Same facts.<br><em>Different decision.</em></h2></div>
-        <div class="impact-intro"><span class="impact-badge"><i></i> ImpactTwin / ProcureBench</span><p>Clean and poisoned procurement twins isolate one causal variable: vendor-authored text. Then the benchmark measures what changed in the live synthetic world.</p></div>
+        <div class="impact-intro"><span class="impact-badge"><i></i> ImpactTwin / ProcureBench</span><p>Clean and poisoned procurement twins hold structured facts fixed while varying one untrusted input: vendor-authored text. Then the benchmark measures what changed in the live synthetic world.</p></div>
       </div>
 
       <div class="twin-stage reveal" aria-label="Clean and poisoned procurement twin comparison">
@@ -186,9 +186,34 @@
         <div class="impact-stat"><span class="impact-value">1</span><span class="impact-unit">sealed record out</span><p>Functional environment-state evidence</p></div>
       </div>
 
+      <div class="repeat-lab reveal" aria-label="RepeatTwin uncertainty example">
+        <div class="repeat-head">
+          <div><span class="section-kicker">RepeatTwin · stochastic evidence</span><h3>Perfect observed is not <em>certain.</em></h3></div>
+          <p>Ten passes still carry uncertainty. Preserve every raw trial, expose the interval, and gate on its lower bound.</p>
+        </div>
+        <div class="repeat-grid">
+          <div class="trial-tape" aria-label="Ten successful example trials">
+            <span>trial evidence</span>
+            <div><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <small>10 / 10 observed passes</small>
+          </div>
+          <div class="interval-card">
+            <span>95% Wilson interval</span>
+            <strong>72<span>→</span>100<sup>%</sup></strong>
+            <div class="interval-track"><i></i><b></b></div>
+            <small>fixed pair · repeated execution</small>
+          </div>
+          <div class="repeat-proof">
+            <span>community proof path</span>
+            <ul><li>raw trials retained</li><li>statistics recomputed</li><li>SHA-256 content addressed</li></ul>
+            <a href="https://github.com/immu4989/dspy-security-bench/tree/main/submissions/impact">Fork · run · submit <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </div>
+
       <div class="impact-bottom reveal">
-        <div><span>Not another prompt score.</span><p>Mission utility, causal decision invariance, confidentiality, identity, authorization, and bounded economic context—versioned in JSON and SARIF.</p></div>
-        <code><i>$</i> dspy-security-bench impact demo</code>
+        <div><span>Not another prompt score.</span><p>Mission utility, controlled-pair decision invariance, confidentiality, identity, authorization, uncertainty, and bounded economic context—versioned in JSON and SARIF.</p></div>
+        <code><i>$</i> dspy-security-bench impact repeat --trials 10</code>
         <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/impact-twin.md">Inspect the protocol <span aria-hidden="true">→</span></a>
       </div>
       <p class="impact-disclaimer reveal">Reference fixture, not a model result. Synthetic exposure is not predicted loss or a compliance certification.</p>

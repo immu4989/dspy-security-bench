@@ -43,7 +43,7 @@ leaving immediate trust and usability gaps unresolved.
 **BoundaryDiff** adds environment-owned action traces to ImpactTwin, locates the
 first event-level divergence, reports poisoned-only events and functionally
 observed harms, and maps the failure to an executable rule in the packaged
-procurement policy. Saved schema-v2 reports can be explained offline.
+procurement policy. Saved schema-v3 reports can be explained offline.
 
 Acceptance criteria:
 
@@ -64,3 +64,20 @@ This work does not claim that trace auditing, counterfactual comparison, memory
 security, or least privilege is individually novel. Its value is an integrated,
 reproducible path from public-interest failure to inspectable evidence and a
 deployable authority boundary.
+
+## Follow-on: repeated-execution evidence
+
+The August 12 follow-on addresses the audit's remaining statistical limitation:
+a single paired run cannot establish stable behavior for a stochastic agent.
+RepeatTwin retains multiple complete trials, reports Wilson score intervals for
+each fixed attack pair and the aggregate fixed suite, exposes outcome-class
+instability and runtime errors, and preserves optional provider token/cost
+telemetry. The sampling unit is declared as `fixed_suite_pair_trial`; no claim
+is made that five frozen scenarios represent an unseen procurement-task
+population.
+
+Community bundles add recomputable statistics and canonical content hashes.
+They are deliberately labeled self-attested: tamper evidence is not execution
+provenance. This follows the same trust-boundary discipline as BoundaryDiff—say
+exactly which evidence the system owns, and do not silently upgrade a checksum
+into a stronger claim.
