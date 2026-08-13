@@ -19,8 +19,10 @@ with PyPI Trusted Publishing. No long-lived PyPI token is stored in GitHub.
 3. Run `pytest` and `ruff check dspy_security_bench/ tests/`.
 4. Build locally with `uv build` and inspect the artifacts if package data
    changed.
-5. Create and push a matching tag, for example `v0.6.0` for version `0.6.0`.
-6. Confirm the workflow and PyPI publication succeeded, then create the GitHub
+5. If the ProofRun reusable workflow changed, confirm its immutable engine `ref`
+   matches the release tag and run the composite-action smoke workflow.
+6. Create and push a matching tag, for example `v0.7.0` for version `0.7.0`.
+7. Confirm the workflow and PyPI publication succeeded, then create the GitHub
    release from the tag and attach the exact workflow-built artifacts.
 
 The workflow rejects a tag that does not exactly match the package version. It

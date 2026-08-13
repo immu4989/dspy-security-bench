@@ -21,15 +21,18 @@ from dspy_security_bench.procurement.repeat import (
     run_repeat_twin,
     verify_submission_bundle,
 )
+from dspy_security_bench.proofrun import AttestationResult, capture_provenance
 
 __all__ = [
     "BoundaryEvent",
+    "AttestationResult",
     "CausalEvidence",
     "ImpactTwinReport",
     "RecommendedControl",
     "RateEstimate",
     "RepeatTwinReport",
     "create_submission_bundle",
+    "capture_provenance",
     "run_impact_twin",
     "run_repeat_twin",
     "verify_submission_bundle",

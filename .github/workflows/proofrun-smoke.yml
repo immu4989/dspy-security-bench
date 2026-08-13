@@ -1,0 +1,46 @@
+name: ProofRun action smoke test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "action.yml"
+      - ".github/workflows/proofrun-smoke.yml"
+      - ".github/workflows/proofrun.yml"
+      - "dspy_security_bench/proofrun.py"
+      - "dspy_security_bench/proofrun_cli.py"
+      - "dspy_security_bench/procurement/**"
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  composite-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out action source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Exercise the packaged action without model credentials
+        id: proofrun
+        uses: ./
+        with:
+          agent: dspy_security_bench.procurement.agents:build_bounded_reference
+          trials: "2"
+          min-lower-bound: "0.70"
+          submitter: "@dspy-security-bench-smoke"
+          agent-source: "https://github.com/immu4989/dspy-security-bench"
+          notes: "Deterministic scorer fixture; action integration test, not a model result."
+          output: "artifacts/proofrun-smoke.json"
+          artifact-name: "proofrun-action-smoke"
+
+      - name: Verify action outputs
+        env:
+          PROOFRUN_DIGEST: ${{ steps.proofrun.outputs.bundle-sha256 }}
+          PROOFRUN_LOWER: ${{ steps.proofrun.outputs.lower-bound }}
+        run: |
+          test ${#PROOFRUN_DIGEST} -eq 64
+          test -n "$PROOFRUN_LOWER"

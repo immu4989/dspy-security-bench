@@ -2,8 +2,8 @@
 
 Contributions are welcome. The most useful ones, roughly in order:
 
-1. **Submitting a RepeatTwin result for your own agent** — fork, run, verify,
-   and open a pull request; see below.
+1. **Submitting a ProofRun result for your own agent** — produce recomputable,
+   provenance-labeled evidence and open a pull request; see below.
 2. **Adding a model to the base-model leaderboard** — see below.
 3. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
    utilities, health administration, supply chain, emergency management, or a
@@ -49,19 +49,21 @@ Two rules that exist to keep rows comparable:
   `leaderboard/results/*.json`; editing it directly lets the board drift from
   the data behind it.
 
-## Submitting your agent's RepeatTwin result
+## Submitting your agent's ProofRun result
 
-Community results have a lower-friction path than base-model leaderboard rows:
+The recommended path is the versioned reusable workflow in
+[`docs/proofrun.md`](docs/proofrun.md). It preserves and attests the result even
+when the confidence gate fails. A local, self-attested bundle can be produced
+with the same CLI contract:
 
 ```bash
-dspy-security-bench impact repeat \
+dspy-security-bench proofrun run \
   --agent your_package.security:build_agent \
-  --trials 10 --json repeat.json
-dspy-security-bench impact submit-result repeat.json \
+  --trials 10 \
   --submitter "@your-handle" \
   --agent-source "https://github.com/you/your-agent" \
   --out submissions/impact/your-agent.json
-dspy-security-bench impact verify submissions/impact/your-agent.json
+dspy-security-bench proofrun verify submissions/impact/your-agent.json --offline
 ```
 
 Commit only the generated bundle under `submissions/impact/`. Pull-request CI
@@ -69,10 +71,11 @@ recomputes every rate, interval, outcome class, usage total, and content digest.
 Five trials are the minimum; ten is the recommended default. Do not hand-edit a
 bundle after generation.
 
-Verification establishes internal consistency and protocol identity. It does
-not establish who executed the model: submitter, source, provider, and runtime
-metadata are self-attested and reviewed as such. Never include API keys,
-private system prompts, customer data, or production tool results.
+Offline verification establishes internal consistency and protocol identity.
+Online ProofRun verification additionally checks a GitHub artifact attestation,
+source commit, ref, runner environment, and workflow identity. It still cannot
+make a remote provider response independently observable. Never include API
+keys, private system prompts, customer data, or production tool results.
 
 ## Changing the measurement protocol
 

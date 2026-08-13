@@ -1,0 +1,21 @@
+name: Agent security ProofRun
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  proofrun:
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.7.0
+    with:
+      agent: myapp.security:build_agent
+      trials: 10
+      min-lower-bound: 0.80
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

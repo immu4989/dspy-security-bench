@@ -4,6 +4,7 @@ Subcommands:
   impact      Run counterfactual procurement mission-assurance tests.
   init        Create a scan config and GitHub Action in the current project.
   policy      Create and test deterministic tool-call policies.
+  proofrun    Produce or verify provenance-aware RepeatTwin evidence.
   scan        Scan an agent for prompt-injection robustness and gate CI.
   synthesize  Generate a synthetic trainset for a suite.
   validate    Validate/dedupe a synthesized trainset.
@@ -58,7 +59,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if not argv or argv[0] in ("-h", "--help"):
         print(__doc__)
-        print("Usage: dspy-security-bench <init|scan|impact|policy|synthesize|validate> [args...]")
+        print(
+            "Usage: dspy-security-bench "
+            "<init|scan|impact|policy|proofrun|synthesize|validate> [args...]"
+        )
         return 0
 
     sub, rest = argv[0], argv[1:]
@@ -73,6 +77,10 @@ def main(argv: list[str] | None = None) -> int:
     if sub == "policy":
         from dspy_security_bench.policy_cli import main as policy_main
         return policy_main(rest)
+    if sub == "proofrun":
+        from dspy_security_bench.proofrun_cli import main as proofrun_main
+
+        return proofrun_main(rest)
     if sub == "synthesize":
         from dspy_security_bench.synthesis.generator import _cli
         sys.argv = ["dspy-security-bench-synthesize", *rest]
@@ -83,7 +91,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cli() or 0
 
     print(
-        f"unknown subcommand {sub!r}. Use: init | scan | impact | policy | synthesize | validate",
+        f"unknown subcommand {sub!r}. Use: "
+        "init | scan | impact | policy | proofrun | synthesize | validate",
         file=sys.stderr,
     )
     return 2

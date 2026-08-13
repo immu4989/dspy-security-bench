@@ -7,12 +7,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
+ACTION = ROOT / "action.yml"
 IMMUTABLE_ACTION = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
 
 
 def test_every_external_action_is_pinned_to_a_full_commit_sha():
     references = []
-    for workflow in sorted(WORKFLOWS.glob("*.yml")):
+    for workflow in [*sorted(WORKFLOWS.glob("*.yml")), ACTION]:
         for line_number, line in enumerate(workflow.read_text().splitlines(), start=1):
             match = re.search(r"\buses:\s*([^\s#]+)", line)
             if not match or match.group(1).startswith("./"):
@@ -52,3 +53,39 @@ def test_release_attests_built_distributions_before_publish():
     assert "attestations: write" in workflow
     assert "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6" in workflow
     assert 'subject-path: "dist/*"' in workflow
+
+
+def test_proofrun_action_preserves_evidence_before_enforcing_the_gate():
+    action = ACTION.read_text()
+    assert 'name: "DSPy Security Bench ProofRun"' in action
+    assert "continue-on-error: true" in action
+    assert "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6" in action
+    assert "steps.run.outcome != 'success'" in action
+    assert "dspy-security-bench proofrun run" in action
+
+
+def test_reusable_proofrun_uses_an_immutable_central_builder():
+    workflow = (WORKFLOWS / "proofrun.yml").read_text()
+    assert "workflow_call:" in workflow
+    assert "ref: v0.7.0" in workflow
+    assert 'PROOFRUN_BUILDER_KIND: "dspy_security_bench_reusable_workflow"' in workflow
+    assert "attestations: write" in workflow
+    assert "--min-lower-bound" in workflow
+    assert "continue-on-error: true" in workflow
+    assert "proofrun-unverified-${{ github.run_id }}-${{ github.run_attempt }}" in workflow
+    assert "Recompute every statistic and content digest" in workflow
+    assert "permissions: {}" in workflow
+    assert workflow.index("secrets:") < workflow.index("  evaluate:")
+    assert workflow.index("  evaluate:") < workflow.index("  verify-and-attest:")
+    clean_job = workflow.split("  verify-and-attest:", 1)[1].split("  enforce-gate:", 1)[0]
+    assert "OPENAI_API_KEY" not in clean_job
+    assert "ANTHROPIC_API_KEY" not in clean_job
+    assert "proofrun verify" in clean_job
+
+
+def test_proofrun_action_has_a_live_smoke_workflow():
+    workflow = (WORKFLOWS / "proofrun-smoke.yml").read_text()
+    assert "uses: ./" in workflow
+    assert "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" in workflow
+    assert "build_bounded_reference" in workflow
+    assert "attestations: write" in workflow

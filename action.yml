@@ -1,0 +1,167 @@
+name: "DSPy Security Bench ProofRun"
+description: "Run RepeatTwin, gate on uncertainty, and attest a contribution-ready evidence bundle."
+author: "Imran Ahamed"
+branding:
+  icon: "shield"
+  color: "purple"
+
+inputs:
+  agent:
+    description: "Python module:callable returning a fresh Agent"
+    required: true
+  trials:
+    description: "Complete five-pair RepeatTwin trials"
+    required: false
+    default: "10"
+  confidence:
+    description: "Wilson interval confidence level"
+    required: false
+    default: "0.95"
+  min-lower-bound:
+    description: "Fail after preserving evidence when the lower bound is below this value"
+    required: false
+    default: "0.0"
+  submitter:
+    description: "Public GitHub handle or organization; defaults to the workflow actor"
+    required: false
+    default: ""
+  agent-source:
+    description: "Public HTTPS source/configuration URL; defaults to the evaluated commit"
+    required: false
+    default: ""
+  notes:
+    description: "Short public context included in the result bundle"
+    required: false
+    default: ""
+  output:
+    description: "Attested bundle path"
+    required: false
+    default: "proofrun.json"
+  artifact-name:
+    description: "GitHub Actions artifact name"
+    required: false
+    default: "proofrun-evidence"
+  python-version:
+    description: "Python runtime"
+    required: false
+    default: "3.12"
+  install-project:
+    description: "Install the caller repository as an editable Python package"
+    required: false
+    default: "true"
+  upload-artifact:
+    description: "Upload the bundle to the workflow run"
+    required: false
+    default: "true"
+  attest:
+    description: "Create GitHub/Sigstore build provenance for the exact bundle"
+    required: false
+    default: "true"
+
+outputs:
+  bundle-path:
+    description: "Path to the generated evidence bundle"
+    value: ${{ inputs.output }}
+  bundle-sha256:
+    description: "Canonical SHA-256 stored in the bundle"
+    value: ${{ steps.metadata.outputs.bundle-sha256 }}
+  attack-resistance:
+    description: "Observed attack-resistance rate"
+    value: ${{ steps.metadata.outputs.attack-resistance }}
+  lower-bound:
+    description: "Wilson lower confidence bound"
+    value: ${{ steps.metadata.outputs.lower-bound }}
+  attestation-url:
+    description: "GitHub artifact-attestation summary URL"
+    value: ${{ steps.attest.outputs.attestation-url }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install evaluated project
+      if: inputs.install-project == 'true'
+      run: python -m pip install -e .
+      shell: bash
+
+    - name: Install ProofRun engine from this action ref
+      run: python -m pip install "$GITHUB_ACTION_PATH"
+      shell: bash
+
+    - name: Run RepeatTwin and preserve the evidence envelope
+      id: run
+      continue-on-error: true
+      shell: bash
+      env:
+        PROOFRUN_AGENT: ${{ inputs.agent }}
+        PROOFRUN_TRIALS: ${{ inputs.trials }}
+        PROOFRUN_CONFIDENCE: ${{ inputs.confidence }}
+        PROOFRUN_MIN_LOWER_BOUND: ${{ inputs.min-lower-bound }}
+        PROOFRUN_SUBMITTER: ${{ inputs.submitter }}
+        PROOFRUN_AGENT_SOURCE: ${{ inputs.agent-source }}
+        PROOFRUN_NOTES: ${{ inputs.notes }}
+        PROOFRUN_OUTPUT: ${{ inputs.output }}
+        PROOFRUN_BUILDER_KIND: "caller_workflow"
+        PROOFRUN_ACTION_REF: ${{ github.action_ref }}
+        PROOFRUN_RUNNER_ENVIRONMENT: ${{ runner.environment }}
+      run: |
+        submitter="$PROOFRUN_SUBMITTER"
+        agent_source="$PROOFRUN_AGENT_SOURCE"
+        if [[ -z "$submitter" ]]; then submitter="@$GITHUB_ACTOR"; fi
+        if [[ -z "$agent_source" ]]; then
+          agent_source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
+        fi
+        dspy-security-bench proofrun run \
+          --agent "$PROOFRUN_AGENT" \
+          --trials "$PROOFRUN_TRIALS" \
+          --confidence "$PROOFRUN_CONFIDENCE" \
+          --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
+          --submitter "$submitter" \
+          --agent-source "$agent_source" \
+          --notes "$PROOFRUN_NOTES" \
+          --out "$PROOFRUN_OUTPUT"
+
+    - name: Inspect generated bundle
+      id: bundle
+      if: always()
+      shell: bash
+      env:
+        PROOFRUN_OUTPUT: ${{ inputs.output }}
+      run: |
+        if [[ -f "$PROOFRUN_OUTPUT" ]]; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Export result metadata
+      id: metadata
+      if: steps.bundle.outputs.exists == 'true'
+      shell: bash
+      env:
+        PROOFRUN_OUTPUT: ${{ inputs.output }}
+      run: python "$GITHUB_ACTION_PATH/scripts/proofrun_action_metadata.py" "$PROOFRUN_OUTPUT"
+
+    - name: Attest exact ProofRun evidence
+      id: attest
+      if: inputs.attest == 'true' && steps.bundle.outputs.exists == 'true'
+      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      with:
+        subject-path: ${{ inputs.output }}
+
+    - name: Upload ProofRun evidence
+      if: inputs.upload-artifact == 'true' && steps.bundle.outputs.exists == 'true'
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.output }}
+        if-no-files-found: error
+
+    - name: Enforce ProofRun gate after preserving evidence
+      if: steps.run.outcome != 'success'
+      shell: bash
+      run: exit 1

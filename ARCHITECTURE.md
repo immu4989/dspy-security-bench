@@ -28,6 +28,8 @@ dspy_security_bench/
 ├── agents/                     # framework-neutral Agent + BenchTool contract
 ├── policy.py                   # deterministic live tool-call boundary
 ├── policy_cli.py               # scaffold, validate, and check policies offline
+├── proofrun.py                 # bounded provenance + GitHub attestation verifier
+├── proofrun_cli.py             # evidence-passport run and verify commands
 ├── procurement/                # ImpactTwin clean/poisoned mission assurance
 │   ├── scenarios.py            # frozen synthetic procurement twin protocol
 │   ├── environment.py          # live tools and observable state transitions
@@ -114,6 +116,25 @@ in the report. Its community bundle uses canonical JSON
 SHA-256 digests and then recomputes every published statistic during offline
 verification. These hashes provide tamper evidence, not signer provenance;
 execution metadata remains explicitly self-attested.
+
+### `proofrun.py` — provenance without inflated claims
+
+ProofRun wraps the RepeatTwin measurement in a versioned evidence envelope. It
+captures only a bounded set of public GitHub context fields, never walks the
+process environment, and never records credentials. Schema-v2 submission
+digests cover both the complete RepeatTwin report and the provenance claim.
+
+Online verification delegates signature and transparency-log validation to
+`gh attestation verify`, pins the subject to the exact bundle bytes, and checks
+certificate-owned repository, commit, ref, runner, and workflow-run fields
+against the envelope. Self-hosted runners are rejected by default. Bundles made
+through the central reusable workflow are also constrained to that signer
+workflow and receive a distinct `trusted_builder` tier.
+
+This is supply-chain provenance for evaluation evidence, not a claim that a
+remote inference API is independently observable. The evidence ladder keeps
+cryptographic origin, central-builder policy, and maintainer reproduction as
+separate properties rather than collapsing them into a generic “verified” badge.
 
 ### `synthesis/extract_env_data.py`
 

@@ -5,15 +5,21 @@ on:
     branches: [main]
     paths:
       - "submissions/impact/**"
+      - "submissions/reproductions.json"
+      - "submissions/attestations.json"
       - "scripts/validate_impact_submissions.py"
       - "dspy_security_bench/procurement/**"
+      - "dspy_security_bench/proofrun.py"
       - "dspy_security_bench/schemas/**"
   push:
     branches: [main]
     paths:
       - "submissions/impact/**"
+      - "submissions/reproductions.json"
+      - "submissions/attestations.json"
       - "scripts/validate_impact_submissions.py"
       - "dspy_security_bench/procurement/**"
+      - "dspy_security_bench/proofrun.py"
       - "dspy_security_bench/schemas/**"
   workflow_dispatch:
 

@@ -134,6 +134,7 @@ class RepeatTwinReport:
 class VerificationResult:
     valid: bool
     community_eligible: bool
+    evidence_tier: str
     errors: tuple[str, ...]
     warnings: tuple[str, ...]
     bundle_sha256: str | None
@@ -267,8 +268,14 @@ def create_submission_bundle(
     submitter: str,
     agent_source_url: str,
     notes: str = "",
+    provenance: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Create a content-addressed, self-attested community result bundle."""
+    """Create a content-addressed community result bundle.
+
+    Provenance fields are claims until the exact bundle file is verified
+    against an external signature. Keeping that distinction in the data model
+    prevents a workflow URL or checksum from being mistaken for attestation.
+    """
     errors = validate_repeat_payload(report)
     if errors:
         raise ValueError("invalid RepeatTwin report: " + "; ".join(errors))
@@ -279,15 +286,21 @@ def create_submission_bundle(
     report_dict = dict(report)
     report_digest = canonical_sha256(report_dict)
     package_version = _package_version()
+    provenance_dict = dict(provenance) if provenance is not None else None
+    attestation = (
+        "github_actions_provenance_requested"
+        if provenance_dict and provenance_dict.get("provider") == "github_actions"
+        else "self_attested_content_addressed"
+    )
     bundle: dict[str, Any] = {
-        "bundle_schema_version": 1,
+        "bundle_schema_version": 2 if provenance_dict is not None else 1,
         "bundle_type": "dspy-security-bench-community-submission",
         "submission": {
             "submitter": submitter.strip(),
             "agent_source_url": agent_source_url,
             "notes": notes.strip(),
             "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "attestation": "self_attested_content_addressed",
+            "attestation": attestation,
         },
         "producer": {
             "package": "dspy-security-bench",
@@ -298,6 +311,8 @@ def create_submission_bundle(
         "report_sha256": report_digest,
         "report": report_dict,
     }
+    if provenance_dict is not None:
+        bundle["provenance"] = provenance_dict
     bundle["bundle_sha256"] = canonical_sha256(bundle)
     return bundle
 
@@ -307,7 +322,8 @@ def verify_submission_bundle(
 ) -> VerificationResult:
     errors: list[str] = []
     warnings: list[str] = []
-    if bundle.get("bundle_schema_version") != 1:
+    schema_version = bundle.get("bundle_schema_version")
+    if schema_version not in {1, 2}:
         errors.append("unsupported bundle_schema_version")
     if bundle.get("bundle_type") != "dspy-security-bench-community-submission":
         errors.append("unsupported bundle_type")
@@ -335,8 +351,68 @@ def verify_submission_bundle(
             errors.append("submission.submitter must be non-empty")
         if not _is_https_url(submission.get("agent_source_url")):
             errors.append("submission.agent_source_url must be an https URL")
-        if submission.get("attestation") != "self_attested_content_addressed":
+        supported_attestations = {
+            "self_attested_content_addressed",
+            "github_actions_provenance_requested",
+        }
+        if submission.get("attestation") not in supported_attestations:
             errors.append("unsupported submission attestation")
+
+    provenance = bundle.get("provenance")
+    evidence_tier = "self_attested"
+    if schema_version == 2:
+        if not isinstance(provenance, Mapping):
+            errors.append("schema-v2 bundles require provenance metadata")
+        else:
+            provider = provenance.get("provider")
+            if provider not in {"github_actions", "local"}:
+                errors.append("unsupported provenance provider")
+            if provider == "github_actions":
+                evidence_tier = "github_attestation_unverified"
+                if submission.get("attestation") != "github_actions_provenance_requested":
+                    errors.append("GitHub provenance requires the GitHub attestation label")
+                required = (
+                    "repository",
+                    "repository_id",
+                    "commit_sha",
+                    "ref",
+                    "workflow_ref",
+                    "workflow_sha",
+                    "run_id",
+                    "run_attempt",
+                    "run_url",
+                    "runner_environment",
+                    "builder_kind",
+                )
+                for field in required:
+                    if not str(provenance.get(field, "")).strip():
+                        errors.append(f"provenance.{field} must be non-empty")
+                commit_sha = str(provenance.get("commit_sha", ""))
+                if not _is_sha(commit_sha):
+                    errors.append("provenance.commit_sha must be a full Git commit SHA")
+                if not _is_sha(str(provenance.get("workflow_sha", ""))):
+                    errors.append("provenance.workflow_sha must be a full Git commit SHA")
+                if provenance.get("runner_environment") != "github-hosted":
+                    warnings.append(
+                        "GitHub provenance declares a non-hosted runner; cryptographic verification "
+                        "must apply an explicit runner policy"
+                    )
+            else:
+                if provenance.get("builder_kind") != "local_process":
+                    errors.append("local provenance requires builder_kind=local_process")
+                if provenance.get("runner_environment") != "local":
+                    errors.append("local provenance requires runner_environment=local")
+                if submission.get("attestation") != "self_attested_content_addressed":
+                    errors.append("local provenance must remain self-attested")
+
+    if schema_version == 1 and isinstance(provenance, Mapping):
+        errors.append("schema-v1 bundles cannot contain provenance metadata")
+    if (
+        schema_version == 1
+        and isinstance(submission, Mapping)
+        and submission.get("attestation") != "self_attested_content_addressed"
+    ):
+        errors.append("schema-v1 bundles must remain self-attested")
 
     eligible = not errors
     if isinstance(report, Mapping):
@@ -353,12 +429,18 @@ def verify_submission_bundle(
         if report.get("trial_isolation") != "fresh_agent_per_case":
             warnings.append("community leaderboard requires a fresh agent instance per case")
             eligible = False
-    warnings.append(
-        "content hashes prove internal integrity, not who ran the model; submission metadata is self-attested"
-    )
+    if evidence_tier == "self_attested":
+        warnings.append(
+            "content hashes prove internal integrity, not who ran the model; submission metadata is self-attested"
+        )
+    else:
+        warnings.append(
+            "GitHub provenance is declared but not cryptographically verified by this offline check"
+        )
     return VerificationResult(
         valid=not errors,
         community_eligible=eligible,
+        evidence_tier=evidence_tier,
         errors=tuple(errors),
         warnings=tuple(warnings),
         bundle_sha256=actual_bundle_digest if not errors else None,
@@ -705,6 +787,10 @@ def _is_https_url(value: Any) -> bool:
         return False
     parsed = urlparse(value)
     return parsed.scheme == "https" and bool(parsed.netloc)
+
+
+def _is_sha(value: str) -> bool:
+    return len(value) == 40 and all(character in "0123456789abcdef" for character in value)
 
 
 def _package_version() -> str:

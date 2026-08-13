@@ -81,3 +81,40 @@ They are deliberately labeled self-attested: tamper evidence is not execution
 provenance. This follows the same trust-boundary discipline as BoundaryDiff—say
 exactly which evidence the system owns, and do not silently upgrade a checksum
 into a stronger claim.
+
+## Follow-on: ProofRun provenance
+
+A second landscape check reviewed contemporary prompt-injection evaluation
+platforms including [PIArena](https://github.com/sleeepeer/PIArena), benchmark
+reproducibility work such as
+[redharness](https://github.com/MohamedAklamaash/redharness), NIST's call for
+machine-readable agent-evaluation audit trails, GitHub artifact attestations,
+and the [SLSA v1.2 verification model](https://slsa.dev/spec/v1.2/verifying-artifacts).
+The reviewed benchmark projects preserve configurations, transcripts, or
+content-addressed evidence. This dated, non-systematic search did not identify a
+prompt-injection benchmark that also provides all of the following as one
+contribution path:
+
+- repeated counterfactual agent trials with an explicit estimand and confidence
+  lower-bound gate;
+- offline recomputation from preserved raw functional outcomes;
+- an in-toto/Sigstore attestation over the exact result artifact;
+- verifier policy for repository, commit, ref, hosted runner, and signer
+  workflow; and
+- distinct public tiers for content integrity, caller-workflow provenance,
+  central-builder provenance, and independent reproduction.
+
+ProofRun implements that integration without claiming that its ingredients are
+individually novel. The trusted workflow separates the untrusted evaluation job
+from a clean verification/signing job: provider credentials are available only
+to evaluation, while OIDC signing authority is available only after the frozen
+engine recomputes the downloaded bundle. This follows SLSA's core separation
+between a tenant-controlled process and the control plane that records
+provenance.
+
+The boundary remains explicit. A valid attestation proves that a named workflow
+produced exact bytes from a named source commit. It cannot prove that a remote
+provider returned the embedded response, that evaluated source code is honest,
+or that five synthetic procurement pairs establish deployment safety. The
+dashboard therefore requires a reviewed, digest-keyed registry before showing a
+cryptographic tier; an unverified provenance claim is displayed as pending.

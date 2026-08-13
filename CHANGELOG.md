@@ -9,6 +9,39 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-08-12
+
+### Added
+- **ProofRun evidence passports.** `proofrun run` executes RepeatTwin with fresh
+  agent instances, writes the evidence bundle before enforcing its confidence
+  gate, and records bounded local or GitHub Actions provenance without copying
+  arbitrary environment state or credentials.
+- **Cryptographic online verification.** `proofrun verify` recomputes the entire
+  bundle offline and can use GitHub CLI to validate the exact subject bytes,
+  source repository, commit, ref, hosted-runner identity, and workflow run.
+  Self-hosted runners are rejected by default.
+- A Marketplace-compatible composite GitHub Action for custom pipelines and a
+  centrally controlled reusable workflow pinned to the v0.7.0 engine. Evidence
+  is attested and uploaded even when the statistical gate fails.
+- An explicit evidence ladder—self-attested, GitHub-attested, trusted builder,
+  and maintainer reproduced—plus a content-addressed reproduction registry.
+- The interactive site now includes a responsive ProofRun trust ladder,
+  integration workflow, and generated community evidence cards.
+
+### Changed
+- Submission bundles advance to schema v2 when provenance is present. The
+  canonical digest covers the complete provenance claim; schema-v1 bundles
+  remain verifiable.
+- Pull-request validation performs online cryptographic verification for any
+  bundle that claims GitHub Actions provenance.
+
+### Fixed
+- The interactive dashboard now joins capability from the committed no-attack
+  evidence instead of labeling utility-under-attack as “benign.” The generated
+  site values again match the README and methodology.
+- Dashboard copy buttons retain their event target across the asynchronous
+  clipboard write, and anchored sections clear the fixed navigation on mobile.
+
 ## [0.6.0] — 2026-08-12
 
 ### Added
@@ -206,7 +239,8 @@ several of them changed published numbers.
 - First end-to-end run: DSPy optimizers × AgentDojo attacks in one harness,
   workspace suite, single model.
 
-[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.3.1...v0.6.0
 [0.5.0]: https://github.com/immu4989/dspy-security-bench/tree/4a50f129890657f80dd34a71f73a44cbeead9452
 [0.3.1]: https://github.com/immu4989/dspy-security-bench/releases/tag/v0.3.1

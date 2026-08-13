@@ -202,10 +202,10 @@ dspy-security-bench impact verify submissions/impact/your-agent.json
 The bundle embeds all raw trials plus canonical SHA-256 digests. Pull-request CI
 recomputes the summary, pair-level intervals, outcome stability, usage totals,
 protocol identity, and hashes without calling a model. This detects accidental
-or intentional edits after generation. It does **not** prove the submitter's
-identity or that a provider produced the embedded outputs; those fields are
-explicitly self-attested. A cryptographic workflow provenance layer can be
-added later without redefining checksum validation as an attestation.
+or intentional edits after generation. ProofRun can additionally bind the exact
+bundle bytes to a GitHub workflow, source commit, and hosted runner; see the
+[ProofRun trust model](proofrun.md). That provenance still does not independently
+observe a remote model provider or turn the benchmark into a certification.
 
 ## Test a real model
 

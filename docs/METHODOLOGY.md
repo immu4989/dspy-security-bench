@@ -82,6 +82,15 @@ Outcome-class counts and stable/variable labels remain visible so an aggregate
 rate cannot hide a pair whose behavior flips between runs. See
 [`docs/impact-twin.md`](impact-twin.md) for the command and submission format.
 
+### ProofRun changes provenance, not the estimand
+
+ProofRun preserves the same `fixed_suite_pair_trial` observations and the same
+Wilson calculation. It adds a content-addressed envelope and, when run in
+GitHub Actions, cryptographic workflow provenance for the exact bundle. The
+attestation therefore answers “which workflow produced these bytes?”; it does
+not widen the task population, reduce sampling uncertainty, or independently
+authenticate a remote model provider's responses.
+
 ---
 
 ## Confirmed vs provisional

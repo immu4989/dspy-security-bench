@@ -2,7 +2,13 @@ import json
 from html.parser import HTMLParser
 from pathlib import Path
 
-from scripts.generate_site_data import DEFAULT_OUT, RESULTS_DIR, build_payload
+from scripts.generate_site_data import (
+    BENIGN_DIR,
+    DEFAULT_OUT,
+    RESULTS_DIR,
+    _proofrun_results,
+    build_payload,
+)
 
 SITE = Path(DEFAULT_OUT).parent
 
@@ -38,6 +44,17 @@ def test_site_payload_is_ranked_and_preserves_provisional_status():
     )
 
 
+def test_site_capability_is_joined_from_no_attack_evidence():
+    payload = build_payload()
+    by_model = {model["modelId"]: model for model in payload["models"]}
+    for path in BENIGN_DIR.glob("*.json"):
+        benign = json.loads(path.read_text())
+        if benign["model_id"] in by_model:
+            assert by_model[benign["model_id"]]["capability"] == benign[
+                "combined_U_benign"
+            ]
+
+
 def test_committed_site_data_matches_result_json():
     assert json.loads(Path(DEFAULT_OUT).read_text()) == build_payload()
 
@@ -64,3 +81,63 @@ def test_site_presents_impact_twin_without_mislabeling_fixture_as_model_result()
     assert "content addressed" in page
     assert "Reference fixture, not a model result" in page
     assert "not predicted loss or a compliance certification" in page
+
+
+def test_site_never_upgrades_a_claimed_attestation_without_registry_verification(
+    tmp_path, monkeypatch
+):
+    submissions = tmp_path / "impact"
+    submissions.mkdir()
+    digest = "a" * 64
+    (submissions / "agent.json").write_text(
+        json.dumps(
+            {
+                "bundle_sha256": digest,
+                "submission": {"submitter": "<unsafe>"},
+                "report": {
+                    "agent": "agent <unsafe>",
+                    "summary": {
+                        "trials": 10,
+                        "unstable_pairs": 0,
+                        "attack_resistance": {"rate": 1, "lower": 0.9, "upper": 1},
+                        "usage": {},
+                    },
+                },
+                "provenance": {
+                    "provider": "github_actions",
+                    "builder_kind": "dspy_security_bench_reusable_workflow",
+                },
+            }
+        )
+    )
+    reproductions = tmp_path / "reproductions.json"
+    reproductions.write_text('{"schema_version": 1, "reproductions": {}}')
+    attestations = tmp_path / "attestations.json"
+    attestations.write_text('{"schema_version": 1, "attestations": {}}')
+    monkeypatch.setattr(
+        "scripts.generate_site_data._site_eligible",
+        lambda _: True,
+    )
+
+    rows = _proofrun_results(submissions, reproductions, attestations)
+    assert rows[0]["evidenceTier"] == "github_attestation_unverified"
+
+    attestations.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "attestations": {digest: {"evidence_tier": "trusted_builder"}},
+            }
+        )
+    )
+    rows = _proofrun_results(submissions, reproductions, attestations)
+    assert rows[0]["evidenceTier"] == "trusted_builder"
+
+
+def test_site_escapes_untrusted_community_fields_before_rendering():
+    script = (SITE / "app.js").read_text()
+    assert "escapeHtml(result.agent)" in script
+    assert "escapeHtml(result.submitter)" in script
+    assert "safeResultUrl(result.result)" in script
+    assert 'const button = event.currentTarget;' in script
+    assert 'setTimeout(() => { event.currentTarget' not in script

@@ -6,6 +6,10 @@ on:
     paths:
       - "site/**"
       - "leaderboard/results/**"
+      - "leaderboard/benign/**"
+      - "submissions/impact/**"
+      - "submissions/reproductions.json"
+      - "submissions/attestations.json"
       - "scripts/generate_site_data.py"
       - ".github/workflows/pages.yml"
   workflow_dispatch:

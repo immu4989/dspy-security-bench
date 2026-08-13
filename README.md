@@ -15,6 +15,7 @@ and a benchmark you can point at **your own agent** and gate in CI.
 [![dspy 3.3.0b1+](https://img.shields.io/badge/dspy-%E2%89%A53.3.0b1-FF6F61.svg)](https://github.com/stanfordnlp/dspy)
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
+[![ProofRun](https://img.shields.io/badge/ProofRun-attested%20evidence-8F78FF)](docs/proofrun.md)
 [![leaderboard](https://img.shields.io/badge/leaderboard-14%20models%20%C2%B7%2010%20families-4F46E5)](LEADERBOARD.md)
 [![interactive site](https://img.shields.io/badge/explore-interactive%20leaderboard-2DD4BF)](https://immu4989.github.io/dspy-security-bench/)
 [![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
@@ -27,6 +28,42 @@ and a benchmark you can point at **your own agent** and gate in CI.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## New in v0.7: ProofRun evidence passports
+
+**A benchmark score should be inspectable evidence—not a screenshot.** ProofRun
+runs the stochastic ProcureBench protocol, preserves every trial, gates on the
+Wilson confidence lower bound, and creates GitHub/Sigstore provenance for the
+exact result bytes.
+
+Use the centrally controlled reusable workflow to produce the strongest
+automated evidence tier:
+
+```yaml
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  proofrun:
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.7.0
+    with:
+      agent: myapp.security:build_agent
+      trials: 10
+      min-lower-bound: 0.80
+```
+
+The gate runs **after** evidence is preserved and attested, so failures remain
+debuggable. Reviewers can recompute the statistics offline, verify the source
+commit and hosted-runner certificate with GitHub CLI, and distinguish four
+honest tiers: self-attested, GitHub-attested, trusted builder, and maintainer
+reproduced. Provenance proves where the evidence bytes came from; it does not
+make a remote provider independently observable or certify an agent as safe.
+
+[Read the ProofRun trust model and integration guide →](docs/proofrun.md)
 
 ---
 
@@ -108,8 +145,9 @@ dspy-security-bench impact verify submissions/impact/your-agent.json
 ```
 
 Fork the repository and open a pull request with the bundle. CI recomputes its
-statistics and hashes offline. Execution identity remains self-attested; the
-project does not mislabel a content checksum as proof of who ran a model.
+statistics and hashes offline. Local bundles remain self-attested; ProofRun can
+add GitHub/Sigstore workflow provenance, and the project labels the resulting
+evidence tier without misrepresenting a checksum as proof of execution identity.
 
 The specialty maps its controls to procurement impartiality and
 source-selection protections while remaining explicit that a benchmark is not a
@@ -866,7 +904,8 @@ v0.1 scope choices:
 | ImpactTwin / ProcureBench — counterfactual procurement mission assurance, economic context, JSON/SARIF CI gate | **shipped on main** |
 | BoundaryDiff — instrumented clean/poisoned trace divergence and policy remediation evidence | **shipped** |
 | v0.6 — RepeatTwin uncertainty, usage telemetry, and content-addressed community submissions | **shipped** |
-| v0.6.x — more families, secondary `direct` attack column, and attested remote-run submissions | in progress |
+| v0.7 — ProofRun attested evidence passports, reusable trusted builder, and community evidence ladder | **shipped** |
+| v0.8 — more families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work

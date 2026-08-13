@@ -22,7 +22,7 @@
       "robustness": 0.9933,
       "ciLow": 0.9833,
       "ciHigh": 1.0,
-      "capability": 0.8867,
+      "capability": 0.95,
       "bucket": "Robust",
       "status": "confirmed",
       "classification": "Robust",
@@ -30,11 +30,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.9833,
-          "capability": 0.8667
+          "capability": 0.9
         },
         "banking": {
           "robustness": 1.0,
-          "capability": 0.9
+          "capability": 1.0
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_anthropic_claude_sonnet_4_5.json"
@@ -46,7 +46,7 @@
       "robustness": 0.9933,
       "ciLow": 0.9833,
       "ciHigh": 1.0,
-      "capability": 0.62,
+      "capability": 0.7,
       "bucket": "Robust",
       "status": "confirmed",
       "classification": "Robust",
@@ -54,7 +54,7 @@
       "suites": {
         "workspace": {
           "robustness": 1.0,
-          "capability": 0.8
+          "capability": 0.9
         },
         "banking": {
           "robustness": 0.9889,
@@ -70,7 +70,7 @@
       "robustness": 0.9267,
       "ciLow": 0.8867,
       "ciHigh": 0.9667,
-      "capability": 0.3466,
+      "capability": 0.45,
       "bucket": "Robust",
       "status": "provisional",
       "classification": "Provisional",
@@ -78,11 +78,11 @@
       "suites": {
         "workspace": {
           "robustness": 1.0,
-          "capability": 0.35
+          "capability": 0.4
         },
         "banking": {
           "robustness": 0.8778,
-          "capability": 0.3444
+          "capability": 0.5
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_nvidia_nemotron_3_nano_30b_a3b.json"
@@ -94,7 +94,7 @@
       "robustness": 0.88,
       "ciLow": 0.8273,
       "ciHigh": 0.9327,
-      "capability": 0.6266,
+      "capability": 0.65,
       "bucket": "Mixed",
       "status": "provisional",
       "classification": "Provisional",
@@ -102,11 +102,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.9167,
-          "capability": 0.6
+          "capability": 0.7
         },
         "banking": {
           "robustness": 0.8556,
-          "capability": 0.6444
+          "capability": 0.6
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_google_gemini_2_5_flash_lite.json"
@@ -118,7 +118,7 @@
       "robustness": 0.86,
       "ciLow": 0.8045,
       "ciHigh": 0.9154,
-      "capability": 0.6667,
+      "capability": 0.8,
       "bucket": "Mixed",
       "status": "provisional",
       "classification": "Provisional",
@@ -126,11 +126,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.9,
-          "capability": 0.6333
+          "capability": 0.7
         },
         "banking": {
           "robustness": 0.8333,
-          "capability": 0.6889
+          "capability": 0.9
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_meta_llama_llama_4_maverick.json"
@@ -142,7 +142,7 @@
       "robustness": 0.8511,
       "ciLow": 0.7956,
       "ciHigh": 0.9066,
-      "capability": 0.2134,
+      "capability": 0.2,
       "bucket": "Mixed",
       "status": "provisional",
       "classification": "Provisional",
@@ -150,11 +150,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.8944,
-          "capability": 0.1167
+          "capability": 0.1
         },
         "banking": {
           "robustness": 0.8222,
-          "capability": 0.2778
+          "capability": 0.3
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_openai_gpt_4o_mini.json"
@@ -166,7 +166,7 @@
       "robustness": 0.8134,
       "ciLow": 0.7544,
       "ciHigh": 0.8723,
-      "capability": 0.5933,
+      "capability": 0.85,
       "bucket": "Mixed",
       "status": "confirmed",
       "classification": "Mixed",
@@ -174,11 +174,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.7167,
-          "capability": 0.5167
+          "capability": 0.9
         },
         "banking": {
           "robustness": 0.8778,
-          "capability": 0.6444
+          "capability": 0.8
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_nvidia_nemotron_3_super_120b_a12b.json"
@@ -190,7 +190,7 @@
       "robustness": 0.7533,
       "ciLow": 0.6846,
       "ciHigh": 0.8221,
-      "capability": 0.6733,
+      "capability": 0.85,
       "bucket": "Mixed",
       "status": "confirmed",
       "classification": "Mixed",
@@ -198,11 +198,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.5833,
-          "capability": 0.5333
+          "capability": 0.9
         },
         "banking": {
           "robustness": 0.8667,
-          "capability": 0.7667
+          "capability": 0.8
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_x_ai_grok_4_3.json"
@@ -214,7 +214,7 @@
       "robustness": 0.58,
       "ciLow": 0.4972,
       "ciHigh": 0.6628,
-      "capability": 0.2933,
+      "capability": 0.45,
       "bucket": "Mixed",
       "status": "provisional",
       "classification": "Provisional",
@@ -222,11 +222,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.5833,
-          "capability": 0.0333
+          "capability": 0.3
         },
         "banking": {
           "robustness": 0.5778,
-          "capability": 0.4667
+          "capability": 0.6
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_openai_gpt_oss_20b.json"
@@ -238,7 +238,7 @@
       "robustness": 0.5489,
       "ciLow": 0.4682,
       "ciHigh": 0.6296,
-      "capability": 0.3267,
+      "capability": 0.4,
       "bucket": "Mixed",
       "status": "provisional",
       "classification": "Provisional",
@@ -246,11 +246,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.5222,
-          "capability": 0.0833
+          "capability": 0.2
         },
         "banking": {
           "robustness": 0.5667,
-          "capability": 0.4889
+          "capability": 0.6
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_meta_llama_llama_3_3_70b_instruct.json"
@@ -262,7 +262,7 @@
       "robustness": 0.38,
       "ciLow": 0.3044,
       "ciHigh": 0.4555,
-      "capability": 0.5267,
+      "capability": 0.75,
       "bucket": "Vulnerable",
       "status": "confirmed",
       "classification": "Vulnerable",
@@ -270,11 +270,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.4333,
-          "capability": 0.25
+          "capability": 0.7
         },
         "banking": {
           "robustness": 0.3444,
-          "capability": 0.7111
+          "capability": 0.8
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_qwen_qwen3_235b_a22b_2507.json"
@@ -286,7 +286,7 @@
       "robustness": 0.3667,
       "ciLow": 0.2886,
       "ciHigh": 0.4448,
-      "capability": 0.6134,
+      "capability": 0.9,
       "bucket": "Vulnerable",
       "status": "confirmed",
       "classification": "Vulnerable",
@@ -294,11 +294,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.3333,
-          "capability": 0.25
+          "capability": 0.8
         },
         "banking": {
           "robustness": 0.3889,
-          "capability": 0.8556
+          "capability": 1.0
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_mistralai_mistral_medium_3_1.json"
@@ -310,7 +310,7 @@
       "robustness": 0.34,
       "ciLow": 0.264,
       "ciHigh": 0.416,
-      "capability": 0.42,
+      "capability": 0.7,
       "bucket": "Vulnerable",
       "status": "confirmed",
       "classification": "Vulnerable",
@@ -318,11 +318,11 @@
       "suites": {
         "workspace": {
           "robustness": 0.2833,
-          "capability": 0.0
+          "capability": 0.8
         },
         "banking": {
           "robustness": 0.3778,
-          "capability": 0.7
+          "capability": 0.6
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_deepseek_deepseek_v3_2.json"
@@ -334,7 +334,7 @@
       "robustness": 0.2467,
       "ciLow": 0.1825,
       "ciHigh": 0.3108,
-      "capability": 0.4733,
+      "capability": 0.85,
       "bucket": "Vulnerable",
       "status": "confirmed",
       "classification": "Vulnerable",
@@ -342,14 +342,16 @@
       "suites": {
         "workspace": {
           "robustness": 0.1167,
-          "capability": 0.1
+          "capability": 0.8
         },
         "banking": {
           "robustness": 0.3333,
-          "capability": 0.7222
+          "capability": 0.9
         }
       },
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/leaderboard/results/openrouter_mistralai_mistral_large_2512.json"
     }
-  ]
+  ],
+  "proofrunCount": 0,
+  "proofruns": []
 }

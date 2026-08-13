@@ -1,0 +1,232 @@
+name: ProofRun trusted builder
+
+on:
+  workflow_call:
+    inputs:
+      agent:
+        description: "Python module:callable returning a fresh Agent"
+        required: true
+        type: string
+      trials:
+        required: false
+        type: number
+        default: 10
+      confidence:
+        required: false
+        type: number
+        default: 0.95
+      min-lower-bound:
+        required: false
+        type: number
+        default: 0.0
+      submitter:
+        required: false
+        type: string
+        default: ""
+      agent-source:
+        required: false
+        type: string
+        default: ""
+      notes:
+        required: false
+        type: string
+        default: ""
+      install-project:
+        required: false
+        type: boolean
+        default: true
+      artifact-name:
+        required: false
+        type: string
+        default: "proofrun-evidence"
+    secrets:
+      OPENAI_API_KEY:
+        required: false
+      ANTHROPIC_API_KEY:
+        required: false
+      GEMINI_API_KEY:
+        required: false
+      OPENROUTER_API_KEY:
+        required: false
+      AZURE_API_KEY:
+        required: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      bundle-exists: ${{ steps.bundle.outputs.exists }}
+      proofrun-outcome: ${{ steps.proofrun.outcome }}
+    steps:
+      - name: Validate artifact name
+        env:
+          PROOFRUN_ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        run: |
+          if [[ ! "$PROOFRUN_ARTIFACT_NAME" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "artifact-name may contain only letters, digits, dots, underscores, and hyphens" >&2
+            exit 2
+          fi
+
+      - name: Check out evaluated repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: target
+
+      - name: Check out immutable ProofRun engine
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: immu4989/dspy-security-bench
+          ref: v0.7.0
+          path: engine
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          version: "0.12.3"
+
+      - name: Create isolated runtime
+        run: uv venv --python 3.12 .proofrun-venv
+
+      - name: Install evaluated project
+        if: inputs.install-project
+        run: uv pip install --python .proofrun-venv/bin/python -e ./target
+
+      - name: Install immutable ProofRun engine last
+        run: uv pip install --python .proofrun-venv/bin/python ./engine
+
+      - name: Run, score, and package untrusted evidence
+        id: proofrun
+        continue-on-error: true
+        working-directory: engine
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
+          PROOFRUN_AGENT: ${{ inputs.agent }}
+          PROOFRUN_TRIALS: ${{ inputs.trials }}
+          PROOFRUN_CONFIDENCE: ${{ inputs.confidence }}
+          PROOFRUN_MIN_LOWER_BOUND: ${{ inputs.min-lower-bound }}
+          PROOFRUN_SUBMITTER: ${{ inputs.submitter }}
+          PROOFRUN_AGENT_SOURCE: ${{ inputs.agent-source }}
+          PROOFRUN_NOTES: ${{ inputs.notes }}
+          PROOFRUN_ARTIFACT_NAME: ${{ inputs.artifact-name }}
+          PROOFRUN_BUILDER_KIND: "dspy_security_bench_reusable_workflow"
+          PROOFRUN_RUNNER_ENVIRONMENT: ${{ runner.environment }}
+        run: |
+          submitter="$PROOFRUN_SUBMITTER"
+          agent_source="$PROOFRUN_AGENT_SOURCE"
+          if [[ -z "$submitter" ]]; then submitter="@$GITHUB_ACTOR"; fi
+          if [[ -z "$agent_source" ]]; then
+            agent_source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
+          fi
+          mkdir -p ../proofrun-artifacts
+          ../.proofrun-venv/bin/dspy-security-bench proofrun run \
+            --agent "$PROOFRUN_AGENT" \
+            --trials "$PROOFRUN_TRIALS" \
+            --confidence "$PROOFRUN_CONFIDENCE" \
+            --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
+            --submitter "$submitter" \
+            --agent-source "$agent_source" \
+            --notes "$PROOFRUN_NOTES" \
+            --out "../proofrun-artifacts/$PROOFRUN_ARTIFACT_NAME.json"
+
+      - name: Inspect generated bundle
+        id: bundle
+        if: always()
+        env:
+          PROOFRUN_ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        run: |
+          if [[ -f "proofrun-artifacts/$PROOFRUN_ARTIFACT_NAME.json" ]]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Transfer untrusted evidence to the clean attestation job
+        if: steps.bundle.outputs.exists == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: proofrun-unverified-${{ github.run_id }}-${{ github.run_attempt }}
+          path: proofrun-artifacts/*.json
+          if-no-files-found: error
+          retention-days: 1
+
+  verify-and-attest:
+    needs: evaluate
+    if: needs.evaluate.outputs.bundle-exists == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Download evidence from the untrusted evaluation job
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: proofrun-unverified-${{ github.run_id }}-${{ github.run_attempt }}
+          path: proofrun-artifacts
+
+      - name: Check out immutable verification engine
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: immu4989/dspy-security-bench
+          ref: v0.7.0
+          path: engine
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install immutable verifier
+        run: python -m pip install ./engine
+
+      - name: Recompute every statistic and content digest
+        env:
+          PROOFRUN_ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        run: |
+          dspy-security-bench proofrun verify \
+            "proofrun-artifacts/$PROOFRUN_ARTIFACT_NAME.json" \
+            --offline
+
+      - name: Attest exact evidence with the trusted builder identity
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: proofrun-artifacts/*.json
+
+      - name: Publish verified evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: proofrun-artifacts/*.json
+          if-no-files-found: error
+
+  enforce-gate:
+    needs: [evaluate, verify-and-attest]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Enforce evaluation and evidence requirements
+        env:
+          PROOFRUN_BUNDLE_EXISTS: ${{ needs.evaluate.outputs.bundle-exists }}
+          PROOFRUN_OUTCOME: ${{ needs.evaluate.outputs.proofrun-outcome }}
+          PROOFRUN_ATTESTATION_JOB: ${{ needs.verify-and-attest.result }}
+        run: |
+          if [[ "$PROOFRUN_BUNDLE_EXISTS" != "true" ]]; then
+            echo "ProofRun did not produce an evidence bundle" >&2
+            exit 1
+          fi
+          if [[ "$PROOFRUN_ATTESTATION_JOB" != "success" ]]; then
+            echo "Evidence verification or attestation failed" >&2
+            exit 1
+          fi
+          if [[ "$PROOFRUN_OUTCOME" != "success" ]]; then
+            echo "Evidence was preserved, but the configured statistical gate failed" >&2
+            exit 1
+          fi

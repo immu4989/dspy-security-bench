@@ -27,6 +27,7 @@
       </a>
       <div class="nav-links">
         <a href="#leaderboard">Leaderboard</a>
+        <a href="#proofrun">ProofRun</a>
         <a href="#impact">ImpactTwin</a>
         <a href="#use-cases">Use cases</a>
         <a href="#evidence">Evidence</a>
@@ -138,6 +139,76 @@
 <span class="success">✓ no model was called</span></code></pre>
         <a class="terminal-link" href="https://github.com/immu4989/dspy-security-bench#five-minute-ci-quickstart">Open the five-minute guide <span aria-hidden="true">↗</span></a>
       </div>
+    </section>
+
+    <section class="section proofrun-section" id="proofrun">
+      <div class="proof-grid" aria-hidden="true"></div>
+      <div class="proofrun-heading reveal">
+        <div>
+          <span class="section-kicker">ProofRun · evidence with a chain of custody</span>
+          <h2>Run it. Sign it.<br><em>Let others verify it.</em></h2>
+        </div>
+        <div class="proofrun-intro">
+          <span class="proof-live"><i></i> v0.7 trusted builder</span>
+          <p>A reusable workflow isolates model evaluation from signing, recomputes every statistic in a clean job, and binds the exact JSON to a source commit before enforcing the gate.</p>
+        </div>
+      </div>
+
+      <div class="passport reveal">
+        <div class="passport-spine">
+          <span>DSB / PROOFRUN</span>
+          <strong>01</strong>
+          <small>evidence passport</small>
+        </div>
+        <div class="passport-body">
+          <div class="passport-status">
+            <span class="passport-kicker">Verification ladder</span>
+            <strong>Bytes are easy.<br><em>Provenance is earned.</em></strong>
+          </div>
+          <ol class="trust-ladder">
+            <li class="tier-self"><i>1</i><div><strong>Self-attested</strong><span>statistics + canonical hash</span></div></li>
+            <li class="tier-github"><i>2</i><div><strong>GitHub-attested</strong><span>runner + workflow + commit</span></div></li>
+            <li class="tier-builder"><i>3</i><div><strong>Trusted builder</strong><span>immutable central workflow</span></div></li>
+            <li class="tier-reproduced"><i>4</i><div><strong>Reproduced</strong><span>independent maintainer rerun</span></div></li>
+          </ol>
+          <div class="passport-digest">
+            <span>artifact subject</span>
+            <code>sha256: 9e81…c4f2</code>
+            <small>signature verification is separate from score recomputation</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="proofrun-launch reveal">
+        <div class="workflow-card">
+          <div class="workflow-bar"><span>agent-security.yml</span><button id="proofrun-copy" type="button">Copy workflow</button></div>
+          <pre><code><span class="yaml-key">permissions:</span>
+  <span class="yaml-key">contents:</span> read
+  <span class="yaml-key">id-token:</span> write
+  <span class="yaml-key">attestations:</span> write
+
+<span class="yaml-key">jobs:</span>
+  <span class="yaml-key">proofrun:</span>
+    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.7.0
+    <span class="yaml-key">with:</span>
+      <span class="yaml-key">agent:</span> myapp.security:build_agent
+      <span class="yaml-key">trials:</span> 10</code></pre>
+        </div>
+        <div class="network-card">
+          <span class="passport-kicker">Open evidence network</span>
+          <strong data-proofrun-count>0</strong>
+          <span>community ProofRuns</span>
+          <p>Every accepted entry preserves all raw trials and passes offline recomputation. A cryptographic badge appears only after the exact digest passes attestation verification and enters the reviewed registry.</p>
+          <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/proofrun.md">Run your agent <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+
+      <div class="proofrun-results reveal">
+        <div class="proofrun-results-head"><span>Community evidence</span><small>ranked by evidence tier, then lower confidence bound</small></div>
+        <div id="proofrun-results"></div>
+        <div id="proofrun-empty" class="proofrun-empty">The network is open. Be the first independent agent team to submit an attested run.</div>
+      </div>
+      <p class="proofrun-disclaimer reveal">Provenance authenticates a workflow and exact artifact. It does not independently observe a model provider or turn a synthetic benchmark into certification.</p>
     </section>
 
     <section class="section impact-section" id="impact">

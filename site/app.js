@@ -1,6 +1,14 @@
 const state = { models: [], filter: "all", query: "" };
 const palette = { Robust: "#72f2e7", Mixed: "#f4c86b", Vulnerable: "#ff7569", Provisional: "#8f78ff" };
 const pct = value => `${Math.round(value * 100)}%`;
+const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+})[character]);
+const safeResultUrl = value => {
+  const url = String(value || "");
+  const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/impact\/[a-z0-9-]+\.json$/;
+  return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/impact";
+};
 
 async function loadData() {
   const response = await fetch("data.json");
@@ -9,11 +17,38 @@ async function loadData() {
   state.models = data.models;
   document.querySelectorAll("[data-model-count]").forEach(node => node.textContent = data.modelCount);
   document.querySelectorAll("[data-family-count]").forEach(node => node.textContent = data.familyCount);
+  document.querySelectorAll("[data-proofrun-count]").forEach(node => node.textContent = data.proofrunCount || 0);
   const robustness = data.models.map(model => model.robustness);
   document.querySelector("[data-min-robustness]").textContent = Math.round(Math.min(...robustness) * 100);
   document.querySelector("[data-max-robustness]").textContent = Math.round(Math.max(...robustness) * 100);
   renderTable();
   renderScatter();
+  renderProofRuns(data.proofruns || []);
+}
+
+const proofTier = {
+  maintainer_reproduced: ["Reproduced", "tier-reproduced"],
+  trusted_builder: ["Trusted builder", "tier-builder"],
+  github_attested: ["GitHub-attested", "tier-github"],
+  github_attestation_unverified: ["Attestation pending", "tier-pending"],
+  self_attested: ["Self-attested", "tier-self"]
+};
+
+function renderProofRuns(results) {
+  const host = document.querySelector("#proofrun-results");
+  const empty = document.querySelector("#proofrun-empty");
+  if (!host || !empty) return;
+  empty.hidden = results.length > 0;
+  host.innerHTML = results.map(result => {
+    const [label, className] = proofTier[result.evidenceTier] || proofTier.self_attested;
+    const cost = result.costUsd == null ? "not reported" : `$${Number(result.costUsd).toFixed(4)}`;
+    return `<article class="proof-result">
+      <div><span class="proof-tier ${className}">${label}</span><strong>${escapeHtml(result.agent)}</strong><small>${escapeHtml(result.submitter)} · ${Number(result.trials)} trials</small></div>
+      <div class="proof-score"><strong>${pct(result.rate)}</strong><span>95% Wilson ${pct(result.lower)}–${pct(result.upper)}</span></div>
+      <div class="proof-meta"><span>${Number(result.unstablePairs)} unstable pairs</span><span>${escapeHtml(cost)}</span></div>
+      <a href="${safeResultUrl(result.result)}">inspect JSON ↗</a>
+    </article>`;
+  }).join("");
 }
 
 function visibleModels() {
@@ -104,10 +139,19 @@ document.querySelector("#model-search").addEventListener("input", event => {
 });
 
 document.querySelector("#copy-code").addEventListener("click", async event => {
+  const button = event.currentTarget;
   const commands = `pip install dspy-security-bench\ndspy-security-bench init --model openai/gpt-4o-mini\ndspy-security-bench scan --config .dspy-security-bench.yaml --plan`;
   await navigator.clipboard.writeText(commands);
-  event.currentTarget.textContent = "Copied ✓";
-  setTimeout(() => { event.currentTarget.textContent = "Copy"; }, 1800);
+  button.textContent = "Copied ✓";
+  setTimeout(() => { button.textContent = "Copy"; }, 1800);
+});
+
+document.querySelector("#proofrun-copy")?.addEventListener("click", async event => {
+  const button = event.currentTarget;
+  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  proofrun:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.7.0\n    with:\n      agent: myapp.security:build_agent\n      trials: 10`;
+  await navigator.clipboard.writeText(workflow);
+  button.textContent = "Copied ✓";
+  setTimeout(() => { button.textContent = "Copy workflow"; }, 1800);
 });
 
 const menuButton = document.querySelector(".menu-button");
@@ -116,7 +160,10 @@ menuButton.addEventListener("click", () => {
   const open = links.classList.toggle("open");
   menuButton.setAttribute("aria-expanded", String(open));
 });
-document.querySelectorAll(".nav-links a").forEach(link => link.addEventListener("click", () => document.querySelector(".nav-links").classList.remove("open")));
+document.querySelectorAll(".nav-links a").forEach(link => link.addEventListener("click", () => {
+  document.querySelector(".nav-links").classList.remove("open");
+  menuButton.setAttribute("aria-expanded", "false");
+}));
 window.addEventListener("scroll", () => document.querySelector(".nav-shell").classList.toggle("scrolled", window.scrollY > 20), { passive: true });
 
 const observer = new IntersectionObserver(entries => {
