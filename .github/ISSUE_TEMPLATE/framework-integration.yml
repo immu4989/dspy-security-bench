@@ -1,0 +1,62 @@
+name: Framework integration
+description: Report an adapter problem or propose a framework bridge.
+title: "[Framework] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help make real agent repositories easier to benchmark. Do not include API keys, private prompts, customer data, or production tool output.
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework
+      options:
+        - OpenAI Agents SDK
+        - LangChain or LangGraph
+        - Pydantic AI
+        - CrewAI
+        - Microsoft AutoGen AgentChat
+        - MCP or custom loop
+        - A framework not yet supported
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Environment
+      description: Include the framework version, Python version, and dspy-security-bench version.
+      placeholder: "openai-agents 0.20.0, Python 3.12, dspy-security-bench 0.8.0"
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: User workflow
+      description: What kind of agent are you trying to connect, and who benefits from testing it?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction or proposed contract
+      description: Show the smallest factory or SDK surface needed. Replace secrets and private data with synthetic placeholders.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed and expected behavior
+      description: Include doctor output if available. The doctor command does not print credential values.
+    validations:
+      required: true
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I can help test a fix without making provider calls in CI.
+        - label: I am interested in opening a pull request for this bridge.
+        - label: I have removed credentials, private prompts, and production data.
+          required: true

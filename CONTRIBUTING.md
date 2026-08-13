@@ -4,15 +4,18 @@ Contributions are welcome. The most useful ones, roughly in order:
 
 1. **Submitting a ProofRun result for your own agent** — produce recomputable,
    provenance-labeled evidence and open a pull request; see below.
-2. **Adding a model to the base-model leaderboard** — see below.
-3. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
+2. **Improving a native framework bridge** — reproduce an upstream SDK change,
+   add a zero-provider-call compatibility test, and keep the benchmark contract
+   framework-neutral; see below.
+3. **Adding a model to the base-model leaderboard** — see below.
+4. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
    utilities, health administration, supply chain, emergency management, or a
    commercial workflow with a clearly affected stakeholder.
-4. **Adding an attack or a defense** to the harness.
-5. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
+5. **Adding an attack or a defense** to the harness.
+6. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
    every published row ships with the result JSON that produced it, so
    disagreements should be resolvable.
-6. Bug reports and documentation fixes.
+7. Bug reports and documentation fixes.
 
 ## Getting set up
 
@@ -29,6 +32,26 @@ The test suite does not make network calls. You only need provider API keys to
 run the benchmark itself. Contributors changing embedding-based synthesis or
 deduplication should install `.[dev,synthesis]`; the ordinary development and
 CI environment intentionally avoids the large optional ML runtime.
+
+## Adding or updating a framework bridge
+
+Open a **Framework integration** issue before a large adapter change. Native
+bridges live in `dspy_security_bench/integrations/` and must preserve four
+invariants:
+
+- pass the exact live `BenchTool` callable into the framework rather than a
+  simulated tool;
+- return the framework's final answer through `AgentResult` and retain any real
+  tool-call ledger;
+- import optional SDKs lazily so the base package remains lightweight; and
+- make no provider call in compatibility tests.
+
+Add the dependency as an optional extra, update the integration guide, and add
+its current SDK surface to `tests/test_framework_compat.py`. The scheduled
+framework matrix installs each extra independently, which keeps transitive
+dependencies from hiding a missing declaration. If an upstream SDK has a Python
+version boundary, encode and document it instead of allowing an opaque import
+failure.
 
 ## Adding a model to the leaderboard
 

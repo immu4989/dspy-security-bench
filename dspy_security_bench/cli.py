@@ -1,14 +1,17 @@
 """Umbrella CLI: `dspy-security-bench <subcommand>`.
 
 Subcommands:
+  doctor      Validate a BYOA integration without invoking the agent run loop.
   impact      Run counterfactual procurement mission-assurance tests.
   init        Create a scan config and GitHub Action in the current project.
+  integrate   Detect an agent framework and scaffold a ProofRun target.
   policy      Create and test deterministic tool-call policies.
   proofrun    Produce or verify provenance-aware RepeatTwin evidence.
   scan        Scan an agent for prompt-injection robustness and gate CI.
   synthesize  Generate a synthetic trainset for a suite.
   validate    Validate/dedupe a synthesized trainset.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -61,21 +64,32 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__)
         print(
             "Usage: dspy-security-bench "
-            "<init|scan|impact|policy|proofrun|synthesize|validate> [args...]"
+            "<init|integrate|doctor|scan|impact|policy|proofrun|synthesize|validate> [args...]"
         )
         return 0
 
     sub, rest = argv[0], argv[1:]
     if sub == "init":
         return _init(rest)
+    if sub == "integrate":
+        from dspy_security_bench.integrations.cli import integrate_main
+
+        return integrate_main(rest)
+    if sub == "doctor":
+        from dspy_security_bench.integrations.cli import doctor_main
+
+        return doctor_main(rest)
     if sub == "scan":
         from dspy_security_bench.scan.cli import main as scan_main
+
         return scan_main(rest)
     if sub == "impact":
         from dspy_security_bench.procurement.cli import main as impact_main
+
         return impact_main(rest)
     if sub == "policy":
         from dspy_security_bench.policy_cli import main as policy_main
+
         return policy_main(rest)
     if sub == "proofrun":
         from dspy_security_bench.proofrun_cli import main as proofrun_main
@@ -83,16 +97,18 @@ def main(argv: list[str] | None = None) -> int:
         return proofrun_main(rest)
     if sub == "synthesize":
         from dspy_security_bench.synthesis.generator import _cli
+
         sys.argv = ["dspy-security-bench-synthesize", *rest]
         return _cli() or 0
     if sub == "validate":
         from dspy_security_bench.synthesis.validator import _cli
+
         sys.argv = ["dspy-security-bench-validate", *rest]
         return _cli() or 0
 
     print(
         f"unknown subcommand {sub!r}. Use: "
-        "init | scan | impact | policy | proofrun | synthesize | validate",
+        "init | integrate | doctor | scan | impact | policy | proofrun | synthesize | validate",
         file=sys.stderr,
     )
     return 2

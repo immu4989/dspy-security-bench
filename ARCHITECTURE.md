@@ -53,6 +53,7 @@ dspy_security_bench/
 │   └── agentdojo.py           # DSPyReActV2Element pipeline wrapper
 ├── attacks/                    # static, adaptive, and LM-driven attacks
 ├── defenses.py                # measurable prompt-level defenses
+├── integrations/               # BYOA adapters, detector, scaffold, and doctor
 ├── optimizers.py              # named optimizer harness + substring metric
 ├── llm_judge.py               # LLM-as-judge metric (fast-path substring)
 └── runner.py                  # benchmark orchestration + DataFrame

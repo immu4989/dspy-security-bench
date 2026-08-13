@@ -28,7 +28,9 @@ class _AssetCollector(HTMLParser):
 
 def test_site_payload_covers_committed_non_smoke_results():
     payload = build_payload()
-    expected = sum(not json.loads(path.read_text()).get("smoke") for path in RESULTS_DIR.glob("*.json"))
+    expected = sum(
+        not json.loads(path.read_text()).get("smoke") for path in RESULTS_DIR.glob("*.json")
+    )
     assert payload["modelCount"] == expected
     assert payload["familyCount"] == len({model["family"] for model in payload["models"]})
 
@@ -50,9 +52,7 @@ def test_site_capability_is_joined_from_no_attack_evidence():
     for path in BENIGN_DIR.glob("*.json"):
         benign = json.loads(path.read_text())
         if benign["model_id"] in by_model:
-            assert by_model[benign["model_id"]]["capability"] == benign[
-                "combined_U_benign"
-            ]
+            assert by_model[benign["model_id"]]["capability"] == benign["combined_U_benign"]
 
 
 def test_committed_site_data_matches_result_json():
@@ -81,6 +81,17 @@ def test_site_presents_impact_twin_without_mislabeling_fixture_as_model_result()
     assert "content addressed" in page
     assert "Reference fixture, not a model result" in page
     assert "not predicted loss or a compliance certification" in page
+
+
+def test_site_presents_framework_onboarding_without_surprise_model_spend():
+    page = (SITE / "index.html").read_text()
+    assert 'id="connect"' in page
+    assert "dspy-security-bench integrate" in page
+    assert "dspy-security-bench doctor" in page
+    for framework in ("OpenAI", "LangChain", "Pydantic AI", "CrewAI", "AutoGen", "MCP"):
+        assert framework in page
+    assert "without invoking the agent run loop" in page
+    assert "cannot unexpectedly spend model credits" in page
 
 
 def test_site_never_upgrades_a_claimed_attestation_without_registry_verification(
@@ -139,5 +150,5 @@ def test_site_escapes_untrusted_community_fields_before_rendering():
     assert "escapeHtml(result.agent)" in script
     assert "escapeHtml(result.submitter)" in script
     assert "safeResultUrl(result.result)" in script
-    assert 'const button = event.currentTarget;' in script
-    assert 'setTimeout(() => { event.currentTarget' not in script
+    assert "const button = event.currentTarget;" in script
+    assert "setTimeout(() => { event.currentTarget" not in script

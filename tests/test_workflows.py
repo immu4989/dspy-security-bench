@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import yaml
+
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
 ACTION = ROOT / "action.yml"
@@ -71,8 +73,9 @@ def test_proofrun_action_preserves_evidence_before_enforcing_the_gate():
 
 def test_reusable_proofrun_uses_an_immutable_central_builder():
     workflow = (WORKFLOWS / "proofrun.yml").read_text()
+    version = (ROOT / "pyproject.toml").read_text().split('version = "', 1)[1].split('"', 1)[0]
     assert "workflow_call:" in workflow
-    assert "ref: v0.7.0" in workflow
+    assert f"ref: v{version}" in workflow
     assert 'PROOFRUN_BUILDER_KIND: "dspy_security_bench_reusable_workflow"' in workflow
     assert "attestations: write" in workflow
     assert "--min-lower-bound" in workflow
@@ -86,6 +89,7 @@ def test_reusable_proofrun_uses_an_immutable_central_builder():
     assert "OPENAI_API_KEY" not in clean_job
     assert "ANTHROPIC_API_KEY" not in clean_job
     assert "proofrun verify" in clean_job
+    assert "PYTHONPATH: ${{ github.workspace }}/target" in workflow
 
 
 def test_proofrun_action_has_a_live_smoke_workflow():
@@ -94,3 +98,28 @@ def test_proofrun_action_has_a_live_smoke_workflow():
     assert "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" in workflow
     assert "build_bounded_reference" in workflow
     assert "attestations: write" in workflow
+
+
+def test_native_framework_bridges_have_a_zero_provider_call_compatibility_matrix():
+    workflow = (WORKFLOWS / "framework-adapters.yml").read_text()
+    for framework in (
+        "openai-agents",
+        "langchain",
+        "pydantic-ai",
+        "crewai",
+        "autogen",
+    ):
+        assert f"framework: {framework}" in workflow
+    assert "schedule:" in workflow
+    assert "tests/test_framework_compat.py" in workflow
+    assert "OPENAI_API_KEY" not in workflow
+    assert "ANTHROPIC_API_KEY" not in workflow
+
+
+def test_framework_issue_form_is_valid_and_requires_redaction_confirmation():
+    form = yaml.safe_load((ROOT / ".github/ISSUE_TEMPLATE/framework-integration.yml").read_text())
+    assert form["name"] == "Framework integration"
+    options = next(item for item in form["body"] if item.get("id") == "contribution")["attributes"][
+        "options"
+    ]
+    assert any(option.get("required") for option in options)

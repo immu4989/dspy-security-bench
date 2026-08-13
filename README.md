@@ -31,7 +31,7 @@ attested evidence pipeline you can point at **your own agent**.
 
 ---
 
-## ProofRun evidence passports (v0.7)
+## ProofRun evidence passports
 
 **A benchmark score should be inspectable evidence—not a screenshot.** ProofRun
 runs the stochastic ProcureBench protocol, preserves every trial, gates on the
@@ -49,7 +49,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.7.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.8.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -64,6 +64,30 @@ reproduced. Provenance proves where the evidence bytes came from; it does not
 make a remote provider independently observable or certify an agent as safe.
 
 [Read the ProofRun trust model and integration guide →](docs/proofrun.md)
+
+---
+
+## Bring your own agent (v0.8)
+
+**Go from an existing agent repository to an attested security run in minutes.**
+The integration assistant detects directly declared frameworks, generates a
+small reviewable adapter and a manually triggered ProofRun workflow, and checks
+the complete setup without invoking the agent run loop:
+
+```bash
+pip install dspy-security-bench
+dspy-security-bench integrate
+dspy-security-bench doctor
+```
+
+Native bridges cover **OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI,
+CrewAI, and Microsoft AutoGen AgentChat**. MCP and hand-rolled loops use an
+explicit callback bridge because MCP specifies tools, not one universal agent
+runtime. Generated workflows start manual-only to prevent surprise provider
+spend, retain the versioned trusted builder, and never overwrite user files
+without `--force`.
+
+[Open the framework integration guide →](docs/integrations.md)
 
 ---
 
@@ -278,6 +302,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 |---|---|
 | 🏆 **Compare models** | A frozen, reproducible [leaderboard](LEADERBOARD.md) of base-model injection-robustness — 14 models across 10 families, from frontier to open-weights. |
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
+| 🔌 **Connect your framework** | Run [`integrate`](docs/integrations.md) for OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, or an MCP/custom callback, then validate it without model spend using `doctor`. |
 | 🧾 **Produce verifiable evidence** | Use [ProofRun](docs/proofrun.md) to preserve raw repeated trials, recompute statistics offline, and attach GitHub/Sigstore provenance to the exact result bytes. |
 | ⚖️ **Measure mission impact** | Run [ImpactTwin / ProcureBench](docs/impact-twin.md): clean/poisoned procurement twins that score decision drift, protected-data release, authority bypass, and synthetic funds at risk. |
 | 🔐 **Enforce least agency** | Put deterministic policy around live tool calls: allow, deny, or require approval. Includes [production profiles](docs/use-cases.md) for support, finance, RAG, and DevOps. |
@@ -907,7 +932,8 @@ v0.1 scope choices:
 | BoundaryDiff — instrumented clean/poisoned trace divergence and policy remediation evidence | **shipped** |
 | v0.6 — RepeatTwin uncertainty, usage telemetry, and content-addressed community submissions | **shipped** |
 | v0.7 — ProofRun attested evidence passports, reusable trusted builder, and community evidence ladder | **shipped** |
-| v0.8 — more families, secondary `direct` attack column, and independent reproduction campaigns | planned |
+| v0.8 — BYOA framework adapters, detection, secure scaffolding, and zero-model-call doctor | **shipped** |
+| v0.9 — more families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work

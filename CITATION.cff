@@ -11,8 +11,8 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.7.0
-date-released: 2026-08-12
+version: 0.8.0
+date-released: 2026-08-13
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
 url: "https://github.com/immu4989/dspy-security-bench"
@@ -25,7 +25,9 @@ abstract: >-
   state as a claim. ImpactTwin adds controlled procurement pairs, functional
   side-effect evidence, repeated-execution uncertainty, and content-addressed
   community submissions. ProofRun adds a reusable trusted builder, GitHub/Sigstore
-  provenance for exact evidence bytes, and an explicit evidence ladder. Results
+  provenance for exact evidence bytes, and an explicit evidence ladder. Native
+  framework bridges connect OpenAI Agents SDK, LangChain, Pydantic AI, CrewAI,
+  AutoGen, MCP, and custom loops to the same framework-neutral contract. Results
   are generated from committed evidence so rows and submissions can be audited
   offline.
 keywords:
@@ -37,6 +39,7 @@ keywords:
   - tool-using-agents
   - procurement-security
   - artifact-attestations
+  - agent-frameworks
   - agentdojo
   - dspy
 # doi: "10.5281/zenodo.XXXXXXX"

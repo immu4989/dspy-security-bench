@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="A reproducible LLM prompt-injection leaderboard, CI gate, and RepeatTwin procurement mission-assurance benchmark with uncertainty.">
+  <meta name="description" content="Connect your agent framework to a reproducible prompt-injection leaderboard, CI gate, and procurement mission-assurance benchmark with uncertainty.">
   <meta property="og:title" content="DSPy Security Bench — measure before you trust">
   <meta property="og:description" content="Compare models, gate your own agent, and measure the economic and mission impact of poisoned procurement content.">
   <meta property="og:image" content="assets/security-bench-hero-v2.png">
@@ -27,10 +27,10 @@
       </a>
       <div class="nav-links">
         <a href="#leaderboard">Leaderboard</a>
+        <a href="#connect">Connect</a>
         <a href="#proofrun">ProofRun</a>
         <a href="#impact">ImpactTwin</a>
         <a href="#use-cases">Use cases</a>
-        <a href="#evidence">Evidence</a>
         <a href="#scan">CI scanner</a>
         <a class="nav-cta" href="https://github.com/immu4989/dspy-security-bench">View on GitHub <span aria-hidden="true">↗</span></a>
       </div>
@@ -45,10 +45,10 @@
       <div class="hero-content reveal">
         <div class="eyebrow"><span class="pulse"></span> Protocol v2 · committed evidence</div>
         <h1>Measure before<br><em>you trust.</em></h1>
-        <p class="hero-copy">A reproducible leaderboard for agentic prompt-injection robustness—and a security gate you can point at your own tool-using agent.</p>
+        <p class="hero-copy">A reproducible prompt-injection benchmark that connects to the agent stack you already use—then turns the result into a security gate.</p>
         <div class="hero-actions">
           <a class="button primary" href="#leaderboard">Explore the evidence <span aria-hidden="true">↓</span></a>
-          <a class="button secondary" href="#scan">Protect your agent <span aria-hidden="true">→</span></a>
+          <a class="button secondary" href="#connect">Connect your agent <span aria-hidden="true">→</span></a>
         </div>
         <div class="trust-note"><span>Not a safety certificate.</span> A measurable regression floor with every limitation visible.</div>
       </div>
@@ -141,6 +141,58 @@
       </div>
     </section>
 
+    <section class="section connect-section" id="connect">
+      <div class="connect-grid" aria-hidden="true"></div>
+      <div class="connect-heading reveal">
+        <div>
+          <span class="section-kicker">Bring your own agent · v0.8</span>
+          <h2>Your framework.<br><em>One evidence contract.</em></h2>
+        </div>
+        <p>Keep your orchestration code and tools. The integration assistant detects a directly declared framework, generates a reviewable adapter, and validates the wiring without invoking the agent run loop.</p>
+      </div>
+
+      <div class="connector-stage reveal">
+        <div class="connect-command">
+          <span class="connect-label">01 / Scaffold</span>
+          <div class="command-line"><span>$</span><code>dspy-security-bench integrate</code></div>
+          <div class="detection-line"><i></i><span>Detected</span><strong>openai-agents</strong><small>pyproject.toml</small></div>
+          <div class="generated-files">
+            <span>+ dspy_security_target.py</span>
+            <span>+ integration.json</span>
+            <span>+ dspy-proofrun.yml</span>
+          </div>
+        </div>
+
+        <div class="contract-core" aria-label="Common benchmark contract">
+          <span>agent boundary</span>
+          <div class="contract-orbit"><i></i><b>DSB</b></div>
+          <strong>same attacks<br>same evidence</strong>
+        </div>
+
+        <div class="doctor-card">
+          <span class="connect-label">02 / Verify</span>
+          <div class="doctor-title"><code>dspy-security-bench doctor</code><i>no agent runs</i></div>
+          <ul>
+            <li><span>✓</span> Manifest is valid</li>
+            <li><span>✓</span> Fresh agent factory</li>
+            <li><span>✓</span> Immutable ProofRun ref</li>
+            <li><span>✓</span> Attestation permissions</li>
+          </ul>
+          <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/integrations.md">Open integration guide <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+
+      <div class="framework-rail reveal" aria-label="Supported agent frameworks">
+        <div class="framework-card"><span>OA</span><div><strong>OpenAI</strong><small>Agents SDK</small></div></div>
+        <div class="framework-card"><span>LC</span><div><strong>LangChain</strong><small>and LangGraph</small></div></div>
+        <div class="framework-card"><span>PY</span><div><strong>Pydantic AI</strong><small>typed agents</small></div></div>
+        <div class="framework-card"><span>CR</span><div><strong>CrewAI</strong><small>crews and tools</small></div></div>
+        <div class="framework-card"><span>AG</span><div><strong>AutoGen</strong><small>AgentChat</small></div></div>
+        <div class="framework-card"><span>↔</span><div><strong>MCP / custom</strong><small>any Python loop</small></div></div>
+      </div>
+      <p class="connect-note reveal">Generated workflows are manual by default, so connecting a repository cannot unexpectedly spend model credits.</p>
+    </section>
+
     <section class="section proofrun-section" id="proofrun">
       <div class="proof-grid" aria-hidden="true"></div>
       <div class="proofrun-heading reveal">
@@ -149,7 +201,7 @@
           <h2>Run it. Sign it.<br><em>Let others verify it.</em></h2>
         </div>
         <div class="proofrun-intro">
-          <span class="proof-live"><i></i> v0.7 trusted builder</span>
+          <span class="proof-live"><i></i> v0.8 trusted builder</span>
           <p>A reusable workflow isolates model evaluation from signing, recomputes every statistic in a clean job, and binds the exact JSON to a source commit before enforcing the gate.</p>
         </div>
       </div>
@@ -189,7 +241,7 @@
 
 <span class="yaml-key">jobs:</span>
   <span class="yaml-key">proofrun:</span>
-    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.7.0
+    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.8.0
     <span class="yaml-key">with:</span>
       <span class="yaml-key">agent:</span> myapp.security:build_agent
       <span class="yaml-key">trials:</span> 10</code></pre>

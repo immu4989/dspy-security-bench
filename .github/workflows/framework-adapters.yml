@@ -1,0 +1,67 @@
+name: framework adapters
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dspy_security_bench/integrations/**"
+      - "tests/test_framework_compat.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/framework-adapters.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "dspy_security_bench/integrations/**"
+      - "tests/test_framework_compat.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/framework-adapters.yml"
+  schedule:
+    - cron: "17 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: framework-adapters-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - framework: openai-agents
+            extra: openai-agents
+          - framework: langchain
+            extra: langchain
+          - framework: pydantic-ai
+            extra: pydantic-ai
+          - framework: crewai
+            extra: crewai
+          - framework: autogen
+            extra: autogen
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          version: "0.12.3"
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Install locked framework bridge
+        run: uv sync --locked --extra dev --extra "${{ matrix.extra }}" --python 3.12
+
+      - name: Verify current SDK surface without provider calls
+        env:
+          DSB_FRAMEWORK: ${{ matrix.framework }}
+        run: uv run --locked --no-sync pytest -q tests/test_framework_compat.py
