@@ -2,8 +2,8 @@
 trainset, produces a dict of named agent factories ready to plug into
 `DSPyReActV2Element`.
 
-v0.1 supports: "unoptimized", "bootstrap_fewshot", "miprov2".
-GEPA support deferred to v0.2 (requires resolving its async/Pareto integration).
+Supported optimizers: "unoptimized", "bootstrap_fewshot", "miprov2", and
+"gepa".
 
 Usage:
     from dspy_security_bench.optimizers import build_agent_factories
@@ -49,11 +49,11 @@ def _tasks_to_dspy_examples(tasks: list[dict], input_field: str = "query") -> li
 
 
 # ---------------------------------------------------------------------------
-# Default metric (placeholder; LLM-as-judge lands in its own module later)
+# Low-cost default metric; llm_judge.py provides the optional semantic judge.
 # ---------------------------------------------------------------------------
 
 def substring_match_metric(example, pred, trace=None) -> float:
-    """v0.1 placeholder metric: does the agent's answer contain the ground truth?
+    """Return whether the agent's answer contains the expected ground truth.
 
     Handles two cases:
     - single-token ground truth → exact substring (case-insensitive)
@@ -237,7 +237,7 @@ def build_agent_factories(
 
     Args:
         trainset: list of {"prompt", "ground_truth"} dicts from the validator.
-        optimizers: list of names in ("unoptimized", "bootstrap_fewshot", "miprov2").
+        optimizers: list of names in ("unoptimized", "bootstrap_fewshot", "miprov2", "gepa").
         suite_name: AgentDojo suite name to bind training tools against.
         signature: dspy signature string for the agent — MUST have single output.
         metric: metric callable (example, pred, trace=None) -> float. Defaults

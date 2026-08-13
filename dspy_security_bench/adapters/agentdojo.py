@@ -5,7 +5,7 @@ attack suites. Attacks plant adversarial content in the env; since our DSPy
 tools call back into `runtime.run_function(env, ...)`, the malicious content
 flows naturally into tool outputs and exercises the agent's robustness.
 
-Key v0.1 constraints (documented for honest scope):
+Key adapter constraints (documented for honest scope):
 
 1. The DSPy signature passed to the wrapped agent must have **exactly one
    output field**. We surface that field's value as the AgentDojo
@@ -412,7 +412,7 @@ class DSPyReActV2Element(BasePipelineElement):
             output_fields = list(agent.signature.output_fields.keys())
             if len(output_fields) != 1:
                 raise ValueError(
-                    f"DSPyReActV2Element v0.1 requires a single output field; "
+                    f"DSPyReActV2Element requires a single output field; "
                     f"got {output_fields}. Pass output_field=... explicitly."
                 )
             output_field = output_fields[0]

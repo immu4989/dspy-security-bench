@@ -4,10 +4,10 @@
 
 # DSPy Security Bench
 
-### Which LLMs actually resist prompt injection?
+### Measure prompt-injection resilience in models and tool-using AI agents
 
-A reproducible **leaderboard** for agentic prompt-injection robustness —
-and a benchmark you can point at **your own agent** and gate in CI.
+A reproducible **leaderboard**, CI gate, public-interest impact benchmark, and
+attested evidence pipeline you can point at **your own agent**.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -31,7 +31,7 @@ and a benchmark you can point at **your own agent** and gate in CI.
 
 ---
 
-## New in v0.7: ProofRun evidence passports
+## ProofRun evidence passports (v0.7)
 
 **A benchmark score should be inspectable evidence—not a screenshot.** ProofRun
 runs the stochastic ProcureBench protocol, preserves every trial, gates on the
@@ -67,7 +67,7 @@ make a remote provider independently observable or certify an agent as safe.
 
 ---
 
-## New specialty: ImpactTwin / ProcureBench
+## Public-interest specialty: ImpactTwin / ProcureBench
 
 **Can a poisoned vendor proposal change an AI agent's award decision even when
 every procurement fact stays identical?** ProcureBench answers that with five
@@ -278,11 +278,12 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 |---|---|
 | 🏆 **Compare models** | A frozen, reproducible [leaderboard](LEADERBOARD.md) of base-model injection-robustness — 14 models across 10 families, from frontier to open-weights. |
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
+| 🧾 **Produce verifiable evidence** | Use [ProofRun](docs/proofrun.md) to preserve raw repeated trials, recompute statistics offline, and attach GitHub/Sigstore provenance to the exact result bytes. |
 | ⚖️ **Measure mission impact** | Run [ImpactTwin / ProcureBench](docs/impact-twin.md): clean/poisoned procurement twins that score decision drift, protected-data release, authority bypass, and synthetic funds at risk. |
 | 🔐 **Enforce least agency** | Put deterministic policy around live tool calls: allow, deny, or require approval. Includes [production profiles](docs/use-cases.md) for support, finance, RAG, and DevOps. |
 | 🛡️ **Test defenses** | Measure [cheap mitigations](#the-good-news-cheap-defenses-recover-it-v020) and whether they survive an [adaptive attacker](#but-do-the-defenses-survive-an-adaptive-attacker-v031). |
 | 🔬 **Study optimizers** | The original question: does DSPy prompt optimization make agents *more* or *less* robust? |
-| 📚 **Get oriented in the literature** | [RELATED_WORK.md](RELATED_WORK.md) — a sourced map of agentic prompt-injection work as of July 2026, including which well-known "leaderboards" rank detectors or humans rather than models. |
+| 📚 **Get oriented in the literature** | [RELATED_WORK.md](RELATED_WORK.md) — a sourced map of agentic prompt-injection work as of August 2026, including which well-known "leaderboards" rank detectors or humans rather than models. |
 
 ---
 
@@ -476,7 +477,7 @@ defense does something. It just does not hold up.
 
 **...but the defenses are not all equal, and they do not all generalize.**
 The result above is on the **workspace** suite. A cross-suite check on
-**banking** (v0.4, in progress) already qualifies it: the vulnerability
+**banking** (added in v0.4) qualifies it: the vulnerability
 generalizes (undefended Mistral Large is 0% on banking too), and the plain
 `security_prompt` still holds at 100% — but `spotlight_delim`, which held on
 workspace, **fell to the same delimiter-escape on banking** (67%). Verified by
@@ -626,8 +627,9 @@ rerouting, eligibility tampering, and approval bypass. See the full
 > the unoptimized 0% utility floor, and the qualitative "optimization trends below
 > unoptimized on the harder attack" pattern. Full 3-seed numbers:
 > [`data/results/workspace_v02_phase1_seeds_summary.csv`](data/results/workspace_v02_phase1_seeds_summary.csv).
-> v0.2 phase 2 will scale N to put any optimizer-ranking claim on solid statistical
-> ground.
+> This optimizer-specific pilot remains underpowered. The later frozen model
+> leaderboard addresses a different question and does not upgrade this
+> historical optimizer-ranking claim.
 
 > **Headline (seed=0):** **prompt optimization measurably degrades adversarial
 > robustness on harder attacks.** Optimizers buy utility (0% → 40-60% task
@@ -678,7 +680,7 @@ flowchart TD
     B --> C[synthesis generator<br/>LM-generated query-only<br/>tasks grounded in env]
     LM[(GPT-4o + Claude)] -.-> C
     C -->|raw tasks| D[validator<br/>syntactic + dedupe<br/>+ optional solvability]
-    D -->|~190 validated tasks| E[optimizer harness<br/>BootstrapFewShot · MIPROv2<br/>GEPA in v0.2]
+    D -->|~190 validated tasks| E[optimizer harness<br/>BootstrapFewShot · MIPROv2 · GEPA]
     E -->|name → agent_factory| F[DSPyReActV2Element<br/>wraps dspy.ReActV2 as<br/>AgentDojo pipeline element]
     F -->|AgentPipeline| G[runner<br/>drives benchmark_suite_<br/>with_injections]
     AD[(AgentDojo attacks)] -.-> G
@@ -901,7 +903,7 @@ v0.1 scope choices:
 | v0.3.1 — adaptive attacks (rule-based + iterative LM-driven); defenses held on Mistral Large / workspace | **shipped** |
 | v0.4 — cross-suite/model generalization. Banking: vulnerability generalizes; security-prompt robust, spotlighting brittle | **shipped** |
 | v0.5 — [**model leaderboard**](LEADERBOARD.md): frozen protocol v2, 14 models across 10 families, confirm/provisional durability gate | **shipped** |
-| ImpactTwin / ProcureBench — counterfactual procurement mission assurance, economic context, JSON/SARIF CI gate | **shipped on main** |
+| ImpactTwin / ProcureBench — counterfactual procurement mission assurance, economic context, JSON/SARIF CI gate | **shipped** |
 | BoundaryDiff — instrumented clean/poisoned trace divergence and policy remediation evidence | **shipped** |
 | v0.6 — RepeatTwin uncertainty, usage telemetry, and content-addressed community submissions | **shipped** |
 | v0.7 — ProofRun attested evidence passports, reusable trusted builder, and community evidence ladder | **shipped** |

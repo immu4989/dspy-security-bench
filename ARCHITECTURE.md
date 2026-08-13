@@ -1,25 +1,31 @@
 # Architecture
 
 This document is the engineering map of `dspy-security-bench` — what each
-module does, why it exists, and which v0.1 scope choices are deliberate.
+module does, why it exists, and which constraints are deliberate. Historical
+v0.1 research choices are labeled separately from the current product surface.
 
-## One-paragraph summary
+## System summary
 
-`dspy-security-bench` runs three pipelines in sequence:
+`dspy-security-bench` exposes five related security surfaces:
 
-1. **Trainset synthesis** — generates ~100 read-only query tasks per AgentDojo
-   suite, grounded in the suite's seed environment data, using one or two
-   strong LLMs as generators.
-2. **DSPy optimization** — runs `BootstrapFewShot`, `MIPROv2`, etc. against the
-   synthetic trainset to produce a dict of named agent factories (one per
-   optimizer).
-3. **AgentDojo evaluation** — wraps each agent factory in a
-   `DSPyReActV2Element` pipeline and runs AgentDojo's
-   `benchmark_suite_with_injections` across the requested attack suite.
+1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
+   records capability beside injection robustness, and generates the committed
+   leaderboard from per-model evidence.
+2. **Generic-agent CI scanning** — adapts framework-neutral agents, executes a
+   configured attack matrix, applies an absolute or regression gate, and emits
+   terminal, JSON, or SARIF findings.
+3. **ImpactTwin / RepeatTwin** — executes clean/poisoned procurement twins,
+   captures environment-owned boundary evidence, and measures stochastic
+   variation over repeated trials.
+4. **ProofRun** — packages repeated trials into a recomputable evidence
+   passport and verifies GitHub/Sigstore provenance for the exact result bytes.
+5. **Policy enforcement** — applies deterministic allow, deny, and approval
+   rules at the live tool-call boundary independently of model behavior.
 
-The output is a `pandas.DataFrame` with one row per
-`(optimizer, attack, user_task, injection_task)` combination, columns
-`utility` and `security`.
+The original research runner still returns a `pandas.DataFrame` with one row
+per `(optimizer, attack, user_task, injection_task)` combination. The newer
+surfaces add versioned JSON schemas, SARIF, content-addressed submissions, and
+attested evidence without changing that historical measurement contract.
 
 ## Module map
 
@@ -45,6 +51,8 @@ dspy_security_bench/
 │   └── validator.py           # syntactic + dedupe + (optional) solvability
 ├── adapters/
 │   └── agentdojo.py           # DSPyReActV2Element pipeline wrapper
+├── attacks/                    # static, adaptive, and LM-driven attacks
+├── defenses.py                # measurable prompt-level defenses
 ├── optimizers.py              # named optimizer harness + substring metric
 ├── llm_judge.py               # LLM-as-judge metric (fast-path substring)
 └── runner.py                  # benchmark orchestration + DataFrame
@@ -196,7 +204,7 @@ Flow per call:
 5. Append a final `ChatAssistantMessage` with the model's output for
    AgentDojo's `utility()` to check.
 
-**v0.1 constraints (documented for honest scope):**
+**Adapter constraints (documented for honest scope):**
 
 - The agent's signature must have **exactly one output field**.
 - Tool results are JSON-serialized for the agent (lossy for complex types).
@@ -219,7 +227,8 @@ test-time env. The factory we return baked in the optimized instructions
 and demos; at test time the factory creates a fresh `ReActV2` with the
 test-time tools and applies the optimized state.
 
-Also exports `substring_match_metric` — the v0.1 placeholder metric.
+Also exports `substring_match_metric`, the low-cost default metric. The
+semantic LLM-as-judge alternative lives in `llm_judge.py`.
 
 ### `llm_judge.py`
 
@@ -258,7 +267,7 @@ succeeded (bad). We expose both `injection_succeeded` (AgentDojo's
 convention) and `security` (= 1 - injection_succeeded, so higher is better
 and matches `utility`'s direction).
 
-## v0.1 scope choices and why
+## Historical v0.1 research-scope choices
 
 ### Why synthesize a trainset rather than split AgentDojo's tasks
 
@@ -278,7 +287,7 @@ AgentDojo's action tasks (send email, create event, modify file) have
 hand-written `utility()` checks that inspect env-state mutations. These
 checks cannot be auto-synthesized — they require domain knowledge per task.
 
-We restrict synthesis to read-only query tasks because:
+The original v0.1 study restricted synthesis to read-only query tasks because:
 
 - Query utility = "answer contains ground truth string" templates trivially
 - Query tasks make up ~40% of AgentDojo's real test set, so training on this
@@ -302,43 +311,47 @@ robustness without claiming anything about the judge LLM.
 
 ReActV2 produces structured outputs via its `submit` tool. AgentDojo's
 `utility()` takes a single `model_output` string. To bridge cleanly without
-ambiguity, v0.1 requires the user's signature to have exactly one output
-field. Multi-output support is a v0.2 question that needs a per-field
-concatenation policy.
+ambiguity, the adapter requires the user's signature to have exactly one output
+field. Multi-output support still needs an explicit per-field concatenation
+policy before it can be added safely.
 
-## Known gaps and v0.2 roadmap
+## Known gaps and current research roadmap
 
 - **Suite-tuned extractors** for banking, travel, slack (the generic
   fallback works but produces less compact prompts).
-- **GEPA optimizer** in the harness (currently `unoptimized`,
-  `bootstrap_fewshot`, `miprov2`).
 - **Action-task synthesis** with synthesized utility checks (hard — likely
   needs LM-generated `expected_final_state` and a separate state-diff
   judge).
 - **Multi-output signature support**.
-- **Action-aware attacks** in the report (currently aggregated across all
-  attack types).
-- **Notebook tutorials** (`docs/tutorial/`) — a v0.1 README-quickstart-style
-  notebook is the next planned artifact.
-- **TMLR submission** — if v0.1 findings are publishable, the next step is a
-  short empirical paper. The benchmark methodology is described here; the
-  paper would add a comprehensive empirical sweep across all 4 suites and a
-  qualitative analysis of optimizer-induced robustness mechanisms.
+- **Notebook tutorials** (`docs/tutorial/`) for the scanner, policy layer, and
+  evidence workflows.
+- **Independent reproduction campaigns** and broader family coverage under a
+  future protocol version.
+- **TMLR submission** if the optimizer-specific and capability-vs-robustness
+  claims hold at sufficient scale.
 
 ## Repository layout
 
 ```
 .
 ├── dspy_security_bench/        # the package
-│   ├── synthesis/
 │   ├── adapters/
+│   ├── agents/
+│   ├── attacks/
+│   ├── procurement/
+│   ├── scan/
+│   ├── synthesis/
+│   ├── policy.py
+│   ├── proofrun.py
 │   ├── optimizers.py
 │   ├── llm_judge.py
 │   └── runner.py
-├── tests/                       # pytest suite (planned, v0.2)
-├── data/                        # generated synthetic trainsets (git-ignored)
-├── scripts/                     # one-off scripts / smoke tests
-├── docs/                        # tutorials (planned, v0.2)
+├── leaderboard/                 # frozen protocol + committed model evidence
+├── submissions/                 # community evidence registries and bundles
+├── site/                        # generated-data interactive project site
+├── tests/                       # offline pytest suite
+├── scripts/                     # runners, generators, and validation tools
+├── docs/                        # methodology and integration guides
 ├── README.md
 ├── ARCHITECTURE.md              # this file
 ├── LICENSE

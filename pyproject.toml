@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "dspy-security-bench"
 version = "0.7.0"
-description = "Reproducible prompt-injection benchmark, CI gate, and attested security evidence for tool-using AI agents."
+description = "Reproducible prompt-injection benchmark, CI gate, and attested evidence pipeline for tool-using AI agents."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
@@ -23,9 +23,12 @@ keywords = [
     "ai-security",
     "github-actions",
     "provenance",
+    "artifact-attestations",
+    "tool-using-agents",
     "robustness",
     "benchmark",
     "procurement",
+    "procurement-security",
     "least-privilege",
 ]
 classifiers = [
@@ -68,7 +71,7 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/immu4989/dspy-security-bench"
+Homepage = "https://immu4989.github.io/dspy-security-bench/"
 Repository = "https://github.com/immu4989/dspy-security-bench"
 Issues = "https://github.com/immu4989/dspy-security-bench/issues"
 Changelog = "https://github.com/immu4989/dspy-security-bench/blob/main/CHANGELOG.md"

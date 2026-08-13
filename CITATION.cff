@@ -34,6 +34,9 @@ keywords:
   - agent-evaluation
   - benchmark
   - reproducibility
+  - tool-using-agents
+  - procurement-security
+  - artifact-attestations
   - agentdojo
   - dspy
 # doi: "10.5281/zenodo.XXXXXXX"

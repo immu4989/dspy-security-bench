@@ -8,17 +8,22 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
 ACTION = ROOT / "action.yml"
+USER_FACING_WORKFLOWS = [
+    ROOT / "examples" / "injection-scan.yml",
+    ROOT / "dspy_security_bench" / "templates" / "github-action.yml",
+]
 IMMUTABLE_ACTION = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
 
 
 def test_every_external_action_is_pinned_to_a_full_commit_sha():
     references = []
-    for workflow in [*sorted(WORKFLOWS.glob("*.yml")), ACTION]:
+    action_files = [*sorted(WORKFLOWS.glob("*.yml")), ACTION, *USER_FACING_WORKFLOWS]
+    for workflow in action_files:
         for line_number, line in enumerate(workflow.read_text().splitlines(), start=1):
             match = re.search(r"\buses:\s*([^\s#]+)", line)
             if not match or match.group(1).startswith("./"):
                 continue
-            references.append((workflow.name, line_number, match.group(1)))
+            references.append((workflow.relative_to(ROOT), line_number, match.group(1)))
 
     assert references
     unpinned = [
