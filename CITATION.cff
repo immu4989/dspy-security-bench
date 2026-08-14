@@ -11,7 +11,7 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.8.0
+version: 0.9.0
 date-released: 2026-08-13
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
@@ -29,7 +29,9 @@ abstract: >-
   framework bridges connect OpenAI Agents SDK, LangChain, Pydantic AI, CrewAI,
   AutoGen, MCP, and custom loops to the same framework-neutral contract. Results
   are generated from committed evidence so rows and submissions can be audited
-  offline.
+  offline. ControlTwin compares policy-off and policy-on functional outcomes,
+  separates harm containment from safe mission recovery and clean utility, and
+  binds the exact normalized policy to offline-verifiable evidence.
 keywords:
   - prompt-injection
   - llm-security
@@ -40,6 +42,7 @@ keywords:
   - procurement-security
   - artifact-attestations
   - agent-frameworks
+  - policy-efficacy
   - agentdojo
   - dspy
 # doi: "10.5281/zenodo.XXXXXXX"

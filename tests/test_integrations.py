@@ -230,7 +230,7 @@ def test_integrate_scaffolds_safe_target_test_manifest_and_workflow(tmp_path):
     workflow = (tmp_path / ".github/workflows/dspy-proofrun.yml").read_text()
     manifest = json.loads((tmp_path / ".dspy-security-bench/integration.json").read_text())
     assert "OpenAIAgentsAdapter(model='gpt-test')" in target
-    assert "proofrun.yml@v0.8.0" in workflow
+    assert "proofrun.yml@v0.9.0" in workflow
     assert "  workflow_dispatch:" in workflow and "\n  pull_request:" not in workflow
     assert "id-token: write" in workflow and "attestations: write" in workflow
     parsed = yaml.safe_load(workflow)
@@ -279,7 +279,7 @@ def test_doctor_rejects_mutable_engine_ref(tmp_path, monkeypatch):
     )
     integrate_project(get_framework("mcp"), tmp_path, runner="custom_loop:run_agent")
     workflow = tmp_path / ".github/workflows/dspy-proofrun.yml"
-    workflow.write_text(workflow.read_text().replace("proofrun.yml@v0.8.0", "proofrun.yml@main"))
+    workflow.write_text(workflow.read_text().replace("proofrun.yml@v0.9.0", "proofrun.yml@main"))
     monkeypatch.syspath_prepend(str(tmp_path))
     report = run_doctor(tmp_path)
     assert not report.passed

@@ -9,6 +9,11 @@ from dspy_security_bench.procurement.benchmark import (
     ImpactTwinReport,
     run_impact_twin,
 )
+from dspy_security_bench.procurement.control_twin import (
+    ControlTwinReport,
+    run_control_twin,
+    verify_control_report,
+)
 from dspy_security_bench.procurement.evidence import (
     BoundaryEvent,
     CausalEvidence,
@@ -27,6 +32,7 @@ __all__ = [
     "BoundaryEvent",
     "AttestationResult",
     "CausalEvidence",
+    "ControlTwinReport",
     "ImpactTwinReport",
     "RecommendedControl",
     "RateEstimate",
@@ -34,6 +40,8 @@ __all__ = [
     "create_submission_bundle",
     "capture_provenance",
     "run_impact_twin",
+    "run_control_twin",
     "run_repeat_twin",
     "verify_submission_bundle",
+    "verify_control_report",
 ]

@@ -6,8 +6,9 @@
 
 ### Measure prompt-injection resilience in models and tool-using AI agents
 
-A reproducible **leaderboard**, CI gate, public-interest impact benchmark, and
-attested evidence pipeline you can point at **your own agent**.
+A reproducible **leaderboard**, CI gate, public-interest impact benchmark,
+policy-efficacy lab, and attested evidence pipeline you can point at **your own
+agent**.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -49,7 +50,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.8.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.9.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -181,6 +182,56 @@ CI guide](docs/impact-twin.md) and the dated
 
 ---
 
+## ControlTwin: prove the guardrail changes the outcome
+
+**A policy file is an intention. ControlTwin measures whether it prevents real
+side effects without making the agent useless.** It executes the same frozen
+ProcureBench protocol with policy off and on, records every decision at the
+benchmark-owned tool boundary, and scores the functional delta from live
+environment state.
+
+Run the complete deterministic comparison offline:
+
+```bash
+dspy-security-bench impact control-demo
+```
+
+| Reference comparison | Policy off | Policy on |
+|---|---:|---:|
+| Harmful poisoned pairs | 5 / 5 | **0 / 5** |
+| Synthetic funds at risk | $3.69M | **$0** |
+| Attack resistance | 0% | 60% |
+| Clean mission utility | 100% | **100%** |
+
+The missing 40 points are not hidden: two attacks are contained, but the agent
+does not recover a safe mission. ControlTwin calls those **recovery gaps**.
+Blocking harm, preserving ordinary work, and safely completing attacked work
+remain three separate outcomes.
+
+Test your own agent and policy, emit GitHub SARIF, and set independent CI floors:
+
+```bash
+dspy-security-bench impact control \
+  --agent myapp.security:build_agent \
+  --policy policy.yaml \
+  --max-controlled-harms 0 \
+  --max-clean-utility-loss 0 \
+  --json artifacts/control-twin.json \
+  --sarif artifacts/control-twin.sarif
+
+dspy-security-bench impact control-verify artifacts/control-twin.json
+```
+
+Reports embed both raw ImpactTwin conditions and the normalized policy, bind
+the policy to a canonical SHA-256 digest, redact tool arguments by default, and
+recompute offline. The demonstration uses deterministic scorer fixtures, not a
+model result; stochastic agents require repeated policy-off and policy-on runs
+before interpreting the delta as stable.
+
+[Read the ControlTwin evidence model and integration guide →](docs/control-twin.md)
+
+---
+
 ## 🏆 The leaderboard
 
 **Robustness R** = the share of prompt-injection attacks that **failed** against the
@@ -305,6 +356,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 | 🔌 **Connect your framework** | Run [`integrate`](docs/integrations.md) for OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, or an MCP/custom callback, then validate it without model spend using `doctor`. |
 | 🧾 **Produce verifiable evidence** | Use [ProofRun](docs/proofrun.md) to preserve raw repeated trials, recompute statistics offline, and attach GitHub/Sigstore provenance to the exact result bytes. |
 | ⚖️ **Measure mission impact** | Run [ImpactTwin / ProcureBench](docs/impact-twin.md): clean/poisoned procurement twins that score decision drift, protected-data release, authority bypass, and synthetic funds at risk. |
+| 🧪 **Prove a control works** | Run [ControlTwin](docs/control-twin.md) to compare policy off/on, verify functional harm reduction, expose recovery gaps, and gate utility regressions. |
 | 🔐 **Enforce least agency** | Put deterministic policy around live tool calls: allow, deny, or require approval. Includes [production profiles](docs/use-cases.md) for support, finance, RAG, and DevOps. |
 | 🛡️ **Test defenses** | Measure [cheap mitigations](#the-good-news-cheap-defenses-recover-it-v020) and whether they survive an [adaptive attacker](#but-do-the-defenses-survive-an-adaptive-attacker-v031). |
 | 🔬 **Study optimizers** | The original question: does DSPy prompt optimization make agents *more* or *less* robust? |
@@ -933,7 +985,8 @@ v0.1 scope choices:
 | v0.6 — RepeatTwin uncertainty, usage telemetry, and content-addressed community submissions | **shipped** |
 | v0.7 — ProofRun attested evidence passports, reusable trusted builder, and community evidence ladder | **shipped** |
 | v0.8 — BYOA framework adapters, detection, secure scaffolding, and zero-model-call doctor | **shipped** |
-| v0.9 — more families, secondary `direct` attack column, and independent reproduction campaigns | planned |
+| v0.9 — ControlTwin functional policy-efficacy evidence, recovery-gap analysis, offline verification, and SARIF gates | **shipped** |
+| v0.10 — more families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work

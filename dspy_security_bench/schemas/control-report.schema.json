@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/control-report.schema.json",
+  "title": "DSPy Security Bench ControlTwin Report",
+  "description": "Policy-off/policy-on functional evidence for the frozen ProcureBench protocol.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "scenario_version", "protocol_sha256", "report_sha256", "specialty",
+    "methodology", "evidence_method", "isolation", "agent", "policy",
+    "summary", "pairs", "baseline", "controlled", "inference_scope", "disclaimer"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scenario_version": {"const": "procurebench-v1"},
+    "protocol_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "report_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "specialty": {"const": "ControlTwin / Policy efficacy"},
+    "methodology": {"const": "policy-off/policy-on functional environment comparison"},
+    "evidence_method": {"const": "instrumented environment plus benchmark policy boundary"},
+    "isolation": {"const": "fresh_agent_per_case_and_condition"},
+    "agent": {"type": "string", "minLength": 1},
+    "policy": {"$ref": "#/$defs/policy"},
+    "summary": {"$ref": "#/$defs/summary"},
+    "pairs": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {"$ref": "#/$defs/pair"}
+    },
+    "baseline": {"$ref": "impact-report.schema.json"},
+    "controlled": {"$ref": "impact-report.schema.json"},
+    "inference_scope": {"type": "string", "minLength": 1},
+    "disclaimer": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "rate_delta": {"type": "number", "minimum": -1, "maximum": 1},
+    "money": {"type": "integer", "minimum": 0},
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256", "document", "approval_handler", "arguments_captured"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "document": {"type": "object"},
+        "approval_handler": {"type": "string", "minLength": 1},
+        "arguments_captured": {"type": "boolean"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "counterfactual_pairs", "baseline_attack_resistance", "controlled_attack_resistance",
+        "attack_resistance_delta", "baseline_clean_mission_utility",
+        "controlled_clean_mission_utility", "clean_mission_utility_delta",
+        "baseline_injected_mission_utility", "controlled_injected_mission_utility",
+        "injected_mission_utility_delta", "baseline_harmful_pairs",
+        "controlled_harmful_pairs", "harmful_pairs_prevented", "prevented_harm_events",
+        "introduced_harm_events", "baseline_synthetic_funds_at_risk_usd",
+        "controlled_synthetic_funds_at_risk_usd", "synthetic_funds_risk_reduction_usd",
+        "harm_contained_pairs", "resistance_recovered_pairs", "recovery_gap_pairs",
+        "policy_decisions", "autonomous_calls_allowed", "calls_blocked",
+        "approvals_requested", "approvals_granted"
+      ],
+      "properties": {
+        "counterfactual_pairs": {"const": 5},
+        "baseline_attack_resistance": {"$ref": "#/$defs/rate"},
+        "controlled_attack_resistance": {"$ref": "#/$defs/rate"},
+        "attack_resistance_delta": {"$ref": "#/$defs/rate_delta"},
+        "baseline_clean_mission_utility": {"$ref": "#/$defs/rate"},
+        "controlled_clean_mission_utility": {"$ref": "#/$defs/rate"},
+        "clean_mission_utility_delta": {"$ref": "#/$defs/rate_delta"},
+        "baseline_injected_mission_utility": {"$ref": "#/$defs/rate"},
+        "controlled_injected_mission_utility": {"$ref": "#/$defs/rate"},
+        "injected_mission_utility_delta": {"$ref": "#/$defs/rate_delta"},
+        "baseline_harmful_pairs": {"type": "integer", "minimum": 0, "maximum": 5},
+        "controlled_harmful_pairs": {"type": "integer", "minimum": 0, "maximum": 5},
+        "harmful_pairs_prevented": {"type": "integer", "minimum": 0, "maximum": 5},
+        "prevented_harm_events": {"type": "integer", "minimum": 0},
+        "introduced_harm_events": {"type": "integer", "minimum": 0},
+        "baseline_synthetic_funds_at_risk_usd": {"$ref": "#/$defs/money"},
+        "controlled_synthetic_funds_at_risk_usd": {"$ref": "#/$defs/money"},
+        "synthetic_funds_risk_reduction_usd": {"$ref": "#/$defs/money"},
+        "harm_contained_pairs": {"type": "integer", "minimum": 0, "maximum": 5},
+        "resistance_recovered_pairs": {"type": "integer", "minimum": 0, "maximum": 5},
+        "recovery_gap_pairs": {"type": "integer", "minimum": 0, "maximum": 5},
+        "policy_decisions": {"type": "integer", "minimum": 0},
+        "autonomous_calls_allowed": {"type": "integer", "minimum": 0},
+        "calls_blocked": {"type": "integer", "minimum": 0},
+        "approvals_requested": {"type": "integer", "minimum": 0},
+        "approvals_granted": {"type": "integer", "minimum": 0}
+      }
+    },
+    "policy_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id", "pair_id", "variant", "index", "tool", "requested_action",
+        "allowed", "rule_id", "reason", "approval_required", "approved", "arguments", "source"
+      ],
+      "properties": {
+        "scenario_id": {"type": "string"},
+        "pair_id": {"type": "string"},
+        "variant": {"enum": ["clean", "injected"]},
+        "index": {"type": "integer", "minimum": 0},
+        "tool": {"type": "string", "minLength": 1},
+        "requested_action": {"enum": ["allow", "deny", "require_approval"]},
+        "allowed": {"type": "boolean"},
+        "rule_id": {"type": "string", "minLength": 1},
+        "reason": {"type": "string"},
+        "approval_required": {"type": "boolean"},
+        "approved": {"type": ["boolean", "null"]},
+        "arguments": {"type": ["object", "null"]},
+        "source": {"const": "benchmark_policy_wrapper"}
+      }
+    },
+    "pair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pair_id", "title", "attack_kind", "baseline_attack_resisted",
+        "controlled_attack_resisted", "baseline_clean_mission_completed",
+        "controlled_clean_mission_completed", "baseline_injected_mission_completed",
+        "controlled_injected_mission_completed", "baseline_harms", "controlled_harms",
+        "prevented_harms", "introduced_harms", "baseline_funds_at_risk_usd",
+        "controlled_funds_at_risk_usd", "policy_events", "harm_contained",
+        "resistance_recovered", "recovery_gap"
+      ],
+      "properties": {
+        "pair_id": {"type": "string"},
+        "title": {"type": "string"},
+        "attack_kind": {"type": "string"},
+        "baseline_attack_resisted": {"type": "boolean"},
+        "controlled_attack_resisted": {"type": "boolean"},
+        "baseline_clean_mission_completed": {"type": "boolean"},
+        "controlled_clean_mission_completed": {"type": "boolean"},
+        "baseline_injected_mission_completed": {"type": "boolean"},
+        "controlled_injected_mission_completed": {"type": "boolean"},
+        "baseline_harms": {"type": "array", "items": {"type": "string"}},
+        "controlled_harms": {"type": "array", "items": {"type": "string"}},
+        "prevented_harms": {"type": "array", "items": {"type": "string"}},
+        "introduced_harms": {"type": "array", "items": {"type": "string"}},
+        "baseline_funds_at_risk_usd": {"$ref": "#/$defs/money"},
+        "controlled_funds_at_risk_usd": {"$ref": "#/$defs/money"},
+        "policy_events": {"type": "array", "items": {"$ref": "#/$defs/policy_event"}},
+        "harm_contained": {"type": "boolean"},
+        "resistance_recovered": {"type": "boolean"},
+        "recovery_gap": {"type": "boolean"}
+      }
+    }
+  }
+}

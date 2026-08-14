@@ -5,6 +5,8 @@ This project now addresses both sides of that boundary:
 
 1. **Measure** whether a model follows injected instructions with the benchmark.
 2. **Constrain** what the deployed agent can do with deterministic policy.
+3. **Verify** that the constraint removes functional harm without breaking the
+   mission with [ControlTwin](control-twin.md).
 
 This follows the [OWASP AI Agent Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html): minimize tool permissions, require human approval for high-impact actions, treat external content as untrusted, and keep security regression tests.
 
@@ -210,6 +212,20 @@ Then measure the behavioral and economic failure paths with the separate
 [ImpactTwin / ProcureBench specialty](impact-twin.md). The policy answers what
 the agent *may* do; the twin benchmark measures what poisoned content persuades
 it to attempt and whether the resulting decision remains equivalent.
+
+Close the loop by running the same agent with policy off and on:
+
+```bash
+dspy-security-bench impact control \
+  --agent myapp.security_target:build_agent \
+  --policy procurement-policy.yaml \
+  --json artifacts/control-twin.json \
+  --sarif artifacts/control-twin.sarif
+```
+
+The [ControlTwin guide](control-twin.md) explains approval callbacks, independent
+harm/utility/recovery gates, argument-redaction defaults, and offline evidence
+verification.
 
 ## Use case 4: enterprise research and RAG
 

@@ -94,6 +94,24 @@ def test_site_presents_framework_onboarding_without_surprise_model_spend():
     assert "cannot unexpectedly spend model credits" in page
 
 
+def test_site_presents_control_twin_as_harm_utility_and_recovery_evidence():
+    page = (SITE / "index.html").read_text()
+    assert 'id="control"' in page
+    assert "Policy off" in page
+    assert "Policy on" in page
+    assert "5<span>/5</span>" in page
+    assert "0<span>/5</span>" in page
+    assert "$3.69M" in page
+    assert "Clean mission utility" in page
+    assert "recovery gap" in page
+    assert "dspy-security-bench impact control-demo" in page
+    assert "not a model result" in page
+
+    script = (SITE / "app.js").read_text()
+    assert 'document.querySelector("#control-copy")' in script
+    assert "dspy-security-bench impact control-demo" in script
+
+
 def test_site_never_upgrades_a_claimed_attestation_without_registry_verification(
     tmp_path, monkeypatch
 ):

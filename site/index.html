@@ -30,7 +30,7 @@
         <a href="#connect">Connect</a>
         <a href="#proofrun">ProofRun</a>
         <a href="#impact">ImpactTwin</a>
-        <a href="#use-cases">Use cases</a>
+        <a href="#control">ControlTwin</a>
         <a href="#scan">CI scanner</a>
         <a class="nav-cta" href="https://github.com/immu4989/dspy-security-bench">View on GitHub <span aria-hidden="true">↗</span></a>
       </div>
@@ -201,7 +201,7 @@
           <h2>Run it. Sign it.<br><em>Let others verify it.</em></h2>
         </div>
         <div class="proofrun-intro">
-          <span class="proof-live"><i></i> v0.8 trusted builder</span>
+          <span class="proof-live"><i></i> v0.9 trusted builder</span>
           <p>A reusable workflow isolates model evaluation from signing, recomputes every statistic in a clean job, and binds the exact JSON to a source commit before enforcing the gate.</p>
         </div>
       </div>
@@ -241,7 +241,7 @@
 
 <span class="yaml-key">jobs:</span>
   <span class="yaml-key">proofrun:</span>
-    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.8.0
+    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.9.0
     <span class="yaml-key">with:</span>
       <span class="yaml-key">agent:</span> myapp.security:build_agent
       <span class="yaml-key">trials:</span> 10</code></pre>
@@ -340,6 +340,68 @@
         <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/impact-twin.md">Inspect the protocol <span aria-hidden="true">→</span></a>
       </div>
       <p class="impact-disclaimer reveal">Reference fixture, not a model result. Synthetic exposure is not predicted loss or a compliance certification.</p>
+    </section>
+
+    <section class="section control-section" id="control">
+      <div class="control-grid" aria-hidden="true"></div>
+      <div class="control-heading reveal">
+        <div>
+          <span class="section-kicker">ControlTwin · policy efficacy</span>
+          <h2>Don't trust the policy.<br><em>Test the outcome.</em></h2>
+        </div>
+        <div class="control-intro">
+          <span class="control-live"><i></i> Closed-loop evidence</span>
+          <p>Execute the same poisoned missions with the boundary off and on. Measure functional harm, safe recovery, and clean utility independently.</p>
+        </div>
+      </div>
+
+      <div class="control-arena reveal" aria-label="Policy off and policy on functional comparison">
+        <article class="condition-panel condition-off">
+          <div class="condition-top"><span>Condition A</span><strong>Policy off</strong></div>
+          <div class="condition-score"><strong>5<span>/5</span></strong><small>harmful poisoned pairs</small></div>
+          <div class="condition-risk"><span>synthetic exposure</span><b>$3.69M</b></div>
+          <ul><li>award decision changed</li><li>sealed record released</li><li>authoritative state mutated</li></ul>
+        </article>
+
+        <div class="policy-axis" aria-label="Deterministic policy boundary">
+          <span>tool boundary</span>
+          <div class="policy-seal"><i></i><strong>POLICY</strong><small>sha256 bound</small></div>
+          <b>6 calls blocked</b>
+          <small>environment observed</small>
+        </div>
+
+        <article class="condition-panel condition-on">
+          <div class="condition-top"><span>Condition B</span><strong>Policy on</strong></div>
+          <div class="condition-score"><strong>0<span>/5</span></strong><small>harmful poisoned pairs</small></div>
+          <div class="condition-risk"><span>synthetic exposure</span><b>$0</b></div>
+          <ul><li>all observed harms contained</li><li>clean utility stays at 100%</li><li>every aggregate recomputable</li></ul>
+        </article>
+      </div>
+
+      <div class="control-verdicts reveal" aria-label="Pair-level ControlTwin outcomes">
+        <div class="verdict verdict-gap"><span>01</span><i></i><strong>Award bias</strong><small>contained · recovery gap</small></div>
+        <div class="verdict verdict-pass"><span>02</span><i></i><strong>Sealed proposal</strong><small>recovered</small></div>
+        <div class="verdict verdict-pass"><span>03</span><i></i><strong>Payment identity</strong><small>recovered</small></div>
+        <div class="verdict verdict-gap"><span>04</span><i></i><strong>Eligibility</strong><small>contained · recovery gap</small></div>
+        <div class="verdict verdict-pass"><span>05</span><i></i><strong>Award authority</strong><small>recovered</small></div>
+      </div>
+
+      <div class="control-metrics reveal">
+        <div><span>Functional containment</span><strong>100<sup>%</sup></strong><small>5 of 5 harmful pairs → zero</small></div>
+        <div><span>Safe mission recovery</span><strong>60<sup>%</sup></strong><small>3 recovered · 2 gaps exposed</small></div>
+        <div><span>Clean mission utility</span><strong>100<sup>%</sup></strong><small>no observed clean-work loss</small></div>
+        <div><span>Risk reduction</span><strong>$3.69<sup>M</sup></strong><small>synthetic scenario exposure</small></div>
+      </div>
+
+      <div class="control-console reveal">
+        <div>
+          <span>Run offline now</span>
+          <code><i>$</i> dspy-security-bench impact control-demo</code>
+        </div>
+        <button id="control-copy" type="button">Copy command</button>
+        <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/control-twin.md">Inspect ControlTwin <span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="control-disclaimer reveal">Deterministic reference fixture, not a model result. Containment is not recovery; synthetic exposure is not predicted loss or certification.</p>
     </section>
 
     <section class="section cases-section" id="use-cases">

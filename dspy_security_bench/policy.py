@@ -7,6 +7,7 @@ requires human approval before the live tool is invoked.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import threading
@@ -259,6 +260,32 @@ class ToolPolicy:
             rule_id="policy-default",
             reason=f"no rule matched; policy default is {self.default}",
         )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return the validated policy as stable, serialization-safe data."""
+        return {
+            "version": self.version,
+            "name": self.name,
+            "description": self.description,
+            "default": self.default,
+            "rules": [
+                {
+                    "id": rule.id,
+                    "tools": list(rule.tools),
+                    "action": rule.action,
+                    "reason": rule.reason,
+                    "when": [asdict(condition) for condition in rule.when],
+                }
+                for rule in self.rules
+            ],
+        }
+
+    def sha256(self) -> str:
+        """Bind reports to the exact validated policy semantics, not YAML styling."""
+        canonical = json.dumps(
+            self.to_dict(), sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        ).encode()
+        return hashlib.sha256(canonical).hexdigest()
 
 
 ApprovalHandler = Callable[[PolicyDecision, Mapping[str, Any]], bool]

@@ -9,6 +9,27 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-08-13
+
+### Added
+- **ControlTwin policy-efficacy evidence.** `impact control` executes the frozen
+  ProcureBench protocol with policy off and on, then reports functional harm
+  containment, safe mission recovery, clean/injected utility deltas, and
+  synthetic economic exposure as separate measures.
+- A zero-provider-call `impact control-demo` showing five harmful reference
+  workflows reduced to zero functional harms and $3.69M of synthetic exposure
+  reduced to $0 without clean-utility loss, while honestly surfacing two
+  mission-recovery gaps.
+- Benchmark-owned policy-boundary events for every requested tool call, with
+  arguments redacted by default, plus a normalized policy document bound to a
+  canonical SHA-256 identity and a complete-report digest for provenance.
+- Offline `impact control-verify` recomputation, schema-v1 JSON evidence, SARIF
+  findings for residual harm/recovery gaps/utility regressions, and independent
+  CI gates for harm, clean-utility loss, and controlled attack resistance.
+- A full ControlTwin methodology and integration guide, dashboard experience,
+  and a dated research note connecting the implementation to current NIST,
+  OWASP Agentic, and MCP authorization guidance.
+
 ## [0.8.0] — 2026-08-13
 
 ### Added
@@ -277,7 +298,8 @@ several of them changed published numbers.
 - First end-to-end run: DSPy optimizers × AgentDojo attacks in one harness,
   workspace suite, single model.
 
-[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.3.1...v0.6.0

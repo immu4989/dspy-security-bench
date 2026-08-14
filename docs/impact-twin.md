@@ -130,6 +130,11 @@ Explain a saved report without rerunning the model or spending API credits:
 dspy-security-bench impact explain impact-demo/reference-vulnerable.impact.json
 ```
 
+BoundaryDiff recommends an executable policy rule; [ControlTwin](control-twin.md)
+completes the next step by running the same agent with that policy off and on,
+then measuring whether functional harm disappeared, whether the agent recovered
+the mission, and whether clean work regressed.
+
 For example, a poisoned-only `release_source_selection` event is paired with
 the existing `deny-source-selection-release` rule. A changed evaluation first
 diverges at `record_evaluation`, while the recommended execution boundary is

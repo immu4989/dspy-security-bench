@@ -118,3 +118,42 @@ provider returned the embedded response, that evaluated source code is honest,
 or that five synthetic procurement pairs establish deployment safety. The
 dashboard therefore requires a reviewed, digest-keyed registry before showing a
 cryptographic tier; an unverified provenance claim is displayed as pending.
+
+## Follow-on: ControlTwin policy efficacy
+
+An August 13 landscape refresh reviewed NIST's tool-use taxonomy and 2026 agent
+identity/authorization concept paper, the OWASP Top 10 for Agentic Applications,
+MCP's clarification that tool annotations are hints rather than enforcement,
+and contemporary static agent scanners, authority manifests, runtime policy
+engines, and least-privilege research.
+
+The practical gap was no longer “list the tools” or “write a deny rule.” The
+repository itself already had an executable policy engine and BoundaryDiff could
+recommend its rules. What users still could not demonstrate was whether applying
+that policy changed a functional outcome, whether the agent recovered the useful
+mission after a denial, or whether the control broke clean work.
+
+ControlTwin therefore runs the frozen ProcureBench protocol in two conditions:
+raw agent and policy-wrapped agent. It retains both complete ImpactTwin reports,
+adds benchmark-owned policy-boundary decisions, hashes the normalized policy,
+and independently reports:
+
+- prohibited functional outcomes before and after control;
+- synthetic scenario exposure before and after control;
+- attack resistance and safe mission recovery;
+- clean and poisoned mission utility;
+- residual harms, introduced harms, and recovery gaps; and
+- offline-recomputable aggregates plus GitHub SARIF.
+
+The deterministic reference closes every observed harmful side effect and
+reduces synthetic exposure from $3.69M to $0 without clean-utility loss. It only
+recovers three of five attacked missions. Publishing both facts prevents a
+deny-all boundary from being mislabeled as a complete agent-security solution.
+
+This work does not claim that policy engines, A/B evaluation, least privilege,
+or functional security testing are individually novel. The contribution is the
+integrated, falsifiable loop from controlled prompt-injection failure, to an
+executable boundary, to policy-off/policy-on functional and mission evidence,
+to a policy-hash-bound report that can be recomputed offline. A single
+policy-off/on run does not establish an effect for a stochastic provider;
+repeated two-condition inference remains follow-on work.

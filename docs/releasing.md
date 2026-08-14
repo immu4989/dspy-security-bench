@@ -21,7 +21,7 @@ with PyPI Trusted Publishing. No long-lived PyPI token is stored in GitHub.
    changed.
 5. If the ProofRun reusable workflow changed, confirm its immutable engine `ref`
    matches the release tag and run the composite-action smoke workflow.
-6. Create and push a matching tag, for example `v0.8.0` for version `0.8.0`.
+6. Create and push a matching tag, for example `v0.9.0` for version `0.9.0`.
 7. Confirm the workflow and PyPI publication succeeded, then create the GitHub
    release from the tag and attach the exact workflow-built artifacts.
 

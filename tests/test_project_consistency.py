@@ -26,7 +26,8 @@ def test_public_release_metadata_uses_one_version():
     assert str(citation["version"]) == version
     assert f"## [{version}]" in (ROOT / "CHANGELOG.md").read_text()
     assert f"@v{version}" in (ROOT / "README.md").read_text()
-    assert f"ref: v{version}" in (ROOT / ".github/workflows/proofrun.yml").read_text()
+    proofrun = (ROOT / ".github/workflows/proofrun.yml").read_text()
+    assert set(re.findall(r"ref: v(\d+\.\d+\.\d+)", proofrun)) == {version}
 
 
 def test_relative_markdown_links_resolve_inside_the_repository():

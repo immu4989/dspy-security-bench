@@ -148,10 +148,17 @@ document.querySelector("#copy-code").addEventListener("click", async event => {
 
 document.querySelector("#proofrun-copy")?.addEventListener("click", async event => {
   const button = event.currentTarget;
-  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  proofrun:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.8.0\n    with:\n      agent: myapp.security:build_agent\n      trials: 10`;
+  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  proofrun:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.9.0\n    with:\n      agent: myapp.security:build_agent\n      trials: 10`;
   await navigator.clipboard.writeText(workflow);
   button.textContent = "Copied ✓";
   setTimeout(() => { button.textContent = "Copy workflow"; }, 1800);
+});
+
+document.querySelector("#control-copy")?.addEventListener("click", async event => {
+  const button = event.currentTarget;
+  await navigator.clipboard.writeText("dspy-security-bench impact control-demo");
+  button.textContent = "Copied ✓";
+  setTimeout(() => { button.textContent = "Copy command"; }, 1800);
 });
 
 const menuButton = document.querySelector(".menu-button");
