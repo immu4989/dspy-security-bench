@@ -393,6 +393,67 @@
         <div><span>Risk reduction</span><strong>$3.69<sup>M</sup></strong><small>synthetic scenario exposure</small></div>
       </div>
 
+      <div class="repeat-control-lab reveal" aria-labelledby="repeat-control-title">
+        <div class="repeat-control-head">
+          <div>
+            <span class="repeat-control-tag"><i></i> RepeatControlTwin · on main</span>
+            <h3 id="repeat-control-title">One delta can be luck.<br><em>Repeat the pair.</em></h3>
+          </div>
+          <p>Run the complete experiment again and again. Alternate order. Preserve every child report. Gate the lower confidence bound—not the flattering point estimate.</p>
+        </div>
+
+        <div class="repeat-control-grid">
+          <article class="schedule-card">
+            <div class="repeat-card-label"><span>01</span> Balanced schedule</div>
+            <div class="schedule-rail" aria-label="Five alternating policy condition trials">
+              <div><b>T01</b><span class="schedule-off">OFF</span><i>→</i><span class="schedule-on">ON</span></div>
+              <div><b>T02</b><span class="schedule-on">ON</span><i>→</i><span class="schedule-off">OFF</span></div>
+              <div><b>T03</b><span class="schedule-off">OFF</span><i>→</i><span class="schedule-on">ON</span></div>
+              <div><b>T04</b><span class="schedule-on">ON</span><i>→</i><span class="schedule-off">OFF</span></div>
+              <div><b>T05</b><span class="schedule-off">OFF</span><i>→</i><span class="schedule-on">ON</span></div>
+            </div>
+            <small>fresh agent · every case · every condition</small>
+          </article>
+
+          <article class="interval-board">
+            <div class="repeat-card-label"><span>02</span> 95% Wilson evidence</div>
+            <div class="interval-row">
+              <div><strong>Harm containment</strong><b>100%</b></div>
+              <div class="interval-track" style="--low:86.7%;--high:100%;--point:99.2%"><span></span><i></i></div>
+              <small>25/25 · lower bound 86.7%</small>
+            </div>
+            <div class="interval-row">
+              <div><strong>Safe mission recovery</strong><b>60%</b></div>
+              <div class="interval-track interval-amber" style="--low:40.7%;--high:76.6%;--point:60%"><span></span><i></i></div>
+              <small>15/25 · 40.7%–76.6%</small>
+            </div>
+            <div class="interval-row">
+              <div><strong>Clean utility preserved</strong><b>100%</b></div>
+              <div class="interval-track" style="--low:86.7%;--high:100%;--point:99.2%"><span></span><i></i></div>
+              <small>25/25 · lower bound 86.7%</small>
+            </div>
+          </article>
+
+          <article class="paired-proof-card">
+            <div class="repeat-card-label"><span>03</span> Paired signal</div>
+            <div class="paired-orbit" aria-hidden="true"><span>25</span><i></i><b>25</b></div>
+            <dl>
+              <div><dt>harms prevented</dt><dd>25</dd></div>
+              <div><dt>harms introduced</dt><dd>0</dd></div>
+              <div><dt>unstable pair effects</dt><dd>0 / 5</dd></div>
+              <div><dt>exact McNemar p</dt><dd>5.96e−8</dd></div>
+            </dl>
+          </article>
+        </div>
+
+        <div class="repeat-control-command">
+          <div><span>Try the five-trial fixture</span><code><i>$</i> dspy-security-bench impact control-repeat-demo --trials 5</code></div>
+          <button id="repeat-control-copy" type="button">Copy command</button>
+          <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/repeat-control-twin.md">Read the method <span aria-hidden="true">↗</span></a>
+        </div>
+        <p class="repeat-control-note">Deterministic fixture · fixed synthetic suite · not a model result, population estimate, predicted loss, or certification</p>
+      </div>
+
       <div class="control-console reveal">
         <div>
           <span>Run offline now</span>

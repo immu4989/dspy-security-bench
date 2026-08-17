@@ -86,6 +86,48 @@ def build_parser() -> argparse.ArgumentParser:
         "report", help="ControlTwin JSON created by control or control-demo"
     )
 
+    control_repeat_demo = sub.add_parser(
+        "control-repeat-demo",
+        help="repeat the deterministic policy-off/on fixture with paired uncertainty",
+    )
+    control_repeat_demo.add_argument(
+        "--trials", type=int, default=5, help="complete ControlTwin trials (default: 5)"
+    )
+    control_repeat_demo.add_argument(
+        "--confidence", type=float, default=0.95, help="Wilson confidence level (default: 0.95)"
+    )
+    control_repeat_demo.add_argument("--json", help="write the complete repeated-control report")
+    control_repeat_demo.add_argument("--sarif", help="write repeated-control findings as SARIF")
+
+    control_repeat = sub.add_parser(
+        "control-repeat", help="repeat policy-off/on trials and quantify control stability"
+    )
+    control_repeat_target = control_repeat.add_mutually_exclusive_group(required=True)
+    control_repeat_target.add_argument("--agent", help="module:callable returning an Agent")
+    control_repeat_target.add_argument(
+        "--agent-model", help="LiteLLM model id for the built-in tool agent"
+    )
+    control_repeat.add_argument("--name", help="display name override for --agent-model")
+    control_repeat.add_argument("--policy", required=True, help="validated tool-policy YAML")
+    control_repeat.add_argument(
+        "--approval-handler", help="optional module:callable(decision, arguments)->bool"
+    )
+    control_repeat.add_argument("--capture-arguments", action="store_true")
+    control_repeat.add_argument("--trials", type=int, default=10)
+    control_repeat.add_argument("--confidence", type=float, default=0.95)
+    control_repeat.add_argument("--json", help="write the complete repeated-control report")
+    control_repeat.add_argument("--sarif", help="write repeated-control findings as SARIF")
+    control_repeat.add_argument("--min-containment-lower-bound", type=float)
+    control_repeat.add_argument("--min-controlled-harm-free-lower-bound", type=float)
+    control_repeat.add_argument("--min-clean-preservation-lower-bound", type=float)
+    control_repeat.add_argument("--min-controlled-resistance-lower-bound", type=float)
+    control_repeat.add_argument("--max-unstable-pairs", type=int)
+
+    control_repeat_verify = sub.add_parser(
+        "control-repeat-verify", help="recompute a repeated ControlTwin report offline"
+    )
+    control_repeat_verify.add_argument("report", help="RepeatControlTwin JSON report")
+
     repeat = sub.add_parser(
         "repeat", help="repeat all twins and report stochastic uncertainty and stability"
     )
@@ -93,7 +135,9 @@ def build_parser() -> argparse.ArgumentParser:
     repeat_target.add_argument("--agent", help="module:callable returning an Agent")
     repeat_target.add_argument("--agent-model", help="LiteLLM model id for the built-in tool agent")
     repeat.add_argument("--name", help="display name override for --agent-model")
-    repeat.add_argument("--trials", type=int, default=10, help="complete protocol trials (default: 10)")
+    repeat.add_argument(
+        "--trials", type=int, default=10, help="complete protocol trials (default: 10)"
+    )
     repeat.add_argument(
         "--confidence", type=float, default=0.95, help="Wilson interval confidence (default: 0.95)"
     )
@@ -167,6 +211,12 @@ def main(argv: list[str] | None = None) -> int:
         return _control(args)
     if args.command == "control-verify":
         return _control_verify(args)
+    if args.command == "control-repeat-demo":
+        return _control_repeat_demo(args)
+    if args.command == "control-repeat":
+        return _control_repeat(args)
+    if args.command == "control-repeat-verify":
+        return _control_repeat_verify(args)
     if args.command == "repeat":
         return _repeat(args)
     if args.command == "submit-result":
@@ -318,6 +368,172 @@ def _write_control_artifacts(report, *, json_path: str | None, sarif_path: str |
         from dspy_security_bench.procurement.control_sarif import control_report_to_sarif
 
         _write_json(Path(sarif_path), control_report_to_sarif(report))
+        print(f"[impact] wrote {sarif_path}")
+
+
+def _control_repeat_demo(args) -> int:
+    from importlib.resources import files
+
+    import yaml
+
+    from dspy_security_bench.policy import ToolPolicy
+    from dspy_security_bench.procurement.agents import (
+        build_vulnerable_reference,
+        synthetic_contracting_officer_approval,
+    )
+    from dspy_security_bench.procurement.repeat_control import (
+        render_repeat_control_terminal,
+        run_repeat_control_twin,
+    )
+
+    if args.trials < 2 or not 0 < args.confidence < 1:
+        print(
+            "[impact] trials must be >= 2 and confidence must be between 0 and 1", file=sys.stderr
+        )
+        return 2
+    resource = (
+        files("dspy_security_bench.templates").joinpath("policies").joinpath("procurement.yaml")
+    )
+    policy = ToolPolicy.from_dict(yaml.safe_load(resource.read_text()))
+    report = run_repeat_control_twin(
+        build_vulnerable_reference,
+        policy,
+        trials=args.trials,
+        confidence_level=args.confidence,
+        approval_handler=synthetic_contracting_officer_approval,
+        approval_handler_label="deterministic synthetic contracting-officer fixture",
+    )
+    print(render_repeat_control_terminal(report))
+    _write_repeat_control_artifacts(report, json_path=args.json, sarif_path=args.sarif)
+    print("\nThe agent and approval callback are deterministic scorer fixtures, not model results.")
+    return 0
+
+
+def _control_repeat(args) -> int:
+    from dspy_security_bench.policy import ToolPolicy
+    from dspy_security_bench.procurement.repeat_control import (
+        render_repeat_control_terminal,
+        run_repeat_control_twin,
+    )
+
+    if args.trials < 2:
+        print("[impact] --trials must be at least 2", file=sys.stderr)
+        return 2
+    if not 0 < args.confidence < 1:
+        print("[impact] --confidence must be between 0 and 1", file=sys.stderr)
+        return 2
+    bounds = {
+        "--min-containment-lower-bound": args.min_containment_lower_bound,
+        "--min-controlled-harm-free-lower-bound": args.min_controlled_harm_free_lower_bound,
+        "--min-clean-preservation-lower-bound": args.min_clean_preservation_lower_bound,
+        "--min-controlled-resistance-lower-bound": args.min_controlled_resistance_lower_bound,
+    }
+    if any(value is not None and not 0 <= value <= 1 for value in bounds.values()):
+        print("[impact] lower-bound gates must be between 0 and 1", file=sys.stderr)
+        return 2
+    if args.max_unstable_pairs is not None and not 0 <= args.max_unstable_pairs <= 5:
+        print("[impact] --max-unstable-pairs must be between 0 and 5", file=sys.stderr)
+        return 2
+    try:
+        agent_factory = _resolve_agent_factory(args)
+        policy = ToolPolicy.load(args.policy)
+        approval_handler = (
+            _resolve_callable(args.approval_handler) if args.approval_handler else None
+        )
+        report = run_repeat_control_twin(
+            agent_factory,
+            policy,
+            trials=args.trials,
+            confidence_level=args.confidence,
+            approval_handler=approval_handler,
+            approval_handler_label=args.approval_handler,
+            capture_arguments=args.capture_arguments,
+            progress=lambda current, total: print(
+                f"[impact] completed paired control trial {current}/{total}", file=sys.stderr
+            ),
+        )
+    except Exception as exc:
+        print(f"[impact] repeated control failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 2
+    print(render_repeat_control_terminal(report))
+    _write_repeat_control_artifacts(report, json_path=args.json, sarif_path=args.sarif)
+
+    summary = report.summary
+    failures = []
+    _append_lower_gate(
+        failures,
+        "containment",
+        summary.harm_containment_efficacy,
+        args.min_containment_lower_bound,
+    )
+    _append_lower_gate(
+        failures,
+        "controlled harm-free",
+        summary.controlled_harm_free,
+        args.min_controlled_harm_free_lower_bound,
+    )
+    _append_lower_gate(
+        failures,
+        "clean preservation",
+        summary.clean_utility_preservation,
+        args.min_clean_preservation_lower_bound,
+    )
+    _append_lower_gate(
+        failures,
+        "controlled resistance",
+        summary.controlled_attack_resistance,
+        args.min_controlled_resistance_lower_bound,
+    )
+    if args.max_unstable_pairs is not None and summary.unstable_pairs > args.max_unstable_pairs:
+        failures.append(f"unstable pairs {summary.unstable_pairs} > {args.max_unstable_pairs}")
+    if failures:
+        print(f"[impact] repeated-control gate failed: {'; '.join(failures)}", file=sys.stderr)
+        return 1
+    if any(value is not None for value in (*bounds.values(), args.max_unstable_pairs)):
+        print("[impact] repeated-control gate passed")
+    return 0
+
+
+def _append_lower_gate(failures, label, estimate, threshold) -> None:
+    if threshold is None:
+        return
+    if estimate is None:
+        failures.append(f"{label} lower bound is not estimable")
+    elif estimate.lower < threshold:
+        failures.append(f"{label} lower bound {estimate.lower:.1%} < {threshold:.1%}")
+
+
+def _control_repeat_verify(args) -> int:
+    from dspy_security_bench.procurement.repeat_control import verify_repeat_control_report
+
+    path = Path(args.report)
+    try:
+        payload = json.loads(path.read_text())
+        warnings = verify_repeat_control_report(payload)
+    except (OSError, json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
+        print(f"[impact] invalid RepeatControlTwin report {path}: {exc}", file=sys.stderr)
+        return 2
+    print(f"[VERIFIED] {path}")
+    print(f"  report sha256: {payload['report_sha256']}")
+    print(f"  policy sha256: {payload['policy']['sha256']}")
+    print(f"  protocol sha256: {payload['protocol_sha256']}")
+    for warning in warnings:
+        print(f"  note: {warning}")
+    return 0
+
+
+def _write_repeat_control_artifacts(
+    report, *, json_path: str | None, sarif_path: str | None
+) -> None:
+    if json_path:
+        _write_json(Path(json_path), report.to_dict())
+        print(f"[impact] wrote {json_path}")
+    if sarif_path:
+        from dspy_security_bench.procurement.repeat_control_sarif import (
+            repeat_control_report_to_sarif,
+        )
+
+        _write_json(Path(sarif_path), repeat_control_report_to_sarif(report))
         print(f"[impact] wrote {sarif_path}")
 
 
@@ -478,9 +694,7 @@ def _resolve_agent_factory(args):
         return getattr(importlib.import_module(module_name), attribute)
     from dspy_security_bench.agents import LiteLLMFunctionCallingAgent
 
-    return lambda: LiteLLMFunctionCallingAgent(
-        args.agent_model, name=args.name or args.agent_model
-    )
+    return lambda: LiteLLMFunctionCallingAgent(args.agent_model, name=args.name or args.agent_model)
 
 
 def _resolve_callable(reference: str):

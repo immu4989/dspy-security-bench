@@ -225,10 +225,41 @@ dspy-security-bench impact control-verify artifacts/control-twin.json
 Reports embed both raw ImpactTwin conditions and the normalized policy, bind
 the policy to a canonical SHA-256 digest, redact tool arguments by default, and
 recompute offline. The demonstration uses deterministic scorer fixtures, not a
-model result; stochastic agents require repeated policy-off and policy-on runs
-before interpreting the delta as stable.
+model result.
 
 [Read the ControlTwin evidence model and integration guide →](docs/control-twin.md)
+
+### RepeatControlTwin: one favorable delta is not enough
+
+For stochastic agents, repeat the complete paired experiment instead of
+interpreting one policy-off/policy-on comparison as a stable trait:
+
+```bash
+dspy-security-bench impact control-repeat \
+  --agent myapp.security:build_agent \
+  --policy policy.yaml \
+  --trials 10 \
+  --min-containment-lower-bound 0.80 \
+  --min-clean-preservation-lower-bound 0.90 \
+  --max-unstable-pairs 0 \
+  --json artifacts/repeat-control.json \
+  --sarif artifacts/repeat-control.sarif
+
+dspy-security-bench impact control-repeat-verify artifacts/repeat-control.json
+```
+
+RepeatControlTwin gives every case and condition a fresh agent, alternates
+policy-off-first and policy-on-first trials, preserves all nested evidence, and
+reports conditional Wilson intervals, paired harm transitions, an exact
+two-sided McNemar test, policy-effect instability, recovery gaps, clean utility,
+and separated provider usage.
+
+The five-trial offline fixture prevents 25/25 observed harms with a 95% Wilson
+lower bound of 86.7%, preserves 25/25 baseline clean successes, and safely
+recovers 15/25 attacked missions. Those intervals describe repeated executions
+of five frozen synthetic pairs—not performance on unseen tasks.
+
+[Read the RepeatControlTwin methodology and CI guide →](docs/repeat-control-twin.md)
 
 ---
 
@@ -356,7 +387,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 | 🔌 **Connect your framework** | Run [`integrate`](docs/integrations.md) for OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, or an MCP/custom callback, then validate it without model spend using `doctor`. |
 | 🧾 **Produce verifiable evidence** | Use [ProofRun](docs/proofrun.md) to preserve raw repeated trials, recompute statistics offline, and attach GitHub/Sigstore provenance to the exact result bytes. |
 | ⚖️ **Measure mission impact** | Run [ImpactTwin / ProcureBench](docs/impact-twin.md): clean/poisoned procurement twins that score decision drift, protected-data release, authority bypass, and synthetic funds at risk. |
-| 🧪 **Prove a control works** | Run [ControlTwin](docs/control-twin.md) to compare policy off/on, verify functional harm reduction, expose recovery gaps, and gate utility regressions. |
+| 🧪 **Prove a control works** | Run [ControlTwin](docs/control-twin.md) for a functional policy-off/on delta, then [RepeatControlTwin](docs/repeat-control-twin.md) for uncertainty bounds, effect stability, and conservative CI gates. |
 | 🔐 **Enforce least agency** | Put deterministic policy around live tool calls: allow, deny, or require approval. Includes [production profiles](docs/use-cases.md) for support, finance, RAG, and DevOps. |
 | 🛡️ **Test defenses** | Measure [cheap mitigations](#the-good-news-cheap-defenses-recover-it-v020) and whether they survive an [adaptive attacker](#but-do-the-defenses-survive-an-adaptive-attacker-v031). |
 | 🔬 **Study optimizers** | The original question: does DSPy prompt optimization make agents *more* or *less* robust? |
@@ -986,7 +1017,9 @@ v0.1 scope choices:
 | v0.7 — ProofRun attested evidence passports, reusable trusted builder, and community evidence ladder | **shipped** |
 | v0.8 — BYOA framework adapters, detection, secure scaffolding, and zero-model-call doctor | **shipped** |
 | v0.9 — ControlTwin functional policy-efficacy evidence, recovery-gap analysis, offline verification, and SARIF gates | **shipped** |
-| v0.10 — more families, secondary `direct` attack column, and independent reproduction campaigns | planned |
+| RepeatControlTwin — repeated paired policy evidence, uncertainty bounds, exact transition test, stability analysis, and CI gates | **on main; unreleased** |
+| v0.10 — package RepeatControlTwin and extend attested community evidence to control-efficacy reports | planned |
+| v0.11 — more families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work

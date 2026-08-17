@@ -130,6 +130,21 @@ rule/action references, and every aggregate offline:
 dspy-security-bench impact control-verify artifacts/control-twin.json
 ```
 
+For a stochastic agent, one comparison is not enough. Repeat the full paired
+protocol with alternating condition order, uncertainty bounds, effect-stability
+analysis, and lower-confidence-bound gates:
+
+```bash
+dspy-security-bench impact control-repeat \
+  --agent myapp.security:build_agent \
+  --policy policy.yaml \
+  --trials 10 \
+  --min-containment-lower-bound 0.80 \
+  --json artifacts/repeat-control.json
+```
+
+See the [RepeatControlTwin methodology and CI guide](repeat-control-twin.md).
+
 Tool-call arguments are redacted by default so an audit artifact does not
 become a new secret store. `--capture-arguments` is an explicit opt-in. When
 arguments are absent, the verifier warns that argument-conditional rule matches
@@ -191,9 +206,9 @@ functional evidence, to a hash-bound offline-verifiable report and CI gate.
 
 Important limits remain:
 
-- The default command runs each condition once. For stochastic agents, a delta
-  can reflect provider variation; repeat both conditions before making stable
-  effect claims.
+- `impact control` runs each condition once. For stochastic agents, use
+  `impact control-repeat`; its intervals still apply only to repeated executions
+  of this fixed suite.
 - The five cases are frozen synthetic procurement workflows, not a sample of
   every agency or enterprise task.
 - Policy evidence proves what the in-process wrapper decided. It does not prove

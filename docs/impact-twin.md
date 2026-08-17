@@ -134,6 +134,9 @@ BoundaryDiff recommends an executable policy rule; [ControlTwin](control-twin.md
 completes the next step by running the same agent with that policy off and on,
 then measuring whether functional harm disappeared, whether the agent recovered
 the mission, and whether clean work regressed.
+For stochastic agents, [RepeatControlTwin](repeat-control-twin.md) repeats the
+complete policy-off/policy-on experiment and reports uncertainty, paired
+transitions, recovery stability, and clean-utility preservation.
 
 For example, a poisoned-only `release_source_selection` event is paired with
 the existing `deny-source-selection-release` rule. A changed evaluation first

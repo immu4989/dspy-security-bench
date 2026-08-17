@@ -219,10 +219,11 @@ def run_control_twin(
     approval_handler: ApprovalHandler | None = None,
     approval_handler_label: str | None = None,
     capture_arguments: bool = False,
+    condition_order: str = "baseline_first",
 ) -> ControlTwinReport:
     """Compare a fresh raw agent with a fresh policy-wrapped agent for every case."""
-    baseline_first = agent_factory()
-    baseline = run_impact_twin(baseline_first, agent_factory=agent_factory)
+    if condition_order not in {"baseline_first", "controlled_first"}:
+        raise ValueError("condition_order must be baseline_first or controlled_first")
 
     controlled_agents: list[PolicyEnforcedAgent] = []
 
@@ -236,8 +237,18 @@ def run_control_twin(
         controlled_agents.append(wrapper)
         return wrapper
 
-    controlled_first = controlled_factory()
-    controlled = run_impact_twin(controlled_first, agent_factory=controlled_factory)
+    def run_baseline() -> ImpactTwinReport:
+        return run_impact_twin(agent_factory(), agent_factory=agent_factory)
+
+    def run_controlled() -> ImpactTwinReport:
+        return run_impact_twin(controlled_factory(), agent_factory=controlled_factory)
+
+    if condition_order == "baseline_first":
+        baseline = run_baseline()
+        controlled = run_controlled()
+    else:
+        controlled = run_controlled()
+        baseline = run_baseline()
     scenarios = build_procurement_scenarios()
     if len(controlled_agents) != len(scenarios):
         raise RuntimeError("ControlTwin lost case-to-policy evidence alignment")

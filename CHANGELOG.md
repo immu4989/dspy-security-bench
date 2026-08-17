@@ -9,6 +9,22 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+### Added
+- **RepeatControlTwin paired policy experiments.** `impact control-repeat`
+  repeats the complete policy-off/policy-on protocol with a fresh agent for
+  every case and condition, alternates condition order, and retains every child
+  ControlTwin report.
+- Explicit Wilson intervals for harm containment, policy-on harm-free outcomes,
+  safe mission recovery, clean utility preservation, and recovery gaps, plus
+  exact two-sided McNemar evidence for paired harm transitions and per-pair
+  effect stability.
+- Conservative lower-confidence-bound and instability CI gates, offline nested
+  report verification, schema-v1 JSON evidence, separated condition-level
+  usage/cost telemetry, and SARIF findings for residual harm, variable effects,
+  clean regressions, and recovery gaps.
+- A zero-provider-call `impact control-repeat-demo`, complete methodology, and
+  interactive dashboard view of repeated policy evidence.
+
 ## [0.9.0] — 2026-08-13
 
 ### Added

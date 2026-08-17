@@ -31,6 +31,7 @@ keywords = [
     "procurement-security",
     "least-privilege",
     "policy-efficacy",
+    "paired-evaluation",
     "ai-agent-governance",
 ]
 classifiers = [
@@ -104,6 +105,7 @@ Changelog = "https://github.com/immu4989/dspy-security-bench/blob/main/CHANGELOG
 Documentation = "https://github.com/immu4989/dspy-security-bench/tree/main/docs"
 ImpactTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/impact-twin.md"
 ControlTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/control-twin.md"
+RepeatControlTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/repeat-control-twin.md"
 ProofRun = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/proofrun.md"
 Integrations = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/integrations.md"
 "Community Results" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/impact"

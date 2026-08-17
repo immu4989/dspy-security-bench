@@ -161,6 +161,13 @@ document.querySelector("#control-copy")?.addEventListener("click", async event =
   setTimeout(() => { button.textContent = "Copy command"; }, 1800);
 });
 
+document.querySelector("#repeat-control-copy")?.addEventListener("click", async event => {
+  const button = event.currentTarget;
+  await navigator.clipboard.writeText("dspy-security-bench impact control-repeat-demo --trials 5");
+  button.textContent = "Copied ✓";
+  setTimeout(() => { button.textContent = "Copy command"; }, 1800);
+});
+
 const menuButton = document.querySelector(".menu-button");
 menuButton.addEventListener("click", () => {
   const links = document.querySelector(".nav-links");

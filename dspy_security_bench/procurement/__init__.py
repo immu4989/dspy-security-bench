@@ -26,6 +26,11 @@ from dspy_security_bench.procurement.repeat import (
     run_repeat_twin,
     verify_submission_bundle,
 )
+from dspy_security_bench.procurement.repeat_control import (
+    RepeatControlTwinReport,
+    run_repeat_control_twin,
+    verify_repeat_control_report,
+)
 from dspy_security_bench.proofrun import AttestationResult, capture_provenance
 
 __all__ = [
@@ -36,12 +41,15 @@ __all__ = [
     "ImpactTwinReport",
     "RecommendedControl",
     "RateEstimate",
+    "RepeatControlTwinReport",
     "RepeatTwinReport",
     "create_submission_bundle",
     "capture_provenance",
     "run_impact_twin",
     "run_control_twin",
     "run_repeat_twin",
+    "run_repeat_control_twin",
     "verify_submission_bundle",
     "verify_control_report",
+    "verify_repeat_control_report",
 ]

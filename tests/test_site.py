@@ -112,6 +112,23 @@ def test_site_presents_control_twin_as_harm_utility_and_recovery_evidence():
     assert "dspy-security-bench impact control-demo" in script
 
 
+def test_site_presents_repeat_control_uncertainty_without_population_overclaim():
+    page = (SITE / "index.html").read_text()
+    assert "RepeatControlTwin · on main" in page
+    assert "One delta can be luck" in page
+    assert "25/25 · lower bound 86.7%" in page
+    assert "15/25 · 40.7%–76.6%" in page
+    assert "exact McNemar p" in page
+    assert "fresh agent · every case · every condition" in page
+    assert "fixed synthetic suite" in page
+    assert "not a model result, population estimate" in page
+    assert "dspy-security-bench impact control-repeat-demo --trials 5" in page
+
+    script = (SITE / "app.js").read_text()
+    assert 'document.querySelector("#repeat-control-copy")' in script
+    assert "dspy-security-bench impact control-repeat-demo --trials 5" in script
+
+
 def test_site_never_upgrades_a_claimed_attestation_without_registry_verification(
     tmp_path, monkeypatch
 ):

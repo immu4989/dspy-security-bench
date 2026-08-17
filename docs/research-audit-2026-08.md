@@ -154,6 +154,35 @@ This work does not claim that policy engines, A/B evaluation, least privilege,
 or functional security testing are individually novel. The contribution is the
 integrated, falsifiable loop from controlled prompt-injection failure, to an
 executable boundary, to policy-off/policy-on functional and mission evidence,
-to a policy-hash-bound report that can be recomputed offline. A single
-policy-off/on run does not establish an effect for a stochastic provider;
-repeated two-condition inference remains follow-on work.
+to a policy-hash-bound report that can be recomputed offline.
+
+## Follow-on: RepeatControlTwin paired uncertainty
+
+The next implementation closes ControlTwin's single-run limitation. It repeats
+the full paired experiment, gives every case and condition a fresh agent, and
+alternates which condition runs first. It preserves all child evidence and
+reports transition-conditional Wilson score intervals, per-pair effect
+stability, and the exact two-sided McNemar test over prevented versus introduced
+functional harms.
+
+The statistical design is intentionally legible. Conditional rates name their
+observed denominator—such as baseline-harmful, baseline-failed, baseline-clean-
+successful, or contained pair-trials—and become unavailable rather than zero
+when no eligible observation exists. The exact paired test avoids a large-
+sample approximation. Newcombe's 1998 analysis of paired binary-proportion
+intervals informs the interpretation boundary; this version does not claim to
+implement Newcombe's full paired-difference interval.
+
+Robert G. Newcombe, “Improved confidence intervals for the difference between
+binomial proportions based on paired data,” *Statistics in Medicine* 17 (1998),
+2635–2650. [DOI](https://doi.org/10.1002/(SICI)1097-0258(19981130)17:22%3C2635::AID-SIM954%3E3.0.CO;2-C).
+
+RepeatControlTwin still does not infer performance on unseen tasks. Its
+sampling unit is one fixed ProcureBench pair in one trial, and its intervals
+quantify execution variability for those five synthetic pairs under the tested
+agent, policy, provider, and protocol identities. Alternating order reduces one
+systematic bias; it does not remove provider drift, deployment mismatch, or
+unobserved attack paths. The nominal Wilson and McNemar calculations also treat
+pair-trial executions as exchangeable. Shared provider conditions can correlate
+cases, so the raw trials and per-pair stability remain part of the evidence
+rather than being discarded behind a p-value.
