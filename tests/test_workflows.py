@@ -63,6 +63,9 @@ def test_release_attests_built_distributions_before_publish():
     assert "dist/*" in workflow
     assert "sbom/*" in workflow
     assert "anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610" in workflow
+    assert "github-release:" in workflow
+    assert 'gh release create "$GITHUB_REF_NAME"' in workflow
+    assert '--notes-file "docs/releases/$GITHUB_REF_NAME.md"' in workflow
 
 
 def test_proofrun_action_preserves_evidence_before_enforcing_the_gate():
