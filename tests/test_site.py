@@ -1,11 +1,14 @@
+import hashlib
 import json
 from html.parser import HTMLParser
 from pathlib import Path
 
 from scripts.generate_site_data import (
     BENIGN_DIR,
+    CONTROL_SUBMISSIONS_DIR,
     DEFAULT_OUT,
     RESULTS_DIR,
+    _control_evidence_results,
     _proofrun_results,
     build_payload,
 )
@@ -57,6 +60,12 @@ def test_site_capability_is_joined_from_no_attack_evidence():
 
 def test_committed_site_data_matches_result_json():
     assert json.loads(Path(DEFAULT_OUT).read_text()) == build_payload()
+
+
+def test_site_payload_exposes_the_open_control_evidence_registry():
+    payload = build_payload()
+    assert payload["controlEvidenceCount"] == len(payload["controlEvidence"])
+    assert CONTROL_SUBMISSIONS_DIR.name == "control"
 
 
 def test_site_evidence_links_are_deployable_urls():
@@ -129,6 +138,78 @@ def test_site_presents_repeat_control_uncertainty_without_population_overclaim()
     assert "dspy-security-bench impact control-repeat-demo --trials 5" in script
 
 
+def test_site_presents_control_registry_as_evidence_not_certification():
+    page = (SITE / "index.html").read_text()
+    assert 'id="control-registry"' in page
+    assert "Which guardrail works?" in page
+    assert "Validity, not victory" in page
+    assert "containment · recovery · utility" in page
+    assert "A failing control can belong here" in page
+    assert "not certification" in page
+    assert 'id="control-evidence-results"' in page
+    assert 'id="control-registry-copy"' in page
+
+
+def test_control_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_path):
+    submissions = tmp_path / "control"
+    submissions.mkdir()
+    bundle = {
+        "bundle_type": "dspy-security-bench-control-evidence-submission",
+        "submission": {
+            "submitter": "<control-team>",
+            "agent_source_url": "https://github.com/example/agent",
+            "policy_source_url": "https://github.com/example/agent/policy.yaml",
+            "created_at": "2026-08-18T00:00:00Z",
+        },
+        "report": {
+            "agent": "agent <unsafe>",
+            "trial_isolation": "fresh_agent_per_case_and_condition",
+            "policy": {
+                "name": "policy <unsafe>",
+                "sha256": "b" * 64,
+                "arguments_captured": False,
+            },
+            "summary": {
+                "trials": 5,
+                "unstable_pairs": 0,
+                "harm_containment_efficacy": {"rate": 0.8, "lower": 0.6, "upper": 0.9},
+                "safe_mission_recovery": {"rate": 0.6, "lower": 0.4, "upper": 0.8},
+                "clean_utility_preservation": {"rate": 1, "lower": 0.8, "upper": 1},
+                "controlled_attack_resistance": {"rate": 0.8, "lower": 0.6, "upper": 0.9},
+                "mean_synthetic_funds_risk_reduction_usd": 1000,
+                "usage": {},
+            },
+            "trials": [{}, {}, {}, {}, {}],
+        },
+        "provenance": {"provider": "github_actions"},
+    }
+    encoded = json.dumps(
+        bundle, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    ).encode()
+    digest = hashlib.sha256(encoded).hexdigest()
+    bundle["bundle_sha256"] = digest
+    (submissions / "agent-policy.json").write_text(json.dumps(bundle))
+    reproductions = tmp_path / "reproductions.json"
+    reproductions.write_text('{"schema_version": 1, "reproductions": {}}')
+    attestations = tmp_path / "attestations.json"
+    attestations.write_text('{"schema_version": 1, "attestations": {}}')
+
+    rows = _control_evidence_results(submissions, reproductions, attestations)
+    assert rows[0]["evidenceTier"] == "github_attestation_unverified"
+    assert rows[0]["containment"]["lower"] == 0.6
+
+    attestations.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "attestations": {digest: {"evidence_tier": "trusted_builder"}},
+            }
+        )
+    )
+    rows = _control_evidence_results(submissions, reproductions, attestations)
+    assert rows[0]["evidenceTier"] == "trusted_builder"
+
+
 def test_site_never_upgrades_a_claimed_attestation_without_registry_verification(
     tmp_path, monkeypatch
 ):
@@ -185,5 +266,7 @@ def test_site_escapes_untrusted_community_fields_before_rendering():
     assert "escapeHtml(result.agent)" in script
     assert "escapeHtml(result.submitter)" in script
     assert "safeResultUrl(result.result)" in script
+    assert "safeControlResultUrl(result.result)" in script
+    assert "escapeHtml(result.policy)" in script
     assert "const button = event.currentTarget;" in script
     assert "setTimeout(() => { event.currentTarget" not in script

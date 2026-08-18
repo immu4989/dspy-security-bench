@@ -9,6 +9,11 @@ const safeResultUrl = value => {
   const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/impact\/[a-z0-9-]+\.json$/;
   return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/impact";
 };
+const safeControlResultUrl = value => {
+  const url = String(value || "");
+  const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/control\/[a-z0-9-]+\.json$/;
+  return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/control";
+};
 
 async function loadData() {
   const response = await fetch("data.json");
@@ -18,12 +23,14 @@ async function loadData() {
   document.querySelectorAll("[data-model-count]").forEach(node => node.textContent = data.modelCount);
   document.querySelectorAll("[data-family-count]").forEach(node => node.textContent = data.familyCount);
   document.querySelectorAll("[data-proofrun-count]").forEach(node => node.textContent = data.proofrunCount || 0);
+  document.querySelectorAll("[data-control-evidence-count]").forEach(node => node.textContent = data.controlEvidenceCount || 0);
   const robustness = data.models.map(model => model.robustness);
   document.querySelector("[data-min-robustness]").textContent = Math.round(Math.min(...robustness) * 100);
   document.querySelector("[data-max-robustness]").textContent = Math.round(Math.max(...robustness) * 100);
   renderTable();
   renderScatter();
   renderProofRuns(data.proofruns || []);
+  renderControlEvidence(data.controlEvidence || []);
 }
 
 const proofTier = {
@@ -47,6 +54,37 @@ function renderProofRuns(results) {
       <div class="proof-score"><strong>${pct(result.rate)}</strong><span>95% Wilson ${pct(result.lower)}–${pct(result.upper)}</span></div>
       <div class="proof-meta"><span>${Number(result.unstablePairs)} unstable pairs</span><span>${escapeHtml(cost)}</span></div>
       <a href="${safeResultUrl(result.result)}">inspect JSON ↗</a>
+    </article>`;
+  }).join("");
+}
+
+function evidenceMetric(label, estimate) {
+  if (!estimate) return `<div><span>${label}</span><strong>N/A</strong><small>no eligible baseline observations</small></div>`;
+  return `<div><span>${label}</span><strong>${pct(Number(estimate.rate))}</strong><small>95% Wilson ${pct(Number(estimate.lower))}–${pct(Number(estimate.upper))}</small></div>`;
+}
+
+function renderControlEvidence(results) {
+  const host = document.querySelector("#control-evidence-results");
+  const empty = document.querySelector("#control-evidence-empty");
+  if (!host || !empty) return;
+  empty.hidden = results.length > 0;
+  host.innerHTML = results.map(result => {
+    const [label, className] = proofTier[result.evidenceTier] || proofTier.self_attested;
+    const policyDigest = String(result.policySha256 || "").slice(0, 12);
+    const riskReduction = Number(result.riskReductionUsd || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
+    return `<article class="control-evidence-card">
+      <header>
+        <span class="proof-tier ${className}">${label}</span>
+        <strong>${escapeHtml(result.agent)}</strong>
+        <small>${escapeHtml(result.submitter)} · ${Number(result.trials)} paired trials</small>
+      </header>
+      <div class="control-policy-id"><span>policy</span><strong>${escapeHtml(result.policy)}</strong><code>sha256:${escapeHtml(policyDigest)}…</code></div>
+      <div class="control-evidence-metrics">
+        ${evidenceMetric("Harm containment", result.containment)}
+        ${evidenceMetric("Safe recovery", result.recovery)}
+        ${evidenceMetric("Clean preservation", result.cleanPreservation)}
+      </div>
+      <footer><span>${Number(result.unstablePairs)}/5 unstable effects</span><span>$${riskReduction} synthetic exposure reduced / trial</span><a href="${safeControlResultUrl(result.result)}">inspect evidence ↗</a></footer>
     </article>`;
   }).join("");
 }
@@ -148,7 +186,15 @@ document.querySelector("#copy-code").addEventListener("click", async event => {
 
 document.querySelector("#proofrun-copy")?.addEventListener("click", async event => {
   const button = event.currentTarget;
-  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  proofrun:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.10.0\n    with:\n      agent: myapp.security:build_agent\n      trials: 10`;
+  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  proofrun:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0\n    with:\n      agent: myapp.security:build_agent\n      trials: 10`;
+  await navigator.clipboard.writeText(workflow);
+  button.textContent = "Copied ✓";
+  setTimeout(() => { button.textContent = "Copy workflow"; }, 1800);
+});
+
+document.querySelector("#control-registry-copy")?.addEventListener("click", async event => {
+  const button = event.currentTarget;
+  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  control-evidence:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0\n    with:\n      evidence-kind: control\n      agent: myapp.security:build_agent\n      policy: policies/production.yaml\n      trials: 10\n      min-containment-lower-bound: 0.70`;
   await navigator.clipboard.writeText(workflow);
   button.textContent = "Copied ✓";
   setTimeout(() => { button.textContent = "Copy workflow"; }, 1800);

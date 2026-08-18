@@ -10,6 +10,7 @@ on:
       - ".github/workflows/proofrun.yml"
       - "dspy_security_bench/proofrun.py"
       - "dspy_security_bench/proofrun_cli.py"
+      - "scripts/proofrun_action_metadata.py"
       - "dspy_security_bench/procurement/**"
 
 permissions:
@@ -44,3 +45,31 @@ jobs:
         run: |
           test ${#PROOFRUN_DIGEST} -eq 64
           test -n "$PROOFRUN_LOWER"
+
+      - name: Exercise control evidence and the shareable card
+        id: control
+        uses: ./
+        with:
+          evidence-kind: control
+          agent: dspy_security_bench.procurement.agents:build_vulnerable_reference
+          policy: dspy_security_bench/templates/policies/procurement.yaml
+          policy-source: "https://github.com/immu4989/dspy-security-bench/blob/main/dspy_security_bench/templates/policies/procurement.yaml"
+          approval-handler: dspy_security_bench.procurement.agents:synthetic_contracting_officer_approval
+          trials: "2"
+          submitter: "@dspy-security-bench-smoke"
+          agent-source: "https://github.com/immu4989/dspy-security-bench"
+          notes: "Deterministic scorer fixture; control integration test, not a model result."
+          output: "artifacts/control-proofrun-smoke.json"
+          card-output: "artifacts/control-proofrun-smoke.svg"
+          artifact-name: "control-proofrun-action-smoke"
+
+      - name: Verify control action outputs
+        env:
+          PROOFRUN_KIND: ${{ steps.control.outputs.evidence-kind }}
+          PROOFRUN_DIGEST: ${{ steps.control.outputs.bundle-sha256 }}
+          PROOFRUN_CONTAINMENT: ${{ steps.control.outputs.containment }}
+        run: |
+          test "$PROOFRUN_KIND" = "control"
+          test ${#PROOFRUN_DIGEST} -eq 64
+          test -n "$PROOFRUN_CONTAINMENT"
+          test -s artifacts/control-proofrun-smoke.svg

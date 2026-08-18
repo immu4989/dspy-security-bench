@@ -128,6 +128,30 @@ def build_parser() -> argparse.ArgumentParser:
     )
     control_repeat_verify.add_argument("report", help="RepeatControlTwin JSON report")
 
+    control_submit = sub.add_parser(
+        "control-submit",
+        help="create a content-addressed Open Control Evidence bundle",
+    )
+    control_submit.add_argument("report", help="RepeatControlTwin JSON report")
+    control_submit.add_argument("--out", required=True, help="destination bundle JSON")
+    control_submit.add_argument("--submitter", required=True, help="GitHub handle or organization")
+    control_submit.add_argument("--agent-source", required=True, help="public HTTPS agent source")
+    control_submit.add_argument("--policy-source", required=True, help="public HTTPS policy source")
+    control_submit.add_argument("--notes", default="", help="short public context for reviewers")
+
+    control_submission_verify = sub.add_parser(
+        "control-submission-verify",
+        help="verify control evidence integrity and registry eligibility offline",
+    )
+    control_submission_verify.add_argument("bundles", nargs="+", help="bundle JSON files")
+    control_submission_verify.add_argument("--minimum-trials", type=int, default=5)
+
+    control_card = sub.add_parser(
+        "control-card", help="render a shareable SVG from a valid control evidence bundle"
+    )
+    control_card.add_argument("bundle", help="Open Control Evidence bundle JSON")
+    control_card.add_argument("--out", required=True, help="destination SVG path")
+
     repeat = sub.add_parser(
         "repeat", help="repeat all twins and report stochastic uncertainty and stability"
     )
@@ -217,6 +241,12 @@ def main(argv: list[str] | None = None) -> int:
         return _control_repeat(args)
     if args.command == "control-repeat-verify":
         return _control_repeat_verify(args)
+    if args.command == "control-submit":
+        return _control_submit(args)
+    if args.command == "control-submission-verify":
+        return _control_submission_verify(args)
+    if args.command == "control-card":
+        return _control_card(args)
     if args.command == "repeat":
         return _repeat(args)
     if args.command == "submit-result":
@@ -535,6 +565,81 @@ def _write_repeat_control_artifacts(
 
         _write_json(Path(sarif_path), repeat_control_report_to_sarif(report))
         print(f"[impact] wrote {sarif_path}")
+
+
+def _control_submit(args) -> int:
+    from dspy_security_bench.procurement.control_registry import (
+        create_control_submission_bundle,
+    )
+
+    source = Path(args.report)
+    try:
+        report = json.loads(source.read_text())
+        bundle = create_control_submission_bundle(
+            report,
+            submitter=args.submitter,
+            agent_source_url=args.agent_source,
+            policy_source_url=args.policy_source,
+            notes=args.notes,
+        )
+        destination = Path(args.out)
+        _write_json(destination, bundle)
+    except (OSError, json.JSONDecodeError, ValueError, TypeError) as exc:
+        print(f"[impact] could not create control submission: {exc}", file=sys.stderr)
+        return 2
+    print(f"[impact] wrote content-addressed control evidence {destination}")
+    print(f"[impact] bundle sha256: {bundle['bundle_sha256']}")
+    print(f"Next: dspy-security-bench impact control-submission-verify {destination}")
+    return 0
+
+
+def _control_submission_verify(args) -> int:
+    from dspy_security_bench.procurement.control_registry import (
+        verify_control_submission_bundle,
+    )
+
+    if args.minimum_trials < 2:
+        print("[impact] --minimum-trials must be at least 2", file=sys.stderr)
+        return 2
+    passed = True
+    for raw_path in args.bundles:
+        path = Path(raw_path)
+        try:
+            bundle = json.loads(path.read_text())
+            result = verify_control_submission_bundle(bundle, minimum_trials=args.minimum_trials)
+        except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+            print(f"[INVALID] {path}: {exc}", file=sys.stderr)
+            passed = False
+            continue
+        marker = "VERIFIED" if result.registry_eligible else "NOT ELIGIBLE"
+        print(f"[{marker}] {path}")
+        for error in result.errors:
+            print(f"  error: {error}")
+        for warning in result.warnings:
+            print(f"  note: {warning}")
+        if result.bundle_sha256:
+            print(f"  sha256: {result.bundle_sha256}")
+        passed = passed and result.registry_eligible
+    return 0 if passed else 1
+
+
+def _control_card(args) -> int:
+    from dspy_security_bench.procurement.control_registry import (
+        render_control_evidence_card_svg,
+    )
+
+    source = Path(args.bundle)
+    destination = Path(args.out)
+    try:
+        bundle = json.loads(source.read_text())
+        card = render_control_evidence_card_svg(bundle)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(card)
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+        print(f"[impact] could not render control evidence card: {exc}", file=sys.stderr)
+        return 2
+    print(f"[impact] wrote shareable control evidence card {destination}")
+    return 0
 
 
 def _explain(args) -> int:

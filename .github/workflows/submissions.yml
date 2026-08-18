@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "submissions/impact/**"
+      - "submissions/control/**"
       - "submissions/reproductions.json"
       - "submissions/attestations.json"
       - "scripts/validate_impact_submissions.py"
@@ -15,6 +16,7 @@ on:
     branches: [main]
     paths:
       - "submissions/impact/**"
+      - "submissions/control/**"
       - "submissions/reproductions.json"
       - "submissions/attestations.json"
       - "scripts/validate_impact_submissions.py"

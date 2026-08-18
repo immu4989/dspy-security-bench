@@ -11,7 +11,7 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.10.0
+version: 0.11.0
 date-released: 2026-08-18
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
@@ -35,7 +35,9 @@ abstract: >-
   RepeatControlTwin repeats the paired policy experiment with fresh agents and
   alternating condition order, then reports uncertainty bounds, functional
   transitions, recovery stability, clean-utility preservation, and separated
-  condition-level usage.
+  condition-level usage. The Open Control Evidence Registry packages those
+  policy-bound experiments for offline recomputation, public comparison,
+  GitHub/Sigstore provenance, and independently reviewable contribution.
 keywords:
   - prompt-injection
   - llm-security

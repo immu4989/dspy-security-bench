@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate every committed RepeatTwin community submission offline."""
+"""Validate every committed Impact and Control evidence submission."""
 
 from __future__ import annotations
 
@@ -8,13 +8,22 @@ import re
 from pathlib import Path
 from urllib.parse import urlparse
 
+from dspy_security_bench.procurement.control_registry import (
+    BUNDLE_TYPE as CONTROL_BUNDLE_TYPE,
+)
+from dspy_security_bench.procurement.control_registry import (
+    verify_control_submission_bundle,
+)
 from dspy_security_bench.procurement.repeat import verify_submission_bundle
 from dspy_security_bench.proofrun import TRUSTED_BUILDER_WORKFLOW, verify_github_attestation
 
 
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
-    submissions = sorted((root / "submissions" / "impact").glob("*.json"))
+    submissions = [
+        *sorted((root / "submissions" / "impact").glob("*.json")),
+        *sorted((root / "submissions" / "control").glob("*.json")),
+    ]
     if not submissions:
         print("[submissions] no JSON submissions committed yet")
     failed = False
@@ -26,18 +35,22 @@ def main() -> int:
             continue
         try:
             bundle = json.loads(path.read_text())
-            result = verify_submission_bundle(bundle)
+            if bundle.get("bundle_type") == CONTROL_BUNDLE_TYPE:
+                result = verify_control_submission_bundle(bundle)
+                eligible = result.registry_eligible
+            else:
+                result = verify_submission_bundle(bundle)
+                eligible = result.community_eligible
         except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
             print(f"[INVALID] {path.relative_to(root)}: {exc}")
             failed = True
             continue
-        marker = "VERIFIED" if result.community_eligible else "NOT ELIGIBLE"
+        marker = "VERIFIED" if eligible else "NOT ELIGIBLE"
         print(f"[{marker}] {path.relative_to(root)}")
         for error in result.errors:
             print(f"  error: {error}")
         for warning in result.warnings:
             print(f"  note: {warning}")
-        eligible = result.community_eligible
         provenance = bundle.get("provenance")
         if isinstance(provenance, dict) and provenance.get("provider") == "github_actions":
             attestation = verify_github_attestation(path, bundle)
@@ -64,9 +77,7 @@ def _validate_attestations(root: Path, accepted_bundles: dict[str, dict]) -> boo
     except (OSError, json.JSONDecodeError) as exc:
         print(f"[INVALID] submissions/attestations.json: {exc}")
         return True
-    if registry.get("schema_version") != 1 or not isinstance(
-        registry.get("attestations"), dict
-    ):
+    if registry.get("schema_version") != 1 or not isinstance(registry.get("attestations"), dict):
         print("[INVALID] submissions/attestations.json: unsupported registry shape")
         return True
     failed = False
@@ -122,9 +133,7 @@ def _validate_reproductions(root: Path, accepted_digests: set[str]) -> bool:
     except (OSError, json.JSONDecodeError) as exc:
         print(f"[INVALID] submissions/reproductions.json: {exc}")
         return True
-    if registry.get("schema_version") != 1 or not isinstance(
-        registry.get("reproductions"), dict
-    ):
+    if registry.get("schema_version") != 1 or not isinstance(registry.get("reproductions"), dict):
         print("[INVALID] submissions/reproductions.json: unsupported registry shape")
         return True
     failed = False

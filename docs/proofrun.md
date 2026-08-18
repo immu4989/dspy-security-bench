@@ -1,9 +1,9 @@
 # ProofRun: verifiable evidence for AI-agent security evaluations
 
-Most agent benchmarks end at a score in a log. ProofRun turns a RepeatTwin run
-into a portable evidence passport: raw trial outcomes, uncertainty, protocol
-identity, source commit, workflow identity, and a cryptographic attestation over
-the exact JSON bytes.
+Most agent benchmarks end at a score in a log. ProofRun turns a RepeatTwin or
+RepeatControlTwin run into a portable evidence passport: raw trial outcomes,
+uncertainty, protocol and policy identity, source commit, workflow identity,
+and a cryptographic attestation over the exact JSON bytes.
 
 ProofRun is designed for teams that need to answer two separate questions:
 
@@ -53,7 +53,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.10.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -65,13 +65,42 @@ jobs:
 
 The callable must take no arguments and return a fresh framework-neutral
 `Agent`. The workflow checks out the evaluated commit, installs it in an
-isolated Python environment, installs the immutable v0.10.0 ProofRun engine last,
+isolated Python environment, installs the immutable v0.11.0 ProofRun engine last,
 runs the five clean/poisoned procurement pairs repeatedly, and preserves the
 bundle even when the statistical gate fails. It then creates GitHub/Sigstore
 build provenance and uploads the exact file as a workflow artifact.
 
 Pin the reusable workflow to a release tag or full commit SHA. Do not use
 `@main` for evidence you expect another organization to rely on.
+
+### Control-effectiveness mode
+
+Use the same trusted builder to evaluate an exact enforcement policy rather
+than the agent alone:
+
+```yaml
+jobs:
+  control-evidence:
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0
+    with:
+      evidence-kind: control
+      agent: myapp.security:build_agent
+      policy: policies/production.yaml
+      approval-handler: myapp.approvals:review_tool_call
+      trials: 10
+      min-containment-lower-bound: 0.70
+      min-clean-preservation-lower-bound: 0.80
+      max-unstable-pairs: 1
+```
+
+The builder runs paired policy-off/policy-on trials, binds the normalized policy
+and digest, keeps containment, mission recovery, and clean utility separate,
+and generates an SVG evidence card beside the attested JSON. `policy` must be a
+repository-relative path. Its public source defaults to the caller's exact
+commit, or can be set explicitly with `policy-source`.
+
+See the [Open Control Evidence Registry](control-evidence-registry.md) for the
+admission and public-submission contract.
 
 ## Flexible path: the composite action
 
@@ -85,7 +114,7 @@ permissions:
 
 steps:
   - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-  - uses: immu4989/dspy-security-bench@v0.10.0
+  - uses: immu4989/dspy-security-bench@v0.11.0
     with:
       agent: myapp.security:build_agent
       trials: "10"
@@ -121,6 +150,22 @@ dspy-security-bench proofrun verify proofrun.json --require-trusted-builder
 Online verification rejects self-hosted-runner attestations by default. A
 reviewer can opt in with `--allow-self-hosted-runner`, but should separately
 evaluate that runner's trust and isolation.
+
+For policy-effectiveness evidence, use `proofrun control`. The bundle and card
+are written before any configured statistical gate is enforced:
+
+```bash
+dspy-security-bench proofrun control \
+  --agent myapp.security:build_agent \
+  --policy policies/production.yaml \
+  --policy-source "https://github.com/you/agent/blob/COMMIT/policies/production.yaml" \
+  --trials 10 \
+  --min-containment-lower-bound 0.70 \
+  --submitter "@your-handle" \
+  --agent-source "https://github.com/you/agent/tree/COMMIT" \
+  --out control-evidence.json \
+  --card-out control-evidence.svg
+```
 
 ## Evidence ladder
 
@@ -160,18 +205,20 @@ digest and certificate claims. See GitHub's
 [artifact attestation documentation](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds)
 for the platform trust model.
 
-## Community leaderboard contract
+## Community evidence contracts
 
-Place bundles under `submissions/impact/` and open a pull request. CI performs
+Place agent-only bundles under `submissions/impact/` or policy-effectiveness
+bundles under `submissions/control/`, then open a pull request. CI performs
 offline recomputation for every bundle and performs online attestation
 verification for schema-v2 bundles that claim GitHub provenance. The public
 dashboard labels the evidence tier; it never renders a checksum as an identity
-claim.
+claim. Valid control evidence does not need a favorable score.
 
 Before submitting:
 
 ```bash
 dspy-security-bench proofrun verify submissions/impact/your-agent.json
+dspy-security-bench proofrun verify submissions/control/your-agent-policy.json
 ```
 
 Use only synthetic inputs. Never include customer records, private prompts,

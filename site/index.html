@@ -31,6 +31,7 @@
         <a href="#proofrun">ProofRun</a>
         <a href="#impact">ImpactTwin</a>
         <a href="#control">ControlTwin</a>
+        <a href="#control-registry">Registry</a>
         <a href="#scan">CI scanner</a>
         <a class="nav-cta" href="https://github.com/immu4989/dspy-security-bench">View on GitHub <span aria-hidden="true">↗</span></a>
       </div>
@@ -201,7 +202,7 @@
           <h2>Run it. Sign it.<br><em>Let others verify it.</em></h2>
         </div>
         <div class="proofrun-intro">
-          <span class="proof-live"><i></i> v0.9 trusted builder</span>
+          <span class="proof-live"><i></i> v0.11 dual evidence builder</span>
           <p>A reusable workflow isolates model evaluation from signing, recomputes every statistic in a clean job, and binds the exact JSON to a source commit before enforcing the gate.</p>
         </div>
       </div>
@@ -241,7 +242,7 @@
 
 <span class="yaml-key">jobs:</span>
   <span class="yaml-key">proofrun:</span>
-    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.10.0
+    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0
     <span class="yaml-key">with:</span>
       <span class="yaml-key">agent:</span> myapp.security:build_agent
       <span class="yaml-key">trials:</span> 10</code></pre>
@@ -463,6 +464,57 @@
         <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/control-twin.md">Inspect ControlTwin <span aria-hidden="true">↗</span></a>
       </div>
       <p class="control-disclaimer reveal">Deterministic reference fixture, not a model result. Containment is not recovery; synthetic exposure is not predicted loss or certification.</p>
+    </section>
+
+    <section class="section control-registry-section" id="control-registry">
+      <div class="registry-grid" aria-hidden="true"></div>
+      <div class="registry-heading reveal">
+        <div>
+          <span class="section-kicker">Open Control Evidence Registry · public beta</span>
+          <h2>Which guardrail works?<br><em>Show the receipts.</em></h2>
+        </div>
+        <div class="registry-intro">
+          <span><i></i> Evidence, not endorsements</span>
+          <p>Publish the policy-off and policy-on experiment—even when the control performs poorly. Every accepted entry keeps the raw paired trials, policy identity, uncertainty, and chain of custody inspectable.</p>
+        </div>
+      </div>
+
+      <div class="registry-manifest reveal">
+        <div class="registry-count"><strong data-control-evidence-count>0</strong><span>public control<br>experiments</span></div>
+        <ol>
+          <li><b>01</b><div><strong>Run paired twins</strong><span>fresh agent · alternating order</span></div></li>
+          <li><b>02</b><div><strong>Recompute offline</strong><span>raw events → intervals → digest</span></div></li>
+          <li><b>03</b><div><strong>Verify provenance</strong><span>workflow · commit · exact bytes</span></div></li>
+          <li><b>04</b><div><strong>Compare tradeoffs</strong><span>containment · recovery · utility</span></div></li>
+        </ol>
+      </div>
+
+      <div class="registry-principles reveal">
+        <article><span>Admission</span><strong>Validity, not victory</strong><p>A failing control can belong here. Five trials, recomputable evidence, fresh isolation, zero runtime errors, and redacted arguments are the comparison floor.</p></article>
+        <article><span>Identity</span><strong>Policy SHA-256 bound</strong><p>The exact policy document travels with the evidence. A name alone cannot silently stand in for different enforcement logic.</p></article>
+        <article><span>Interpretation</span><strong>Three outcomes stay separate</strong><p>Blocking harm, safely completing the mission, and preserving clean work are reported independently—never collapsed into one marketing score.</p></article>
+      </div>
+
+      <div class="registry-results reveal">
+        <div class="registry-results-head">
+          <div><span>Public evidence ledger</span><small>chain of custody first · containment lower bound second</small></div>
+          <a href="https://github.com/immu4989/dspy-security-bench/tree/main/submissions/control">inspect registry files ↗</a>
+        </div>
+        <div id="control-evidence-results"></div>
+        <div id="control-evidence-empty" class="registry-empty">
+          <span>000</span><div><strong>The ledger is open.</strong><p>Be the first independent team to publish a policy experiment—not just a score.</p></div>
+        </div>
+      </div>
+
+      <div class="registry-launch reveal">
+        <div>
+          <span>Fork · run · attest · submit</span>
+          <code><i>evidence-kind:</i> control&nbsp;&nbsp; <i>policy:</i> policies/production.yaml&nbsp;&nbsp; <i>trials:</i> 10</code>
+        </div>
+        <button id="control-registry-copy" type="button">Copy workflow</button>
+        <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/control-evidence-registry.md">Open the submission guide <span aria-hidden="true">→</span></a>
+      </div>
+      <p class="registry-disclaimer reveal">Fixed synthetic ProcureBench suite · repeated execution evidence · not certification, a population estimate, predicted loss, or independent observation of a hosted provider.</p>
     </section>
 
     <section class="section cases-section" id="use-cases">

@@ -1,11 +1,15 @@
 name: "DSPy Security Bench ProofRun"
-description: "Run RepeatTwin, gate on uncertainty, and attest a contribution-ready evidence bundle."
+description: "Run Impact or Control ProofRun, gate on uncertainty, and attest recomputable evidence."
 author: "Imran Ahamed"
 branding:
   icon: "shield"
   color: "purple"
 
 inputs:
+  evidence-kind:
+    description: "Evidence experiment: impact or control"
+    required: false
+    default: "impact"
   agent:
     description: "Python module:callable returning a fresh Agent"
     required: true
@@ -21,6 +25,38 @@ inputs:
     description: "Fail after preserving evidence when the lower bound is below this value"
     required: false
     default: "0.0"
+  policy:
+    description: "Repository-relative tool-policy YAML; required for control evidence"
+    required: false
+    default: ""
+  policy-source:
+    description: "Public HTTPS URL for the exact policy; required for control evidence"
+    required: false
+    default: ""
+  approval-handler:
+    description: "Optional module:callable approval handler for control evidence"
+    required: false
+    default: ""
+  min-containment-lower-bound:
+    description: "Control gate: minimum harm-containment Wilson lower bound"
+    required: false
+    default: "0.0"
+  min-controlled-harm-free-lower-bound:
+    description: "Control gate: minimum policy-on harm-free Wilson lower bound"
+    required: false
+    default: "0.0"
+  min-clean-preservation-lower-bound:
+    description: "Control gate: minimum clean-utility-preservation Wilson lower bound"
+    required: false
+    default: "0.0"
+  min-controlled-resistance-lower-bound:
+    description: "Control gate: minimum policy-on attack-resistance Wilson lower bound"
+    required: false
+    default: "0.0"
+  max-unstable-pairs:
+    description: "Control gate: maximum pair effects that vary across trials"
+    required: false
+    default: "5"
   submitter:
     description: "Public GitHub handle or organization; defaults to the workflow actor"
     required: false
@@ -37,6 +73,10 @@ inputs:
     description: "Attested bundle path"
     required: false
     default: "proofrun.json"
+  card-output:
+    description: "Shareable SVG path for control evidence"
+    required: false
+    default: "proofrun-control.svg"
   artifact-name:
     description: "GitHub Actions artifact name"
     required: false
@@ -59,6 +99,9 @@ inputs:
     default: "true"
 
 outputs:
+  evidence-kind:
+    description: "Generated evidence kind: impact or control"
+    value: ${{ steps.metadata.outputs.evidence-kind }}
   bundle-path:
     description: "Path to the generated evidence bundle"
     value: ${{ inputs.output }}
@@ -69,8 +112,20 @@ outputs:
     description: "Observed attack-resistance rate"
     value: ${{ steps.metadata.outputs.attack-resistance }}
   lower-bound:
-    description: "Wilson lower confidence bound"
+    description: "Primary Wilson lower bound: resistance for impact, containment for control"
     value: ${{ steps.metadata.outputs.lower-bound }}
+  containment:
+    description: "Observed harm-containment rate for control evidence"
+    value: ${{ steps.metadata.outputs.containment }}
+  containment-lower-bound:
+    description: "Harm-containment Wilson lower bound for control evidence"
+    value: ${{ steps.metadata.outputs.containment-lower-bound }}
+  safe-recovery:
+    description: "Observed safe mission recovery for control evidence"
+    value: ${{ steps.metadata.outputs.safe-recovery }}
+  clean-preservation:
+    description: "Observed clean utility preservation for control evidence"
+    value: ${{ steps.metadata.outputs.clean-preservation }}
   attestation-url:
     description: "GitHub artifact-attestation summary URL"
     value: ${{ steps.attest.outputs.attestation-url }}
@@ -92,19 +147,29 @@ runs:
       run: python -m pip install "$GITHUB_ACTION_PATH"
       shell: bash
 
-    - name: Run RepeatTwin and preserve the evidence envelope
+    - name: Run the selected experiment and preserve the evidence envelope
       id: run
       continue-on-error: true
       shell: bash
       env:
+        PROOFRUN_EVIDENCE_KIND: ${{ inputs.evidence-kind }}
         PROOFRUN_AGENT: ${{ inputs.agent }}
         PROOFRUN_TRIALS: ${{ inputs.trials }}
         PROOFRUN_CONFIDENCE: ${{ inputs.confidence }}
         PROOFRUN_MIN_LOWER_BOUND: ${{ inputs.min-lower-bound }}
+        PROOFRUN_POLICY: ${{ inputs.policy }}
+        PROOFRUN_POLICY_SOURCE: ${{ inputs.policy-source }}
+        PROOFRUN_APPROVAL_HANDLER: ${{ inputs.approval-handler }}
+        PROOFRUN_MIN_CONTAINMENT: ${{ inputs.min-containment-lower-bound }}
+        PROOFRUN_MIN_CONTROLLED_HARM_FREE: ${{ inputs.min-controlled-harm-free-lower-bound }}
+        PROOFRUN_MIN_CLEAN_PRESERVATION: ${{ inputs.min-clean-preservation-lower-bound }}
+        PROOFRUN_MIN_CONTROLLED_RESISTANCE: ${{ inputs.min-controlled-resistance-lower-bound }}
+        PROOFRUN_MAX_UNSTABLE_PAIRS: ${{ inputs.max-unstable-pairs }}
         PROOFRUN_SUBMITTER: ${{ inputs.submitter }}
         PROOFRUN_AGENT_SOURCE: ${{ inputs.agent-source }}
         PROOFRUN_NOTES: ${{ inputs.notes }}
         PROOFRUN_OUTPUT: ${{ inputs.output }}
+        PROOFRUN_CARD_OUTPUT: ${{ inputs.card-output }}
         PROOFRUN_BUILDER_KIND: "caller_workflow"
         PROOFRUN_ACTION_REF: ${{ github.action_ref }}
         PROOFRUN_RUNNER_ENVIRONMENT: ${{ runner.environment }}
@@ -115,15 +180,46 @@ runs:
         if [[ -z "$agent_source" ]]; then
           agent_source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
         fi
-        dspy-security-bench proofrun run \
-          --agent "$PROOFRUN_AGENT" \
-          --trials "$PROOFRUN_TRIALS" \
-          --confidence "$PROOFRUN_CONFIDENCE" \
-          --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
-          --submitter "$submitter" \
-          --agent-source "$agent_source" \
-          --notes "$PROOFRUN_NOTES" \
-          --out "$PROOFRUN_OUTPUT"
+        if [[ "$PROOFRUN_EVIDENCE_KIND" == "impact" ]]; then
+          dspy-security-bench proofrun run \
+            --agent "$PROOFRUN_AGENT" \
+            --trials "$PROOFRUN_TRIALS" \
+            --confidence "$PROOFRUN_CONFIDENCE" \
+            --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
+            --submitter "$submitter" \
+            --agent-source "$agent_source" \
+            --notes "$PROOFRUN_NOTES" \
+            --out "$PROOFRUN_OUTPUT"
+        elif [[ "$PROOFRUN_EVIDENCE_KIND" == "control" ]]; then
+          if [[ -z "$PROOFRUN_POLICY" || -z "$PROOFRUN_POLICY_SOURCE" ]]; then
+            echo "control evidence requires policy and policy-source" >&2
+            exit 2
+          fi
+          approval_args=()
+          if [[ -n "$PROOFRUN_APPROVAL_HANDLER" ]]; then
+            approval_args=(--approval-handler "$PROOFRUN_APPROVAL_HANDLER")
+          fi
+          dspy-security-bench proofrun control \
+            --agent "$PROOFRUN_AGENT" \
+            --policy "$PROOFRUN_POLICY" \
+            --policy-source "$PROOFRUN_POLICY_SOURCE" \
+            "${approval_args[@]}" \
+            --trials "$PROOFRUN_TRIALS" \
+            --confidence "$PROOFRUN_CONFIDENCE" \
+            --min-containment-lower-bound "$PROOFRUN_MIN_CONTAINMENT" \
+            --min-controlled-harm-free-lower-bound "$PROOFRUN_MIN_CONTROLLED_HARM_FREE" \
+            --min-clean-preservation-lower-bound "$PROOFRUN_MIN_CLEAN_PRESERVATION" \
+            --min-controlled-resistance-lower-bound "$PROOFRUN_MIN_CONTROLLED_RESISTANCE" \
+            --max-unstable-pairs "$PROOFRUN_MAX_UNSTABLE_PAIRS" \
+            --submitter "$submitter" \
+            --agent-source "$agent_source" \
+            --notes "$PROOFRUN_NOTES" \
+            --out "$PROOFRUN_OUTPUT" \
+            --card-out "$PROOFRUN_CARD_OUTPUT"
+        else
+          echo "evidence-kind must be impact or control" >&2
+          exit 2
+        fi
 
     - name: Inspect generated bundle
       id: bundle
@@ -158,7 +254,9 @@ runs:
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: ${{ inputs.artifact-name }}
-        path: ${{ inputs.output }}
+        path: |
+          ${{ inputs.output }}
+          ${{ inputs.card-output }}
         if-no-files-found: error
 
     - name: Enforce ProofRun gate after preserving evidence

@@ -146,6 +146,10 @@ utility regression, and mission-recovery gaps. The packaged JSON Schema is
 A recomputable digest provides stable content identity, not producer identity.
 Use the repository's [ProofRun evidence model](proofrun.md) when a reviewer also
 needs cryptographic workflow provenance for the exact serialized artifact.
+To contribute the policy-bound experiment to a public evidence ledger, package
+it through the [Open Control Evidence Registry](control-evidence-registry.md).
+Registry admission is based on evidence validity and comparability, not on
+whether the policy earned a favorable score.
 
 ## Interpretation limits
 

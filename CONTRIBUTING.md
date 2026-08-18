@@ -4,18 +4,20 @@ Contributions are welcome. The most useful ones, roughly in order:
 
 1. **Submitting a ProofRun result for your own agent** — produce recomputable,
    provenance-labeled evidence and open a pull request; see below.
-2. **Improving a native framework bridge** — reproduce an upstream SDK change,
+2. **Submitting a real control experiment** — publish policy-off/policy-on
+   evidence even when the outcome is mixed or negative; see below.
+3. **Improving a native framework bridge** — reproduce an upstream SDK change,
    add a zero-provider-call compatibility test, and keep the benchmark contract
    framework-neutral; see below.
-3. **Adding a model to the base-model leaderboard** — see below.
-4. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
+4. **Adding a model to the base-model leaderboard** — see below.
+5. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
    utilities, health administration, supply chain, emergency management, or a
    commercial workflow with a clearly affected stakeholder.
-5. **Adding an attack or a defense** to the harness.
-6. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
+6. **Adding an attack or a defense** to the harness.
+7. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
    every published row ships with the result JSON that produced it, so
    disagreements should be resolvable.
-7. Bug reports and documentation fixes.
+8. Bug reports and documentation fixes.
 
 ## Getting set up
 
@@ -99,6 +101,23 @@ Online ProofRun verification additionally checks a GitHub artifact attestation,
 source commit, ref, runner environment, and workflow identity. It still cannot
 make a remote provider response independently observable. Never include API
 keys, private system prompts, customer data, or production tool results.
+
+## Submitting control-effectiveness evidence
+
+Use the dual-mode trusted builder documented in
+[`docs/control-evidence-registry.md`](docs/control-evidence-registry.md), or run
+`dspy-security-bench proofrun control` locally. Commit only the generated JSON
+under `submissions/control/` with a lowercase kebab-case filename.
+
+Control entries must preserve at least five paired trials, use a fresh agent for
+every case and condition, have zero runtime errors, and leave argument capture
+disabled. Agent and policy source URLs must be public HTTPS links. The exact
+normalized policy and its SHA-256 identity are part of the evidence.
+
+A weak or failing policy is welcome when its evidence is valid. Do not tune or
+filter submissions merely to remove unfavorable trials; explain the limitation
+in the pull request. Registry review checks recomputability, scope, redaction,
+and provenance—it does not award a safety or compliance certification.
 
 ## Changing the measurement protocol
 

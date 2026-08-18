@@ -69,6 +69,10 @@ def test_proofrun_action_preserves_evidence_before_enforcing_the_gate():
     assert "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6" in action
     assert "steps.run.outcome != 'success'" in action
     assert "dspy-security-bench proofrun run" in action
+    assert "dspy-security-bench proofrun control" in action
+    assert "evidence-kind:" in action
+    assert "min-containment-lower-bound" in action
+    assert "proofrun-control.svg" in action
 
 
 def test_reusable_proofrun_uses_an_immutable_central_builder():
@@ -79,6 +83,10 @@ def test_reusable_proofrun_uses_an_immutable_central_builder():
     assert 'PROOFRUN_BUILDER_KIND: "dspy_security_bench_reusable_workflow"' in workflow
     assert "attestations: write" in workflow
     assert "--min-lower-bound" in workflow
+    assert 'default: "impact"' in workflow
+    assert "proofrun control" in workflow
+    assert "--min-containment-lower-bound" in workflow
+    assert "policy-source" in workflow
     assert "continue-on-error: true" in workflow
     assert "proofrun-unverified-${{ github.run_id }}-${{ github.run_attempt }}" in workflow
     assert "Recompute every statistic and content digest" in workflow
@@ -97,6 +105,9 @@ def test_proofrun_action_has_a_live_smoke_workflow():
     assert "uses: ./" in workflow
     assert "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" in workflow
     assert "build_bounded_reference" in workflow
+    assert "build_vulnerable_reference" in workflow
+    assert "evidence-kind: control" in workflow
+    assert "control-proofrun-smoke.svg" in workflow
     assert "attestations: write" in workflow
 
 

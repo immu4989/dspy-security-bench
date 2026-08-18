@@ -3,6 +3,11 @@ name: ProofRun trusted builder
 on:
   workflow_call:
     inputs:
+      evidence-kind:
+        description: "Evidence experiment: impact or control"
+        required: false
+        type: string
+        default: "impact"
       agent:
         description: "Python module:callable returning a fresh Agent"
         required: true
@@ -19,6 +24,41 @@ on:
         required: false
         type: number
         default: 0.0
+      policy:
+        description: "Repository-relative tool-policy YAML; required for control evidence"
+        required: false
+        type: string
+        default: ""
+      policy-source:
+        description: "Public HTTPS source for the exact policy; defaults to the caller commit"
+        required: false
+        type: string
+        default: ""
+      approval-handler:
+        description: "Optional module:callable approval handler for control evidence"
+        required: false
+        type: string
+        default: ""
+      min-containment-lower-bound:
+        required: false
+        type: number
+        default: 0.0
+      min-controlled-harm-free-lower-bound:
+        required: false
+        type: number
+        default: 0.0
+      min-clean-preservation-lower-bound:
+        required: false
+        type: number
+        default: 0.0
+      min-controlled-resistance-lower-bound:
+        required: false
+        type: number
+        default: 0.0
+      max-unstable-pairs:
+        required: false
+        type: number
+        default: 5
       submitter:
         required: false
         type: string
@@ -63,9 +103,14 @@ jobs:
       - name: Validate artifact name
         env:
           PROOFRUN_ARTIFACT_NAME: ${{ inputs.artifact-name }}
+          PROOFRUN_EVIDENCE_KIND: ${{ inputs.evidence-kind }}
         run: |
           if [[ ! "$PROOFRUN_ARTIFACT_NAME" =~ ^[A-Za-z0-9._-]+$ ]]; then
             echo "artifact-name may contain only letters, digits, dots, underscores, and hyphens" >&2
+            exit 2
+          fi
+          if [[ "$PROOFRUN_EVIDENCE_KIND" != "impact" && "$PROOFRUN_EVIDENCE_KIND" != "control" ]]; then
+            echo "evidence-kind must be impact or control" >&2
             exit 2
           fi
 
@@ -78,7 +123,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.10.0
+          ref: v0.11.0
           path: engine
 
       - name: Install uv
@@ -108,9 +153,18 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
           PROOFRUN_AGENT: ${{ inputs.agent }}
+          PROOFRUN_EVIDENCE_KIND: ${{ inputs.evidence-kind }}
           PROOFRUN_TRIALS: ${{ inputs.trials }}
           PROOFRUN_CONFIDENCE: ${{ inputs.confidence }}
           PROOFRUN_MIN_LOWER_BOUND: ${{ inputs.min-lower-bound }}
+          PROOFRUN_POLICY: ${{ inputs.policy }}
+          PROOFRUN_POLICY_SOURCE: ${{ inputs.policy-source }}
+          PROOFRUN_APPROVAL_HANDLER: ${{ inputs.approval-handler }}
+          PROOFRUN_MIN_CONTAINMENT: ${{ inputs.min-containment-lower-bound }}
+          PROOFRUN_MIN_CONTROLLED_HARM_FREE: ${{ inputs.min-controlled-harm-free-lower-bound }}
+          PROOFRUN_MIN_CLEAN_PRESERVATION: ${{ inputs.min-clean-preservation-lower-bound }}
+          PROOFRUN_MIN_CONTROLLED_RESISTANCE: ${{ inputs.min-controlled-resistance-lower-bound }}
+          PROOFRUN_MAX_UNSTABLE_PAIRS: ${{ inputs.max-unstable-pairs }}
           PROOFRUN_SUBMITTER: ${{ inputs.submitter }}
           PROOFRUN_AGENT_SOURCE: ${{ inputs.agent-source }}
           PROOFRUN_NOTES: ${{ inputs.notes }}
@@ -126,15 +180,48 @@ jobs:
             agent_source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
           fi
           mkdir -p ../proofrun-artifacts
-          ../.proofrun-venv/bin/dspy-security-bench proofrun run \
-            --agent "$PROOFRUN_AGENT" \
-            --trials "$PROOFRUN_TRIALS" \
-            --confidence "$PROOFRUN_CONFIDENCE" \
-            --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
-            --submitter "$submitter" \
-            --agent-source "$agent_source" \
-            --notes "$PROOFRUN_NOTES" \
-            --out "../proofrun-artifacts/$PROOFRUN_ARTIFACT_NAME.json"
+          bundle_path="../proofrun-artifacts/$PROOFRUN_ARTIFACT_NAME.json"
+          if [[ "$PROOFRUN_EVIDENCE_KIND" == "impact" ]]; then
+            ../.proofrun-venv/bin/dspy-security-bench proofrun run \
+              --agent "$PROOFRUN_AGENT" \
+              --trials "$PROOFRUN_TRIALS" \
+              --confidence "$PROOFRUN_CONFIDENCE" \
+              --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
+              --submitter "$submitter" \
+              --agent-source "$agent_source" \
+              --notes "$PROOFRUN_NOTES" \
+              --out "$bundle_path"
+          else
+            if [[ -z "$PROOFRUN_POLICY" || "$PROOFRUN_POLICY" == /* || "$PROOFRUN_POLICY" == *..* ]]; then
+              echo "control evidence requires a safe repository-relative policy path" >&2
+              exit 2
+            fi
+            policy_source="$PROOFRUN_POLICY_SOURCE"
+            if [[ -z "$policy_source" ]]; then
+              policy_source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/$PROOFRUN_POLICY"
+            fi
+            approval_args=()
+            if [[ -n "$PROOFRUN_APPROVAL_HANDLER" ]]; then
+              approval_args=(--approval-handler "$PROOFRUN_APPROVAL_HANDLER")
+            fi
+            ../.proofrun-venv/bin/dspy-security-bench proofrun control \
+              --agent "$PROOFRUN_AGENT" \
+              --policy "../target/$PROOFRUN_POLICY" \
+              --policy-source "$policy_source" \
+              "${approval_args[@]}" \
+              --trials "$PROOFRUN_TRIALS" \
+              --confidence "$PROOFRUN_CONFIDENCE" \
+              --min-containment-lower-bound "$PROOFRUN_MIN_CONTAINMENT" \
+              --min-controlled-harm-free-lower-bound "$PROOFRUN_MIN_CONTROLLED_HARM_FREE" \
+              --min-clean-preservation-lower-bound "$PROOFRUN_MIN_CLEAN_PRESERVATION" \
+              --min-controlled-resistance-lower-bound "$PROOFRUN_MIN_CONTROLLED_RESISTANCE" \
+              --max-unstable-pairs "$PROOFRUN_MAX_UNSTABLE_PAIRS" \
+              --submitter "$submitter" \
+              --agent-source "$agent_source" \
+              --notes "$PROOFRUN_NOTES" \
+              --out "$bundle_path" \
+              --card-out "../proofrun-artifacts/$PROOFRUN_ARTIFACT_NAME.svg"
+          fi
 
       - name: Inspect generated bundle
         id: bundle
@@ -176,7 +263,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.10.0
+          ref: v0.11.0
           path: engine
 
       - name: Set up Python
@@ -204,7 +291,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ inputs.artifact-name }}
-          path: proofrun-artifacts/*.json
+          path: proofrun-artifacts/*
           if-no-files-found: error
 
   enforce-gate:

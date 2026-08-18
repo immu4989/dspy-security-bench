@@ -9,6 +9,37 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-08-18
+
+### Added
+- **Open Control Evidence Registry.** Policy-effectiveness experiments now have
+  a dedicated, content-addressed submission bundle that binds public agent and
+  policy sources, the exact policy digest, the complete RepeatControlTwin tree,
+  producer metadata, and optional GitHub Actions provenance.
+- `proofrun control` runs paired policy-off/policy-on evidence, preserves JSON
+  before enforcing independent uncertainty gates, and can generate a safe,
+  shareable 1200×630 SVG evidence card. `proofrun verify` automatically
+  recognizes Impact and Control bundles.
+- `impact control-submit`, `impact control-submission-verify`, and
+  `impact control-card` support report packaging, offline admission checks, and
+  card rendering without rerunning a model.
+- A packaged JSON Schema for control-evidence submissions, nested offline
+  verification tests, and public registry contribution guidance.
+- A dramatic dashboard evidence ledger with control, policy, containment,
+  recovery, clean-utility, stability, synthetic-exposure, and evidence-tier
+  views generated only from committed bundles.
+
+### Changed
+- The composite action and trusted reusable ProofRun builder now support
+  `impact` and `control` experiments, policy inputs, independent control gates,
+  shareable-card artifacts, and safe scalar outputs for downstream workflows.
+- Submission CI validates both `submissions/impact/` and
+  `submissions/control/`; the site only upgrades cryptographic evidence tiers
+  from separately reviewed digest registries.
+- Control-registry eligibility depends on valid recomputable evidence,
+  sufficient trials, fresh isolation, zero runtime errors, and argument
+  redaction—not a favorable control score. Negative results remain publishable.
+
 ## [0.10.0] — 2026-08-18
 
 ### Added
@@ -316,7 +347,8 @@ several of them changed published numbers.
 - First end-to-end run: DSPy optimizers × AgentDojo attacks in one harness,
   workspace suite, single model.
 
-[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.7.0...v0.8.0

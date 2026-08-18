@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/control-submission-bundle.schema.json",
+  "title": "DSPy Security Bench Open Control Evidence Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "bundle_schema_version", "bundle_type", "submission", "producer",
+    "report_sha256", "report", "bundle_sha256"
+  ],
+  "properties": {
+    "bundle_schema_version": {"enum": [1, 2]},
+    "bundle_type": {"const": "dspy-security-bench-control-evidence-submission"},
+    "submission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "submitter", "agent_source_url", "policy_source_url", "notes",
+        "created_at", "attestation"
+      ],
+      "properties": {
+        "submitter": {"type": "string", "minLength": 1},
+        "agent_source_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "policy_source_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "notes": {"type": "string"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "attestation": {
+          "enum": [
+            "self_attested_content_addressed",
+            "github_actions_provenance_requested"
+          ]
+        }
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["package", "package_version", "python_version", "platform"],
+      "properties": {
+        "package": {"const": "dspy-security-bench"},
+        "package_version": {"type": "string"},
+        "python_version": {"type": "string"},
+        "platform": {"type": "string"}
+      }
+    },
+    "report_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "report": {"$ref": "repeat-control-report.schema.json"},
+    "provenance": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "builder_kind", "runner_environment"],
+          "properties": {
+            "provider": {"const": "local"},
+            "builder_kind": {"const": "local_process"},
+            "runner_environment": {"const": "local"}
+          }
+        },
+        {"$ref": "submission-bundle.schema.json#/$defs/github_provenance"}
+      ]
+    },
+    "bundle_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"bundle_schema_version": {"const": 2}}},
+      "then": {"required": ["provenance"]}
+    },
+    {
+      "if": {"properties": {"bundle_schema_version": {"const": 1}}},
+      "then": {
+        "not": {"required": ["provenance"]},
+        "properties": {
+          "submission": {
+            "properties": {
+              "attestation": {"const": "self_attested_content_addressed"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["provenance"],
+        "properties": {
+          "provenance": {"properties": {"provider": {"const": "github_actions"}}}
+        }
+      },
+      "then": {
+        "properties": {
+          "submission": {
+            "properties": {
+              "attestation": {"const": "github_actions_provenance_requested"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["provenance"],
+        "properties": {
+          "provenance": {"properties": {"provider": {"const": "local"}}}
+        }
+      },
+      "then": {
+        "properties": {
+          "submission": {
+            "properties": {
+              "attestation": {"const": "self_attested_content_addressed"}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

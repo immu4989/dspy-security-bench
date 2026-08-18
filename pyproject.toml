@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dspy-security-bench"
-version = "0.10.0"
+version = "0.11.0"
 description = "Reproducible prompt-injection benchmark, CI gate, and attested evidence pipeline for tool-using AI agents."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -107,8 +107,10 @@ ImpactTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/imp
 ControlTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/control-twin.md"
 RepeatControlTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/repeat-control-twin.md"
 ProofRun = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/proofrun.md"
+"Control Evidence Registry" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/control-evidence-registry.md"
 Integrations = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/integrations.md"
-"Community Results" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/impact"
+"Impact Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/impact"
+"Control Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/control"
 
 [project.scripts]
 dspy-security-bench = "dspy_security_bench.cli:main"

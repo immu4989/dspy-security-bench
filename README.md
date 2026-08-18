@@ -7,8 +7,8 @@
 ### Measure prompt-injection resilience in models and tool-using AI agents
 
 A reproducible **leaderboard**, CI gate, public-interest impact benchmark,
-policy-efficacy lab, and attested evidence pipeline you can point at **your own
-agent**.
+policy-efficacy lab, open control evidence registry, and attested evidence
+pipeline you can point at **your own agent**.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -17,6 +17,7 @@ agent**.
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
 [![ProofRun](https://img.shields.io/badge/ProofRun-attested%20evidence-8F78FF)](docs/proofrun.md)
+[![Control evidence](https://img.shields.io/badge/control%20evidence-open%20registry-72F2E7)](docs/control-evidence-registry.md)
 [![leaderboard](https://img.shields.io/badge/leaderboard-14%20models%20%C2%B7%2010%20families-4F46E5)](LEADERBOARD.md)
 [![interactive site](https://img.shields.io/badge/explore-interactive%20leaderboard-2DD4BF)](https://immu4989.github.io/dspy-security-bench/)
 [![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
@@ -50,7 +51,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.10.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -261,6 +262,37 @@ of five frozen synthetic pairs—not performance on unseen tasks.
 
 [Read the RepeatControlTwin methodology and CI guide →](docs/repeat-control-twin.md)
 
+### Open Control Evidence Registry: publish what the policy actually did
+
+Security claims are hard to compare when one team publishes a score, another
+publishes a policy file, and neither preserves the experiment. The registry
+turns repeated ControlTwin runs into policy-bound, content-addressed evidence
+that can be recomputed offline and optionally verified against a
+GitHub/Sigstore chain of custody.
+
+The recommended reusable workflow produces the bundle and shareable SVG card:
+
+```yaml
+jobs:
+  control-evidence:
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0
+    with:
+      evidence-kind: control
+      agent: myapp.security:build_agent
+      policy: policies/production.yaml
+      trials: 10
+      min-containment-lower-bound: 0.70
+      min-clean-preservation-lower-bound: 0.80
+```
+
+The public comparison contract requires valid recomputable evidence, at least
+five trials, fresh agent isolation, zero runtime errors, and redacted tool
+arguments. It does **not** require a good score: ineffective controls and
+utility regressions are publishable evidence, not results to hide. The dashboard
+keeps harm containment, safe recovery, and clean-utility preservation separate.
+
+[Open the registry, trust model, and submission guide →](docs/control-evidence-registry.md)
+
 ---
 
 ## 🏆 The leaderboard
@@ -386,6 +418,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
 | 🔌 **Connect your framework** | Run [`integrate`](docs/integrations.md) for OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, or an MCP/custom callback, then validate it without model spend using `doctor`. |
 | 🧾 **Produce verifiable evidence** | Use [ProofRun](docs/proofrun.md) to preserve raw repeated trials, recompute statistics offline, and attach GitHub/Sigstore provenance to the exact result bytes. |
+| 🌐 **Publish control evidence** | Add a policy-bound experiment to the [Open Control Evidence Registry](docs/control-evidence-registry.md), with raw paired trials, honest uncertainty, provenance tiers, and a shareable evidence card. |
 | ⚖️ **Measure mission impact** | Run [ImpactTwin / ProcureBench](docs/impact-twin.md): clean/poisoned procurement twins that score decision drift, protected-data release, authority bypass, and synthetic funds at risk. |
 | 🧪 **Prove a control works** | Run [ControlTwin](docs/control-twin.md) for a functional policy-off/on delta, then [RepeatControlTwin](docs/repeat-control-twin.md) for uncertainty bounds, effect stability, and conservative CI gates. |
 | 🔐 **Enforce least agency** | Put deterministic policy around live tool calls: allow, deny, or require approval. Includes [production profiles](docs/use-cases.md) for support, finance, RAG, and DevOps. |
@@ -1018,8 +1051,8 @@ v0.1 scope choices:
 | v0.8 — BYOA framework adapters, detection, secure scaffolding, and zero-model-call doctor | **shipped** |
 | v0.9 — ControlTwin functional policy-efficacy evidence, recovery-gap analysis, offline verification, and SARIF gates | **shipped** |
 | v0.10 — RepeatControlTwin repeated paired policy evidence, uncertainty bounds, exact transition test, stability analysis, and CI gates | **shipped** |
-| Open Control Evidence Registry — attested, contribution-ready control-efficacy reports and public evidence cards | in development |
-| v0.11 — more families, secondary `direct` attack column, and independent reproduction campaigns | planned |
+| v0.11 — Open Control Evidence Registry, dual-mode ProofRun builder, policy-bound public submissions, and evidence cards | **shipped** |
+| More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
 ## Acknowledgments and prior work

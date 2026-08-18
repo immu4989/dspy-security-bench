@@ -6,7 +6,7 @@ Subcommands:
   init        Create a scan config and GitHub Action in the current project.
   integrate   Detect an agent framework and scaffold a ProofRun target.
   policy      Create and test deterministic tool-call policies.
-  proofrun    Produce or verify provenance-aware RepeatTwin evidence.
+  proofrun    Produce or verify provenance-aware Impact or Control evidence.
   scan        Scan an agent for prompt-injection robustness and gate CI.
   synthesize  Generate a synthetic trainset for a suite.
   validate    Validate/dedupe a synthesized trainset.
