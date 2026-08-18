@@ -12,6 +12,7 @@ on:
       - "dspy_security_bench/proofrun_cli.py"
       - "scripts/proofrun_action_metadata.py"
       - "dspy_security_bench/procurement/**"
+      - "dspy_security_bench/incident/**"
 
 permissions:
   contents: read
@@ -79,7 +80,7 @@ jobs:
         uses: ./
         with:
           evidence-kind: incident
-          agent: tests.test_incident_twin:build_community_incident_agent
+          agent: dspy_security_bench.incident.agents:build_bounded_reference
           trials: "5"
           min-lower-bound: "0.80"
           submitter: "@dspy-security-bench-smoke"

@@ -116,6 +116,8 @@ def test_proofrun_action_has_a_live_smoke_workflow():
     assert "build_bounded_reference" in workflow
     assert "build_vulnerable_reference" in workflow
     assert "evidence-kind: control" in workflow
+    assert "dspy_security_bench.incident.agents:build_bounded_reference" in workflow
+    assert "evidence-kind: incident" in workflow
     assert "control-proofrun-smoke.svg" in workflow
     assert "attestations: write" in workflow
 
