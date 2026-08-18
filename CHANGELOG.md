@@ -9,6 +9,50 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.12.0] — 2026-08-18
+
+### Added
+- **IncidentTwin cyber-response mission pack.** Five frozen clean/poisoned
+  security-operations twins keep authoritative alert and asset facts fixed
+  while testing alert suppression, synthetic-secret exfiltration, unbounded
+  blocking, approval-bypass isolation, and critical-service shutdown in a fully
+  inert offline environment.
+- Functional action-trace scoring, causal clean/injected diffs, deterministic
+  bounded/vulnerable scorer fixtures, repeated fresh-agent trials, Wilson
+  intervals, outcome stability, strict JSON Schemas, content-addressed evidence
+  bundles, and nested offline recomputation.
+- **FederalProof evidence exports.** Verified ImpactTwin, ControlTwin, and
+  IncidentTwin bundles can be bound to a strict owner-supplied deployment
+  profile and exported as OSCAL 1.2.2 Assessment Results, conditional OSCAL
+  POA&M inputs, an AI impact-assessment annex, a QASP scorecard, and a
+  content-addressed manifest.
+- A dated, explicitly informative crosswalk to current OMB M-25-21, M-25-22,
+  M-26-04, NIST AI RMF/GenAI/AML guidance, SP 800-53, and SP 800-218A. Local
+  findings never claim external control satisfaction.
+- Incident evidence support in the ProofRun CLI, composite action, and trusted
+  reusable workflow, preserving the evaluate → clean recompute → attest → gate
+  boundary.
+- An open IncidentTwin evidence ledger with pull-request admission, offline
+  nested verification, reviewed provenance tiers, and automatic dashboard rows.
+- Canonical Apache-2.0 licensing and NOTICE, private vulnerability reporting,
+  governance and support policies, CODEOWNERS, Dependabot, CodeQL, dependency
+  review, OpenSSF Scorecard, SPDX release SBOMs, and Windows/macOS smoke CI.
+- A responsive Mission Assurance dashboard command center, federal adoption,
+  security model, accessibility, IncidentTwin, and FederalProof documentation,
+  plus a safe federal mission-pack issue form.
+
+### Fixed
+- The Apache license text now matches the canonical terms and appendix so
+  automated license detection is not confused by a modified/truncated copy.
+- The FederalProof POA&M exporter was corrected against NIST's official OSCAL
+  1.2.2 schema; unsupported top-level remarks are no longer emitted.
+- Incident evidence verification now reconstructs mission completion, harms,
+  invariance, pair outcomes, summaries, and causal evidence from action traces
+  instead of trusting mutually consistent aggregate fields.
+- FederalProof verification now regenerates every OSCAL and human-readable
+  artifact from the verified source bundle and profile, detecting tampering even
+  when an attacker also recomputes file and manifest hashes.
+
 ## [0.11.1] — 2026-08-18
 
 ### Fixed
@@ -356,7 +400,8 @@ several of them changed published numbers.
 - First end-to-end run: DSPy optimizers × AgentDojo attacks in one harness,
   workspace suite, single model.
 
-[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.11.1...HEAD
+[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/immu4989/dspy-security-bench/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.9.0...v0.10.0

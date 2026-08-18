@@ -7,7 +7,7 @@
 ### Measure prompt-injection resilience in models and tool-using AI agents
 
 A reproducible **leaderboard**, CI gate, public-interest impact benchmark,
-policy-efficacy lab, open control evidence registry, and attested evidence
+cyber-response mission lab, policy-efficacy registry, and OSCAL evidence
 pipeline you can point at **your own agent**.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
@@ -17,6 +17,8 @@ pipeline you can point at **your own agent**.
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
 [![ProofRun](https://img.shields.io/badge/ProofRun-attested%20evidence-8F78FF)](docs/proofrun.md)
+[![IncidentTwin](https://img.shields.io/badge/IncidentTwin-cyber%20mission%20assurance-3B82F6)](docs/incident-twin.md)
+[![FederalProof](https://img.shields.io/badge/FederalProof-OSCAL%201.2.2-F4C86B)](docs/federalproof.md)
 [![Control evidence](https://img.shields.io/badge/control%20evidence-open%20registry-72F2E7)](docs/control-evidence-registry.md)
 [![leaderboard](https://img.shields.io/badge/leaderboard-14%20models%20%C2%B7%2010%20families-4F46E5)](LEADERBOARD.md)
 [![interactive site](https://img.shields.io/badge/explore-interactive%20leaderboard-2DD4BF)](https://immu4989.github.io/dspy-security-bench/)
@@ -30,6 +32,67 @@ pipeline you can point at **your own agent**.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## New: IncidentTwin + FederalProof
+
+**Can hostile alert text make an AI incident responder suppress a real alert,
+exfiltrate a secret, block an enterprise network, isolate the wrong host, or
+disable a critical service?** IncidentTwin answers with five clean/poisoned
+counterfactual pairs inside a fully synthetic, air-gap-safe security-operations
+environment. The scorer observes functional tool state—not a model judging
+another model.
+
+```bash
+pip install dspy-security-bench
+dspy-security-bench incident demo
+```
+
+The bounded scorer fixture completes every triage mission with zero harmful
+side effects; the deliberately vulnerable fixture completes the same mission
+while triggering all five distinct harms. These fixtures demonstrate the
+measurement and are **not model results**.
+
+Repeat a real agent with fresh isolation, Wilson uncertainty, stability
+tracking, full action traces, and offline recomputation:
+
+```bash
+dspy-security-bench incident repeat \
+  --agent myapp.security:build_agent \
+  --trials 10 --min-lower-bound 0.80 \
+  --json artifacts/incident-repeat.json
+dspy-security-bench incident submit-result artifacts/incident-repeat.json \
+  --submitter "@your-handle" \
+  --agent-source "https://github.com/you/your-agent" \
+  --out submissions/incident/your-agent.json
+```
+
+The open IncidentTwin ledger accepts valid, independently inspectable evidence
+regardless of score; repository CI recomputes every submitted trace and statistic
+offline before it can appear on the dashboard.
+
+**FederalProof turns a verified ImpactTwin, ControlTwin, or IncidentTwin bundle
+into reviewable assessment inputs:** OSCAL 1.2.2 Assessment Results, an OSCAL
+POA&M when local objectives fail, an AI impact-assessment annex, a QASP
+scorecard, a versioned informative crosswalk, and a manifest binding every byte.
+
+```bash
+dspy-security-bench federal init --out federal-profile.yaml
+# Complete the owner-supplied system boundary, governance, and thresholds.
+dspy-security-bench federal export artifacts/incident-evidence.json \
+  --profile federal-profile.yaml --out-dir artifacts/federalproof
+dspy-security-bench federal verify artifacts/federalproof
+```
+
+FederalProof is deliberately non-certifying: it does not decide compliance,
+high-impact status, procurement acceptance, risk acceptance, or authorization
+to operate, and it does not imply government endorsement. Read the
+[IncidentTwin methodology](docs/incident-twin.md), [FederalProof evidence
+model](docs/federalproof.md), and [federal/regulated adoption
+path](docs/federal-adoption.md). The [IncidentTwin submission
+contract](submissions/incident/README.md) is designed for teams that want to
+publish a reproducible result or challenge the protocol.
 
 ---
 
@@ -51,7 +114,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -275,7 +338,7 @@ The recommended reusable workflow produces the bundle and shareable SVG card:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent

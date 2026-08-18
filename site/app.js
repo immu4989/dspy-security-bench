@@ -14,6 +14,11 @@ const safeControlResultUrl = value => {
   const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/control\/[a-z0-9-]+\.json$/;
   return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/control";
 };
+const safeIncidentResultUrl = value => {
+  const url = String(value || "");
+  const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/incident\/[a-z0-9-]+\.json$/;
+  return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/incident";
+};
 
 async function loadData() {
   const response = await fetch("data.json");
@@ -24,6 +29,7 @@ async function loadData() {
   document.querySelectorAll("[data-family-count]").forEach(node => node.textContent = data.familyCount);
   document.querySelectorAll("[data-proofrun-count]").forEach(node => node.textContent = data.proofrunCount || 0);
   document.querySelectorAll("[data-control-evidence-count]").forEach(node => node.textContent = data.controlEvidenceCount || 0);
+  document.querySelectorAll("[data-incident-evidence-count]").forEach(node => node.textContent = data.incidentEvidenceCount || 0);
   const robustness = data.models.map(model => model.robustness);
   document.querySelector("[data-min-robustness]").textContent = Math.round(Math.min(...robustness) * 100);
   document.querySelector("[data-max-robustness]").textContent = Math.round(Math.max(...robustness) * 100);
@@ -31,6 +37,7 @@ async function loadData() {
   renderScatter();
   renderProofRuns(data.proofruns || []);
   renderControlEvidence(data.controlEvidence || []);
+  renderIncidentEvidence(data.incidentEvidence || []);
 }
 
 const proofTier = {
@@ -85,6 +92,25 @@ function renderControlEvidence(results) {
         ${evidenceMetric("Clean preservation", result.cleanPreservation)}
       </div>
       <footer><span>${Number(result.unstablePairs)}/5 unstable effects</span><span>$${riskReduction} synthetic exposure reduced / trial</span><a href="${safeControlResultUrl(result.result)}">inspect evidence ↗</a></footer>
+    </article>`;
+  }).join("");
+}
+
+function renderIncidentEvidence(results) {
+  const host = document.querySelector("#incident-evidence-results");
+  const empty = document.querySelector("#incident-evidence-empty");
+  if (!host || !empty) return;
+  empty.hidden = results.length > 0;
+  host.innerHTML = results.map(result => {
+    const [label, className] = proofTier[result.evidenceTier] || proofTier.self_attested;
+    return `<article class="incident-evidence-card">
+      <header><span class="proof-tier ${className}">${label}</span><strong>${escapeHtml(result.agent)}</strong><small>${escapeHtml(result.submitter)} · ${Number(result.trials)} trials</small></header>
+      <div class="incident-evidence-metrics">
+        ${evidenceMetric("Attack resistance", result.attackResistance)}
+        ${evidenceMetric("Harm free", result.harmFree)}
+        ${evidenceMetric("Clean utility", result.cleanUtility)}
+      </div>
+      <footer><span>${Number(result.unstablePairs)}/5 unstable pairs</span><a href="${safeIncidentResultUrl(result.result)}">inspect evidence ↗</a></footer>
     </article>`;
   }).join("");
 }
@@ -186,7 +212,7 @@ document.querySelector("#copy-code").addEventListener("click", async event => {
 
 document.querySelector("#proofrun-copy")?.addEventListener("click", async event => {
   const button = event.currentTarget;
-  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  proofrun:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1\n    with:\n      agent: myapp.security:build_agent\n      trials: 10`;
+  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  proofrun:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0\n    with:\n      agent: myapp.security:build_agent\n      trials: 10`;
   await navigator.clipboard.writeText(workflow);
   button.textContent = "Copied ✓";
   setTimeout(() => { button.textContent = "Copy workflow"; }, 1800);
@@ -194,7 +220,7 @@ document.querySelector("#proofrun-copy")?.addEventListener("click", async event 
 
 document.querySelector("#control-registry-copy")?.addEventListener("click", async event => {
   const button = event.currentTarget;
-  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  control-evidence:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1\n    with:\n      evidence-kind: control\n      agent: myapp.security:build_agent\n      policy: policies/production.yaml\n      trials: 10\n      min-containment-lower-bound: 0.70`;
+  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  control-evidence:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0\n    with:\n      evidence-kind: control\n      agent: myapp.security:build_agent\n      policy: policies/production.yaml\n      trials: 10\n      min-containment-lower-bound: 0.70`;
   await navigator.clipboard.writeText(workflow);
   button.textContent = "Copied ✓";
   setTimeout(() => { button.textContent = "Copy workflow"; }, 1800);
@@ -214,15 +240,28 @@ document.querySelector("#repeat-control-copy")?.addEventListener("click", async 
   setTimeout(() => { button.textContent = "Copy command"; }, 1800);
 });
 
+function bindCommandCopy(selector, command) {
+  document.querySelector(selector)?.addEventListener("click", async event => {
+    const button = event.currentTarget;
+    await navigator.clipboard.writeText(command);
+    button.textContent = "Copied ✓";
+    setTimeout(() => { button.textContent = "Copy"; }, 1800);
+  });
+}
+bindCommandCopy("#incident-copy", "dspy-security-bench incident demo");
+bindCommandCopy("#federal-copy", "dspy-security-bench federal init");
+
 const menuButton = document.querySelector(".menu-button");
 menuButton.addEventListener("click", () => {
   const links = document.querySelector(".nav-links");
   const open = links.classList.toggle("open");
   menuButton.setAttribute("aria-expanded", String(open));
+  menuButton.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
 });
 document.querySelectorAll(".nav-links a").forEach(link => link.addEventListener("click", () => {
   document.querySelector(".nav-links").classList.remove("open");
   menuButton.setAttribute("aria-expanded", "false");
+  menuButton.setAttribute("aria-label", "Open navigation");
 }));
 window.addEventListener("scroll", () => document.querySelector(".nav-shell").classList.toggle("scrolled", window.scrollY > 20), { passive: true });
 

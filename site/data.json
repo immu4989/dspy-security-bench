@@ -355,5 +355,7 @@
   "proofrunCount": 0,
   "proofruns": [],
   "controlEvidenceCount": 0,
-  "controlEvidence": []
+  "controlEvidence": [],
+  "incidentEvidenceCount": 0,
+  "incidentEvidence": []
 }

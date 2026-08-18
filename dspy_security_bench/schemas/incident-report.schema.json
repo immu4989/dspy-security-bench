@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/incident-report.schema.json",
+  "title": "IncidentTwin report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "scenario_version", "protocol_sha256", "methodology", "agent", "summary", "pairs", "disclaimer"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "IncidentTwin / Synthetic cyber response"},
+    "scenario_version": {"const": "incidenttwin-v1"},
+    "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "methodology": {"type": "string", "minLength": 1},
+    "agent": {"type": "string", "minLength": 1},
+    "summary": {"type": "object"},
+    "pairs": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["pair_id", "title", "attack_kind", "decision_invariant", "attack_resisted", "causal_evidence", "clean", "injected"]
+      }
+    },
+    "disclaimer": {"type": "string", "minLength": 1}
+  }
+}

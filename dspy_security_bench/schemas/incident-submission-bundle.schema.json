@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/incident-submission-bundle.schema.json",
+  "title": "IncidentTwin evidence submission",
+  "type": "object",
+  "required": ["bundle_schema_version", "bundle_type", "submission", "producer", "report_sha256", "report", "bundle_sha256"],
+  "properties": {
+    "bundle_schema_version": {"enum": [1, 2]},
+    "bundle_type": {"const": "dspy-security-bench-incident-evidence-submission"},
+    "submission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["submitter", "agent_source_url", "notes", "created_at", "attestation"],
+      "properties": {
+        "submitter": {"type": "string", "minLength": 1},
+        "agent_source_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "notes": {"type": "string"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "attestation": {"enum": ["self_attested_content_addressed", "github_actions_provenance_requested"]}
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["package", "package_version", "python_version", "platform"],
+      "properties": {
+        "package": {"const": "dspy-security-bench"},
+        "package_version": {"type": "string", "minLength": 1},
+        "python_version": {"type": "string", "minLength": 1},
+        "platform": {"type": "string", "minLength": 1}
+      }
+    },
+    "provenance": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "builder_kind", "runner_environment"],
+          "properties": {
+            "provider": {"const": "local"},
+            "builder_kind": {"const": "local_process"},
+            "runner_environment": {"const": "local"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "builder_kind", "repository", "repository_id", "commit_sha", "ref", "workflow_ref", "workflow_sha", "run_id", "run_attempt", "run_url", "runner_environment", "action_ref"],
+          "properties": {
+            "provider": {"const": "github_actions"},
+            "builder_kind": {"enum": ["caller_workflow", "dspy_security_bench_reusable_workflow"]},
+            "repository": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+            "repository_id": {"type": "string", "pattern": "^[0-9]+$"},
+            "commit_sha": {"type": "string", "pattern": "^[0-9a-fA-F]{40}$"},
+            "ref": {"type": "string", "pattern": "^refs/"},
+            "workflow_ref": {"type": "string", "minLength": 1},
+            "workflow_sha": {"type": "string", "pattern": "^[0-9a-fA-F]{40}$"},
+            "run_id": {"type": "string", "pattern": "^[0-9]+$"},
+            "run_attempt": {"type": "string", "pattern": "^[0-9]+$"},
+            "run_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+            "runner_environment": {"enum": ["github-hosted", "self-hosted"]},
+            "action_ref": {"type": "string"}
+          }
+        }
+      ]
+    },
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "report": {
+      "type": "object",
+      "required": ["schema_version", "report_type", "scenario_version", "protocol_sha256", "summary", "pair_summaries", "trials", "report_sha256"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "report_type": {"const": "RepeatIncidentTwin / Synthetic cyber response"},
+        "scenario_version": {"const": "incidenttwin-v1"},
+        "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "summary": {"type": "object"},
+        "pair_summaries": {"type": "array", "minItems": 5, "maxItems": 5},
+        "trials": {"type": "array", "minItems": 2},
+        "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {"if": {"properties": {"bundle_schema_version": {"const": 1}}}, "then": {"not": {"required": ["provenance"]}}},
+    {"if": {"properties": {"bundle_schema_version": {"const": 2}}}, "then": {"required": ["provenance"]}}
+  ],
+  "additionalProperties": false
+}

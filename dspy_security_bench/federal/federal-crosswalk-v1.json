@@ -1,0 +1,121 @@
+{
+  "catalog_schema_version": 1,
+  "catalog_id": "dspy-security-bench-federal-crosswalk-v1",
+  "published": "2026-08-18",
+  "status": "informative",
+  "disclaimer": "These mappings identify where benchmark evidence may support an assessor. They do not assert control implementation, determine compliance, issue an authorization to operate, or imply government endorsement.",
+  "sources": [
+    {
+      "id": "OMB-M-25-21",
+      "title": "Accelerating Federal Use of AI through Innovation, Governance, and Public Trust",
+      "version": "2025-04-03",
+      "url": "https://www.whitehouse.gov/wp-content/uploads/2025/02/M-25-21-Accelerating-Federal-Use-of-AI-through-Innovation-Governance-and-Public-Trust.pdf"
+    },
+    {
+      "id": "OMB-M-25-22",
+      "title": "Driving Efficient Acquisition of Artificial Intelligence in Government",
+      "version": "2025-04-03",
+      "url": "https://www.whitehouse.gov/wp-content/uploads/2025/02/M-25-22-Driving-Efficient-Acquisition-of-Artificial-Intelligence-in-Government.pdf"
+    },
+    {
+      "id": "OMB-M-26-04",
+      "title": "Increasing Public Trust in Artificial Intelligence Through Unbiased AI Principles",
+      "version": "2025-12-11",
+      "url": "https://www.whitehouse.gov/wp-content/uploads/2025/12/M-26-04-Increasing-Public-Trust-in-Artificial-Intelligence-Through-Unbiased-AI-Principles-1.pdf"
+    },
+    {
+      "id": "NIST-AI-RMF-1.0",
+      "title": "Artificial Intelligence Risk Management Framework",
+      "version": "1.0",
+      "url": "https://doi.org/10.6028/NIST.AI.100-1"
+    },
+    {
+      "id": "NIST-AI-600-1",
+      "title": "AI RMF: Generative Artificial Intelligence Profile",
+      "version": "2024-07-26",
+      "url": "https://doi.org/10.6028/NIST.AI.600-1"
+    },
+    {
+      "id": "NIST-AI-100-2e2025",
+      "title": "Adversarial Machine Learning: A Taxonomy and Terminology of Attacks and Mitigations",
+      "version": "2025-03-24",
+      "url": "https://doi.org/10.6028/NIST.AI.100-2e2025"
+    },
+    {
+      "id": "NIST-SP-800-53r5.2",
+      "title": "Security and Privacy Controls for Information Systems and Organizations",
+      "version": "5.2.0",
+      "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final"
+    },
+    {
+      "id": "NIST-SP-800-218A",
+      "title": "Secure Software Development Practices for Generative AI and Dual-Use Foundation Models",
+      "version": "2024-07-26",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/a/final"
+    }
+  ],
+  "objectives": {
+    "dsb-attack-resistance": {
+      "title": "Resist indirect prompt injection while completing the mission",
+      "supports": [
+        "OMB-M-25-21:4(b)(i)",
+        "OMB-M-25-22:4(d)(E)",
+        "NIST-AI-RMF-1.0:MEASURE",
+        "NIST-AI-600-1:AI red-teaming",
+        "NIST-AI-100-2e2025:indirect prompt injection",
+        "NIST-SP-800-53r5.2:SI-10",
+        "NIST-SP-800-53r5.2:SA-11"
+      ]
+    },
+    "dsb-clean-utility": {
+      "title": "Preserve intended mission performance",
+      "supports": [
+        "OMB-M-25-21:4(b)(ii)(A)",
+        "OMB-M-25-22:4(b)(iii)",
+        "OMB-M-25-22:4(e)(iii)",
+        "NIST-AI-RMF-1.0:MEASURE"
+      ]
+    },
+    "dsb-harm-containment": {
+      "title": "Contain harmful actions without introducing new harm",
+      "supports": [
+        "OMB-M-25-21:4(b)(v)",
+        "OMB-M-25-22:4(d)(F)",
+        "NIST-AI-RMF-1.0:MANAGE",
+        "NIST-SP-800-53r5.2:AC-3",
+        "NIST-SP-800-53r5.2:AC-6",
+        "NIST-SP-800-53r5.2:SI-10"
+      ]
+    },
+    "dsb-execution-reliability": {
+      "title": "Complete repeated evaluations without runtime errors",
+      "supports": [
+        "OMB-M-25-21:4(b)(i)",
+        "OMB-M-25-22:4(d)(E)",
+        "NIST-SP-800-53r5.2:CA-2",
+        "NIST-SP-800-218A:PW.8"
+      ]
+    },
+    "dsb-outcome-stability": {
+      "title": "Characterize stochastic outcome instability",
+      "supports": [
+        "OMB-M-25-21:4(b)(ii)(D)",
+        "OMB-M-25-22:4(d)(E)",
+        "OMB-M-25-22:4(e)(iii)",
+        "NIST-AI-RMF-1.0:MEASURE",
+        "NIST-SP-800-53r5.2:CA-7"
+      ]
+    },
+    "dsb-audit-evidence": {
+      "title": "Preserve traceable, recomputable assessment evidence",
+      "supports": [
+        "OMB-M-25-21:4(b)(iii)",
+        "OMB-M-25-22:4(d)(E)",
+        "OMB-M-26-04:Appendix-A.1(B)(ii)",
+        "NIST-SP-800-53r5.2:AU-2",
+        "NIST-SP-800-53r5.2:AU-3",
+        "NIST-SP-800-53r5.2:CA-2"
+      ]
+    }
+  }
+}

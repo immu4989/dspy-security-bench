@@ -7,8 +7,10 @@ from scripts.generate_site_data import (
     BENIGN_DIR,
     CONTROL_SUBMISSIONS_DIR,
     DEFAULT_OUT,
+    INCIDENT_SUBMISSIONS_DIR,
     RESULTS_DIR,
     _control_evidence_results,
+    _incident_evidence_results,
     _proofrun_results,
     build_payload,
 )
@@ -27,6 +29,26 @@ class _AssetCollector(HTMLParser):
             self.paths.append(attributes["src"])
         if tag == "link" and attributes.get("href"):
             self.paths.append(attributes["href"])
+
+
+class _AccessibilityCollector(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.ids = set()
+        self.skip_targets = []
+        self.buttons = []
+        self.html_lang = None
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if attributes.get("id"):
+            self.ids.add(attributes["id"])
+        if tag == "html":
+            self.html_lang = attributes.get("lang")
+        if tag == "a" and attributes.get("class") == "skip-link":
+            self.skip_targets.append(attributes.get("href"))
+        if tag == "button":
+            self.buttons.append(attributes)
 
 
 def test_site_payload_covers_committed_non_smoke_results():
@@ -66,6 +88,12 @@ def test_site_payload_exposes_the_open_control_evidence_registry():
     payload = build_payload()
     assert payload["controlEvidenceCount"] == len(payload["controlEvidence"])
     assert CONTROL_SUBMISSIONS_DIR.name == "control"
+
+
+def test_site_payload_exposes_the_open_incident_evidence_registry():
+    payload = build_payload()
+    assert payload["incidentEvidenceCount"] == len(payload["incidentEvidence"])
+    assert INCIDENT_SUBMISSIONS_DIR.name == "incident"
 
 
 def test_site_evidence_links_are_deployable_urls():
@@ -148,6 +176,86 @@ def test_site_presents_control_registry_as_evidence_not_certification():
     assert "not certification" in page
     assert 'id="control-evidence-results"' in page
     assert 'id="control-registry-copy"' in page
+
+
+def test_site_presents_incidenttwin_and_federalproof_with_honest_boundaries():
+    page = (SITE / "index.html").read_text()
+    assert 'id="mission-assurance"' in page
+    assert "IncidentTwin" in page
+    assert "FederalProof" in page
+    assert "OSCAL 1.2.2" in page
+    assert "secret → outside.test" in page
+    assert "dspy-security-bench incident demo" in page
+    assert "dspy-security-bench federal init" in page
+    assert "no automatic ATO or procurement decision" in page
+    assert 'id="incident-evidence-results"' in page
+    assert "Open IncidentTwin ledger" in page
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#incident-copy"' in script
+    assert 'bindCommandCopy("#federal-copy"' in script
+
+
+def test_incident_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_path):
+    submissions = tmp_path / "incident"
+    submissions.mkdir()
+    bundle = {
+        "bundle_type": "dspy-security-bench-incident-evidence-submission",
+        "submission": {
+            "submitter": "<soc-team>",
+            "created_at": "2026-08-18T00:00:00Z",
+        },
+        "report": {
+            "agent": "incident-agent <unsafe>",
+            "trial_isolation": "fresh_agent_per_case",
+            "summary": {
+                "trials": 5,
+                "case_errors": 0,
+                "unstable_pairs": 0,
+                "attack_resistance": {"rate": 0.8, "lower": 0.6, "upper": 0.9},
+                "harm_free": {"rate": 0.8, "lower": 0.6, "upper": 0.9},
+                "clean_mission_utility": {"rate": 1, "lower": 0.8, "upper": 1},
+            },
+            "trials": [{}, {}, {}, {}, {}],
+        },
+        "provenance": {"provider": "github_actions"},
+    }
+    encoded = json.dumps(
+        bundle, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    ).encode()
+    digest = hashlib.sha256(encoded).hexdigest()
+    bundle["bundle_sha256"] = digest
+    (submissions / "incident-agent.json").write_text(json.dumps(bundle))
+    reproductions = tmp_path / "reproductions.json"
+    reproductions.write_text('{"schema_version": 1, "reproductions": {}}')
+    attestations = tmp_path / "attestations.json"
+    attestations.write_text('{"schema_version": 1, "attestations": {}}')
+
+    rows = _incident_evidence_results(submissions, reproductions, attestations)
+    assert rows[0]["evidenceTier"] == "github_attestation_unverified"
+    assert rows[0]["attackResistance"]["lower"] == 0.6
+
+    attestations.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "attestations": {digest: {"evidence_tier": "trusted_builder"}},
+            }
+        )
+    )
+    rows = _incident_evidence_results(submissions, reproductions, attestations)
+    assert rows[0]["evidenceTier"] == "trusted_builder"
+
+
+def test_site_has_basic_keyboard_and_landmark_accessibility_contract():
+    collector = _AccessibilityCollector()
+    collector.feed((SITE / "index.html").read_text())
+    assert collector.html_lang == "en"
+    assert collector.skip_targets == ["#top"]
+    assert "top" in collector.ids
+    assert all(button.get("type") == "button" for button in collector.buttons)
+    menu = next(button for button in collector.buttons if button.get("class") == "menu-button")
+    assert menu["aria-controls"] == "nav-links"
+    assert menu["aria-expanded"] == "false"
 
 
 def test_control_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_path):

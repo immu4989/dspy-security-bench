@@ -19,6 +19,12 @@ Contributions are welcome. The most useful ones, roughly in order:
    disagreements should be resolvable.
 8. Bug reports and documentation fixes.
 
+Federal and regulated-sector contributors can also propose an inert
+IncidentTwin mission pack or improve an informative FederalProof mapping. Use
+the **Federal mission pack** issue form and never submit operational incidents,
+controlled information, personal data, credentials, or non-public system
+details.
+
 ## Getting set up
 
 ```bash

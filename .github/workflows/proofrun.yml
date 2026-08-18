@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       evidence-kind:
-        description: "Evidence experiment: impact or control"
+        description: "Evidence experiment: impact, control, or incident"
         required: false
         type: string
         default: "impact"
@@ -109,8 +109,8 @@ jobs:
             echo "artifact-name may contain only letters, digits, dots, underscores, and hyphens" >&2
             exit 2
           fi
-          if [[ "$PROOFRUN_EVIDENCE_KIND" != "impact" && "$PROOFRUN_EVIDENCE_KIND" != "control" ]]; then
-            echo "evidence-kind must be impact or control" >&2
+          if [[ "$PROOFRUN_EVIDENCE_KIND" != "impact" && "$PROOFRUN_EVIDENCE_KIND" != "control" && "$PROOFRUN_EVIDENCE_KIND" != "incident" ]]; then
+            echo "evidence-kind must be impact, control, or incident" >&2
             exit 2
           fi
 
@@ -123,7 +123,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.11.1
+          ref: v0.12.0
           path: engine
 
       - name: Install uv
@@ -191,7 +191,7 @@ jobs:
               --agent-source "$agent_source" \
               --notes "$PROOFRUN_NOTES" \
               --out "$bundle_path"
-          else
+          elif [[ "$PROOFRUN_EVIDENCE_KIND" == "control" ]]; then
             if [[ -z "$PROOFRUN_POLICY" || "$PROOFRUN_POLICY" == /* || "$PROOFRUN_POLICY" == *..* ]]; then
               echo "control evidence requires a safe repository-relative policy path" >&2
               exit 2
@@ -216,6 +216,16 @@ jobs:
               --min-clean-preservation-lower-bound "$PROOFRUN_MIN_CLEAN_PRESERVATION" \
               --min-controlled-resistance-lower-bound "$PROOFRUN_MIN_CONTROLLED_RESISTANCE" \
               --max-unstable-pairs "$PROOFRUN_MAX_UNSTABLE_PAIRS" \
+              --submitter "$submitter" \
+              --agent-source "$agent_source" \
+              --notes "$PROOFRUN_NOTES" \
+              --out "$bundle_path"
+          else
+            ../.proofrun-venv/bin/dspy-security-bench proofrun incident \
+              --agent "$PROOFRUN_AGENT" \
+              --trials "$PROOFRUN_TRIALS" \
+              --confidence "$PROOFRUN_CONFIDENCE" \
+              --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
               --submitter "$submitter" \
               --agent-source "$agent_source" \
               --notes "$PROOFRUN_NOTES" \
@@ -262,7 +272,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.11.1
+          ref: v0.12.0
           path: engine
 
       - name: Set up Python

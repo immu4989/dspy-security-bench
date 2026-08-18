@@ -1,0 +1,57 @@
+name: OSCAL conformance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dspy_security_bench/federal/**"
+      - "dspy_security_bench/incident/**"
+      - "scripts/build_federalproof_fixture.py"
+      - "scripts/validate_federalproof_oscal.py"
+      - ".github/workflows/oscal.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "dspy_security_bench/federal/**"
+      - "dspy_security_bench/incident/**"
+      - "scripts/build_federalproof_fixture.py"
+      - "scripts/validate_federalproof_oscal.py"
+      - ".github/workflows/oscal.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          version: "0.12.3"
+      - run: uv python install 3.12
+      - run: uv sync --locked --extra dev --python 3.12
+      - name: Download pinned NIST OSCAL 1.2.2 schemas
+        run: |
+          mkdir -p "$RUNNER_TEMP/oscal"
+          curl --fail --silent --show-error --location \
+            https://github.com/usnistgov/OSCAL/releases/download/v1.2.2/oscal_assessment-results_schema.json \
+            --output "$RUNNER_TEMP/oscal/oscal_assessment-results_schema.json"
+          curl --fail --silent --show-error --location \
+            https://github.com/usnistgov/OSCAL/releases/download/v1.2.2/oscal_poam_schema.json \
+            --output "$RUNNER_TEMP/oscal/oscal_poam_schema.json"
+          echo "d4e1e7e17c6662814882810ad64075266964ee1a575759ce3955302fd74edcd9  $RUNNER_TEMP/oscal/oscal_assessment-results_schema.json" | sha256sum --check
+          echo "c8f2ce52b3c71299bb0c9e1cd950d48dc79d9f52920c543ac30b3c3f08c2e152  $RUNNER_TEMP/oscal/oscal_poam_schema.json" | sha256sum --check
+      - name: Build deterministic failing pack
+        run: uv run --locked --no-sync python scripts/build_federalproof_fixture.py "$RUNNER_TEMP/fixture"
+      - name: Validate OSCAL assessment and POA&M structure
+        run: |
+          uv run --locked --no-sync python scripts/validate_federalproof_oscal.py \
+            --assessment-results "$RUNNER_TEMP/fixture/failed-pack/assessment-results.json" \
+            --assessment-schema "$RUNNER_TEMP/oscal/oscal_assessment-results_schema.json" \
+            --poam "$RUNNER_TEMP/fixture/failed-pack/poam.json" \
+            --poam-schema "$RUNNER_TEMP/oscal/oscal_poam_schema.json"

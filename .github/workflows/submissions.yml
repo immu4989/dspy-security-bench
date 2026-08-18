@@ -6,10 +6,12 @@ on:
     paths:
       - "submissions/impact/**"
       - "submissions/control/**"
+      - "submissions/incident/**"
       - "submissions/reproductions.json"
       - "submissions/attestations.json"
       - "scripts/validate_impact_submissions.py"
       - "dspy_security_bench/procurement/**"
+      - "dspy_security_bench/incident/**"
       - "dspy_security_bench/proofrun.py"
       - "dspy_security_bench/schemas/**"
   push:
@@ -17,10 +19,12 @@ on:
     paths:
       - "submissions/impact/**"
       - "submissions/control/**"
+      - "submissions/incident/**"
       - "submissions/reproductions.json"
       - "submissions/attestations.json"
       - "scripts/validate_impact_submissions.py"
       - "dspy_security_bench/procurement/**"
+      - "dspy_security_bench/incident/**"
       - "dspy_security_bench/proofrun.py"
       - "dspy_security_bench/schemas/**"
   workflow_dispatch:

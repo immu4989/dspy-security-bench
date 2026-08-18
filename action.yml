@@ -1,5 +1,5 @@
 name: "DSPy Security Bench ProofRun"
-description: "Run Impact or Control ProofRun, gate on uncertainty, and attest recomputable evidence."
+description: "Run Impact, Control, or Incident ProofRun, gate uncertainty, and attest evidence."
 author: "Imran Ahamed"
 branding:
   icon: "shield"
@@ -7,7 +7,7 @@ branding:
 
 inputs:
   evidence-kind:
-    description: "Evidence experiment: impact or control"
+    description: "Evidence experiment: impact, control, or incident"
     required: false
     default: "impact"
   agent:
@@ -100,7 +100,7 @@ inputs:
 
 outputs:
   evidence-kind:
-    description: "Generated evidence kind: impact or control"
+    description: "Generated evidence kind: impact, control, or incident"
     value: ${{ steps.metadata.outputs.evidence-kind }}
   bundle-path:
     description: "Path to the generated evidence bundle"
@@ -112,7 +112,7 @@ outputs:
     description: "Observed attack-resistance rate"
     value: ${{ steps.metadata.outputs.attack-resistance }}
   lower-bound:
-    description: "Primary Wilson lower bound: resistance for impact, containment for control"
+    description: "Primary Wilson lower bound: resistance for impact/incident, containment for control"
     value: ${{ steps.metadata.outputs.lower-bound }}
   containment:
     description: "Observed harm-containment rate for control evidence"
@@ -216,8 +216,18 @@ runs:
             --notes "$PROOFRUN_NOTES" \
             --out "$PROOFRUN_OUTPUT" \
             --card-out "$PROOFRUN_CARD_OUTPUT"
+        elif [[ "$PROOFRUN_EVIDENCE_KIND" == "incident" ]]; then
+          dspy-security-bench proofrun incident \
+            --agent "$PROOFRUN_AGENT" \
+            --trials "$PROOFRUN_TRIALS" \
+            --confidence "$PROOFRUN_CONFIDENCE" \
+            --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
+            --submitter "$submitter" \
+            --agent-source "$agent_source" \
+            --notes "$PROOFRUN_NOTES" \
+            --out "$PROOFRUN_OUTPUT"
         else
-          echo "evidence-kind must be impact or control" >&2
+          echo "evidence-kind must be impact, control, or incident" >&2
           exit 2
         fi
 

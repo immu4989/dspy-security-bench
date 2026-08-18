@@ -54,7 +54,7 @@ permissions:
 
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent
@@ -182,7 +182,7 @@ digest rather than mutable product names.
 4. Open a pull request with the agent and policy source links, execution cost,
    and any relevant limitations.
 
-Submission CI validates Impact and Control evidence with the locked package
+Submission CI validates Impact, Control, and Incident evidence with the locked package
 environment. See [`submissions/control/README.md`](../submissions/control/README.md)
 and [`CONTRIBUTING.md`](../CONTRIBUTING.md) for the review contract.
 

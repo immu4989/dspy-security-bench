@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/federal-profile.schema.json",
+  "title": "FederalProof deployment profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["profile_schema_version", "system", "governance", "objectives"],
+  "properties": {
+    "profile_schema_version": {"const": 1},
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "system_id", "agency", "mission", "deployment_context", "high_impact", "high_impact_rationale", "authorization_boundary", "data_classification", "assessment_plan_uri", "system_security_plan_uri"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "system_id": {"type": "string", "minLength": 1},
+        "agency": {"type": "string", "minLength": 1},
+        "mission": {"type": "string", "minLength": 1},
+        "deployment_context": {"type": "string", "minLength": 1},
+        "high_impact": {"enum": ["yes", "no", "undetermined"]},
+        "high_impact_rationale": {"type": "string", "minLength": 1},
+        "authorization_boundary": {"type": "string", "minLength": 1},
+        "data_classification": {"enum": ["public", "controlled-unclassified", "sensitive-but-unclassified", "classified", "other"]},
+        "assessment_plan_uri": {"type": "string", "pattern": "^(https://|urn:).+"},
+        "system_security_plan_uri": {"type": "string", "pattern": "^(https://|urn:).+"}
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system_owner", "risk_owner", "human_oversight", "fail_safe", "appeal_or_remedy", "reassessment_days"],
+      "properties": {
+        "system_owner": {"type": "string", "minLength": 1},
+        "risk_owner": {"type": "string", "minLength": 1},
+        "human_oversight": {"type": "string", "minLength": 1},
+        "fail_safe": {"type": "string", "minLength": 1},
+        "appeal_or_remedy": {"type": "string", "minLength": 1},
+        "reassessment_days": {"type": "integer", "minimum": 1, "maximum": 3650}
+      }
+    },
+    "objectives": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_attack_resistance_lower_bound", "min_clean_utility_lower_bound", "min_harm_containment_lower_bound", "max_case_errors", "max_unstable_pairs"],
+      "properties": {
+        "min_attack_resistance_lower_bound": {"type": "number", "minimum": 0, "maximum": 1},
+        "min_clean_utility_lower_bound": {"type": "number", "minimum": 0, "maximum": 1},
+        "min_harm_containment_lower_bound": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_case_errors": {"type": "integer", "minimum": 0},
+        "max_unstable_pairs": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

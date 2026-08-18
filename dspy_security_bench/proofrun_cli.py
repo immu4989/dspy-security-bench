@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dspy-security-bench proofrun",
         description=(
-            "Run RepeatTwin or RepeatControlTwin and create or verify a "
+            "Run repeated ImpactTwin, ControlTwin, or IncidentTwin and create or verify a "
             "provenance-ready evidence bundle."
         ),
     )
@@ -62,6 +62,22 @@ def build_parser() -> argparse.ArgumentParser:
     control.add_argument("--agent-source", required=True)
     control.add_argument("--notes", default="")
 
+    incident = commands.add_parser(
+        "incident", help="run repeated IncidentTwin and emit attestation-ready evidence"
+    )
+    incident_target = incident.add_mutually_exclusive_group(required=True)
+    incident_target.add_argument("--agent", help="module:callable returning an Agent")
+    incident_target.add_argument("--agent-model", help="LiteLLM model id for the built-in agent")
+    incident.add_argument("--name", help="display name override for --agent-model")
+    incident.add_argument("--trials", type=int, default=10)
+    incident.add_argument("--confidence", type=float, default=0.95)
+    incident.add_argument("--min-lower-bound", type=float, default=0.0)
+    incident.add_argument("--out", required=True, help="destination bundle JSON")
+    incident.add_argument("--report-out", help="optional standalone RepeatIncidentTwin JSON")
+    incident.add_argument("--submitter", required=True)
+    incident.add_argument("--agent-source", required=True)
+    incident.add_argument("--notes", default="")
+
     verify = commands.add_parser("verify", help="recompute a bundle and verify GitHub provenance")
     verify.add_argument("bundle")
     verify.add_argument("--attestation-repo", help="owner/repository; defaults to bundle metadata")
@@ -88,6 +104,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run(args)
     if args.command == "control":
         return _control(args)
+    if args.command == "incident":
+        return _incident(args)
     if args.command == "verify":
         return _verify(args)
     return 2
@@ -250,6 +268,66 @@ def _control(args) -> int:
     return 0
 
 
+def _incident(args) -> int:
+    from dspy_security_bench.incident.repeat import (
+        create_incident_submission_bundle,
+        run_repeat_incident_twin,
+    )
+
+    if args.trials < 2:
+        print("[proofrun] --trials must be at least 2", file=sys.stderr)
+        return 2
+    if not 0 < args.confidence < 1:
+        print("[proofrun] --confidence must be between 0 and 1", file=sys.stderr)
+        return 2
+    if not 0 <= args.min_lower_bound <= 1:
+        print("[proofrun] --min-lower-bound must be between 0 and 1", file=sys.stderr)
+        return 2
+    try:
+        report = run_repeat_incident_twin(
+            _agent_factory(args),
+            trials=args.trials,
+            confidence_level=args.confidence,
+            progress=lambda current, total: print(
+                f"[proofrun] completed incident trial {current}/{total}", file=sys.stderr
+            ),
+        )
+        bundle = create_incident_submission_bundle(
+            report.to_dict(),
+            submitter=args.submitter,
+            agent_source_url=args.agent_source,
+            notes=args.notes,
+            provenance=capture_provenance(),
+        )
+        _write_json(Path(args.out), bundle)
+        if args.report_out:
+            _write_json(Path(args.report_out), report.to_dict())
+    except Exception as exc:
+        print(f"[proofrun] incident failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 2
+
+    estimate = report.summary.attack_resistance
+    print(f"IncidentTwin repeated — {report.agent}")
+    print(
+        f"attack resistance: {estimate.rate:.1%} "
+        f"({args.confidence:.0%} Wilson {estimate.lower:.1%}–{estimate.upper:.1%})"
+    )
+    print(f"[proofrun] wrote {args.out}")
+    print(f"[proofrun] bundle sha256: {bundle['bundle_sha256']}")
+    if estimate.lower < args.min_lower_bound:
+        print(
+            f"[proofrun] gate failed: lower bound {estimate.lower:.1%} "
+            f"< {args.min_lower_bound:.1%}",
+            file=sys.stderr,
+        )
+        return 1
+    print(
+        f"[proofrun] gate passed: lower bound {estimate.lower:.1%} "
+        f">= {args.min_lower_bound:.1%}"
+    )
+    return 0
+
+
 def _verify(args) -> int:
     path = Path(args.bundle)
     try:
@@ -263,6 +341,16 @@ def _verify(args) -> int:
             integrity = verify_control_submission_bundle(bundle, minimum_trials=args.minimum_trials)
             eligible = integrity.registry_eligible
             eligibility_label = "Control registry eligibility"
+        elif bundle_type == "dspy-security-bench-incident-evidence-submission":
+            from dspy_security_bench.incident.repeat import (
+                verify_incident_submission_bundle,
+            )
+
+            integrity = verify_incident_submission_bundle(
+                bundle, minimum_trials=args.minimum_trials
+            )
+            eligible = integrity.community_eligible
+            eligibility_label = "Incident registry eligibility"
         else:
             from dspy_security_bench.procurement.repeat import verify_submission_bundle
 

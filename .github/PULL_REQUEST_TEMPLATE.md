@@ -14,7 +14,7 @@
 <!-- Delete this section if the PR is not a community result. -->
 
 - [ ] The bundle contains at least five complete trials
-- [ ] `dspy-security-bench proofrun verify submissions/impact/FILE.json --offline` passes
+- [ ] The matching offline verifier passes for `submissions/impact/`, `control/`, or `incident/`
 - [ ] The source URL describes the evaluated agent configuration
 - [ ] No provider credentials, private prompts, or sensitive production data are included
 - [ ] I identified the evidence tier: self-attested / GitHub-attested / trusted builder

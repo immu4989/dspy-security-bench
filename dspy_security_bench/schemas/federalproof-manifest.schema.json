@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/federalproof-manifest.schema.json",
+  "title": "FederalProof evidence-pack manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pack_schema_version", "pack_type", "created_at", "system_id", "system_name", "agent", "evidence_kind", "source_bundle_type", "source_bundle_sha256", "profile_sha256", "crosswalk_id", "crosswalk_sha256", "oscal_version", "overall_result", "objectives", "files", "poam_status", "disclaimer", "pack_sha256"],
+  "properties": {
+    "pack_schema_version": {"const": 1},
+    "pack_type": {"const": "dspy-security-bench-federalproof-pack"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "system_id": {"type": "string", "minLength": 1},
+    "system_name": {"type": "string", "minLength": 1},
+    "agent": {"type": "string", "minLength": 1},
+    "evidence_kind": {"enum": ["repeat-twin", "repeat-control-twin", "repeat-incident-twin"]},
+    "source_bundle_type": {"type": "string", "minLength": 1},
+    "source_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "crosswalk_id": {"type": "string", "minLength": 1},
+    "crosswalk_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "oscal_version": {"const": "1.2.2"},
+    "overall_result": {"enum": ["pass", "fail"]},
+    "objectives": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["objective_id", "label", "metric_kind", "observed", "threshold", "status"],
+        "properties": {"status": {"enum": ["pass", "fail"]}}
+      }
+    },
+    "files": {
+      "type": "object",
+      "minProperties": 6,
+      "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    },
+    "poam_status": {"enum": ["no_open_items", "open_items"]},
+    "disclaimer": {"type": "string", "minLength": 1},
+    "pack_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

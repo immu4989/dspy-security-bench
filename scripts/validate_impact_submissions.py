@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate every committed Impact and Control evidence submission."""
+"""Validate every committed Impact, Control, and Incident evidence submission."""
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from urllib.parse import urlparse
 
+from dspy_security_bench.incident.repeat import BUNDLE_TYPE as INCIDENT_BUNDLE_TYPE
+from dspy_security_bench.incident.repeat import verify_incident_submission_bundle
 from dspy_security_bench.procurement.control_registry import (
     BUNDLE_TYPE as CONTROL_BUNDLE_TYPE,
 )
@@ -23,6 +25,7 @@ def main() -> int:
     submissions = [
         *sorted((root / "submissions" / "impact").glob("*.json")),
         *sorted((root / "submissions" / "control").glob("*.json")),
+        *sorted((root / "submissions" / "incident").glob("*.json")),
     ]
     if not submissions:
         print("[submissions] no JSON submissions committed yet")
@@ -38,6 +41,9 @@ def main() -> int:
             if bundle.get("bundle_type") == CONTROL_BUNDLE_TYPE:
                 result = verify_control_submission_bundle(bundle)
                 eligible = result.registry_eligible
+            elif bundle.get("bundle_type") == INCIDENT_BUNDLE_TYPE:
+                result = verify_incident_submission_bundle(bundle)
+                eligible = result.community_eligible
             else:
                 result = verify_submission_bundle(bundle)
                 eligible = result.community_eligible

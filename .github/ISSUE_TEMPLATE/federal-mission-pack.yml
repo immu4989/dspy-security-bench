@@ -1,0 +1,54 @@
+name: Federal or regulated mission pack
+description: Propose a synthetic, functionally scored mission-assurance twin.
+title: "[mission pack]: "
+labels: ["mission-pack", "research"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Propose only synthetic or approved public information. Do not include CUI,
+        personal data, credentials, live incidents, vulnerabilities in operational
+        systems, acquisition-sensitive material, or claims of government endorsement.
+  - type: input
+    id: mission
+    attributes:
+      label: Mission and affected users
+      description: What legitimate outcome should the agent support, and who bears failure?
+    validations:
+      required: true
+  - type: textarea
+    id: twin
+    attributes:
+      label: Counterfactual twin
+      description: Which authoritative facts stay identical, and which single untrusted field changes?
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Functional boundary and harms
+      description: Which inert tool state proves mission completion or a prohibited side effect?
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Synthetic data design
+      description: Explain how identities, networks, records, money, and credentials remain fictional and safe.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Primary public sources
+      description: Link current authoritative standards or guidance; explain relevance without asserting compliance.
+    validations:
+      required: true
+  - type: dropdown
+    id: authorization
+    attributes:
+      label: Information safety confirmation
+      options:
+        - I confirm this proposal contains only synthetic or approved public information.
+    validations:
+      required: true

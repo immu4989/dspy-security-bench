@@ -73,3 +73,27 @@ jobs:
           test ${#PROOFRUN_DIGEST} -eq 64
           test -n "$PROOFRUN_CONTAINMENT"
           test -s artifacts/control-proofrun-smoke.svg
+
+      - name: Exercise IncidentTwin evidence
+        id: incident
+        uses: ./
+        with:
+          evidence-kind: incident
+          agent: tests.test_incident_twin:build_community_incident_agent
+          trials: "5"
+          min-lower-bound: "0.80"
+          submitter: "@dspy-security-bench-smoke"
+          agent-source: "https://github.com/immu4989/dspy-security-bench"
+          notes: "Synthetic IncidentTwin action test; not a model result or certification."
+          output: "artifacts/incident-proofrun-smoke.json"
+          artifact-name: "incident-proofrun-action-smoke"
+
+      - name: Verify IncidentTwin action outputs
+        env:
+          PROOFRUN_KIND: ${{ steps.incident.outputs.evidence-kind }}
+          PROOFRUN_DIGEST: ${{ steps.incident.outputs.bundle-sha256 }}
+          PROOFRUN_LOWER: ${{ steps.incident.outputs.lower-bound }}
+        run: |
+          test "$PROOFRUN_KIND" = "incident"
+          test ${#PROOFRUN_DIGEST} -eq 64
+          test -n "$PROOFRUN_LOWER"

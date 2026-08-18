@@ -18,6 +18,7 @@ RESULTS_DIR = ROOT / "leaderboard/results"
 BENIGN_DIR = ROOT / "leaderboard/benign"
 SUBMISSIONS_DIR = ROOT / "submissions/impact"
 CONTROL_SUBMISSIONS_DIR = ROOT / "submissions/control"
+INCIDENT_SUBMISSIONS_DIR = ROOT / "submissions/incident"
 REPRODUCTIONS = ROOT / "submissions/reproductions.json"
 ATTESTATIONS = ROOT / "submissions/attestations.json"
 DEFAULT_OUT = ROOT / "site/data.json"
@@ -29,6 +30,7 @@ def build_payload(
     benign_dir: Path = BENIGN_DIR,
     submissions_dir: Path = SUBMISSIONS_DIR,
     control_submissions_dir: Path = CONTROL_SUBMISSIONS_DIR,
+    incident_submissions_dir: Path = INCIDENT_SUBMISSIONS_DIR,
     reproductions_path: Path = REPRODUCTIONS,
     attestations_path: Path = ATTESTATIONS,
 ) -> dict:
@@ -79,6 +81,9 @@ def build_payload(
     control_evidence = _control_evidence_results(
         control_submissions_dir, reproductions_path, attestations_path
     )
+    incident_evidence = _incident_evidence_results(
+        incident_submissions_dir, reproductions_path, attestations_path
+    )
     return {
         "protocol": ", ".join(sorted(protocol_versions)),
         "modelCount": len(models),
@@ -89,6 +94,8 @@ def build_payload(
         "proofruns": proofruns,
         "controlEvidenceCount": len(control_evidence),
         "controlEvidence": control_evidence,
+        "incidentEvidenceCount": len(incident_evidence),
+        "incidentEvidence": incident_evidence,
     }
 
 
@@ -206,6 +213,55 @@ def _control_evidence_results(
     return results
 
 
+def _incident_evidence_results(
+    submissions_dir: Path,
+    reproductions_path: Path,
+    attestations_path: Path,
+) -> list[dict]:
+    """Build public IncidentTwin rows without trusting claimed evidence tiers."""
+    reproduced = _registry_records(reproductions_path, "reproductions")
+    attestations = _registry_records(attestations_path, "attestations")
+    results = []
+    for path in sorted(submissions_dir.glob("*.json")):
+        bundle = json.loads(path.read_text())
+        if not _site_incident_eligible(bundle):
+            continue
+        report = bundle["report"]
+        summary = report["summary"]
+        submission = bundle["submission"]
+        provenance = bundle.get("provenance", {})
+        digest = bundle["bundle_sha256"]
+        results.append(
+            {
+                "agent": report.get("agent", "unknown"),
+                "submitter": submission.get("submitter", "unknown"),
+                "createdAt": submission.get("created_at", ""),
+                "trials": summary.get("trials", 0),
+                "attackResistance": _estimate(summary.get("attack_resistance")),
+                "harmFree": _estimate(summary.get("harm_free")),
+                "cleanUtility": _estimate(summary.get("clean_mission_utility")),
+                "unstablePairs": summary.get("unstable_pairs", 0),
+                "evidenceTier": _evidence_tier(digest, provenance, attestations, reproduced),
+                "result": f"{GITHUB}/submissions/incident/{path.name}",
+            }
+        )
+    tier_rank = {
+        "maintainer_reproduced": 3,
+        "trusted_builder": 2,
+        "github_attested": 1,
+        "github_attestation_unverified": 0,
+        "self_attested": 0,
+    }
+    results.sort(
+        key=lambda row: (
+            -tier_rank[row["evidenceTier"]],
+            -_lower(row["attackResistance"]),
+            row["agent"],
+        )
+    )
+    return results
+
+
 def _registry_records(path: Path, key: str) -> dict:
     if not path.is_file():
         return {}
@@ -303,6 +359,42 @@ def _site_control_eligible(bundle: dict) -> bool:
         and report.get("trial_isolation") == "fresh_agent_per_case_and_condition"
         and not str(report.get("agent", "")).startswith("reference-")
         and _control_runtime_errors(report) == 0
+    )
+
+
+def _site_incident_eligible(bundle: dict) -> bool:
+    """Apply safe display checks; submission CI performs complete recomputation."""
+    if bundle.get("bundle_type") != "dspy-security-bench-incident-evidence-submission":
+        return False
+    claimed = bundle.get("bundle_sha256")
+    unsigned = dict(bundle)
+    unsigned.pop("bundle_sha256", None)
+    try:
+        encoded = json.dumps(
+            unsigned,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode()
+    except (TypeError, ValueError):
+        return False
+    if claimed != hashlib.sha256(encoded).hexdigest():
+        return False
+    report = bundle.get("report")
+    if not isinstance(report, dict):
+        return False
+    summary = report.get("summary")
+    trials = report.get("trials")
+    submission = bundle.get("submission")
+    return (
+        isinstance(summary, dict)
+        and isinstance(submission, dict)
+        and isinstance(trials, list)
+        and len(trials) >= 5
+        and report.get("trial_isolation") == "fresh_agent_per_case"
+        and not str(report.get("agent", "")).startswith("reference-")
+        and summary.get("case_errors") == 0
     )
 
 

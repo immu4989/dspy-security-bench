@@ -31,8 +31,14 @@ def main() -> int:
         }
     else:
         resistance = summary["attack_resistance"]
+        kind = (
+            "incident"
+            if payload.get("bundle_type")
+            == "dspy-security-bench-incident-evidence-submission"
+            else "impact"
+        )
         values = {
-            "evidence-kind": "impact",
+            "evidence-kind": kind,
             "bundle-sha256": payload["bundle_sha256"],
             "attack-resistance": resistance["rate"],
             "lower-bound": resistance["lower"],

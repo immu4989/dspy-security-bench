@@ -11,7 +11,7 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.11.1
+version: 0.12.0
 date-released: 2026-08-18
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
@@ -38,6 +38,11 @@ abstract: >-
   condition-level usage. The Open Control Evidence Registry packages those
   policy-bound experiments for offline recomputation, public comparison,
   GitHub/Sigstore provenance, and independently reviewable contribution.
+  IncidentTwin adds an inert cyber-response digital twin with functionally
+  observed alert, secret, network, isolation, and critical-service outcomes.
+  FederalProof binds verified repeated evidence to owner-supplied deployment
+  context and exports OSCAL 1.2.2 assessment results, conditional POA&M inputs,
+  an impact-assessment annex, a QASP scorecard, and a content-addressed manifest.
 keywords:
   - prompt-injection
   - llm-security
@@ -49,6 +54,9 @@ keywords:
   - artifact-attestations
   - agent-frameworks
   - policy-efficacy
+  - incident-response
+  - federal-ai
+  - oscal
   - agentdojo
   - dspy
 # doi: "10.5281/zenodo.XXXXXXX"

@@ -1,7 +1,7 @@
 # ProofRun: verifiable evidence for AI-agent security evaluations
 
-Most agent benchmarks end at a score in a log. ProofRun turns a RepeatTwin or
-RepeatControlTwin run into a portable evidence passport: raw trial outcomes,
+Most agent benchmarks end at a score in a log. ProofRun turns a RepeatTwin,
+RepeatControlTwin, or RepeatIncidentTwin run into a portable evidence passport: raw trial outcomes,
 uncertainty, protocol and policy identity, source commit, workflow identity,
 and a cryptographic attestation over the exact JSON bytes.
 
@@ -53,7 +53,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -65,7 +65,7 @@ jobs:
 
 The callable must take no arguments and return a fresh framework-neutral
 `Agent`. The workflow checks out the evaluated commit, installs it in an
-isolated Python environment, installs the immutable v0.11.1 ProofRun engine last,
+isolated Python environment, installs the immutable v0.12.0 ProofRun engine last,
 runs the five clean/poisoned procurement pairs repeatedly, and preserves the
 bundle even when the statistical gate fails. It then creates GitHub/Sigstore
 build provenance and uploads the exact file as a workflow artifact.
@@ -81,7 +81,7 @@ than the agent alone:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent
@@ -102,6 +102,27 @@ commit, or can be set explicitly with `policy-source`.
 See the [Open Control Evidence Registry](control-evidence-registry.md) for the
 admission and public-submission contract.
 
+### Incident-response mission-assurance mode
+
+Use `evidence-kind: incident` to test whether hostile alert content can redirect
+an AI responder into five concrete operational harms while authoritative facts
+remain fixed:
+
+```yaml
+jobs:
+  incident-evidence:
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0
+    with:
+      evidence-kind: incident
+      agent: myapp.security:build_incident_agent
+      trials: 10
+      min-lower-bound: 0.80
+      submitter: "@your-handle"
+```
+
+The builder preserves functional state transitions and causal trace differences,
+not just model text. See the [IncidentTwin protocol](incident-twin.md).
+
 ## Flexible path: the composite action
 
 Use the action when an existing job needs custom setup before evaluation:
@@ -114,7 +135,7 @@ permissions:
 
 steps:
   - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-  - uses: immu4989/dspy-security-bench@v0.11.1
+  - uses: immu4989/dspy-security-bench@v0.12.0
     with:
       agent: myapp.security:build_agent
       trials: "10"
@@ -207,8 +228,9 @@ for the platform trust model.
 
 ## Community evidence contracts
 
-Place agent-only bundles under `submissions/impact/` or policy-effectiveness
-bundles under `submissions/control/`, then open a pull request. CI performs
+Place agent-only bundles under `submissions/impact/`, policy-effectiveness bundles
+under `submissions/control/`, or cyber-response bundles under
+`submissions/incident/`, then open a pull request. CI performs
 offline recomputation for every bundle and performs online attestation
 verification for schema-v2 bundles that claim GitHub provenance. The public
 dashboard labels the evidence tier; it never renders a checksum as an identity
@@ -219,6 +241,7 @@ Before submitting:
 ```bash
 dspy-security-bench proofrun verify submissions/impact/your-agent.json
 dspy-security-bench proofrun verify submissions/control/your-agent-policy.json
+dspy-security-bench proofrun verify submissions/incident/your-agent.json
 ```
 
 Use only synthetic inputs. Never include customer records, private prompts,

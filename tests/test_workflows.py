@@ -59,7 +59,10 @@ def test_release_attests_built_distributions_before_publish():
     workflow = (WORKFLOWS / "release.yml").read_text()
     assert "attestations: write" in workflow
     assert "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6" in workflow
-    assert 'subject-path: "dist/*"' in workflow
+    assert "subject-path: |" in workflow
+    assert "dist/*" in workflow
+    assert "sbom/*" in workflow
+    assert "anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610" in workflow
 
 
 def test_proofrun_action_preserves_evidence_before_enforcing_the_gate():
@@ -85,6 +88,7 @@ def test_reusable_proofrun_uses_an_immutable_central_builder():
     assert "--min-lower-bound" in workflow
     assert 'default: "impact"' in workflow
     assert "proofrun control" in workflow
+    assert "proofrun incident" in workflow
     assert "--min-containment-lower-bound" in workflow
     assert "policy-source" in workflow
     assert "continue-on-error: true" in workflow

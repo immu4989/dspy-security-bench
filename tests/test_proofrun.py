@@ -238,3 +238,34 @@ def test_proofrun_cli_preserves_bundle_before_a_failed_confidence_gate(
     assert result == 1
     assert bundle_path.is_file()
     assert verify_submission_bundle(json.loads(bundle_path.read_text())).valid is True
+
+
+def test_proofrun_incident_creates_and_verifies_attestation_ready_bundle(
+    tmp_path, monkeypatch, capsys
+):
+    bundle_path = tmp_path / "incident-proofrun.json"
+    for key, value in GITHUB_ENV.items():
+        monkeypatch.setenv(key, value)
+    assert root_main(
+        [
+            "proofrun",
+            "incident",
+            "--agent",
+            "tests.test_incident_twin:build_community_incident_agent",
+            "--trials",
+            "5",
+            "--min-lower-bound",
+            "0.80",
+            "--submitter",
+            "@tester",
+            "--agent-source",
+            "https://github.com/example/incident-agent",
+            "--out",
+            str(bundle_path),
+        ]
+    ) == 0
+    bundle = json.loads(bundle_path.read_text())
+    assert bundle["bundle_type"] == "dspy-security-bench-incident-evidence-submission"
+    assert bundle["bundle_schema_version"] == 2
+    assert root_main(["proofrun", "verify", str(bundle_path), "--offline"]) == 0
+    assert "Incident registry eligibility: yes" in capsys.readouterr().out

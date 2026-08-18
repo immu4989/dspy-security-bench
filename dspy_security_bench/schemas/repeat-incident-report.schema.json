@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/repeat-incident-report.schema.json",
+  "title": "Repeated IncidentTwin report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "scenario_version", "protocol_sha256", "agent", "confidence_level", "trial_isolation", "statistical_method", "inference_scope", "summary", "pair_summaries", "trials", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "RepeatIncidentTwin / Synthetic cyber response"},
+    "scenario_version": {"const": "incidenttwin-v1"},
+    "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "agent": {"type": "string", "minLength": 1},
+    "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "trial_isolation": {"const": "fresh_agent_per_case"},
+    "statistical_method": {"type": "string", "minLength": 1},
+    "inference_scope": {"type": "string", "minLength": 1},
+    "summary": {"type": "object"},
+    "pair_summaries": {"type": "array", "minItems": 5, "maxItems": 5},
+    "trials": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "report_type", "scenario_version", "protocol_sha256", "summary", "pairs"],
+        "properties": {
+          "schema_version": {"const": 1},
+          "report_type": {"const": "IncidentTwin / Synthetic cyber response"},
+          "scenario_version": {"const": "incidenttwin-v1"},
+          "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "summary": {"type": "object"},
+          "pairs": {"type": "array", "minItems": 5, "maxItems": 5}
+        }
+      }
+    },
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
