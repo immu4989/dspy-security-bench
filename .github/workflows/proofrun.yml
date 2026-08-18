@@ -123,7 +123,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.11.0
+          ref: v0.11.1
           path: engine
 
       - name: Install uv
@@ -219,8 +219,7 @@ jobs:
               --submitter "$submitter" \
               --agent-source "$agent_source" \
               --notes "$PROOFRUN_NOTES" \
-              --out "$bundle_path" \
-              --card-out "../proofrun-artifacts/$PROOFRUN_ARTIFACT_NAME.svg"
+              --out "$bundle_path"
           fi
 
       - name: Inspect generated bundle
@@ -263,7 +262,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.11.0
+          ref: v0.11.1
           path: engine
 
       - name: Set up Python
@@ -281,6 +280,15 @@ jobs:
           dspy-security-bench proofrun verify \
             "proofrun-artifacts/$PROOFRUN_ARTIFACT_NAME.json" \
             --offline
+
+      - name: Render the verified control evidence card
+        if: inputs.evidence-kind == 'control'
+        env:
+          PROOFRUN_ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        run: |
+          dspy-security-bench impact control-card \
+            "proofrun-artifacts/$PROOFRUN_ARTIFACT_NAME.json" \
+            --out "proofrun-artifacts/$PROOFRUN_ARTIFACT_NAME.svg"
 
       - name: Attest exact evidence with the trusted builder identity
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2

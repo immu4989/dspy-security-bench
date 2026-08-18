@@ -24,7 +24,7 @@ permissions:
 
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1
     with:
       evidence-kind: control
       agent: your_package.security:build_agent

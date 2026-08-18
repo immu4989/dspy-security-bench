@@ -97,6 +97,8 @@ def test_reusable_proofrun_uses_an_immutable_central_builder():
     assert "OPENAI_API_KEY" not in clean_job
     assert "ANTHROPIC_API_KEY" not in clean_job
     assert "proofrun verify" in clean_job
+    assert "impact control-card" in clean_job
+    assert clean_job.index("proofrun verify") < clean_job.index("impact control-card")
     assert "PYTHONPATH: ${{ github.workspace }}/target" in workflow
 
 

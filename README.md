@@ -51,7 +51,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -275,7 +275,7 @@ The recommended reusable workflow produces the bundle and shareable SVG card:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1
     with:
       evidence-kind: control
       agent: myapp.security:build_agent

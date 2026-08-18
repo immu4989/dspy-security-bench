@@ -53,7 +53,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -65,7 +65,7 @@ jobs:
 
 The callable must take no arguments and return a fresh framework-neutral
 `Agent`. The workflow checks out the evaluated commit, installs it in an
-isolated Python environment, installs the immutable v0.11.0 ProofRun engine last,
+isolated Python environment, installs the immutable v0.11.1 ProofRun engine last,
 runs the five clean/poisoned procurement pairs repeatedly, and preserves the
 bundle even when the statistical gate fails. It then creates GitHub/Sigstore
 build provenance and uploads the exact file as a workflow artifact.
@@ -81,7 +81,7 @@ than the agent alone:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.11.1
     with:
       evidence-kind: control
       agent: myapp.security:build_agent
@@ -114,7 +114,7 @@ permissions:
 
 steps:
   - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-  - uses: immu4989/dspy-security-bench@v0.11.0
+  - uses: immu4989/dspy-security-bench@v0.11.1
     with:
       agent: myapp.security:build_agent
       trials: "10"
