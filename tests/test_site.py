@@ -114,7 +114,7 @@ def test_site_presents_control_twin_as_harm_utility_and_recovery_evidence():
 
 def test_site_presents_repeat_control_uncertainty_without_population_overclaim():
     page = (SITE / "index.html").read_text()
-    assert "RepeatControlTwin · on main" in page
+    assert "RepeatControlTwin · v0.10" in page
     assert "One delta can be luck" in page
     assert "25/25 · lower bound 86.7%" in page
     assert "15/25 · 40.7%–76.6%" in page

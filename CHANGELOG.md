@@ -9,6 +9,8 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-08-18
+
 ### Added
 - **RepeatControlTwin paired policy experiments.** `impact control-repeat`
   repeats the complete policy-off/policy-on protocol with a fresh agent for
@@ -314,7 +316,8 @@ several of them changed published numbers.
 - First end-to-end run: DSPy optimizers × AgentDojo attacks in one harness,
   workspace suite, single model.
 
-[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.6.0...v0.7.0

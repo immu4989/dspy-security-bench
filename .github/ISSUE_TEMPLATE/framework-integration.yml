@@ -26,7 +26,7 @@ body:
     attributes:
       label: Environment
       description: Include the framework version, Python version, and dspy-security-bench version.
-      placeholder: "openai-agents 0.20.0, Python 3.12, dspy-security-bench 0.9.0"
+      placeholder: "openai-agents 0.20.0, Python 3.12, dspy-security-bench 0.10.0"
     validations:
       required: true
   - type: textarea

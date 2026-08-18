@@ -50,7 +50,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.9.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.10.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -1017,8 +1017,8 @@ v0.1 scope choices:
 | v0.7 — ProofRun attested evidence passports, reusable trusted builder, and community evidence ladder | **shipped** |
 | v0.8 — BYOA framework adapters, detection, secure scaffolding, and zero-model-call doctor | **shipped** |
 | v0.9 — ControlTwin functional policy-efficacy evidence, recovery-gap analysis, offline verification, and SARIF gates | **shipped** |
-| RepeatControlTwin — repeated paired policy evidence, uncertainty bounds, exact transition test, stability analysis, and CI gates | **on main; unreleased** |
-| v0.10 — package RepeatControlTwin and extend attested community evidence to control-efficacy reports | planned |
+| v0.10 — RepeatControlTwin repeated paired policy evidence, uncertainty bounds, exact transition test, stability analysis, and CI gates | **shipped** |
+| Open Control Evidence Registry — attested, contribution-ready control-efficacy reports and public evidence cards | in development |
 | v0.11 — more families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
