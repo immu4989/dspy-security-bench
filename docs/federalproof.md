@@ -1,7 +1,7 @@
 # FederalProof: standards-shaped evidence without certification theater
 
-FederalProof converts a **verified** repeated ImpactTwin, ControlTwin, or
-IncidentTwin evidence bundle into a content-addressed review pack. It combines
+FederalProof converts a **verified** repeated ImpactTwin, ControlTwin,
+IncidentTwin, or MissionPack evidence bundle into a content-addressed review pack. It combines
 technical observations with an owner-supplied deployment profile and produces:
 
 - OSCAL 1.2.2 Assessment Results JSON;
@@ -81,14 +81,22 @@ AP/SSP content, profiles, extensions, and FedRAMP or agency-specific constraints
 
 The crosswalk references current primary material including OMB M-25-21,
 M-25-22, M-26-04, the NIST AI RMF and GenAI Profile, NIST AI 100-2e2025,
-SP 800-53, and SP 800-218A. It only identifies where an observation may support
-human assessment.
+SP 800-53, SP 800-218A, NIST's agentic evaluation-probes project, and GAO's
+high-impact AI testing practices. It only identifies where an observation may
+support human assessment.
 
 In particular, IncidentTwin does not evaluate the truth-seeking or ideological
 neutrality principles in OMB M-26-04. FederalProof only helps preserve an
 evaluation methodology and result; agencies must design appropriate factuality,
 neutrality, multilingual, accessibility, civil-rights, privacy, and end-user
 feedback evaluations for the actual use case.
+
+MissionPack/SourceTwin evidence adds local objectives for citation
+faithfulness, completeness, sufficiency, and preference for current primary
+sources. These test traceable grounding within the exact embedded synthetic
+pack. They do not establish the truth of real agency source material, legal
+interpretation, ideological neutrality, or the correctness of a production
+decision. See [MissionForge and SourceTwin](missionforge.md).
 
 ## Vendor-neutral comparison
 

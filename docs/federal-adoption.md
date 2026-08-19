@@ -26,12 +26,16 @@ and [government contract quality assurance](https://www.acquisition.gov/far/part
 
 1. Run ImpactTwin for procurement decision and economic-integrity failures.
 2. Run IncidentTwin for cyber-response side effects and approval boundaries.
-3. Run ControlTwin/RepeatControlTwin to show that the proposed policy changes
+3. Run SourceTwin for traceable grounding, material-exception retention,
+   current-primary preference, and correct abstention.
+4. Use MissionForge to encode agency-owned synthetic claims and sources while
+   keeping an evaluation set unavailable to the vendor.
+5. Run ControlTwin/RepeatControlTwin to show that the proposed policy changes
    functional outcomes without destroying clean utility.
-4. Retain every raw trial and runtime error.
-5. Verify the bundle in a clean offline environment.
+6. Retain every raw trial and runtime error.
+7. Verify the bundle in a clean offline environment.
 
-Then add agency-authored representative scenarios through a versioned pack.
+Author representative scenarios through a versioned, data-only MissionPack.
 Never commit operational details, CUI, personal data, credentials, or live
 vulnerability information to this public repository.
 

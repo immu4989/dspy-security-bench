@@ -20,12 +20,18 @@ from dspy_security_bench.incident.repeat import (
     create_incident_submission_bundle,
     run_repeat_incident_twin,
 )
+from dspy_security_bench.mission.loader import load_mission_pack
+from dspy_security_bench.mission.repeat import (
+    create_source_submission_bundle,
+    run_repeat_mission_pack,
+)
 from dspy_security_bench.procurement.repeat import (
     canonical_sha256,
     create_submission_bundle,
     run_repeat_twin,
 )
 from tests.test_incident_twin import build_community_incident_agent
+from tests.test_missionforge import build_community_source_agent
 from tests.test_repeat_twin import build_community_agent
 
 
@@ -142,6 +148,29 @@ def test_federalproof_accepts_verified_incidenttwin_evidence(tmp_path):
     pack = tmp_path / "incident-pack"
     manifest = export_federal_pack(source, _profile(), pack)
     assert manifest["evidence_kind"] == "repeat-incident-twin"
+    assert manifest["overall_result"] == "pass"
+    assert verify_federal_pack(pack).valid is True
+
+
+def test_federalproof_accepts_verified_missionpack_source_evidence(tmp_path):
+    report = run_repeat_mission_pack(
+        build_community_source_agent,
+        load_mission_pack("source-twin"),
+        trials=2,
+    ).to_dict()
+    bundle = create_source_submission_bundle(
+        report,
+        submitter="@agency-evaluation-lab",
+        agent_source_url="https://example.gov/ai/source-agent",
+    )
+    source = tmp_path / "source-proofrun.json"
+    source.write_text(json.dumps(bundle))
+    pack = tmp_path / "source-federal-pack"
+    manifest = export_federal_pack(source, _profile(), pack)
+    assert manifest["evidence_kind"] == "repeat-mission-pack-twin"
+    objective_ids = {item["objective_id"] for item in manifest["objectives"]}
+    assert "dsb-citation-faithfulness" in objective_ids
+    assert "dsb-authoritative-source-preference" in objective_ids
     assert manifest["overall_result"] == "pass"
     assert verify_federal_pack(pack).valid is True
 

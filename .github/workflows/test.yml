@@ -57,3 +57,4 @@ jobs:
           uv run --locked --no-sync pytest -q
           tests/test_incident_twin.py
           tests/test_federalproof.py
+          tests/test_missionforge.py

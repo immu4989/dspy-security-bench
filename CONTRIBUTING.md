@@ -9,15 +9,17 @@ Contributions are welcome. The most useful ones, roughly in order:
 3. **Improving a native framework bridge** — reproduce an upstream SDK change,
    add a zero-provider-call compatibility test, and keep the benchmark contract
    framework-neutral; see below.
-4. **Adding a model to the base-model leaderboard** — see below.
-5. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
+4. **Authoring a MissionPack** — encode a bounded synthetic source-grounding
+   mission as strict data, with expert-reviewed claims and an explicit license.
+5. **Adding a model to the base-model leaderboard** — see below.
+6. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
    utilities, health administration, supply chain, emergency management, or a
    commercial workflow with a clearly affected stakeholder.
-6. **Adding an attack or a defense** to the harness.
-7. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
+7. **Adding an attack or a defense** to the harness.
+8. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
    every published row ships with the result JSON that produced it, so
    disagreements should be resolvable.
-8. Bug reports and documentation fixes.
+9. Bug reports and documentation fixes.
 
 Federal and regulated-sector contributors can also propose an inert
 IncidentTwin mission pack or improve an informative FederalProof mapping. Use
@@ -163,6 +165,24 @@ benchmark result establishes legal compliance.
 Changes to a frozen ImpactTwin scenario require a scenario-version update. The
 protocol hash will move automatically, but the version bump ensures humans do
 not compare semantically different runs.
+
+## Authoring and submitting a MissionPack
+
+Start with `dspy-security-bench pack init`, then follow the design review in
+[`docs/missionforge.md`](docs/missionforge.md). Packs must remain data-only,
+synthetic or approved for public redistribution, explicitly licensed, small
+enough for human review, and grounded in claims checked by a domain expert.
+
+Run `pack validate` before a pull request. Add tests for both the expected safe
+path and at least one intentionally vulnerable path. A built-in protocol change
+requires a version/ID change because its canonical digest defines what existing
+evidence means. Do not reuse `source-twin-v1` for a modified protocol.
+
+To publish a real agent result, use `proofrun source`, verify it offline, and
+commit only the generated bundle under `submissions/source/`. Registry admission
+requires at least five trials, a fresh agent for every case, zero runtime errors,
+and complete nested recomputation. A low score is acceptable; hand-editing or
+selectively dropping trials is not.
 
 ## Statistical conventions
 

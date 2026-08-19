@@ -9,9 +9,11 @@ from scripts.generate_site_data import (
     DEFAULT_OUT,
     INCIDENT_SUBMISSIONS_DIR,
     RESULTS_DIR,
+    SOURCE_SUBMISSIONS_DIR,
     _control_evidence_results,
     _incident_evidence_results,
     _proofrun_results,
+    _source_evidence_results,
     build_payload,
 )
 
@@ -94,6 +96,12 @@ def test_site_payload_exposes_the_open_incident_evidence_registry():
     payload = build_payload()
     assert payload["incidentEvidenceCount"] == len(payload["incidentEvidence"])
     assert INCIDENT_SUBMISSIONS_DIR.name == "incident"
+
+
+def test_site_payload_exposes_the_open_source_evidence_registry():
+    payload = build_payload()
+    assert payload["sourceEvidenceCount"] == len(payload["sourceEvidence"])
+    assert SOURCE_SUBMISSIONS_DIR.name == "source"
 
 
 def test_site_evidence_links_are_deployable_urls():
@@ -193,6 +201,74 @@ def test_site_presents_incidenttwin_and_federalproof_with_honest_boundaries():
     script = (SITE / "app.js").read_text()
     assert 'bindCommandCopy("#incident-copy"' in script
     assert 'bindCommandCopy("#federal-copy"' in script
+
+
+def test_site_presents_missionforge_source_twin_and_grounding_ledger():
+    page = (SITE / "index.html").read_text()
+    script = (SITE / "app.js").read_text()
+    assert 'id="source-twin"' in page
+    assert "Trace the answer" in page
+    assert "Five controlled interventions" in page
+    assert "Fabricated authority" in page
+    assert "Material omission" in page
+    assert "Deterministic probes" in page
+    assert "not a legal interpretation" in page
+    assert 'id="source-evidence-results"' in page
+    assert 'bindCommandCopy("#source-copy"' in script
+    assert "safeSourceResultUrl" in script
+
+
+def test_source_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_path):
+    submissions = tmp_path / "source"
+    submissions.mkdir()
+    estimate = {"rate": 0.8, "lower": 0.6, "upper": 0.9}
+    bundle = {
+        "bundle_type": "dspy-security-bench-source-evidence-submission",
+        "submission": {"submitter": "<source-team>", "created_at": "2026-08-18T00:00:00Z"},
+        "report": {
+            "agent": "source-agent <unsafe>",
+            "pack_id": "agency-pack <unsafe>",
+            "pack_sha256": "b" * 64,
+            "trial_isolation": "fresh_agent_per_case",
+            "summary": {
+                "trials": 5,
+                "case_errors": 0,
+                "unstable_pairs": 0,
+                "attack_resistance": estimate,
+                "citation_faithfulness": estimate,
+                "citation_completeness": estimate,
+                "citation_sufficiency": estimate,
+                "authoritative_source_preference": estimate,
+            },
+            "trials": [{}, {}, {}, {}, {}],
+        },
+        "provenance": {"provider": "github_actions"},
+    }
+    encoded = json.dumps(
+        bundle, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    ).encode()
+    digest = hashlib.sha256(encoded).hexdigest()
+    bundle["bundle_sha256"] = digest
+    (submissions / "source-agent.json").write_text(json.dumps(bundle))
+    reproductions = tmp_path / "reproductions.json"
+    reproductions.write_text('{"schema_version": 1, "reproductions": {}}')
+    attestations = tmp_path / "attestations.json"
+    attestations.write_text('{"schema_version": 1, "attestations": {}}')
+
+    rows = _source_evidence_results(submissions, reproductions, attestations)
+    assert rows[0]["evidenceTier"] == "github_attestation_unverified"
+    assert rows[0]["faithfulness"]["lower"] == 0.6
+
+    attestations.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "attestations": {digest: {"evidence_tier": "trusted_builder"}},
+            }
+        )
+    )
+    rows = _source_evidence_results(submissions, reproductions, attestations)
+    assert rows[0]["evidenceTier"] == "trusted_builder"
 
 
 def test_incident_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_path):
@@ -375,6 +451,8 @@ def test_site_escapes_untrusted_community_fields_before_rendering():
     assert "escapeHtml(result.submitter)" in script
     assert "safeResultUrl(result.result)" in script
     assert "safeControlResultUrl(result.result)" in script
+    assert "safeSourceResultUrl(result.result)" in script
+    assert "escapeHtml(result.packId)" in script
     assert "escapeHtml(result.policy)" in script
     assert "const button = event.currentTarget;" in script
     assert "setTimeout(() => { event.currentTarget" not in script

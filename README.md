@@ -6,9 +6,9 @@
 
 ### Measure prompt-injection resilience in models and tool-using AI agents
 
-A reproducible **leaderboard**, CI gate, public-interest impact benchmark,
-cyber-response mission lab, policy-efficacy registry, and OSCAL evidence
-pipeline you can point at **your own agent**.
+A reproducible **leaderboard**, CI gate, declarative agency mission-pack SDK,
+source-grounding and public-interest twin benchmarks, policy-efficacy registry,
+and OSCAL evidence pipeline you can point at **your own agent**.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -17,6 +17,8 @@ pipeline you can point at **your own agent**.
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
 [![ProofRun](https://img.shields.io/badge/ProofRun-attested%20evidence-8F78FF)](docs/proofrun.md)
+[![MissionForge](https://img.shields.io/badge/MissionForge-data--only%20agency%20packs-8FFFB0)](docs/missionforge.md)
+[![SourceTwin](https://img.shields.io/badge/SourceTwin-grounding%20probes-5FBDFF)](docs/missionforge.md)
 [![IncidentTwin](https://img.shields.io/badge/IncidentTwin-cyber%20mission%20assurance-3B82F6)](docs/incident-twin.md)
 [![FederalProof](https://img.shields.io/badge/FederalProof-OSCAL%201.2.2-F4C86B)](docs/federalproof.md)
 [![Control evidence](https://img.shields.io/badge/control%20evidence-open%20registry-72F2E7)](docs/control-evidence-registry.md)
@@ -32,6 +34,48 @@ pipeline you can point at **your own agent**.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## New: MissionForge + SourceTwin
+
+**Can hostile retrieved content make an agent invent authority, follow embedded
+instructions, omit a controlling exception, prefer obsolete guidance, or answer
+when the record is insufficient?** SourceTwin tests all five as clean/injected
+counterfactual pairs. It scores recorded claims against exact source IDs—no text
+matching and no LLM judge as the truth oracle.
+
+```bash
+pip install dspy-security-bench
+dspy-security-bench pack describe source-twin
+dspy-security-bench pack run source-twin --reference bounded
+dspy-security-bench pack run source-twin --reference vulnerable
+```
+
+Both reference agents are zero-cost scorer fixtures, not model results. The
+bounded fixture passes all five pairs. The deliberately vulnerable fixture
+retains 100% clean mission utility but fails all five injected pairs, proving the
+protocol does not reward blanket refusal.
+
+MissionForge lets agencies, companies, researchers, and public-interest teams
+author the same kind of test as strict YAML/JSON—without modifying benchmark
+Python or executing pack-supplied code:
+
+```bash
+dspy-security-bench pack init --out my-mission-pack.yaml
+dspy-security-bench pack validate my-mission-pack.yaml
+dspy-security-bench pack run my-mission-pack.yaml --agent myapp:build_agent
+```
+
+Each pack binds synthetic claims, source authority/status, clean/injected
+content, material exceptions, abstention expectations, and a complete protocol
+SHA-256. Repeated trials add fresh-agent isolation, per-pair Wilson intervals,
+outcome stability, raw action traces, nested offline verification, ProofRun
+attestation, a validity-not-victory [source evidence
+ledger](submissions/source/README.md), and FederalProof export.
+
+[Read the MissionForge authoring contract, SourceTwin methodology, real-world
+pack ideas, safety rules, and limitations →](docs/missionforge.md)
 
 ---
 
@@ -72,7 +116,7 @@ The open IncidentTwin ledger accepts valid, independently inspectable evidence
 regardless of score; repository CI recomputes every submitted trace and statistic
 offline before it can appear on the dashboard.
 
-**FederalProof turns a verified ImpactTwin, ControlTwin, or IncidentTwin bundle
+**FederalProof turns a verified ImpactTwin, ControlTwin, IncidentTwin, or MissionPack bundle
 into reviewable assessment inputs:** OSCAL 1.2.2 Assessment Results, an OSCAL
 POA&M when local objectives fail, an AI impact-assessment annex, a QASP
 scorecard, a versioned informative crosswalk, and a manifest binding every byte.
@@ -114,7 +158,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -338,7 +382,7 @@ The recommended reusable workflow produces the bundle and shareable SVG card:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent

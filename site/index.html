@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="Measure tool-using AI security, cyber-response mission assurance, and policy effectiveness—then export verified evidence as OSCAL 1.2.2 assessment inputs.">
+  <meta name="description" content="Measure tool-using AI security, source grounding, cyber-response mission assurance, and policy effectiveness—then export verified evidence as OSCAL 1.2.2 assessment inputs.">
   <meta property="og:title" content="DSPy Security Bench — measure before you trust">
-  <meta property="og:description" content="ImpactTwin, ControlTwin, IncidentTwin, and FederalProof turn synthetic agent failures into recomputable mission-assurance evidence.">
+  <meta property="og:description" content="MissionForge, SourceTwin, ImpactTwin, ControlTwin, IncidentTwin, and FederalProof turn synthetic agent failures into recomputable mission-assurance evidence.">
   <meta property="og:image" content="assets/security-bench-hero-v2.png">
   <title>DSPy Security Bench — Measure before you trust</title>
   <link rel="icon" href="assets/dsb-mark.svg" type="image/svg+xml">
@@ -29,6 +29,7 @@
         <a href="#leaderboard">Leaderboard</a>
         <a href="#connect">Connect</a>
         <a href="#proofrun">ProofRun</a>
+        <a href="#source-twin">SourceTwin</a>
         <a href="#impact">ImpactTwin</a>
         <a href="#control">ControlTwin</a>
         <a href="#mission-assurance">FederalProof</a>
@@ -202,7 +203,7 @@
           <h2>Run it. Sign it.<br><em>Let others verify it.</em></h2>
         </div>
         <div class="proofrun-intro">
-          <span class="proof-live"><i></i> v0.11 dual evidence builder</span>
+          <span class="proof-live"><i></i> v0.13 four-path evidence builder</span>
           <p>A reusable workflow isolates model evaluation from signing, recomputes every statistic in a clean job, and binds the exact JSON to a source commit before enforcing the gate.</p>
         </div>
       </div>
@@ -242,7 +243,7 @@
 
 <span class="yaml-key">jobs:</span>
   <span class="yaml-key">proofrun:</span>
-    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.12.0
+    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
     <span class="yaml-key">with:</span>
       <span class="yaml-key">agent:</span> myapp.security:build_agent
       <span class="yaml-key">trials:</span> 10</code></pre>
@@ -262,6 +263,56 @@
         <div id="proofrun-empty" class="proofrun-empty">The network is open. Be the first independent agent team to submit an attested run.</div>
       </div>
       <p class="proofrun-disclaimer reveal">Provenance authenticates a workflow and exact artifact. It does not independently observe a model provider or turn a synthetic benchmark into certification.</p>
+    </section>
+
+    <section class="section source-section" id="source-twin">
+      <div class="source-aurora" aria-hidden="true"></div>
+      <div class="source-heading reveal">
+        <div>
+          <span class="section-kicker">MissionForge · agency-owned evaluation</span>
+          <h2>Trace the answer<br><em>back to authority.</em></h2>
+        </div>
+        <p>Ship a mission test as reviewable YAML—not benchmark code. SourceTwin holds the authoritative corpus and question fixed, changes only retrieved untrusted content, and scores the agent's recorded claims against exact source IDs.</p>
+      </div>
+
+      <div class="source-observatory reveal" aria-label="SourceTwin deterministic grounding flow">
+        <div class="source-risks">
+          <span>Five controlled interventions</span>
+          <ol>
+            <li><b>01</b><div><strong>Fabricated authority</strong><small>invented rule + citation</small></div></li>
+            <li><b>02</b><div><strong>Embedded instruction</strong><small>retrieval changes conclusion</small></div></li>
+            <li><b>03</b><div><strong>Material omission</strong><small>exception disappears</small></div></li>
+            <li><b>04</b><div><strong>Superseded guidance</strong><small>obsolete source wins</small></div></li>
+            <li><b>05</b><div><strong>Insufficient evidence</strong><small>answer instead of abstain</small></div></li>
+          </ol>
+        </div>
+        <div class="source-core" aria-hidden="true">
+          <span class="source-orbit orbit-a"></span><span class="source-orbit orbit-b"></span>
+          <div class="source-lock"><small>protocol</small><strong>SHA-256</strong><i></i></div>
+          <span class="source-node node-primary">PRIMARY</span>
+          <span class="source-node node-untrusted">UNTRUSTED</span>
+          <span class="source-node node-claim">CLAIM</span>
+        </div>
+        <div class="source-scorecard">
+          <span>Deterministic probes</span>
+          <div><small>Faithfulness</small><strong>Does the citation support the claim?</strong></div>
+          <div><small>Completeness</small><strong>Were material facts and exceptions retained?</strong></div>
+          <div><small>Sufficiency</small><strong>Did the agent abstain when evidence ran out?</strong></div>
+          <div><small>Authority</small><strong>Did current primary evidence outrank noise?</strong></div>
+        </div>
+      </div>
+
+      <div class="source-actions reveal">
+        <div><code><span>$</span> dspy-security-bench pack run source-twin --agent myapp:build</code><button id="source-copy" type="button">Copy</button></div>
+        <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/missionforge.md">Author an agency MissionPack <span aria-hidden="true">→</span></a>
+      </div>
+
+      <div class="source-ledger reveal">
+        <header><div><span>Open grounding evidence ledger</span><strong><b data-source-evidence-count>0</b> public MissionPack experiments</strong></div><a href="https://github.com/immu4989/dspy-security-bench/tree/main/submissions/source">inspect registry files ↗</a></header>
+        <div id="source-evidence-results"></div>
+        <div id="source-evidence-empty" class="source-empty"><span>PACK / 001</span><div><strong>The protocol is open.</strong><p>Fork it, encode a real mission with synthetic evidence, and publish the first independently reproducible run.</p></div></div>
+      </div>
+      <p class="source-disclaimer reveal">Structured test claims are benchmark ground truth for a fixed synthetic pack—not a legal interpretation, universal truth set, certification, or substitute for agency subject-matter review.</p>
     </section>
 
     <section class="section impact-section" id="impact">
@@ -560,7 +611,7 @@
             <div><span class="module-index">02 / EXPORT</span><h3>FederalProof</h3></div>
             <span class="module-state amber"><i></i> OSCAL 1.2.2</span>
           </header>
-          <p>Bind verified ImpactTwin, ControlTwin, or IncidentTwin evidence to an owner-supplied deployment profile and local acceptance thresholds.</p>
+          <p>Bind verified ImpactTwin, ControlTwin, IncidentTwin, or MissionPack evidence to an owner-supplied deployment profile and local acceptance thresholds.</p>
           <ol class="artifact-stack" aria-label="FederalProof generated artifacts">
             <li><span>AR</span><div><strong>assessment-results.json</strong><small>OSCAL findings + observations</small></div><b>✓</b></li>
             <li><span>IA</span><div><strong>impact-assessment-annex.md</strong><small>oversight · fail-safe · remedy</small></div><b>✓</b></li>

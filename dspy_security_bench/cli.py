@@ -5,6 +5,7 @@ Subcommands:
   federal     Export standards-aligned FederalProof assessment evidence.
   impact      Run counterfactual procurement mission-assurance tests.
   incident    Run synthetic cyber-response mission-assurance tests.
+  pack        Author and run declarative MissionForge assurance packs.
   init        Create a scan config and GitHub Action in the current project.
   integrate   Detect an agent framework and scaffold a ProofRun target.
   policy      Create and test deterministic tool-call policies.
@@ -66,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__)
         print(
             "Usage: dspy-security-bench "
-            "<init|integrate|doctor|scan|impact|incident|policy|proofrun|federal|synthesize|validate> [args...]"
+            "<init|integrate|doctor|scan|impact|incident|pack|policy|proofrun|federal|synthesize|validate> [args...]"
         )
         return 0
 
@@ -93,6 +94,10 @@ def main(argv: list[str] | None = None) -> int:
         from dspy_security_bench.incident.cli import main as incident_main
 
         return incident_main(rest)
+    if sub == "pack":
+        from dspy_security_bench.mission.cli import main as pack_main
+
+        return pack_main(rest)
     if sub == "policy":
         from dspy_security_bench.policy_cli import main as policy_main
 
@@ -118,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"unknown subcommand {sub!r}. Use: "
-        "init | integrate | doctor | scan | impact | incident | policy | proofrun | federal | synthesize | validate",
+        "init | integrate | doctor | scan | impact | incident | pack | policy | proofrun | federal | synthesize | validate",
         file=sys.stderr,
     )
     return 2

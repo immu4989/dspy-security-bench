@@ -4,10 +4,15 @@ on:
   workflow_call:
     inputs:
       evidence-kind:
-        description: "Evidence experiment: impact, control, or incident"
+        description: "Evidence experiment: impact, control, incident, or source"
         required: false
         type: string
         default: "impact"
+      mission-pack:
+        description: "Built-in alias or repository-relative MissionPack for source evidence"
+        required: false
+        type: string
+        default: "source-twin"
       agent:
         description: "Python module:callable returning a fresh Agent"
         required: true
@@ -109,8 +114,8 @@ jobs:
             echo "artifact-name may contain only letters, digits, dots, underscores, and hyphens" >&2
             exit 2
           fi
-          if [[ "$PROOFRUN_EVIDENCE_KIND" != "impact" && "$PROOFRUN_EVIDENCE_KIND" != "control" && "$PROOFRUN_EVIDENCE_KIND" != "incident" ]]; then
-            echo "evidence-kind must be impact, control, or incident" >&2
+          if [[ "$PROOFRUN_EVIDENCE_KIND" != "impact" && "$PROOFRUN_EVIDENCE_KIND" != "control" && "$PROOFRUN_EVIDENCE_KIND" != "incident" && "$PROOFRUN_EVIDENCE_KIND" != "source" ]]; then
+            echo "evidence-kind must be impact, control, incident, or source" >&2
             exit 2
           fi
 
@@ -123,7 +128,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.12.0
+          ref: v0.13.0
           path: engine
 
       - name: Install uv
@@ -153,6 +158,7 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
           PROOFRUN_AGENT: ${{ inputs.agent }}
+          PROOFRUN_MISSION_PACK: ${{ inputs.mission-pack }}
           PROOFRUN_EVIDENCE_KIND: ${{ inputs.evidence-kind }}
           PROOFRUN_TRIALS: ${{ inputs.trials }}
           PROOFRUN_CONFIDENCE: ${{ inputs.confidence }}
@@ -220,9 +226,28 @@ jobs:
               --agent-source "$agent_source" \
               --notes "$PROOFRUN_NOTES" \
               --out "$bundle_path"
-          else
+          elif [[ "$PROOFRUN_EVIDENCE_KIND" == "incident" ]]; then
             ../.proofrun-venv/bin/dspy-security-bench proofrun incident \
               --agent "$PROOFRUN_AGENT" \
+              --trials "$PROOFRUN_TRIALS" \
+              --confidence "$PROOFRUN_CONFIDENCE" \
+              --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
+              --submitter "$submitter" \
+              --agent-source "$agent_source" \
+              --notes "$PROOFRUN_NOTES" \
+              --out "$bundle_path"
+          else
+            pack_path="$PROOFRUN_MISSION_PACK"
+            if [[ "$pack_path" != "source-twin" && "$pack_path" != "source-twin-v1" ]]; then
+              if [[ -z "$pack_path" || "$pack_path" == /* || "$pack_path" == *..* ]]; then
+                echo "mission-pack must be a built-in alias or safe repository-relative path" >&2
+                exit 2
+              fi
+              pack_path="../target/$pack_path"
+            fi
+            ../.proofrun-venv/bin/dspy-security-bench proofrun source \
+              --agent "$PROOFRUN_AGENT" \
+              --pack "$pack_path" \
               --trials "$PROOFRUN_TRIALS" \
               --confidence "$PROOFRUN_CONFIDENCE" \
               --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
@@ -272,7 +297,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.12.0
+          ref: v0.13.0
           path: engine
 
       - name: Set up Python

@@ -9,6 +9,49 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.13.0] — 2026-08-18
+
+### Added
+- **MissionForge declarative assurance SDK.** A strict, data-only YAML/JSON
+  contract lets mission owners define synthetic claims, source authority and
+  status, clean/injected retrieved content, deterministic expectations, and
+  bounded case metadata without adding executable benchmark code.
+- `pack init`, `list`, `validate`, `describe`, `run`, `repeat`, `bundle`, and
+  `verify` commands; safe loading, a 1 MB/100-case ceiling, unknown-field and
+  reference rejection, canonical protocol SHA-256 identity, a packaged JSON
+  Schema, and a reviewable starter template.
+- **SourceTwin public-service grounding protocol.** Five frozen pairs test
+  fabricated authority, instruction injection through retrieval, material
+  omission, superseded guidance, and unsupported answers requiring abstention.
+- Deterministic functional scoring for citation faithfulness, completeness,
+  sufficiency, current-primary preference, clean mission utility, decision
+  invariance, and attack resistance. Scoring uses structured findings and exact
+  source IDs; an LLM judge is never the truth oracle.
+- Bounded and intentionally vulnerable zero-provider-call fixtures, raw action
+  traces, clean/injected causal diffs, repeated fresh-agent trials, per-pair
+  Wilson intervals, stability evidence, nested tamper detection, and reserved
+  frozen-protocol identity protection.
+- Content-addressed Source evidence bundles, pull-request admission, reviewed
+  evidence tiers, and an open validity-not-victory registry under
+  `submissions/source/`.
+- `proofrun source`, composite-action and trusted-builder support for built-in
+  or repository-relative MissionPacks, preserving the evaluate → clean
+  recompute → attest → gate trust boundary.
+- FederalProof support for MissionPack evidence, including local objectives for
+  grounding attack resistance, clean utility, citation faithfulness,
+  completeness, sufficiency, and current-primary preference. The informative
+  crosswalk adds current NIST agent-evaluation probe and GAO AI-testing sources.
+- A dramatic responsive SourceTwin dashboard observatory with an animated
+  provenance core, five intervention lanes, deterministic probe cards, a
+  copyable launch command, and a generated public grounding-evidence ledger.
+- Full MissionForge authoring, threat-model, safe-data, real-world use-case,
+  contribution, ProofRun, FederalProof, and limitations documentation.
+
+### Changed
+- Project metadata, the README, ProofRun, FederalProof, reusable workflows,
+  submission validation, site data, and release material now treat declarative
+  MissionPacks as a first-class evidence kind.
+
 ## [0.12.0] — 2026-08-18
 
 ### Added

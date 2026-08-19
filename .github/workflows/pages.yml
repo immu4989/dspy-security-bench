@@ -10,6 +10,7 @@ on:
       - "submissions/impact/**"
       - "submissions/control/**"
       - "submissions/incident/**"
+      - "submissions/source/**"
       - "submissions/reproductions.json"
       - "submissions/attestations.json"
       - "scripts/generate_site_data.py"

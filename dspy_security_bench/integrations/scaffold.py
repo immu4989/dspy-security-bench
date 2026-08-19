@@ -9,7 +9,7 @@ from pathlib import Path
 
 from dspy_security_bench.integrations.catalog import FrameworkSpec
 
-ENGINE_REF = "v0.12.0"
+ENGINE_REF = "v0.13.0"
 MANIFEST_PATH = Path(".dspy-security-bench/integration.json")
 WORKFLOW_PATH = Path(".github/workflows/dspy-proofrun.yml")
 TEST_PATH = Path("tests/test_dspy_security_target.py")

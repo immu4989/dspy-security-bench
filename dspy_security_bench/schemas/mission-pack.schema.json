@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/mission-pack.schema.json",
+  "title": "DSPy Security Bench MissionPack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "pack_id", "version", "name", "description", "domain", "license", "methodology", "system_directive", "disclaimer", "claims", "sources", "cases"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "pack_id": {"$ref": "#/$defs/id"},
+    "version": {"type": "string", "minLength": 1},
+    "name": {"type": "string", "minLength": 1},
+    "description": {"type": "string", "minLength": 1},
+    "domain": {"type": "string", "minLength": 1},
+    "license": {"type": "string", "minLength": 1},
+    "methodology": {"type": "string", "minLength": 1},
+    "system_directive": {"type": "string", "minLength": 1},
+    "disclaimer": {"type": "string", "minLength": 1},
+    "claims": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/claim"}},
+    "sources": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/source"}},
+    "cases": {"type": "array", "minItems": 1, "maxItems": 100, "items": {"$ref": "#/$defs/case"}}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "claim": {
+      "type": "object", "additionalProperties": false, "required": ["id", "statement"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "statement": {"type": "string", "minLength": 1}}
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "title", "authority", "status", "content", "supports"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "title": {"type": "string", "minLength": 1},
+        "authority": {"enum": ["primary", "secondary", "untrusted"]},
+        "status": {"enum": ["current", "superseded", "unverified"]},
+        "content": {"type": "string"},
+        "supports": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}
+      }
+    },
+    "case": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "title", "risk", "query", "candidate_claims", "source_ids", "untrusted_source_id", "expected", "variants"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "title": {"type": "string", "minLength": 1},
+        "risk": {"type": "string", "minLength": 1}, "query": {"type": "string", "minLength": 1},
+        "candidate_claims": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "source_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "untrusted_source_id": {"$ref": "#/$defs/id"},
+        "expected": {
+          "type": "object", "additionalProperties": false,
+          "required": ["required_claims", "prohibited_claims", "disposition", "require_current_primary"],
+          "properties": {
+            "required_claims": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+            "prohibited_claims": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+            "disposition": {"enum": ["answer", "abstain"]},
+            "require_current_primary": {"type": "boolean"}
+          }
+        },
+        "variants": {
+          "type": "object", "additionalProperties": false, "required": ["clean", "injected"],
+          "properties": {"clean": {"type": "string", "minLength": 1}, "injected": {"type": "string", "minLength": 1}}
+        }
+      }
+    }
+  }
+}

@@ -53,6 +53,8 @@ def test_submission_ci_recomputes_bundles_from_the_lockfile():
     assert "scripts/validate_impact_submissions.py" in workflow
     assert "uv sync --locked --extra dev" in workflow
     assert "uv run --locked --no-sync" in workflow
+    assert '"submissions/source/**"' in workflow
+    assert '"dspy_security_bench/mission/**"' in workflow
 
 
 def test_release_attests_built_distributions_before_publish():
@@ -76,7 +78,9 @@ def test_proofrun_action_preserves_evidence_before_enforcing_the_gate():
     assert "steps.run.outcome != 'success'" in action
     assert "dspy-security-bench proofrun run" in action
     assert "dspy-security-bench proofrun control" in action
+    assert "dspy-security-bench proofrun source" in action
     assert "evidence-kind:" in action
+    assert "mission-pack:" in action
     assert "min-containment-lower-bound" in action
     assert "proofrun-control.svg" in action
 
@@ -92,6 +96,8 @@ def test_reusable_proofrun_uses_an_immutable_central_builder():
     assert 'default: "impact"' in workflow
     assert "proofrun control" in workflow
     assert "proofrun incident" in workflow
+    assert "proofrun source" in workflow
+    assert "mission-pack:" in workflow
     assert "--min-containment-lower-bound" in workflow
     assert "policy-source" in workflow
     assert "continue-on-error: true" in workflow
@@ -118,6 +124,8 @@ def test_proofrun_action_has_a_live_smoke_workflow():
     assert "evidence-kind: control" in workflow
     assert "dspy_security_bench.incident.agents:build_bounded_reference" in workflow
     assert "evidence-kind: incident" in workflow
+    assert "build_bounded_source_reference" in workflow
+    assert "evidence-kind: source" in workflow
     assert "control-proofrun-smoke.svg" in workflow
     assert "attestations: write" in workflow
 

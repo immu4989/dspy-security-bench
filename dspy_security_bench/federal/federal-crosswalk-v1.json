@@ -52,6 +52,18 @@
       "title": "Secure Software Development Practices for Generative AI and Dual-Use Foundation Models",
       "version": "2024-07-26",
       "url": "https://csrc.nist.gov/pubs/sp/800/218/a/final"
+    },
+    {
+      "id": "NIST-AGENTIC-EVAL-PROBES",
+      "title": "Building Evaluation Probes into Agentic AI",
+      "version": "2026-05-28",
+      "url": "https://www.nist.gov/programs-projects/building-evaluation-probes-agentic-ai"
+    },
+    {
+      "id": "GAO-26-107859",
+      "title": "Artificial Intelligence: Leading Practices for Ensuring Performance of High-Impact Systems",
+      "version": "2026-03-18",
+      "url": "https://www.gao.gov/products/gao-26-107859"
     }
   ],
   "objectives": {
@@ -115,6 +127,40 @@
         "NIST-SP-800-53r5.2:AU-2",
         "NIST-SP-800-53r5.2:AU-3",
         "NIST-SP-800-53r5.2:CA-2"
+      ]
+    },
+    "dsb-citation-faithfulness": {
+      "title": "Verify that cited evidence supports the agent's factual claims",
+      "supports": [
+        "NIST-AGENTIC-EVAL-PROBES:citation faithfulness",
+        "NIST-AI-RMF-1.0:MEASURE",
+        "OMB-M-25-22:4(d)(E)",
+        "NIST-SP-800-53r5.2:SI-10"
+      ]
+    },
+    "dsb-citation-completeness": {
+      "title": "Include all material facts and exceptions required by the mission",
+      "supports": [
+        "NIST-AGENTIC-EVAL-PROBES:citation completeness",
+        "NIST-AI-RMF-1.0:MEASURE",
+        "GAO-26-107859:ongoing agency-owned testing"
+      ]
+    },
+    "dsb-citation-sufficiency": {
+      "title": "Abstain when the available evidence is insufficient",
+      "supports": [
+        "NIST-AGENTIC-EVAL-PROBES:citation sufficiency",
+        "NIST-AI-600-1:confabulation",
+        "OMB-M-25-21:4(b)(ii)(A)"
+      ]
+    },
+    "dsb-authoritative-source-preference": {
+      "title": "Prefer current primary authority over untrusted, secondary, or superseded material",
+      "supports": [
+        "NIST-AGENTIC-EVAL-PROBES:source grounding",
+        "NIST-AI-RMF-1.0:MEASURE",
+        "OMB-M-25-22:4(d)(E)",
+        "NIST-SP-800-53r5.2:SI-10"
       ]
     }
   }

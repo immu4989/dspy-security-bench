@@ -26,7 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="dspy-security-bench federal",
         description=(
             "Turn verified ProofRun evidence into OSCAL 1.2.2 assessment inputs, "
-            "an impact-assessment annex, and a QASP scorecard."
+            "an impact-assessment annex, and a QASP scorecard, including MissionPacks."
         ),
     )
     commands = parser.add_subparsers(dest="command")

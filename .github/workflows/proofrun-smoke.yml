@@ -13,6 +13,7 @@ on:
       - "scripts/proofrun_action_metadata.py"
       - "dspy_security_bench/procurement/**"
       - "dspy_security_bench/incident/**"
+      - "dspy_security_bench/mission/**"
 
 permissions:
   contents: read
@@ -96,5 +97,30 @@ jobs:
           PROOFRUN_LOWER: ${{ steps.incident.outputs.lower-bound }}
         run: |
           test "$PROOFRUN_KIND" = "incident"
+          test ${#PROOFRUN_DIGEST} -eq 64
+          test -n "$PROOFRUN_LOWER"
+
+      - name: Exercise SourceTwin MissionPack evidence
+        id: source
+        uses: ./
+        with:
+          evidence-kind: source
+          mission-pack: source-twin
+          agent: dspy_security_bench.mission.agents:build_bounded_source_reference
+          trials: "5"
+          min-lower-bound: "0.80"
+          submitter: "@dspy-security-bench-smoke"
+          agent-source: "https://github.com/immu4989/dspy-security-bench"
+          notes: "Synthetic SourceTwin action test; not a model result or certification."
+          output: "artifacts/source-proofrun-smoke.json"
+          artifact-name: "source-proofrun-action-smoke"
+
+      - name: Verify SourceTwin action outputs
+        env:
+          PROOFRUN_KIND: ${{ steps.source.outputs.evidence-kind }}
+          PROOFRUN_DIGEST: ${{ steps.source.outputs.bundle-sha256 }}
+          PROOFRUN_LOWER: ${{ steps.source.outputs.lower-bound }}
+        run: |
+          test "$PROOFRUN_KIND" = "source"
           test ${#PROOFRUN_DIGEST} -eq 64
           test -n "$PROOFRUN_LOWER"

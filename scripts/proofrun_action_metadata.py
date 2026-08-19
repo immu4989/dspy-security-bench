@@ -31,12 +31,11 @@ def main() -> int:
         }
     else:
         resistance = summary["attack_resistance"]
-        kind = (
-            "incident"
-            if payload.get("bundle_type")
-            == "dspy-security-bench-incident-evidence-submission"
-            else "impact"
-        )
+        kinds = {
+            "dspy-security-bench-incident-evidence-submission": "incident",
+            "dspy-security-bench-source-evidence-submission": "source",
+        }
+        kind = kinds.get(payload.get("bundle_type"), "impact")
         values = {
             "evidence-kind": kind,
             "bundle-sha256": payload["bundle_sha256"],

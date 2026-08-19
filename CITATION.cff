@@ -11,7 +11,7 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.12.0
+version: 0.13.0
 date-released: 2026-08-18
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
@@ -43,6 +43,10 @@ abstract: >-
   FederalProof binds verified repeated evidence to owner-supplied deployment
   context and exports OSCAL 1.2.2 assessment results, conditional POA&M inputs,
   an impact-assessment annex, a QASP scorecard, and a content-addressed manifest.
+  MissionForge adds a strict data-only contract for agency- and company-owned
+  mission evaluations. Its built-in SourceTwin protocol measures citation
+  faithfulness, completeness, sufficiency, current-primary preference, clean
+  utility, and injection resistance through structured claims and source IDs.
 keywords:
   - prompt-injection
   - llm-security
@@ -57,6 +61,9 @@ keywords:
   - incident-response
   - federal-ai
   - oscal
+  - mission-pack
+  - source-grounding
+  - citation-faithfulness
   - agentdojo
   - dspy
 # doi: "10.5281/zenodo.XXXXXXX"

@@ -357,5 +357,7 @@
   "controlEvidenceCount": 0,
   "controlEvidence": [],
   "incidentEvidenceCount": 0,
-  "incidentEvidence": []
+  "incidentEvidence": [],
+  "sourceEvidenceCount": 0,
+  "sourceEvidence": []
 }

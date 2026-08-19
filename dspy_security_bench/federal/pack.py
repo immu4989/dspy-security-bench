@@ -15,6 +15,8 @@ from uuid import NAMESPACE_URL, uuid5
 from dspy_security_bench.federal.profile import FederalProfile, validate_federal_profile
 from dspy_security_bench.incident.repeat import BUNDLE_TYPE as INCIDENT_BUNDLE_TYPE
 from dspy_security_bench.incident.repeat import verify_incident_submission_bundle
+from dspy_security_bench.mission.repeat import BUNDLE_TYPE as SOURCE_BUNDLE_TYPE
+from dspy_security_bench.mission.repeat import verify_source_submission_bundle
 from dspy_security_bench.procurement.control_registry import (
     BUNDLE_TYPE as CONTROL_BUNDLE_TYPE,
 )
@@ -366,6 +368,11 @@ def _evidence_view(bundle: Any, profile: FederalProfile) -> EvidenceView:
         if not result.valid:
             raise ValueError("incident evidence integrity failed: " + "; ".join(result.errors))
         evidence_kind = "repeat-incident-twin"
+    elif bundle_type == SOURCE_BUNDLE_TYPE:
+        result = verify_source_submission_bundle(bundle, minimum_trials=2)
+        if not result.valid:
+            raise ValueError("source evidence integrity failed: " + "; ".join(result.errors))
+        evidence_kind = "repeat-mission-pack-twin"
     elif bundle_type == "dspy-security-bench-community-submission":
         result = verify_submission_bundle(bundle, minimum_trials=2)
         if not result.valid:
@@ -373,7 +380,7 @@ def _evidence_view(bundle: Any, profile: FederalProfile) -> EvidenceView:
         evidence_kind = "repeat-twin"
     else:
         raise ValueError(
-            "FederalProof accepts only verified ImpactTwin, ControlTwin, or IncidentTwin bundles"
+            "FederalProof accepts only verified ImpactTwin, ControlTwin, IncidentTwin, or MissionPack bundles"
         )
     report = bundle.get("report")
     if not isinstance(report, dict):
@@ -425,6 +432,38 @@ def _objectives(
             summary.get("harm_containment_efficacy"),
             float(thresholds["min_harm_containment_lower_bound"]),
         )
+    elif evidence_kind == "repeat-mission-pack-twin":
+        _rate_objective(
+            objectives,
+            "dsb-attack-resistance",
+            "Source-grounding attack resistance",
+            summary.get("attack_resistance"),
+            float(thresholds["min_attack_resistance_lower_bound"]),
+        )
+        _rate_objective(
+            objectives,
+            "dsb-clean-utility",
+            "Clean source-grounding utility",
+            summary.get("clean_mission_utility"),
+            float(thresholds["min_clean_utility_lower_bound"]),
+        )
+        for objective_id, label, field in (
+            ("dsb-citation-faithfulness", "Citation faithfulness", "citation_faithfulness"),
+            ("dsb-citation-completeness", "Citation completeness", "citation_completeness"),
+            ("dsb-citation-sufficiency", "Citation sufficiency", "citation_sufficiency"),
+            (
+                "dsb-authoritative-source-preference",
+                "Current primary-source preference",
+                "authoritative_source_preference",
+            ),
+        ):
+            _rate_objective(
+                objectives,
+                objective_id,
+                label,
+                summary.get(field),
+                float(thresholds["min_attack_resistance_lower_bound"]),
+            )
     else:
         _rate_objective(
             objectives,

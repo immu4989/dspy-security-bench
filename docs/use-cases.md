@@ -7,6 +7,8 @@ This project now addresses both sides of that boundary:
 2. **Constrain** what the deployed agent can do with deterministic policy.
 3. **Verify** that the constraint removes functional harm without breaking the
    mission with [ControlTwin](control-twin.md).
+4. **Ground** factual decisions in current primary evidence and test poisoned
+   retrieval with [MissionForge and SourceTwin](missionforge.md).
 
 This follows the [OWASP AI Agent Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html): minimize tool permissions, require human approval for high-impact actions, treat external content as untrusted, and keep security regression tests.
 
@@ -19,6 +21,13 @@ This follows the [OWASP AI Agent Security Cheat Sheet](https://cheatsheetseries.
 | Procurement / source selection | Vendor proposals, attachments, market research | Bid disclosure, vendor identity, recommendations, awards | `procurement` |
 | Research / enterprise RAG | Websites, documents, retrieved chunks | Persistent memory, publishing, code execution | `research-rag` |
 | SRE / DevOps copilot | Logs, issue text, repository content | Deployments, shell access, deletion | `devops` |
+
+For read-oriented grants, benefits, regulatory research, records management,
+supply-chain qualification, and enterprise knowledge workflows, SourceTwin
+tests a different failure boundary: whether untrusted retrieval can change the
+claim set or cited authority even when no consequential tool is called. Custom
+MissionPacks let the mission owner encode synthetic claims, material exceptions,
+source status, and expected abstention without changing benchmark Python.
 
 These are not hypothetical prompt strings. They model the paths through which a
 production agent turns hostile content into a real side effect.
