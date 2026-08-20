@@ -242,7 +242,8 @@ def test_authority_cli_describe_demo_run_repeat_bundle_and_verify(tmp_path, caps
     assert authority_main(["verify", str(bundle), "--minimum-trials", "2"]) == 0
 
 
-def test_proofrun_authority_creates_and_verifies_attestation_ready_bundle(tmp_path):
+def test_proofrun_authority_creates_and_verifies_attestation_ready_bundle(tmp_path, monkeypatch):
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     bundle = tmp_path / "proofrun-authority.json"
     assert (
         root_main(
