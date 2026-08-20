@@ -31,7 +31,38 @@ jobs:
         run: uv sync --locked --extra dev --python ${{ matrix.python-version }}
 
       - name: Run pytest
-        run: uv run --locked --no-sync pytest tests/ -v --tb=short
+        run: >-
+          uv run --locked --no-sync pytest tests/ -v --tb=short
+          --junitxml=pytest-results.xml
+
+      - name: Expose failed test diagnostics
+        if: failure()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from xml.etree import ElementTree
+
+          report = Path("pytest-results.xml")
+          if not report.exists():
+              print("::error title=pytest diagnostics::pytest did not produce a JUnit report")
+              raise SystemExit(0)
+
+          def escape(value: str) -> str:
+              return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+          def escape_property(value: str) -> str:
+              return escape(value).replace(":", "%3A").replace(",", "%2C")
+
+          root = ElementTree.parse(report).getroot()
+          failures = root.findall(".//testcase[failure]") + root.findall(".//testcase[error]")
+          for case in failures:
+              problem = case.find("failure")
+              if problem is None:
+                  problem = case.find("error")
+              details = (problem.text or problem.get("message") or "pytest failure").strip()
+              test_id = f"{case.get('classname', '')}.{case.get('name', '')}".strip(".")
+              print(f"::error title={escape_property(test_id)}::{escape(details)}")
+          PY
 
       - name: Run Ruff
         if: matrix.python-version == '3.12'

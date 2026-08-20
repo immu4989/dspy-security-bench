@@ -46,6 +46,8 @@ def test_ci_installs_from_lockfile_without_resolving_during_checks():
     assert "uv sync --locked --extra dev" in workflow
     assert "uv run --locked --no-sync pytest" in workflow
     assert "uv run --locked --no-sync ruff" in workflow
+    assert "--junitxml=pytest-results.xml" in workflow
+    assert "Expose failed test diagnostics" in workflow
 
 
 def test_submission_ci_recomputes_bundles_from_the_lockfile():
