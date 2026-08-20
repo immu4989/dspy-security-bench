@@ -26,7 +26,8 @@ def build_parser() -> argparse.ArgumentParser:
         prog="dspy-security-bench federal",
         description=(
             "Turn verified ProofRun evidence into OSCAL 1.2.2 assessment inputs, "
-            "an impact-assessment annex, and a QASP scorecard, including MissionPacks."
+            "an impact-assessment annex, and a QASP scorecard, including MissionPacks "
+            "and AuthorityTwin authorization evidence."
         ),
     )
     commands = parser.add_subparsers(dest="command")
@@ -39,7 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
     validate.add_argument("profile")
 
     export = commands.add_parser("export", help="export a content-addressed evidence pack")
-    export.add_argument("evidence", help="ProofRun impact or control bundle")
+    export.add_argument("evidence", help="verified ProofRun evidence bundle")
     export.add_argument("--profile", required=True)
     export.add_argument("--out-dir", required=True)
     export.add_argument("--force", action="store_true")

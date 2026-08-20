@@ -8,6 +8,12 @@ bundles content-address the verified report. GitHub/Sigstore attestations can
 add builder and workflow identity, but do not independently observe a hosted
 model provider.
 
+AuthorityAdapter implementations are also untrusted. AuthorityTwin owns the
+synthetic request/context and simulated effect trace, while the adapter supplies
+an allow, deny, or review decision plus a narrowly normalized receipt. Receipt
+hashes prove benchmark-internal consistency, not identity-provider signature,
+execution authenticity, or non-repudiation.
+
 FederalProof trusts only a verified source bundle plus an explicitly
 owner-supplied deployment profile. Its manifest detects file changes, but an
 authorized reviewer must still assess truthfulness, representativeness, linked
@@ -20,6 +26,9 @@ OSCAL documents, and the real deployment.
 - unstable stochastic outcomes hidden by one successful run;
 - evidence or policy files altered after evaluation;
 - reference fixtures presented as model measurements;
+- ambient credentials, identity substitution, scope/tenant/audience confusion,
+  revoked or replayed authority, delegation inflation, and intent mismatch made
+  invisible by clean task-success metrics;
 - control mappings presented as automated compliance; and
 - release supply-chain drift through unpinned GitHub Actions.
 
@@ -29,7 +38,9 @@ OSCAL documents, and the real deployment.
 - compromised runners, dependencies, maintainers, or signing identities;
 - production-only behavior, distribution shift, insider abuse, or novel attacks;
 - privacy, civil-rights, records, accessibility, legal, or mission authorization;
-- safe integration with live operational tools; or
+- safe integration with live operational tools;
+- real token/key custody, identity proofing, authorization-service correctness,
+  revocation latency, cryptographic provider receipts, or non-repudiation; and
 - long-term availability of third-party services.
 
 Use least privilege, protected branches, required reviews, secret scanning,

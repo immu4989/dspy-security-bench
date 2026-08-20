@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="Measure tool-using AI security, source grounding, cyber-response mission assurance, and policy effectiveness—then export verified evidence as OSCAL 1.2.2 assessment inputs.">
+  <meta name="description" content="Measure tool-using AI security, delegated authorization, source grounding, cyber-response mission assurance, and policy effectiveness—then export verified evidence as OSCAL 1.2.2 assessment inputs.">
   <meta property="og:title" content="DSPy Security Bench — measure before you trust">
-  <meta property="og:description" content="MissionForge, SourceTwin, ImpactTwin, ControlTwin, IncidentTwin, and FederalProof turn synthetic agent failures into recomputable mission-assurance evidence.">
+  <meta property="og:description" content="AuthorityTwin, MissionForge, SourceTwin, ImpactTwin, ControlTwin, IncidentTwin, and FederalProof turn synthetic agent failures into recomputable assurance evidence.">
   <meta property="og:image" content="assets/security-bench-hero-v2.png">
   <title>DSPy Security Bench — Measure before you trust</title>
   <link rel="icon" href="assets/dsb-mark.svg" type="image/svg+xml">
@@ -29,6 +29,7 @@
         <a href="#leaderboard">Leaderboard</a>
         <a href="#connect">Connect</a>
         <a href="#proofrun">ProofRun</a>
+        <a href="#authority-twin">AuthorityTwin</a>
         <a href="#source-twin">SourceTwin</a>
         <a href="#impact">ImpactTwin</a>
         <a href="#control">ControlTwin</a>
@@ -47,7 +48,7 @@
       <div class="hero-content reveal">
         <div class="eyebrow"><span class="pulse"></span> Protocol v2 · committed evidence</div>
         <h1>Measure before<br><em>you trust.</em></h1>
-        <p class="hero-copy">A reproducible prompt-injection benchmark that connects to the agent stack you already use—then turns the result into a security gate.</p>
+        <p class="hero-copy">A reproducible security lab for tool-using AI—now testing prompt injection, agent identity, delegated authority, source grounding, and policy controls as verifiable evidence.</p>
         <div class="hero-actions">
           <a class="button primary" href="#leaderboard">Explore the evidence <span aria-hidden="true">↓</span></a>
           <a class="button secondary" href="#connect">Connect your agent <span aria-hidden="true">→</span></a>
@@ -203,7 +204,7 @@
           <h2>Run it. Sign it.<br><em>Let others verify it.</em></h2>
         </div>
         <div class="proofrun-intro">
-          <span class="proof-live"><i></i> v0.13 four-path evidence builder</span>
+          <span class="proof-live"><i></i> v0.14 five-path evidence builder</span>
           <p>A reusable workflow isolates model evaluation from signing, recomputes every statistic in a clean job, and binds the exact JSON to a source commit before enforcing the gate.</p>
         </div>
       </div>
@@ -243,7 +244,7 @@
 
 <span class="yaml-key">jobs:</span>
   <span class="yaml-key">proofrun:</span>
-    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
+    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
     <span class="yaml-key">with:</span>
       <span class="yaml-key">agent:</span> myapp.security:build_agent
       <span class="yaml-key">trials:</span> 10</code></pre>
@@ -263,6 +264,104 @@
         <div id="proofrun-empty" class="proofrun-empty">The network is open. Be the first independent agent team to submit an attested run.</div>
       </div>
       <p class="proofrun-disclaimer reveal">Provenance authenticates a workflow and exact artifact. It does not independently observe a model provider or turn a synthetic benchmark into certification.</p>
+    </section>
+
+    <section class="section authority-section" id="authority-twin">
+      <div class="authority-grid" aria-hidden="true"></div>
+      <div class="authority-glow" aria-hidden="true"></div>
+      <div class="authority-heading reveal">
+        <div>
+          <span class="section-kicker">AuthorityTwin · agent identity under pressure</span>
+          <h2>Prove the agent<br><em>may act.</em></h2>
+        </div>
+        <div class="authority-intro">
+          <span><i></i> Frozen protocol · 10 adversarial twins</span>
+          <p>A vendor-neutral conformance lab for the authorization layer between a human, an AI agent, and a tool. It asks whether each action is bound to the right identity, tenant, audience, scope, intent, approval, and audit record.</p>
+        </div>
+      </div>
+
+      <div class="authority-plane reveal" aria-label="Delegated authorization decision boundary">
+        <div class="authority-actor human-actor">
+          <small>01 / principal</small>
+          <span class="actor-glyph">H</span>
+          <strong>human-alice</strong>
+          <code>intent: records.read</code>
+        </div>
+        <div class="authority-link">
+          <span>delegates</span><i></i><code>scope · audience · expiry</code>
+        </div>
+        <div class="authority-actor agent-actor">
+          <small>02 / workload</small>
+          <span class="actor-glyph">A</span>
+          <strong>agent-orchestrator</strong>
+          <code>on behalf of human-alice</code>
+        </div>
+        <div class="authority-link decision-link">
+          <span>requests</span><i></i><code>nonce · tenant · action</code>
+        </div>
+        <div class="authority-actor resource-actor">
+          <small>03 / audience</small>
+          <span class="actor-glyph">R</span>
+          <strong>mcp://records</strong>
+          <code>tenant-north / record</code>
+        </div>
+        <div class="authority-verifier" aria-hidden="true">
+          <span class="verifier-ring ring-one"></span>
+          <span class="verifier-ring ring-two"></span>
+          <b>ALLOW</b>
+          <small>policy-bound<br>receipt</small>
+        </div>
+      </div>
+
+      <div class="authority-twins reveal">
+        <article class="authority-twin clean-authority">
+          <header><span>CONTROL</span><strong>Bound request</strong><i>ALLOW</i></header>
+          <dl>
+            <div><dt>agent</dt><dd>agent-orchestrator</dd></div>
+            <div><dt>scope</dt><dd>records:read</dd></div>
+            <div><dt>audience</dt><dd>mcp://records</dd></div>
+          </dl>
+          <footer><span>✓ clean utility preserved</span><code>receipt sha256: 8f2a…</code></footer>
+        </article>
+        <div class="authority-delta"><span>Δ</span><strong>one authority mutation</strong><small>same mission · same resource</small></div>
+        <article class="authority-twin injected-authority">
+          <header><span>INJECTED</span><strong>Scope inflation</strong><i>DENY</i></header>
+          <dl>
+            <div><dt>agent</dt><dd>agent-orchestrator</dd></div>
+            <div class="mutated"><dt>scope</dt><dd>records:write</dd></div>
+            <div><dt>audience</dt><dd>mcp://records</dd></div>
+          </dl>
+          <footer><span>✓ simulated effect contained</span><code>reason: scope_not_granted</code></footer>
+        </article>
+      </div>
+
+      <div class="authority-controls reveal" aria-label="AuthorityTwin control coverage">
+        <header><span>Attack surface / v1</span><strong>Ten ways ambient authority breaks</strong></header>
+        <ol>
+          <li><b>01</b><span>Identity<br>substitution</span></li>
+          <li><b>02</b><span>Scope<br>inflation</span></li>
+          <li><b>03</b><span>Cross-tenant<br>access</span></li>
+          <li><b>04</b><span>Audience<br>confusion</span></li>
+          <li><b>05</b><span>Revoked<br>delegation</span></li>
+          <li><b>06</b><span>Approval<br>replay</span></li>
+          <li><b>07</b><span>Delegation<br>laundering</span></li>
+          <li><b>08</b><span>Intent<br>drift</span></li>
+          <li><b>09</b><span>Sensitivity<br>aggregation</span></li>
+          <li><b>10</b><span>Audit-chain<br>tamper</span></li>
+        </ol>
+      </div>
+
+      <div class="authority-actions reveal">
+        <div><code><span>$</span> dspy-security-bench authority demo</code><button id="authority-copy" type="button">Copy</button></div>
+        <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/authority-twin.md">Implement the small adapter contract <span aria-hidden="true">→</span></a>
+      </div>
+
+      <div class="authority-ledger reveal">
+        <header><div><span>Open authorization evidence ledger</span><strong><b data-authority-evidence-count>0</b> public adapter experiments</strong></div><a href="https://github.com/immu4989/dspy-security-bench/tree/main/submissions/authority">inspect registry files ↗</a></header>
+        <div id="authority-evidence-results"></div>
+        <div id="authority-evidence-empty" class="authority-empty"><span>AUTH / 001</span><div><strong>The adapter contract is open.</strong><p>Bridge an OAuth, OIDC, MCP, SPIFFE, policy-engine, or custom authorization layer and publish the first independent evidence bundle.</p></div></div>
+      </div>
+      <p class="authority-disclaimer reveal">AuthorityTwin is an independent conformance and evidence harness—not a new authorization protocol. Synthetic results are not identity proof, non-repudiation, compliance, certification, production validation, or an authorization to operate.</p>
     </section>
 
     <section class="section source-section" id="source-twin">
@@ -611,7 +710,7 @@
             <div><span class="module-index">02 / EXPORT</span><h3>FederalProof</h3></div>
             <span class="module-state amber"><i></i> OSCAL 1.2.2</span>
           </header>
-          <p>Bind verified ImpactTwin, ControlTwin, IncidentTwin, or MissionPack evidence to an owner-supplied deployment profile and local acceptance thresholds.</p>
+          <p>Bind verified ImpactTwin, ControlTwin, IncidentTwin, MissionPack, or AuthorityTwin evidence to an owner-supplied deployment profile and local acceptance thresholds.</p>
           <ol class="artifact-stack" aria-label="FederalProof generated artifacts">
             <li><span>AR</span><div><strong>assessment-results.json</strong><small>OSCAL findings + observations</small></div><b>✓</b></li>
             <li><span>IA</span><div><strong>impact-assessment-annex.md</strong><small>oversight · fail-safe · remedy</small></div><b>✓</b></li>

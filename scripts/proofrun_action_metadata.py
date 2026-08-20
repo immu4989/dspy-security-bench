@@ -32,19 +32,22 @@ def main() -> int:
     else:
         resistance = summary["attack_resistance"]
         kinds = {
+            "dspy-security-bench-authority-evidence-submission": "authority",
             "dspy-security-bench-incident-evidence-submission": "incident",
             "dspy-security-bench-source-evidence-submission": "source",
         }
         kind = kinds.get(payload.get("bundle_type"), "impact")
+        containment = summary.get("harm_containment") if kind == "authority" else None
+        preservation = summary.get("clean_mission_utility") if kind == "authority" else None
         values = {
             "evidence-kind": kind,
             "bundle-sha256": payload["bundle_sha256"],
             "attack-resistance": resistance["rate"],
             "lower-bound": resistance["lower"],
-            "containment": "",
-            "containment-lower-bound": "",
+            "containment": _rate(containment),
+            "containment-lower-bound": _lower(containment),
             "safe-recovery": "",
-            "clean-preservation": "",
+            "clean-preservation": _rate(preservation),
         }
     output = os.environ.get("GITHUB_OUTPUT")
     if not output:

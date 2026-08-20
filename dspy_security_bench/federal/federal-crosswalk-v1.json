@@ -1,7 +1,7 @@
 {
   "catalog_schema_version": 1,
   "catalog_id": "dspy-security-bench-federal-crosswalk-v1",
-  "published": "2026-08-18",
+  "published": "2026-08-19",
   "status": "informative",
   "disclaimer": "These mappings identify where benchmark evidence may support an assessor. They do not assert control implementation, determine compliance, issue an authorization to operate, or imply government endorsement.",
   "sources": [
@@ -64,6 +64,18 @@
       "title": "Artificial Intelligence: Leading Practices for Ensuring Performance of High-Impact Systems",
       "version": "2026-03-18",
       "url": "https://www.gao.gov/products/gao-26-107859"
+    },
+    {
+      "id": "NIST-AI-AGENT-IDENTITY-CONCEPT",
+      "title": "Accelerating the Adoption of Software and AI Agent Identity and Authorization",
+      "version": "2026-02",
+      "url": "https://www.nccoe.nist.gov/sites/default/files/2026-02/accelerating-the-adoption-of-software-and-ai-agent-identity-and-authorization-concept-paper.pdf"
+    },
+    {
+      "id": "NIST-AI-AGENT-STANDARDS-INITIATIVE",
+      "title": "NIST AI Agent Standards Initiative",
+      "version": "2026",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
     }
   ],
   "objectives": {
@@ -161,6 +173,51 @@
         "NIST-AI-RMF-1.0:MEASURE",
         "OMB-M-25-22:4(d)(E)",
         "NIST-SP-800-53r5.2:SI-10"
+      ]
+    },
+    "dsb-authority-attack-resistance": {
+      "title": "Resist identity substitution, scope inflation, replay, confused-deputy, and delegation attacks",
+      "supports": [
+        "NIST-AI-AGENT-IDENTITY-CONCEPT:authorization and delegation research questions",
+        "NIST-AI-AGENT-STANDARDS-INITIATIVE:agent security and identity",
+        "NIST-SP-800-53r5.2:AC-3",
+        "NIST-SP-800-53r5.2:AC-6",
+        "NIST-SP-800-53r5.2:IA-4"
+      ]
+    },
+    "dsb-authority-clean-utility": {
+      "title": "Preserve legitimate delegated actions under bounded authority",
+      "supports": [
+        "NIST-AI-AGENT-IDENTITY-CONCEPT:least privilege and usable authorization",
+        "NIST-AI-RMF-1.0:MEASURE",
+        "OMB-M-25-22:4(d)(E)"
+      ]
+    },
+    "dsb-authority-decision-accuracy": {
+      "title": "Produce the expected allow, deny, or review decision for delegated actions",
+      "supports": [
+        "NIST-AI-AGENT-IDENTITY-CONCEPT:policy and risk-based authorization",
+        "NIST-SP-800-53r5.2:AC-3",
+        "NIST-SP-800-53r5.2:AC-4",
+        "NIST-SP-800-53r5.2:AC-6"
+      ]
+    },
+    "dsb-authority-harm-containment": {
+      "title": "Prevent simulated external effects when delegated authority is absent or requires review",
+      "supports": [
+        "NIST-AI-AGENT-IDENTITY-CONCEPT:revocation and zero trust",
+        "NIST-AI-RMF-1.0:MANAGE",
+        "NIST-SP-800-53r5.2:AC-3",
+        "NIST-SP-800-53r5.2:AC-6"
+      ]
+    },
+    "dsb-authority-receipt-integrity": {
+      "title": "Bind normalized authorization receipts to request, policy, principal, agent, and decision",
+      "supports": [
+        "NIST-AI-AGENT-IDENTITY-CONCEPT:audit and non-repudiation research questions",
+        "NIST-SP-800-53r5.2:AU-3",
+        "NIST-SP-800-53r5.2:AU-10",
+        "NIST-SP-800-53r5.2:CA-2"
       ]
     }
   }

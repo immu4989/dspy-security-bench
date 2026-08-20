@@ -1,0 +1,64 @@
+name: AuthorityTwin adapter
+description: Propose or troubleshoot a vendor-neutral identity/authorization bridge.
+title: "[AuthorityAdapter] "
+labels: ["authority-twin", "integration"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help make delegated agent authority independently testable. Use only
+        synthetic examples. Never include tokens, keys, production identity data,
+        provider audit records, private tenant identifiers, or live vulnerabilities.
+  - type: dropdown
+    id: system
+    attributes:
+      label: Authorization system
+      options:
+        - OAuth or OpenID Connect
+        - MCP gateway
+        - SPIFFE or workload identity
+        - Policy engine
+        - Cloud IAM
+        - Custom authorization service
+        - Another system
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Include the product/SDK, Python, and dspy-security-bench versions.
+      placeholder: "policy SDK 2.1, Python 3.12, dspy-security-bench 0.14.0"
+    validations:
+      required: true
+  - type: textarea
+    id: mapping
+    attributes:
+      label: Authority field mapping
+      description: Explain how principal, agent, tenant, audience, scope, intent, delegation, approval, revocation, sensitivity, and audit state map to the system.
+    validations:
+      required: true
+  - type: textarea
+    id: limitation
+    attributes:
+      label: Unsupported fields and limitations
+      description: Identify protocol fields or decision outcomes the system cannot express without pretending they are enforced.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Synthetic reproduction
+      description: Provide an offline or redacted reproduction and the exact AuthorityTwin command. Do not paste credentials or production requests.
+      render: shell
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Contribution safety
+      options:
+        - label: I removed credentials, production identity data, private tenant data, and operational vulnerability details.
+          required: true
+        - label: I understand AuthorityTwin evidence is not certification, identity proof, non-repudiation, or an authorization to operate.
+          required: true

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate every committed Impact, Control, Incident, and Source evidence submission."""
+"""Validate every committed Impact, Control, Incident, Source, and Authority submission."""
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from urllib.parse import urlparse
 
+from dspy_security_bench.authority.repeat import BUNDLE_TYPE as AUTHORITY_BUNDLE_TYPE
+from dspy_security_bench.authority.repeat import verify_authority_submission_bundle
 from dspy_security_bench.incident.repeat import BUNDLE_TYPE as INCIDENT_BUNDLE_TYPE
 from dspy_security_bench.incident.repeat import verify_incident_submission_bundle
 from dspy_security_bench.mission.repeat import BUNDLE_TYPE as SOURCE_BUNDLE_TYPE
@@ -29,6 +31,7 @@ def main() -> int:
         *sorted((root / "submissions" / "control").glob("*.json")),
         *sorted((root / "submissions" / "incident").glob("*.json")),
         *sorted((root / "submissions" / "source").glob("*.json")),
+        *sorted((root / "submissions" / "authority").glob("*.json")),
     ]
     if not submissions:
         print("[submissions] no JSON submissions committed yet")
@@ -49,6 +52,9 @@ def main() -> int:
                 eligible = result.community_eligible
             elif bundle.get("bundle_type") == SOURCE_BUNDLE_TYPE:
                 result = verify_source_submission_bundle(bundle)
+                eligible = result.community_eligible
+            elif bundle.get("bundle_type") == AUTHORITY_BUNDLE_TYPE:
+                result = verify_authority_submission_bundle(bundle)
                 eligible = result.community_eligible
             else:
                 result = verify_submission_bundle(bundle)

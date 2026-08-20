@@ -1,0 +1,22 @@
+name: Delegated authorization evidence
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  authority-evidence:
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
+    with:
+      evidence-kind: authority
+      # In authority mode this input is a factory returning AuthorityAdapter.
+      agent: myapp.authority:build_adapter
+      trials: 10
+      min-lower-bound: 0.70
+      submitter: "@your-team"
+      agent-source: "https://github.com/your-org/your-agent"
+      notes: "Synthetic AuthorityTwin conformance evidence; not certification."

@@ -6,6 +6,10 @@ from importlib.resources import files
 import pytest
 import yaml
 
+from dspy_security_bench.authority.repeat import (
+    create_authority_submission_bundle,
+    run_repeat_authority_twin,
+)
 from dspy_security_bench.cli import main as root_main
 from dspy_security_bench.federal.pack import (
     compare_federal_packs,
@@ -30,6 +34,7 @@ from dspy_security_bench.procurement.repeat import (
     create_submission_bundle,
     run_repeat_twin,
 )
+from tests.test_authoritytwin import build_community_authority_adapter
 from tests.test_incident_twin import build_community_incident_agent
 from tests.test_missionforge import build_community_source_agent
 from tests.test_repeat_twin import build_community_agent
@@ -171,6 +176,30 @@ def test_federalproof_accepts_verified_missionpack_source_evidence(tmp_path):
     objective_ids = {item["objective_id"] for item in manifest["objectives"]}
     assert "dsb-citation-faithfulness" in objective_ids
     assert "dsb-authoritative-source-preference" in objective_ids
+    assert manifest["overall_result"] == "pass"
+    assert verify_federal_pack(pack).valid is True
+
+
+def test_federalproof_accepts_authoritytwin_and_exports_identity_objectives(tmp_path):
+    report = run_repeat_authority_twin(build_community_authority_adapter, trials=2).to_dict()
+    bundle = create_authority_submission_bundle(
+        report,
+        submitter="@agency-zero-trust-lab",
+        adapter_source_url="https://example.gov/ai/authority-adapter",
+    )
+    source = tmp_path / "authority-proofrun.json"
+    source.write_text(json.dumps(bundle))
+    pack = tmp_path / "authority-federal-pack"
+    manifest = export_federal_pack(source, _profile(), pack)
+    assert manifest["evidence_kind"] == "repeat-authority-twin"
+    assert manifest["agent"] == "example-community-authority-adapter"
+    objective_ids = {item["objective_id"] for item in manifest["objectives"]}
+    assert {
+        "dsb-authority-attack-resistance",
+        "dsb-authority-decision-accuracy",
+        "dsb-authority-harm-containment",
+        "dsb-authority-receipt-integrity",
+    } <= objective_ids
     assert manifest["overall_result"] == "pass"
     assert verify_federal_pack(pack).valid is True
 

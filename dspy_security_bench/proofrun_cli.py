@@ -17,7 +17,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dspy-security-bench proofrun",
         description=(
-            "Run repeated ImpactTwin, ControlTwin, IncidentTwin, or MissionPack/SourceTwin "
+            "Run repeated ImpactTwin, ControlTwin, IncidentTwin, MissionPack/SourceTwin, "
+            "or AuthorityTwin "
             "and create or verify a provenance-ready evidence bundle."
         ),
     )
@@ -95,6 +96,24 @@ def build_parser() -> argparse.ArgumentParser:
     source.add_argument("--agent-source", required=True)
     source.add_argument("--notes", default="")
 
+    authority = commands.add_parser(
+        "authority",
+        help="run repeated delegated-authorization conformance and emit evidence",
+    )
+    authority_target = authority.add_mutually_exclusive_group(required=True)
+    authority_target.add_argument("--adapter", help="module:callable returning an AuthorityAdapter")
+    authority_target.add_argument(
+        "--reference", choices=("bounded", "ambient"), help="zero-cost reference fixture"
+    )
+    authority.add_argument("--trials", type=int, default=10)
+    authority.add_argument("--confidence", type=float, default=0.95)
+    authority.add_argument("--min-lower-bound", type=float, default=0.0)
+    authority.add_argument("--out", required=True, help="destination bundle JSON")
+    authority.add_argument("--report-out", help="optional standalone repeated report JSON")
+    authority.add_argument("--submitter", required=True)
+    authority.add_argument("--adapter-source", required=True)
+    authority.add_argument("--notes", default="")
+
     verify = commands.add_parser("verify", help="recompute a bundle and verify GitHub provenance")
     verify.add_argument("bundle")
     verify.add_argument("--attestation-repo", help="owner/repository; defaults to bundle metadata")
@@ -125,6 +144,8 @@ def main(argv: list[str] | None = None) -> int:
         return _incident(args)
     if args.command == "source":
         return _source(args)
+    if args.command == "authority":
+        return _authority(args)
     if args.command == "verify":
         return _verify(args)
     return 2
@@ -404,6 +425,65 @@ def _source(args) -> int:
     return 0
 
 
+def _authority(args) -> int:
+    from dspy_security_bench.authority.repeat import (
+        create_authority_submission_bundle,
+        run_repeat_authority_twin,
+    )
+
+    if args.trials < 2:
+        print("[proofrun] --trials must be at least 2", file=sys.stderr)
+        return 2
+    if not 0 < args.confidence < 1:
+        print("[proofrun] --confidence must be between 0 and 1", file=sys.stderr)
+        return 2
+    if not 0 <= args.min_lower_bound <= 1:
+        print("[proofrun] --min-lower-bound must be between 0 and 1", file=sys.stderr)
+        return 2
+    try:
+        report = run_repeat_authority_twin(
+            _authority_adapter_factory(args),
+            trials=args.trials,
+            confidence_level=args.confidence,
+            progress=lambda current, total: print(
+                f"[proofrun] completed authority trial {current}/{total}", file=sys.stderr
+            ),
+        )
+        bundle = create_authority_submission_bundle(
+            report.to_dict(),
+            submitter=args.submitter,
+            adapter_source_url=args.adapter_source,
+            notes=args.notes,
+            provenance=capture_provenance(),
+        )
+        _write_json(Path(args.out), bundle)
+        if args.report_out:
+            _write_json(Path(args.report_out), report.to_dict())
+    except Exception as exc:
+        print(f"[proofrun] authority failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 2
+
+    estimate = report.summary.attack_resistance
+    print(f"AuthorityTwin repeated — {report.adapter}")
+    print(
+        f"attack resistance: {estimate.rate:.1%} "
+        f"({args.confidence:.0%} Wilson {estimate.lower:.1%}–{estimate.upper:.1%})"
+    )
+    print(f"harm containment: {report.summary.harm_containment.rate:.1%}")
+    print(f"receipt integrity: {report.summary.receipt_integrity.rate:.1%}")
+    print(f"[proofrun] wrote {args.out}")
+    print(f"[proofrun] bundle sha256: {bundle['bundle_sha256']}")
+    if estimate.lower < args.min_lower_bound:
+        print(
+            f"[proofrun] gate failed: lower bound {estimate.lower:.1%} "
+            f"< {args.min_lower_bound:.1%}",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"[proofrun] gate passed: lower bound {estimate.lower:.1%} >= {args.min_lower_bound:.1%}")
+    return 0
+
+
 def _verify(args) -> int:
     path = Path(args.bundle)
     try:
@@ -433,6 +513,16 @@ def _verify(args) -> int:
             integrity = verify_source_submission_bundle(bundle, minimum_trials=args.minimum_trials)
             eligible = integrity.community_eligible
             eligibility_label = "Source registry eligibility"
+        elif bundle_type == "dspy-security-bench-authority-evidence-submission":
+            from dspy_security_bench.authority.repeat import (
+                verify_authority_submission_bundle,
+            )
+
+            integrity = verify_authority_submission_bundle(
+                bundle, minimum_trials=args.minimum_trials
+            )
+            eligible = integrity.community_eligible
+            eligibility_label = "Authority registry eligibility"
         else:
             from dspy_security_bench.procurement.repeat import verify_submission_bundle
 
@@ -481,6 +571,21 @@ def _agent_factory(args):
     from dspy_security_bench.agents import LiteLLMFunctionCallingAgent
 
     return lambda: LiteLLMFunctionCallingAgent(args.agent_model, name=args.name or args.agent_model)
+
+
+def _authority_adapter_factory(args):
+    if args.adapter:
+        return _resolve_callable(args.adapter)
+    from dspy_security_bench.authority.adapter import (
+        build_ambient_authority_adapter,
+        build_bounded_authority_adapter,
+    )
+
+    return (
+        build_ambient_authority_adapter
+        if args.reference == "ambient"
+        else build_bounded_authority_adapter
+    )
 
 
 def _resolve_callable(reference: str):

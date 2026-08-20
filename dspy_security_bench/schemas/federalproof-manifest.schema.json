@@ -12,7 +12,7 @@
     "system_id": {"type": "string", "minLength": 1},
     "system_name": {"type": "string", "minLength": 1},
     "agent": {"type": "string", "minLength": 1},
-    "evidence_kind": {"enum": ["repeat-twin", "repeat-control-twin", "repeat-incident-twin"]},
+    "evidence_kind": {"enum": ["repeat-twin", "repeat-control-twin", "repeat-incident-twin", "repeat-mission-pack-twin", "repeat-authority-twin"]},
     "source_bundle_type": {"type": "string", "minLength": 1},
     "source_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},

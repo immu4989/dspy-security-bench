@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dspy-security-bench"
-version = "0.13.0"
-description = "Declarative mission-pack SDK, prompt-injection benchmark, CI gate, and attested evidence pipeline for AI agents."
+version = "0.14.0"
+description = "Agent authorization conformance lab, mission-assurance benchmark, CI gate, and attested evidence pipeline."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
@@ -40,6 +40,10 @@ keywords = [
     "mission-pack",
     "source-grounding",
     "citation-faithfulness",
+    "agent-identity",
+    "delegated-authorization",
+    "authorization-conformance",
+    "zero-trust",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -119,12 +123,14 @@ IncidentTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/i
 FederalProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/federalproof.md"
 MissionForge = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/missionforge.md"
 SourceTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/missionforge.md"
+AuthorityTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/authority-twin.md"
 "Control Evidence Registry" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/control-evidence-registry.md"
 Integrations = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/integrations.md"
 "Impact Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/impact"
 "Control Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/control"
 "Incident Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/incident"
 "Source Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/source"
+"Authority Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/authority"
 
 [project.scripts]
 dspy-security-bench = "dspy_security_bench.cli:main"

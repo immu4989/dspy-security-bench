@@ -7,7 +7,9 @@ This project now addresses both sides of that boundary:
 2. **Constrain** what the deployed agent can do with deterministic policy.
 3. **Verify** that the constraint removes functional harm without breaking the
    mission with [ControlTwin](control-twin.md).
-4. **Ground** factual decisions in current primary evidence and test poisoned
+4. **Authorize** each agent action as the right principal, workload, scope,
+   tenant, audience, intent, and delegation with [AuthorityTwin](authority-twin.md).
+5. **Ground** factual decisions in current primary evidence and test poisoned
    retrieval with [MissionForge and SourceTwin](missionforge.md).
 
 This follows the [OWASP AI Agent Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html): minimize tool permissions, require human approval for high-impact actions, treat external content as untrusted, and keep security regression tests.
@@ -31,6 +33,12 @@ source status, and expected abstention without changing benchmark Python.
 
 These are not hypothetical prompt strings. They model the paths through which a
 production agent turns hostile content into a real side effect.
+
+For every row, AuthorityTwin can independently probe the authorization bridge:
+customer/tenant substitution, payment approval replay, procurement delegation
+inflation, RAG sensitivity aggregation, and DevOps audience or scope confusion.
+It complements the in-process policy profiles below; neither layer replaces the
+other.
 
 ## Start without an API key
 

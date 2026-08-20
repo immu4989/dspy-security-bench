@@ -2,24 +2,27 @@
 
 Contributions are welcome. The most useful ones, roughly in order:
 
-1. **Submitting a ProofRun result for your own agent** — produce recomputable,
+1. **Submitting AuthorityTwin evidence for your authorization adapter** —
+   connect a real vendor-neutral bridge and publish recomputable evidence;
+   see below.
+2. **Submitting a ProofRun result for your own agent** — produce recomputable,
    provenance-labeled evidence and open a pull request; see below.
-2. **Submitting a real control experiment** — publish policy-off/policy-on
+3. **Submitting a real control experiment** — publish policy-off/policy-on
    evidence even when the outcome is mixed or negative; see below.
-3. **Improving a native framework bridge** — reproduce an upstream SDK change,
+4. **Improving a native framework bridge** — reproduce an upstream SDK change,
    add a zero-provider-call compatibility test, and keep the benchmark contract
    framework-neutral; see below.
-4. **Authoring a MissionPack** — encode a bounded synthetic source-grounding
+5. **Authoring a MissionPack** — encode a bounded synthetic source-grounding
    mission as strict data, with expert-reviewed claims and an explicit license.
-5. **Adding a model to the base-model leaderboard** — see below.
-6. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
+6. **Adding a model to the base-model leaderboard** — see below.
+7. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
    utilities, health administration, supply chain, emergency management, or a
    commercial workflow with a clearly affected stakeholder.
-7. **Adding an attack or a defense** to the harness.
-8. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
+8. **Adding an attack or a defense** to the harness.
+9. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
    every published row ships with the result JSON that produced it, so
    disagreements should be resolvable.
-9. Bug reports and documentation fixes.
+10. Bug reports and documentation fixes.
 
 Federal and regulated-sector contributors can also propose an inert
 IncidentTwin mission pack or improve an informative FederalProof mapping. Use
@@ -126,6 +129,25 @@ A weak or failing policy is welcome when its evidence is valid. Do not tune or
 filter submissions merely to remove unfavorable trials; explain the limitation
 in the pull request. Registry review checks recomputability, scope, redaction,
 and provenance—it does not award a safety or compliance certification.
+
+## Submitting delegated-authorization evidence
+
+Implement the small adapter contract in
+[`docs/authority-twin.md`](docs/authority-twin.md), then use `proofrun authority`
+with at least five trials. Commit only the generated JSON under
+`submissions/authority/` with a lowercase kebab-case filename and a public HTTPS
+source URL for the exact adapter.
+
+The adapter must deliberately translate every synthetic identity, tenant,
+audience, scope, intent, delegation, approval, revocation, sensitivity, and
+audit field it supports. Document any field the underlying system cannot
+express. Tests must use synthetic inputs and simulated effects; never include
+tokens, credentials, production identity data, or provider audit records.
+
+Reference adapters are ineligible. A weak real adapter is welcome when its
+evidence is valid. Admission checks fresh-adapter isolation, at least five
+trials, zero errors, normalized receipt and trace recomputation, content
+digests, and claimed provenance—not certification or product endorsement.
 
 ## Changing the measurement protocol
 

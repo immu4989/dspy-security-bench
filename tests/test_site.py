@@ -4,6 +4,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 from scripts.generate_site_data import (
+    AUTHORITY_SUBMISSIONS_DIR,
     BENIGN_DIR,
     CONTROL_SUBMISSIONS_DIR,
     DEFAULT_OUT,
@@ -104,6 +105,12 @@ def test_site_payload_exposes_the_open_source_evidence_registry():
     assert SOURCE_SUBMISSIONS_DIR.name == "source"
 
 
+def test_site_payload_exposes_the_open_authority_evidence_registry():
+    payload = build_payload()
+    assert payload["authorityEvidenceCount"] == len(payload["authorityEvidence"])
+    assert AUTHORITY_SUBMISSIONS_DIR.name == "authority"
+
+
 def test_site_evidence_links_are_deployable_urls():
     for model in build_payload()["models"]:
         assert model["result"].startswith("https://github.com/immu4989/dspy-security-bench/")
@@ -172,6 +179,23 @@ def test_site_presents_repeat_control_uncertainty_without_population_overclaim()
     script = (SITE / "app.js").read_text()
     assert 'document.querySelector("#repeat-control-copy")' in script
     assert "dspy-security-bench impact control-repeat-demo --trials 5" in script
+
+
+def test_site_presents_authoritytwin_as_conformance_not_certification():
+    page = (SITE / "index.html").read_text()
+    assert 'id="authority-twin"' in page
+    assert "Prove the agent" in page
+    assert "Ten ways ambient authority breaks" in page
+    assert "Identity<br>substitution" in page
+    assert "Approval<br>replay" in page
+    assert "dspy-security-bench authority demo" in page
+    assert "not a new authorization protocol" in page
+    assert "authorization to operate" in page
+
+    script = (SITE / "app.js").read_text()
+    assert 'document.querySelector("#authority-evidence-results")' in script
+    assert 'bindCommandCopy("#authority-copy"' in script
+    assert "safeAuthorityResultUrl(result.result)" in script
 
 
 def test_site_presents_control_registry_as_evidence_not_certification():
@@ -452,6 +476,8 @@ def test_site_escapes_untrusted_community_fields_before_rendering():
     assert "safeResultUrl(result.result)" in script
     assert "safeControlResultUrl(result.result)" in script
     assert "safeSourceResultUrl(result.result)" in script
+    assert "safeAuthorityResultUrl(result.result)" in script
+    assert "escapeHtml(result.adapter)" in script
     assert "escapeHtml(result.packId)" in script
     assert "escapeHtml(result.policy)" in script
     assert "const button = event.currentTarget;" in script

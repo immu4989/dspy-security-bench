@@ -24,6 +24,11 @@ const safeSourceResultUrl = value => {
   const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/source\/[a-z0-9-]+\.json$/;
   return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/source";
 };
+const safeAuthorityResultUrl = value => {
+  const url = String(value || "");
+  const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/authority\/[a-z0-9-]+\.json$/;
+  return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/authority";
+};
 
 async function loadData() {
   const response = await fetch("data.json");
@@ -36,6 +41,7 @@ async function loadData() {
   document.querySelectorAll("[data-control-evidence-count]").forEach(node => node.textContent = data.controlEvidenceCount || 0);
   document.querySelectorAll("[data-incident-evidence-count]").forEach(node => node.textContent = data.incidentEvidenceCount || 0);
   document.querySelectorAll("[data-source-evidence-count]").forEach(node => node.textContent = data.sourceEvidenceCount || 0);
+  document.querySelectorAll("[data-authority-evidence-count]").forEach(node => node.textContent = data.authorityEvidenceCount || 0);
   const robustness = data.models.map(model => model.robustness);
   document.querySelector("[data-min-robustness]").textContent = Math.round(Math.min(...robustness) * 100);
   document.querySelector("[data-max-robustness]").textContent = Math.round(Math.max(...robustness) * 100);
@@ -45,6 +51,7 @@ async function loadData() {
   renderControlEvidence(data.controlEvidence || []);
   renderIncidentEvidence(data.incidentEvidence || []);
   renderSourceEvidence(data.sourceEvidence || []);
+  renderAuthorityEvidence(data.authorityEvidence || []);
 }
 
 const proofTier = {
@@ -140,6 +147,26 @@ function renderSourceEvidence(results) {
         ${evidenceMetric("Sufficiency", result.sufficiency)}
       </div>
       <footer><span>${Number(result.unstablePairs)} unstable pairs</span><a href="${safeSourceResultUrl(result.result)}">inspect evidence ↗</a></footer>
+    </article>`;
+  }).join("");
+}
+
+function renderAuthorityEvidence(results) {
+  const host = document.querySelector("#authority-evidence-results");
+  const empty = document.querySelector("#authority-evidence-empty");
+  if (!host || !empty) return;
+  empty.hidden = results.length > 0;
+  host.innerHTML = results.map(result => {
+    const [label, className] = proofTier[result.evidenceTier] || proofTier.self_attested;
+    return `<article class="authority-evidence-card">
+      <header><span class="proof-tier ${className}">${label}</span><strong>${escapeHtml(result.adapter)}</strong><small>${escapeHtml(result.submitter)} · ${Number(result.trials)} trials</small></header>
+      <div class="authority-evidence-metrics">
+        ${evidenceMetric("Attack resistance", result.attackResistance)}
+        ${evidenceMetric("Harm containment", result.harmContainment)}
+        ${evidenceMetric("Decision accuracy", result.decisionAccuracy)}
+        ${evidenceMetric("Receipt integrity", result.receiptIntegrity)}
+      </div>
+      <footer><span>${Number(result.falseAllows)} false allows</span><span>${Number(result.unstablePairs)}/10 unstable pairs</span><a href="${safeAuthorityResultUrl(result.result)}">inspect evidence ↗</a></footer>
     </article>`;
   }).join("");
 }
@@ -241,7 +268,7 @@ document.querySelector("#copy-code").addEventListener("click", async event => {
 
 document.querySelector("#proofrun-copy")?.addEventListener("click", async event => {
   const button = event.currentTarget;
-  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  proofrun:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0\n    with:\n      agent: myapp.security:build_agent\n      trials: 10`;
+  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  proofrun:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0\n    with:\n      agent: myapp.security:build_agent\n      trials: 10`;
   await navigator.clipboard.writeText(workflow);
   button.textContent = "Copied ✓";
   setTimeout(() => { button.textContent = "Copy workflow"; }, 1800);
@@ -249,7 +276,7 @@ document.querySelector("#proofrun-copy")?.addEventListener("click", async event 
 
 document.querySelector("#control-registry-copy")?.addEventListener("click", async event => {
   const button = event.currentTarget;
-  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  control-evidence:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0\n    with:\n      evidence-kind: control\n      agent: myapp.security:build_agent\n      policy: policies/production.yaml\n      trials: 10\n      min-containment-lower-bound: 0.70`;
+  const workflow = `permissions:\n  contents: read\n  id-token: write\n  attestations: write\n\njobs:\n  control-evidence:\n    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0\n    with:\n      evidence-kind: control\n      agent: myapp.security:build_agent\n      policy: policies/production.yaml\n      trials: 10\n      min-containment-lower-bound: 0.70`;
   await navigator.clipboard.writeText(workflow);
   button.textContent = "Copied ✓";
   setTimeout(() => { button.textContent = "Copy workflow"; }, 1800);
@@ -279,6 +306,7 @@ function bindCommandCopy(selector, command) {
 }
 bindCommandCopy("#incident-copy", "dspy-security-bench incident demo");
 bindCommandCopy("#source-copy", "dspy-security-bench pack run source-twin --agent myapp:build");
+bindCommandCopy("#authority-copy", "dspy-security-bench authority demo");
 bindCommandCopy("#federal-copy", "dspy-security-bench federal init");
 
 const menuButton = document.querySelector(".menu-button");

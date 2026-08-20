@@ -1,7 +1,8 @@
 # ProofRun: verifiable evidence for AI-agent security evaluations
 
 Most agent benchmarks end at a score in a log. ProofRun turns a RepeatTwin,
-RepeatControlTwin, RepeatIncidentTwin, or repeated MissionPack run into a portable evidence passport: raw trial outcomes,
+RepeatControlTwin, RepeatIncidentTwin, repeated MissionPack, or
+RepeatAuthorityTwin run into a portable evidence passport: raw trial outcomes,
 uncertainty, protocol and policy identity, source commit, workflow identity,
 and a cryptographic attestation over the exact JSON bytes.
 
@@ -53,7 +54,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -65,7 +66,7 @@ jobs:
 
 The callable must take no arguments and return a fresh framework-neutral
 `Agent`. The workflow checks out the evaluated commit, installs it in an
-isolated Python environment, installs the immutable v0.13.0 ProofRun engine last,
+isolated Python environment, installs the immutable v0.14.0 ProofRun engine last,
 runs the five clean/poisoned procurement pairs repeatedly, and preserves the
 bundle even when the statistical gate fails. It then creates GitHub/Sigstore
 build provenance and uploads the exact file as a workflow artifact.
@@ -81,7 +82,7 @@ than the agent alone:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent
@@ -111,7 +112,7 @@ remain fixed:
 ```yaml
 jobs:
   incident-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
     with:
       evidence-kind: incident
       agent: myapp.security:build_incident_agent
@@ -131,7 +132,7 @@ repository-relative data-only MissionPack:
 ```yaml
 jobs:
   source-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
     with:
       evidence-kind: source
       mission-pack: evaluations/benefits-grounding.yaml
@@ -148,6 +149,29 @@ and content hashes in the credential-free verification job. Use the built-in
 alias `source-twin` to avoid a custom file. See [MissionForge and
 SourceTwin](missionforge.md).
 
+### Delegated-authorization mode
+
+Use `evidence-kind: authority` when the callable returns a fresh
+`AuthorityAdapter` instead of an agent. The same trusted builder applies the
+frozen 10-pair authorization protocol, recomputes normalized decision receipts
+in a credential-free job, and preserves the bundle before gating:
+
+```yaml
+jobs:
+  authority-evidence:
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
+    with:
+      evidence-kind: authority
+      agent: myapp.authority:build_adapter
+      trials: 10
+      min-lower-bound: 0.70
+      submitter: "@your-handle"
+```
+
+The `agent` input is retained for composite-action compatibility; in authority
+mode it names the adapter factory. See [AuthorityTwin](authority-twin.md) for
+the adapter contract, threat model, registry, and interpretation limits.
+
 ## Flexible path: the composite action
 
 Use the action when an existing job needs custom setup before evaluation:
@@ -160,7 +184,7 @@ permissions:
 
 steps:
   - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-  - uses: immu4989/dspy-security-bench@v0.13.0
+  - uses: immu4989/dspy-security-bench@v0.14.0
     with:
       agent: myapp.security:build_agent
       trials: "10"
@@ -211,6 +235,18 @@ dspy-security-bench proofrun control \
   --agent-source "https://github.com/you/agent/tree/COMMIT" \
   --out control-evidence.json \
   --card-out control-evidence.svg
+```
+
+For authorization-conformance evidence, use `proofrun authority`:
+
+```bash
+dspy-security-bench proofrun authority \
+  --adapter myapp.authority:build_adapter \
+  --trials 10 \
+  --min-lower-bound 0.70 \
+  --submitter "@your-handle" \
+  --adapter-source "https://github.com/you/agent/blob/COMMIT/myapp/authority.py" \
+  --out authority-evidence.json
 ```
 
 ## Evidence ladder

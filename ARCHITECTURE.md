@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes five related security surfaces:
+`dspy-security-bench` exposes nine related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -21,6 +21,14 @@ v0.1 research choices are labeled separately from the current product surface.
    passport and verifies GitHub/Sigstore provenance for the exact result bytes.
 5. **Policy enforcement** — applies deterministic allow, deny, and approval
    rules at the live tool-call boundary independently of model behavior.
+6. **ControlTwin / RepeatControlTwin** — compares policy-off and policy-on
+   functional outcomes, utility, recovery, and uncertainty.
+7. **IncidentTwin and MissionForge/SourceTwin** — executes inert cyber-response
+   missions and data-only source-grounding packs with trace-derived scoring.
+8. **AuthorityTwin** — tests external agent-identity and delegated-authorization
+   adapters with frozen clean/adversarial pairs and normalized receipts.
+9. **FederalProof** — binds verified evidence to owner-supplied deployment
+   context and exports OSCAL-shaped assessment inputs without certifying them.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer
@@ -36,6 +44,15 @@ dspy_security_bench/
 ├── policy_cli.py               # scaffold, validate, and check policies offline
 ├── proofrun.py                 # bounded provenance + GitHub attestation verifier
 ├── proofrun_cli.py             # evidence-passport run and verify commands
+├── authority/                  # delegated-authorization conformance lab
+│   ├── protocol.py             # frozen synthetic identity/authority twins
+│   ├── adapter.py              # vendor-neutral contract + reference fixtures
+│   ├── benchmark.py            # trace, receipt, effect, and metric recomputation
+│   ├── repeat.py               # Wilson intervals + content-addressed evidence
+│   └── cli.py                  # describe, demo, run, repeat, bundle, verify
+├── incident/                   # inert cyber-response mission assurance
+├── mission/                    # data-only MissionForge + SourceTwin protocol
+├── federal/                    # verified evidence to OSCAL assessment inputs
 ├── procurement/                # ImpactTwin clean/poisoned mission assurance
 │   ├── scenarios.py            # frozen synthetic procurement twin protocol
 │   ├── environment.py          # live tools and observable state transitions
@@ -125,6 +142,32 @@ in the report. Its community bundle uses canonical JSON
 SHA-256 digests and then recomputes every published statistic during offline
 verification. These hashes provide tamper evidence, not signer provenance;
 execution metadata remains explicitly self-attested.
+
+### `authority/` — AuthorityTwin
+
+AuthorityTwin places a small adapter boundary around an external authorization
+decision. The harness owns fictional principals, agents, tenants, scopes,
+audiences, delegations, approvals, intent, sensitivity, audit state, expected
+outcomes, and simulated effects. An adapter owns only the translation to and
+from its authorization system.
+
+The frozen protocol contains 10 clean/injected pairs. `benchmark.py` records a
+request, decision, simulated effect when allowed, and normalized receipt
+validation. It derives authorization correctness, false allows, harm
+containment, clean utility, receipt integrity, and attack resistance from those
+events. The offline verifier reconstructs every claim rather than trusting
+reported booleans.
+
+Normalized receipts bind the request, policy, principal, agent, decision, and
+reason by canonical SHA-256. They are benchmark consistency evidence, not a
+cryptographic assertion from an identity provider. `repeat.py` adds fresh
+adapter isolation, Wilson intervals over fixed-protocol pair-trials, stability,
+content-addressed bundles, and provenance metadata. Reference adapters are
+excluded from the public registry.
+
+AuthorityTwin is separate from `PolicyEnforcedAgent`: the former tests an
+external authorization integration; the latter enforces tool policy inside the
+benchmark agent boundary. Deployments may need both.
 
 ### `proofrun.py` — provenance without inflated claims
 
@@ -339,6 +382,10 @@ policy before it can be added safely.
 │   ├── adapters/
 │   ├── agents/
 │   ├── attacks/
+│   ├── authority/
+│   ├── federal/
+│   ├── incident/
+│   ├── mission/
 │   ├── procurement/
 │   ├── scan/
 │   ├── synthesis/

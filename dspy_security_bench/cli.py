@@ -3,6 +3,7 @@
 Subcommands:
   doctor      Validate a BYOA integration without invoking the agent run loop.
   federal     Export standards-aligned FederalProof assessment evidence.
+  authority   Test agent identity and delegated-authorization enforcement.
   impact      Run counterfactual procurement mission-assurance tests.
   incident    Run synthetic cyber-response mission-assurance tests.
   pack        Author and run declarative MissionForge assurance packs.
@@ -67,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__)
         print(
             "Usage: dspy-security-bench "
-            "<init|integrate|doctor|scan|impact|incident|pack|policy|proofrun|federal|synthesize|validate> [args...]"
+            "<init|integrate|doctor|scan|impact|incident|pack|authority|policy|proofrun|federal|synthesize|validate> [args...]"
         )
         return 0
 
@@ -98,6 +99,10 @@ def main(argv: list[str] | None = None) -> int:
         from dspy_security_bench.mission.cli import main as pack_main
 
         return pack_main(rest)
+    if sub == "authority":
+        from dspy_security_bench.authority.cli import main as authority_main
+
+        return authority_main(rest)
     if sub == "policy":
         from dspy_security_bench.policy_cli import main as policy_main
 
@@ -123,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"unknown subcommand {sub!r}. Use: "
-        "init | integrate | doctor | scan | impact | incident | pack | policy | proofrun | federal | synthesize | validate",
+        "init | integrate | doctor | scan | impact | incident | pack | authority | policy | proofrun | federal | synthesize | validate",
         file=sys.stderr,
     )
     return 2

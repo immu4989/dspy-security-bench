@@ -14,6 +14,7 @@ on:
       - "dspy_security_bench/procurement/**"
       - "dspy_security_bench/incident/**"
       - "dspy_security_bench/mission/**"
+      - "dspy_security_bench/authority/**"
 
 permissions:
   contents: read
@@ -122,5 +123,29 @@ jobs:
           PROOFRUN_LOWER: ${{ steps.source.outputs.lower-bound }}
         run: |
           test "$PROOFRUN_KIND" = "source"
+          test ${#PROOFRUN_DIGEST} -eq 64
+          test -n "$PROOFRUN_LOWER"
+
+      - name: Exercise AuthorityTwin evidence
+        id: authority
+        uses: ./
+        with:
+          evidence-kind: authority
+          agent: dspy_security_bench.authority.adapter:build_bounded_authority_adapter
+          trials: "5"
+          min-lower-bound: "0.80"
+          submitter: "@dspy-security-bench-smoke"
+          agent-source: "https://github.com/immu4989/dspy-security-bench"
+          notes: "Synthetic AuthorityTwin action test; not identity proof or certification."
+          output: "artifacts/authority-proofrun-smoke.json"
+          artifact-name: "authority-proofrun-action-smoke"
+
+      - name: Verify AuthorityTwin action outputs
+        env:
+          PROOFRUN_KIND: ${{ steps.authority.outputs.evidence-kind }}
+          PROOFRUN_DIGEST: ${{ steps.authority.outputs.bundle-sha256 }}
+          PROOFRUN_LOWER: ${{ steps.authority.outputs.lower-bound }}
+        run: |
+          test "$PROOFRUN_KIND" = "authority"
           test ${#PROOFRUN_DIGEST} -eq 64
           test -n "$PROOFRUN_LOWER"

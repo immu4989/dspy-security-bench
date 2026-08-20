@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 title: >-
-  dspy-security-bench: a reproducible harness for measuring prompt-injection
-  robustness in tool-using LLM agents
+  dspy-security-bench: reproducible security, authorization, and mission
+  assurance evidence for tool-using AI agents
 message: >-
   If you use this software or its leaderboard results, please cite it using the
   metadata below.
@@ -11,8 +11,8 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.13.0
-date-released: 2026-08-18
+version: 0.14.0
+date-released: 2026-08-19
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
 url: "https://github.com/immu4989/dspy-security-bench"
@@ -47,6 +47,11 @@ abstract: >-
   mission evaluations. Its built-in SourceTwin protocol measures citation
   faithfulness, completeness, sufficiency, current-primary preference, clean
   utility, and injection resistance through structured claims and source IDs.
+  AuthorityTwin adds a vendor-neutral delegated-authorization adapter contract,
+  ten clean/adversarial identity and authority pairs, normalized request-bound
+  decision receipts, simulated-effect containment, repeated uncertainty,
+  content-addressed public evidence, ProofRun provenance, and FederalProof
+  assessment export.
 keywords:
   - prompt-injection
   - llm-security
@@ -64,6 +69,10 @@ keywords:
   - mission-pack
   - source-grounding
   - citation-faithfulness
+  - agent-identity
+  - delegated-authorization
+  - authorization-conformance
+  - zero-trust
   - agentdojo
   - dspy
 # doi: "10.5281/zenodo.XXXXXXX"

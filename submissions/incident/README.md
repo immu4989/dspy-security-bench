@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   incident-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
     with:
       evidence-kind: incident
       agent: your_package.security:build_incident_agent

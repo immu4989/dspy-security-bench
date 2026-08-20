@@ -1,7 +1,8 @@
 # FederalProof: standards-shaped evidence without certification theater
 
 FederalProof converts a **verified** repeated ImpactTwin, ControlTwin,
-IncidentTwin, or MissionPack evidence bundle into a content-addressed review pack. It combines
+IncidentTwin, MissionPack, or AuthorityTwin evidence bundle into a
+content-addressed review pack. It combines
 technical observations with an owner-supplied deployment profile and produces:
 
 - OSCAL 1.2.2 Assessment Results JSON;
@@ -97,6 +98,16 @@ sources. These test traceable grounding within the exact embedded synthetic
 pack. They do not establish the truth of real agency source material, legal
 interpretation, ideological neutrality, or the correctness of a production
 decision. See [MissionForge and SourceTwin](missionforge.md).
+
+AuthorityTwin evidence adds local objectives for delegated-authority attack
+resistance, clean-request utility, injected decision accuracy, simulated-effect
+containment, and normalized receipt integrity. Its informative crosswalk also
+references NIST's AI Agent Standards Initiative and the NCCoE software/AI agent
+identity and authorization concept paper. Those materials frame active needs;
+they do not define an AuthorityTwin certification, and NIST does not endorse
+this project. Passing the synthetic protocol does not prove production identity,
+least privilege, non-repudiation, or control implementation. See
+[AuthorityTwin](authority-twin.md).
 
 ## Vendor-neutral comparison
 

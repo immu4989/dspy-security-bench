@@ -9,6 +9,49 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.14.0] — 2026-08-19
+
+### Added
+- **AuthorityTwin delegated-authorization conformance lab.** Ten frozen
+  clean/adversarial pairs test agent identity substitution, least-privilege
+  scope inflation, cross-tenant access, MCP audience confusion, revoked grants,
+  approval replay, multi-hop delegation laundering, intent drift, sensitivity
+  aggregation, and audit-chain tampering.
+- A small framework-neutral `AuthorityAdapter` contract, normalized
+  request/policy/principal/agent-bound decision receipts, bounded and
+  deliberately ambient zero-provider-call fixtures, and simulated external
+  effects that make false allows functionally observable.
+- Deterministic trace-derived scoring for clean mission utility, authorization
+  accuracy, attack resistance, harm containment, receipt integrity, false
+  allows, unsafe effects, and per-control outcomes, plus complete offline
+  recomputation and tamper detection.
+- Repeated fresh-adapter trials, per-pair and aggregate Wilson intervals,
+  outcome stability, canonical report digests, strict JSON Schemas, and
+  content-addressed Authority evidence bundles.
+- `authority describe`, `demo`, `run`, `repeat`, `bundle`, and `verify` commands,
+  plus `proofrun authority` support in the CLI, composite action, reusable
+  trusted builder, safe metadata exporter, and live smoke workflow.
+- An open validity-not-victory Authority evidence registry under
+  `submissions/authority/`, pull-request verification, dashboard data
+  generation, reviewed provenance tiers, and reference-fixture exclusion.
+- FederalProof support for AuthorityTwin bundles with local OSCAL objectives
+  for delegated-authority resistance, clean utility, decision accuracy, harm
+  containment, and receipt integrity. Informative mappings now include NIST's
+  AI Agent Standards Initiative and NCCoE agent identity/authorization concept
+  paper without claiming control satisfaction or endorsement.
+- A dramatic responsive dashboard authorization plane, clean/injected decision
+  twins, animated policy-bound receipt core, 10-control attack-surface matrix,
+  copyable launch command, and generated public evidence ledger.
+- A comprehensive AuthorityTwin guide covering real public-sector and company
+  use cases, the adapter and receipt contracts, protocol identity, metrics,
+  ProofRun, FederalProof, registry admission, trust boundaries, threats to
+  validity, and explicit non-claims.
+
+### Changed
+- Project metadata, the README, adoption and use-case guidance, ProofRun,
+  FederalProof, contribution docs, registries, workflows, and the interactive
+  site now treat delegated authorization as a first-class assurance boundary.
+
 ## [0.13.0] — 2026-08-18
 
 ### Added

@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       evidence-kind:
-        description: "Evidence experiment: impact, control, incident, or source"
+        description: "Evidence experiment: impact, control, incident, source, or authority"
         required: false
         type: string
         default: "impact"
@@ -14,7 +14,7 @@ on:
         type: string
         default: "source-twin"
       agent:
-        description: "Python module:callable returning a fresh Agent"
+        description: "Python module:callable returning a fresh Agent, or AuthorityAdapter for authority evidence"
         required: true
         type: string
       trials:
@@ -114,8 +114,8 @@ jobs:
             echo "artifact-name may contain only letters, digits, dots, underscores, and hyphens" >&2
             exit 2
           fi
-          if [[ "$PROOFRUN_EVIDENCE_KIND" != "impact" && "$PROOFRUN_EVIDENCE_KIND" != "control" && "$PROOFRUN_EVIDENCE_KIND" != "incident" && "$PROOFRUN_EVIDENCE_KIND" != "source" ]]; then
-            echo "evidence-kind must be impact, control, incident, or source" >&2
+          if [[ "$PROOFRUN_EVIDENCE_KIND" != "impact" && "$PROOFRUN_EVIDENCE_KIND" != "control" && "$PROOFRUN_EVIDENCE_KIND" != "incident" && "$PROOFRUN_EVIDENCE_KIND" != "source" && "$PROOFRUN_EVIDENCE_KIND" != "authority" ]]; then
+            echo "evidence-kind must be impact, control, incident, source, or authority" >&2
             exit 2
           fi
 
@@ -128,7 +128,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.13.0
+          ref: v0.14.0
           path: engine
 
       - name: Install uv
@@ -236,7 +236,7 @@ jobs:
               --agent-source "$agent_source" \
               --notes "$PROOFRUN_NOTES" \
               --out "$bundle_path"
-          else
+          elif [[ "$PROOFRUN_EVIDENCE_KIND" == "source" ]]; then
             pack_path="$PROOFRUN_MISSION_PACK"
             if [[ "$pack_path" != "source-twin" && "$pack_path" != "source-twin-v1" ]]; then
               if [[ -z "$pack_path" || "$pack_path" == /* || "$pack_path" == *..* ]]; then
@@ -253,6 +253,16 @@ jobs:
               --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
               --submitter "$submitter" \
               --agent-source "$agent_source" \
+              --notes "$PROOFRUN_NOTES" \
+              --out "$bundle_path"
+          else
+            ../.proofrun-venv/bin/dspy-security-bench proofrun authority \
+              --adapter "$PROOFRUN_AGENT" \
+              --trials "$PROOFRUN_TRIALS" \
+              --confidence "$PROOFRUN_CONFIDENCE" \
+              --min-lower-bound "$PROOFRUN_MIN_LOWER_BOUND" \
+              --submitter "$submitter" \
+              --adapter-source "$agent_source" \
               --notes "$PROOFRUN_NOTES" \
               --out "$bundle_path"
           fi
@@ -297,7 +307,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.13.0
+          ref: v0.14.0
           path: engine
 
       - name: Set up Python

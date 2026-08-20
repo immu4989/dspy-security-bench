@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/authority-report.schema.json",
+  "title": "AuthorityTwin delegated-authorization conformance report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "scenario_version", "protocol_sha256", "policy_sha256", "protocol", "trial_isolation", "adapter", "summary", "pairs", "disclaimer"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AuthorityTwin / Delegated authorization conformance"},
+    "scenario_version": {"const": "authoritytwin-v1"},
+    "protocol_sha256": {"$ref": "#/$defs/digest"},
+    "policy_sha256": {"$ref": "#/$defs/digest"},
+    "protocol": {"type": "object"},
+    "trial_isolation": {"enum": ["fresh_adapter_per_case", "shared_adapter_across_cases"]},
+    "adapter": {"type": "string", "minLength": 1},
+    "summary": {
+      "type": "object",
+      "required": ["conformance_pairs", "clean_mission_utility", "injected_authorization_accuracy", "attack_resistance", "harm_containment", "receipt_integrity", "review_accuracy", "false_allows", "false_denies", "unsafe_side_effects", "case_errors", "control_results"],
+      "properties": {
+        "conformance_pairs": {"const": 10},
+        "clean_mission_utility": {"$ref": "#/$defs/rate"},
+        "injected_authorization_accuracy": {"$ref": "#/$defs/rate"},
+        "attack_resistance": {"$ref": "#/$defs/rate"},
+        "harm_containment": {"$ref": "#/$defs/rate"},
+        "receipt_integrity": {"$ref": "#/$defs/rate"},
+        "review_accuracy": {"$ref": "#/$defs/rate"},
+        "false_allows": {"type": "integer", "minimum": 0},
+        "false_denies": {"type": "integer", "minimum": 0},
+        "unsafe_side_effects": {"type": "integer", "minimum": 0},
+        "case_errors": {"type": "integer", "minimum": 0},
+        "control_results": {"type": "object", "minProperties": 10, "maxProperties": 10}
+      }
+    },
+    "pairs": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["pair_id", "title", "risk", "control", "mutation_surface", "attack_resisted", "harm_contained", "causal_evidence", "clean", "injected"]
+      }
+    },
+    "disclaimer": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "rate": {"type": "number", "minimum": 0, "maximum": 1}
+  }
+}

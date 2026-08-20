@@ -4,11 +4,11 @@
 
 # DSPy Security Bench
 
-### Measure prompt-injection resilience in models and tool-using AI agents
+### Measure whether tool-using AI is robust, grounded, controlled, and authorized
 
-A reproducible **leaderboard**, CI gate, declarative agency mission-pack SDK,
-source-grounding and public-interest twin benchmarks, policy-efficacy registry,
-and OSCAL evidence pipeline you can point at **your own agent**.
+A reproducible **leaderboard**, CI gate, delegated-authorization conformance lab,
+declarative agency mission-pack SDK, source-grounding and public-interest twins,
+policy-efficacy registries, and OSCAL evidence pipeline for **your own agent**.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -17,6 +17,7 @@ and OSCAL evidence pipeline you can point at **your own agent**.
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
 [![ProofRun](https://img.shields.io/badge/ProofRun-attested%20evidence-8F78FF)](docs/proofrun.md)
+[![AuthorityTwin](https://img.shields.io/badge/AuthorityTwin-delegated%20authorization-FFD36E)](docs/authority-twin.md)
 [![MissionForge](https://img.shields.io/badge/MissionForge-data--only%20agency%20packs-8FFFB0)](docs/missionforge.md)
 [![SourceTwin](https://img.shields.io/badge/SourceTwin-grounding%20probes-5FBDFF)](docs/missionforge.md)
 [![IncidentTwin](https://img.shields.io/badge/IncidentTwin-cyber%20mission%20assurance-3B82F6)](docs/incident-twin.md)
@@ -34,6 +35,56 @@ and OSCAL evidence pipeline you can point at **your own agent**.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## New: AuthorityTwin — delegated authority under pressure
+
+**Can an agent prove it may perform this exact action for this human, in this
+tenant, against this tool, with this scope and intent—right now?** AuthorityTwin
+is a vendor-neutral conformance and evidence lab for the authorization layer
+between humans, AI agents, and tools.
+
+It runs 10 frozen clean/adversarial pairs covering identity substitution, scope
+inflation, cross-tenant access, audience confusion, revoked delegation,
+approval replay, multi-hop privilege laundering, intent drift, sensitive-data
+aggregation, and audit-chain tampering.
+
+```bash
+pip install dspy-security-bench
+dspy-security-bench authority describe
+dspy-security-bench authority demo
+```
+
+The bounded fixture preserves 100% clean utility and resists all 10 mutations.
+The deliberately ambient-credential fixture also preserves 100% clean utility
+but false-allows all 10 injected requests, producing 10 simulated unauthorized
+effects. They are zero-cost scorer fixtures, not product certifications or
+model results.
+
+Bridge your OAuth/OIDC, MCP gateway, SPIFFE workload identity, policy engine,
+or custom authorization service through a small `AuthorityAdapter`, then create
+repeated, content-addressed evidence with fresh-adapter isolation, Wilson
+intervals, normalized request-bound receipts, full offline recomputation,
+ProofRun provenance, an open [authority evidence registry](submissions/authority/README.md),
+and FederalProof export:
+
+```bash
+dspy-security-bench proofrun authority \
+  --adapter myapp.authority:build_adapter \
+  --trials 10 --min-lower-bound 0.70 \
+  --submitter @your-team \
+  --adapter-source https://github.com/your-org/agent/blob/COMMIT/myapp/authority.py \
+  --out authority-proofrun.json
+```
+
+AuthorityTwin is an independent conformance harness, **not a new authorization
+protocol**. Passing synthetic cases is not identity proof, non-repudiation,
+production validation, compliance, certification, or an authorization to
+operate.
+
+[Read the adapter contract, frozen protocol, government and company use cases,
+evidence model, threat model, and non-claims →](docs/authority-twin.md)
 
 ---
 
@@ -116,7 +167,7 @@ The open IncidentTwin ledger accepts valid, independently inspectable evidence
 regardless of score; repository CI recomputes every submitted trace and statistic
 offline before it can appear on the dashboard.
 
-**FederalProof turns a verified ImpactTwin, ControlTwin, IncidentTwin, or MissionPack bundle
+**FederalProof turns a verified ImpactTwin, ControlTwin, IncidentTwin, MissionPack, or AuthorityTwin bundle
 into reviewable assessment inputs:** OSCAL 1.2.2 Assessment Results, an OSCAL
 POA&M when local objectives fail, an AI impact-assessment annex, a QASP
 scorecard, a versioned informative crosswalk, and a manifest binding every byte.
@@ -158,7 +209,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -382,7 +433,7 @@ The recommended reusable workflow produces the bundle and shareable SVG card:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.13.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent
@@ -1159,6 +1210,9 @@ v0.1 scope choices:
 | v0.9 — ControlTwin functional policy-efficacy evidence, recovery-gap analysis, offline verification, and SARIF gates | **shipped** |
 | v0.10 — RepeatControlTwin repeated paired policy evidence, uncertainty bounds, exact transition test, stability analysis, and CI gates | **shipped** |
 | v0.11 — Open Control Evidence Registry, dual-mode ProofRun builder, policy-bound public submissions, and evidence cards | **shipped** |
+| v0.12 — IncidentTwin cyber-response missions, FederalProof OSCAL exports, and supply-chain hardening | **shipped** |
+| v0.13 — MissionForge data-only evaluation SDK and SourceTwin deterministic grounding probes | **shipped** |
+| v0.14 — AuthorityTwin delegated-authorization conformance, normalized receipts, public evidence, and federal export | **shipped** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
