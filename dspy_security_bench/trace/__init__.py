@@ -6,10 +6,13 @@ from dspy_security_bench.trace.proof import (
     synthesize_trace_twin,
     verify_trace_artifact,
 )
+from dspy_security_bench.trace.runtime import TraceRecorder, TraceRecordingAgent
 
 __all__ = [
     "analyze_trace_evidence",
     "build_trace_evidence",
+    "TraceRecorder",
+    "TraceRecordingAgent",
     "synthesize_trace_twin",
     "verify_trace_artifact",
 ]

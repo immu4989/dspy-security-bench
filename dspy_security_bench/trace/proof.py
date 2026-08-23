@@ -81,9 +81,45 @@ _SAFE_DEFAULTS = {
     "service.name",
     "error.type",
 }
-_DSB_PREFIXES = ("dsb.auth.", "dsb.approval.", "dsb.effect.", "dsb.delegation.")
+_SAFE_DSB_ATTRIBUTES = {
+    "dsb.approval.bound_action_sha256",
+    "dsb.approval.completed",
+    "dsb.approval.required",
+    "dsb.auth.agent_id",
+    "dsb.auth.decision",
+    "dsb.auth.grant_revoked",
+    "dsb.auth.granted_scopes",
+    "dsb.auth.requested_scopes",
+    "dsb.auth.required",
+    "dsb.auth.resource",
+    "dsb.auth.retry_count",
+    "dsb.auth.step_up_completed",
+    "dsb.auth.step_up_required",
+    "dsb.auth.token_audience",
+    "dsb.auth.token_passthrough",
+    "dsb.delegation.agent_id",
+    "dsb.effect.action_sha256",
+    "dsb.effect.external",
+    "dsb.effect.receipt_id",
+    "dsb.mcp.authorization_error",
+    "dsb.mcp.authorization_server_issuer",
+    "dsb.mcp.protected_resource_metadata",
+    "dsb.mcp.resource_indicator_authorization",
+    "dsb.mcp.resource_indicator_token",
+    "dsb.mcp.response_status",
+    "dsb.mcp.token_transport",
+    "dsb.mcp.token_validated",
+    "dsb.mcp.transport",
+}
 _SAFE_EVENT_PREFIXES = ("gen_ai.", "mcp.", "tool.", "auth.", "approval.", "effect.")
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
+_SECRET_VALUE_PATTERNS = (
+    re.compile(r"(?i)\bbearer\s+[a-z0-9._~+/=-]{8,}"),
+    re.compile(r"(?i)\b(?:sk|gh[pousr]|xox[baprs])[-_][a-z0-9_-]{8,}"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
+    re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b"),
+)
 
 
 def default_redaction_policy() -> dict[str, Any]:
@@ -93,6 +129,7 @@ def default_redaction_policy() -> dict[str, Any]:
         "schema_version": 1,
         "policy_id": "traceproof-default-deny-v1",
         "allow_attributes": sorted(_SAFE_DEFAULTS),
+        "allowed_dsb_attributes": sorted(_SAFE_DSB_ATTRIBUTES),
         "hash_attributes": sorted(_IDENTITY_TOKENS),
         "drop_attributes": sorted(_CONTENT_TOKENS | _SECRET_TOKENS),
         "allow_dsb_security_attributes": True,
@@ -124,13 +161,20 @@ def load_redaction_policy(path: str | Path | None) -> tuple[dict[str, Any], str]
         raise ValueError("redaction policy schema_version must be 1")
     if not isinstance(merged.get("policy_id"), str) or not merged["policy_id"].strip():
         raise ValueError("redaction policy_id must be non-empty")
-    for field in ("allow_attributes", "hash_attributes", "drop_attributes"):
+    for field in (
+        "allow_attributes",
+        "allowed_dsb_attributes",
+        "hash_attributes",
+        "drop_attributes",
+    ):
         values = merged.get(field)
         if not isinstance(values, list) or not all(
             isinstance(item, str) and item.strip() for item in values
         ):
             raise ValueError(f"redaction policy {field} must be a string array")
         merged[field] = sorted(set(values))
+    if not all(item.startswith("dsb.") for item in merged["allowed_dsb_attributes"]):
+        raise ValueError("redaction policy allowed_dsb_attributes must use the dsb. namespace")
     for field, maximum in (
         ("max_spans", MAX_SPANS),
         ("max_attributes_per_span", MAX_ATTRIBUTES),
@@ -656,12 +700,59 @@ def _read_source(source: str | Path | Mapping[str, Any]) -> tuple[dict[str, Any]
         if size > MAX_FILE_BYTES:
             raise ValueError(f"trace input exceeds {MAX_FILE_BYTES} byte limit")
         encoded = path.read_bytes()
-        raw = json.loads(encoded)
-    except (OSError, json.JSONDecodeError) as exc:
+        raw = _decode_json_or_json_lines(encoded)
+    except OSError as exc:
         raise ValueError(f"could not read trace input: {exc}") from exc
     if not isinstance(raw, dict):
         raise ValueError("trace input root must be an object")
     return raw, hashlib.sha256(encoded).hexdigest()
+
+
+def _decode_json_or_json_lines(encoded: bytes) -> dict[str, Any]:
+    """Decode one OTLP object or bounded Collector file-exporter JSON Lines."""
+
+    try:
+        raw = json.loads(encoded)
+    except json.JSONDecodeError as first_error:
+        documents: list[dict[str, Any]] = []
+        for line_number, line in enumerate(encoded.splitlines(), start=1):
+            if not line.strip():
+                continue
+            if len(documents) >= MAX_SPANS:
+                raise ValueError("trace JSON Lines input exceeds the document boundary") from None
+            try:
+                item = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(
+                    f"trace input is neither JSON nor valid JSON Lines at line {line_number}"
+                ) from exc
+            if not isinstance(item, dict):
+                raise ValueError(
+                    f"trace JSON Lines document {line_number} must be an object"
+                ) from None
+            documents.append(item)
+        if not documents:
+            raise ValueError(f"could not decode trace input: {first_error}") from first_error
+        resource_spans: list[Any] = []
+        flat_spans: list[Any] = []
+        for item in documents:
+            grouped = item.get("resourceSpans", item.get("resource_spans"))
+            if isinstance(grouped, list):
+                resource_spans.extend(grouped)
+            elif isinstance(item.get("spans"), list):
+                flat_spans.extend(item["spans"])
+            else:
+                raise ValueError(
+                    "trace JSON Lines documents must contain resourceSpans or spans"
+                ) from None
+        if resource_spans and flat_spans:
+            raise ValueError(
+                "trace JSON Lines cannot mix grouped and flat span documents"
+            ) from None
+        raw = {"resourceSpans": resource_spans} if resource_spans else {"spans": flat_spans}
+    if not isinstance(raw, dict):
+        raise ValueError("trace input root must be an object")
+    return raw
 
 
 def _iter_spans(raw: Mapping[str, Any]) -> Iterable[tuple[Mapping[str, Any], Any, Any]]:
@@ -766,26 +857,37 @@ def _redact_attributes(
     limit = int(policy["max_attributes_per_span"])
     for key, value in list(values.items())[:limit]:
         normalized_key = str(key).strip().lower()
-        if _matches_token(normalized_key, _SECRET_TOKENS):
+        is_safe_dsb = policy["allow_dsb_security_attributes"] and normalized_key in set(
+            policy["allowed_dsb_attributes"]
+        )
+        if _matches_token(normalized_key, _SECRET_TOKENS) and not is_safe_dsb:
             counters["secret"] += 1
             continue
-        if _matches_token(normalized_key, _CONTENT_TOKENS | dropped):
+        if _matches_token(normalized_key, _CONTENT_TOKENS | dropped) and not is_safe_dsb:
             counters["content"] += 1
             continue
         should_hash = _matches_token(normalized_key, _IDENTITY_TOKENS | hashed)
-        is_allowed = normalized_key in allowed or (
-            policy["allow_dsb_security_attributes"] and normalized_key.startswith(_DSB_PREFIXES)
-        )
+        is_allowed = normalized_key in allowed or is_safe_dsb
         if should_hash:
             result[str(key)] = _pseudonym("attribute", value, salt)
             counters["hashed"] += 1
         elif is_allowed:
+            if _secret_like_value(value):
+                counters["secret"] += 1
+                continue
             result[str(key)] = _safe_value(value, int(policy["max_value_chars"]), counters)
         else:
             counters["unapproved"] += 1
     if len(values) > limit:
         counters["unapproved"] += len(values) - limit
     return dict(sorted(result.items()))
+
+
+def _secret_like_value(value: Any) -> bool:
+    values = value if isinstance(value, list) else [value]
+    return any(
+        pattern.search(str(item)) for item in values[:64] for pattern in _SECRET_VALUE_PATTERNS
+    )
 
 
 def _apply_span_rules(

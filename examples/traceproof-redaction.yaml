@@ -41,6 +41,35 @@ drop_attributes:
   - secret
   - tool.call.arguments
 allow_dsb_security_attributes: true
+allowed_dsb_attributes:
+  - dsb.approval.bound_action_sha256
+  - dsb.approval.completed
+  - dsb.approval.required
+  - dsb.auth.agent_id
+  - dsb.auth.decision
+  - dsb.auth.grant_revoked
+  - dsb.auth.granted_scopes
+  - dsb.auth.requested_scopes
+  - dsb.auth.required
+  - dsb.auth.resource
+  - dsb.auth.retry_count
+  - dsb.auth.step_up_completed
+  - dsb.auth.step_up_required
+  - dsb.auth.token_audience
+  - dsb.auth.token_passthrough
+  - dsb.delegation.agent_id
+  - dsb.effect.action_sha256
+  - dsb.effect.external
+  - dsb.effect.receipt_id
+  - dsb.mcp.authorization_error
+  - dsb.mcp.authorization_server_issuer
+  - dsb.mcp.protected_resource_metadata
+  - dsb.mcp.resource_indicator_authorization
+  - dsb.mcp.resource_indicator_token
+  - dsb.mcp.response_status
+  - dsb.mcp.token_transport
+  - dsb.mcp.token_validated
+  - dsb.mcp.transport
 keep_span_names: false
 max_spans: 10000
 max_attributes_per_span: 256

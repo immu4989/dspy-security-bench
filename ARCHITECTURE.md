@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes seventeen related security surfaces:
+`dspy-security-bench` exposes eighteen related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -47,6 +47,10 @@ v0.1 research choices are labeled separately from the current product surface.
     signature trust separate from content review.
 17. **ValueProof** — recomputes owner-supplied mission, safety, cost, latency,
     review, recovery, and portability observations without ranking candidates.
+18. **TraceProof Runtime Kit** — records content-free OTLP metadata at the
+    framework-neutral tool boundary, checks a frozen MCP authorization evidence
+    profile, exercises sanitizer escape cases, and packages sanitized public
+    submissions for offline recomputation.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer
@@ -75,7 +79,12 @@ dspy_security_bench/
 ├── graph/                      # v1 + temporal/parallel v2 authorization twins
 ├── continuous/                 # verified baseline and drift evidence
 ├── acquisition/                # neutral technical acquisition packages
-├── trace/                      # offline OTLP sanitization + deterministic rules
+├── trace/                      # runtime recorder, OTLP sanitization, rules
+│   ├── runtime.py              # metadata-only Agent/BenchTool instrumentation
+│   ├── proof.py                # redaction, evidence graph, rules, exports
+│   ├── mcp.py                  # frozen MCP authorization evidence probes
+│   ├── challenge.py            # deterministic sanitizer escape corpus
+│   └── evidence.py             # content-addressed community submissions
 ├── value/                      # content-addressed observed mission economics
 ├── mission/                    # data-only packs, SourceTwin, signatures/catalog
 ├── federal/                    # verified evidence to OSCAL assessment inputs

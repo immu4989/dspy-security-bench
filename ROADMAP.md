@@ -4,6 +4,18 @@ The roadmap prioritizes useful public evidence over feature count. Dates are
 not commitments; proposals should preserve offline reproducibility and avoid
 compliance or safety overclaims.
 
+## Delivered on main after v0.16
+
+- A content-free TraceProof Runtime Kit at the existing `Agent` / `BenchTool`
+  boundary with seven framework presets, a non-executing doctor, and safe
+  scaffold generation.
+- Frozen MCP 2025-11-25 authorization evidence probes that keep coverage,
+  conformance outcomes, and non-claims separate.
+- A 20-case sanitizer escape corpus, JSON Lines ingestion, explicit `dsb.*`
+  allowlisting, and secret-shaped value scanning.
+- A reproducible OPA + OpenTelemetry Collector reference lab and a validity-
+  based public TraceProof evidence registry with dashboard cards.
+
 ## Delivered in v0.16
 
 - TraceProof offline OTLP sanitization, pseudonymized security evidence, 12
@@ -38,10 +50,10 @@ compliance or safety overclaims.
 - Publish independent real-backend AuthorityBridge evidence for each supported
   ecosystem, maintained by users or vendors and clearly separated from the
   bundled translation fixtures.
-- Add export adapters for standard OpenTelemetry Collector file layouts and
-  document field maps contributed from real, safely redacted agent runtimes.
-- Establish an independent TraceProof redaction challenge corpus containing
-  synthetic secrets, identifiers, and adversarial attribute shapes.
+- Add documented field-map profiles contributed from real, safely redacted
+  OpenTelemetry agent runtimes as conventions mature.
+- Expand the TraceProof redaction challenge with externally contributed,
+  synthetic secret, identifier, and adversarial attribute shapes.
 - Recruit domain-owner review of the five built-in public-service pack starters
   and record authorship, scope, accessibility, privacy, and known gaps without
   implying agency endorsement.

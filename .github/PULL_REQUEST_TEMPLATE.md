@@ -9,13 +9,13 @@
 - [ ] Generated artifacts were rebuilt from their committed sources
 - [ ] New research claims include scope, limitations, and related work
 
-## ProofRun result submission
+## Community evidence submission
 
 <!-- Delete this section if the PR is not a community result. -->
 
-- [ ] The bundle contains at least five complete trials
-- [ ] The matching offline verifier passes for `submissions/impact/`, `control/`, or `incident/`
+- [ ] The matching offline verifier passes for `submissions/impact/`, `control/`, `incident/`, `source/`, `authority/`, or `trace/`
+- [ ] Trial-based bundles contain at least five complete trials; TraceProof bundles recompute from sanitized evidence
 - [ ] The source URL describes the evaluated agent configuration
-- [ ] No provider credentials, private prompts, or sensitive production data are included
+- [ ] No raw OTLP, provider credentials, private prompts, tool arguments/results, identifiers, or sensitive production data are included
 - [ ] I identified the evidence tier: self-attested / GitHub-attested / trusted builder
 - [ ] I understand that provenance does not independently authenticate provider responses

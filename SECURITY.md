@@ -50,3 +50,11 @@ found in a TraceProof artifact, stop distribution, follow the owning
 organization's incident process, rotate exposed credentials where applicable,
 and report a sanitizer defect privately when the package failed its documented
 contract. Do not attach sensitive artifacts to a public issue.
+
+The Runtime Kit intentionally omits queries, directives, arguments, results,
+and credentials at collection time. It also rejects arbitrary application
+attributes outside the bounded project security namespace. This reduces
+exposure but does not prove that upstream instrumentation, custom policy code,
+Collector processors, or operator-selected files contain no sensitive data.
+Run `dspy-security-bench trace challenge`, inspect the sanitized evidence, and
+submit only the generated community bundle—not raw OTLP—to public registries.

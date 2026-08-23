@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate every committed Impact, Control, Incident, Source, and Authority submission."""
+"""Validate every committed community evidence submission."""
 
 from __future__ import annotations
 
@@ -22,6 +22,8 @@ from dspy_security_bench.procurement.control_registry import (
 )
 from dspy_security_bench.procurement.repeat import verify_submission_bundle
 from dspy_security_bench.proofrun import TRUSTED_BUILDER_WORKFLOW, verify_github_attestation
+from dspy_security_bench.trace.evidence import BUNDLE_TYPE as TRACE_BUNDLE_TYPE
+from dspy_security_bench.trace.evidence import verify_trace_submission_bundle
 
 
 def main() -> int:
@@ -32,6 +34,7 @@ def main() -> int:
         *sorted((root / "submissions" / "incident").glob("*.json")),
         *sorted((root / "submissions" / "source").glob("*.json")),
         *sorted((root / "submissions" / "authority").glob("*.json")),
+        *sorted((root / "submissions" / "trace").glob("*.json")),
     ]
     if not submissions:
         print("[submissions] no JSON submissions committed yet")
@@ -55,6 +58,9 @@ def main() -> int:
                 eligible = result.community_eligible
             elif bundle.get("bundle_type") == AUTHORITY_BUNDLE_TYPE:
                 result = verify_authority_submission_bundle(bundle)
+                eligible = result.community_eligible
+            elif bundle.get("bundle_type") == TRACE_BUNDLE_TYPE:
+                result = verify_trace_submission_bundle(bundle)
                 eligible = result.community_eligible
             else:
                 result = verify_submission_bundle(bundle)

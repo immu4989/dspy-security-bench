@@ -362,6 +362,8 @@
   "sourceEvidence": [],
   "authorityEvidenceCount": 0,
   "authorityEvidence": [],
+  "traceEvidenceCount": 0,
+  "traceEvidence": [],
   "missionAssuranceCommons": {
     "inventoryForge": {
       "inputLimitBytes": 5000000,

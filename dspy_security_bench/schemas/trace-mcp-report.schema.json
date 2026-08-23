@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/trace-mcp-report.schema.json",
+  "title": "TraceProof MCP authorization evidence probe",
+  "type": "object",
+  "required": ["schema_version", "report_type", "specification_revision", "specification_url", "source_evidence_sha256", "observations", "requirements", "checks", "summary", "disclaimer", "report_sha256"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "TraceProof / MCP authorization evidence probes"},
+    "specification_revision": {"const": "2025-11-25"},
+    "specification_url": {"const": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"},
+    "source_evidence_sha256": {"$ref": "#/$defs/digest"},
+    "observations": {"type": "array"},
+    "requirements": {"type": "array", "minItems": 9, "maxItems": 9},
+    "checks": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "requirement", "status", "observed_spans", "failed_spans"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^MCP-AUTH-00[1-9]$"},
+          "title": {"type": "string"},
+          "requirement": {"type": "string"},
+          "status": {"enum": ["pass", "fail", "not_observed", "not_applicable"]},
+          "observed_spans": {"type": "integer", "minimum": 0},
+          "failed_spans": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "summary": {"type": "object"},
+    "disclaimer": {"type": "string"},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

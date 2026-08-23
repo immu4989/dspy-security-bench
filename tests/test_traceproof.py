@@ -103,3 +103,32 @@ def test_traceproof_cli_demo_and_round_trip(tmp_path):
         )
         == 0
     )
+
+
+def test_traceproof_accepts_collector_file_exporter_json_lines(tmp_path):
+    payload = demo_otlp_payload()
+    source = tmp_path / "collector.jsonl"
+    source.write_text(json.dumps(payload) + "\n" + json.dumps(payload) + "\n")
+    evidence = build_trace_evidence(source)
+    assert evidence["span_count"] == 2
+    assert evidence["trace_count"] == 1
+
+
+def test_traceproof_drops_unknown_dsb_attributes_and_secret_values():
+    payload = demo_otlp_payload()
+    attributes = payload["resourceSpans"][0]["scopeSpans"][0]["spans"][0]["attributes"]
+    attributes.extend(
+        [
+            {"key": "dsb.auth.debug_payload", "value": {"stringValue": "PRIVATE-CONTENT"}},
+            {
+                "key": "dsb.auth.resource",
+                "value": {"stringValue": "Bearer secret-value-that-must-disappear"},
+            },
+        ]
+    )
+    evidence = build_trace_evidence(payload)
+    encoded = json.dumps(evidence)
+    assert "PRIVATE-CONTENT" not in encoded
+    assert "secret-value-that-must-disappear" not in encoded
+    assert evidence["redaction_summary"]["unapproved_attributes_removed"] >= 1
+    assert evidence["redaction_summary"]["secret_fields_removed"] >= 2

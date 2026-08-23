@@ -1,0 +1,75 @@
+name: TraceProof runtime evidence
+description: Propose a runtime integration, sanitized evidence bundle, or redaction challenge case.
+title: "[TraceProof] "
+labels: ["enhancement", "evidence"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help make privacy-bounded agent operations observable. Never paste or attach raw OTLP, prompts, responses, arguments, results, tokens, identifiers, customer data, CUI, or production incident details. Share only synthetic reproductions or a locally reviewed TraceProof community bundle.
+  - type: dropdown
+    id: contribution_kind
+    attributes:
+      label: Contribution kind
+      options:
+        - Sanitized community evidence bundle
+        - Runtime integration or field map
+        - Synthetic redaction challenge case
+        - MCP authorization evidence probe
+        - Reference lab improvement
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Runtime
+      options:
+        - OpenAI Agents SDK
+        - LangChain or LangGraph
+        - Pydantic AI
+        - CrewAI
+        - Microsoft AutoGen AgentChat
+        - DSPy
+        - MCP or custom loop
+        - Another runtime
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Frozen versions
+      description: Runtime, Python, dspy-security-bench, Collector, and policy version where applicable.
+      placeholder: "runtime 1.2.3, Python 3.12, dspy-security-bench 0.16.0"
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Instrumentation and custody boundary
+      description: Explain where authority/effect facts originate, what is omitted before collection, and who reviews sanitized output.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Reproduction or sanitized evidence
+      description: Link to public synthetic code, an exact source commit, or a proposed submissions/trace bundle. Do not include raw telemetry.
+    validations:
+      required: true
+  - type: textarea
+    id: gaps
+    attributes:
+      label: Coverage gaps and limitations
+      description: State missing spans, unobserved MCP requirements, custom processors, and anything this evidence cannot establish.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety and evidence contract
+      options:
+        - label: I reviewed the shared material and removed raw telemetry, secrets, prompts, arguments/results, identifiers, private data, and operational incident details.
+          required: true
+        - label: I understand valid TraceProof evidence is not proof of telemetry completeness, certification, compliance, government endorsement, or authorization to operate.
+          required: true
+        - label: I can help test the change with synthetic data and no provider calls in CI.

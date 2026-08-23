@@ -21,6 +21,7 @@ CONTROL_SUBMISSIONS_DIR = ROOT / "submissions/control"
 INCIDENT_SUBMISSIONS_DIR = ROOT / "submissions/incident"
 SOURCE_SUBMISSIONS_DIR = ROOT / "submissions/source"
 AUTHORITY_SUBMISSIONS_DIR = ROOT / "submissions/authority"
+TRACE_SUBMISSIONS_DIR = ROOT / "submissions/trace"
 REPRODUCTIONS = ROOT / "submissions/reproductions.json"
 ATTESTATIONS = ROOT / "submissions/attestations.json"
 DEFAULT_OUT = ROOT / "site/data.json"
@@ -35,6 +36,7 @@ def build_payload(
     incident_submissions_dir: Path = INCIDENT_SUBMISSIONS_DIR,
     source_submissions_dir: Path = SOURCE_SUBMISSIONS_DIR,
     authority_submissions_dir: Path = AUTHORITY_SUBMISSIONS_DIR,
+    trace_submissions_dir: Path = TRACE_SUBMISSIONS_DIR,
     reproductions_path: Path = REPRODUCTIONS,
     attestations_path: Path = ATTESTATIONS,
 ) -> dict:
@@ -94,6 +96,7 @@ def build_payload(
     authority_evidence = _authority_evidence_results(
         authority_submissions_dir, reproductions_path, attestations_path
     )
+    trace_evidence = _trace_evidence_results(trace_submissions_dir)
     return {
         "protocol": ", ".join(sorted(protocol_versions)),
         "modelCount": len(models),
@@ -110,6 +113,8 @@ def build_payload(
         "sourceEvidence": source_evidence,
         "authorityEvidenceCount": len(authority_evidence),
         "authorityEvidence": authority_evidence,
+        "traceEvidenceCount": len(trace_evidence),
+        "traceEvidence": trace_evidence,
         "missionAssuranceCommons": {
             "inventoryForge": {"inputLimitBytes": 5_000_000, "recordLimit": 5_000},
             "agentGraphTwin": {"scenarioVersion": "agentgraphtwin-v1", "pairCount": 6},
@@ -390,6 +395,42 @@ def _authority_evidence_results(
     return results
 
 
+def _trace_evidence_results(submissions_dir: Path) -> list[dict]:
+    """Build public TraceProof rows from CI-admitted privacy-bounded bundles."""
+    results = []
+    for path in sorted(submissions_dir.glob("*.json")):
+        bundle = json.loads(path.read_text())
+        if not _site_trace_eligible(bundle):
+            continue
+        evidence = bundle["evidence"]
+        report = bundle["report"]
+        summary = report["summary"]
+        submission = bundle["submission"]
+        policy = evidence.get("policy", {})
+        mcp_report = bundle.get("mcp_report")
+        mcp_summary = mcp_report.get("summary", {}) if isinstance(mcp_report, dict) else {}
+        results.append(
+            {
+                "runtime": submission.get("runtime", "unknown"),
+                "submitter": submission.get("submitter", "unknown"),
+                "createdAt": submission.get("created_at", ""),
+                "traceCount": summary.get("trace_count", 0),
+                "spanCount": summary.get("span_count", 0),
+                "findingCount": summary.get("finding_count", 0),
+                "critical": summary.get("critical", 0),
+                "high": summary.get("high", 0),
+                "policyId": policy.get("policy_id", "unknown"),
+                "mcpRequiredPass": mcp_summary.get("required_pass_count"),
+                "mcpRequiredCount": mcp_summary.get("required_check_count"),
+                "mcpConformanceReady": mcp_summary.get("conformance_ready"),
+                "evidenceTier": "self_attested",
+                "result": f"{GITHUB}/submissions/trace/{path.name}",
+            }
+        )
+    results.sort(key=lambda row: (-row["spanCount"], row["runtime"], row["submitter"]))
+    return results
+
+
 def _registry_records(path: Path, key: str) -> dict:
     if not path.is_file():
         return {}
@@ -595,6 +636,46 @@ def _site_authority_eligible(bundle: dict) -> bool:
         and report.get("trial_isolation") == "fresh_adapter_per_case"
         and not str(report.get("adapter", "")).startswith("reference-")
         and summary.get("case_errors") == 0
+    )
+
+
+def _site_trace_eligible(bundle: dict) -> bool:
+    """Apply safe display checks; submission CI performs complete recomputation."""
+    if bundle.get("bundle_type") != "dspy-security-bench-traceproof-community-evidence":
+        return False
+    claimed = bundle.get("bundle_sha256")
+    unsigned = dict(bundle)
+    unsigned.pop("bundle_sha256", None)
+    try:
+        encoded = json.dumps(
+            unsigned,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode()
+    except (TypeError, ValueError):
+        return False
+    if claimed != hashlib.sha256(encoded).hexdigest():
+        return False
+    evidence = bundle.get("evidence")
+    report = bundle.get("report")
+    submission = bundle.get("submission")
+    provenance = bundle.get("provenance")
+    if not all(isinstance(item, dict) for item in (evidence, report, submission)):
+        return False
+    summary = report.get("summary")
+    spans = evidence.get("spans")
+    return (
+        evidence.get("evidence_type") == "traceproof-normalized-trace"
+        and report.get("report_type") == "TraceProof / Privacy-bounded agent trace analysis"
+        and report.get("source_evidence_sha256") == evidence.get("evidence_sha256")
+        and isinstance(summary, dict)
+        and isinstance(spans, list)
+        and summary.get("span_count") == len(spans)
+        and isinstance(submission.get("runtime"), str)
+        and bool(submission.get("runtime", "").strip())
+        and provenance == {"provider": "self_attested", "evidence_tier": "self_attested"}
     )
 
 

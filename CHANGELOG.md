@@ -9,6 +9,32 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+### Added
+- **TraceProof Runtime Kit** with a framework-neutral, metadata-only tool-call
+  recorder; OpenAI Agents, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen,
+  DSPy, MCP, and custom-loop presets; a manifest-only doctor; and a generated
+  runtime scaffold that records explicit unknown authority by default.
+- Frozen MCP 2025-11-25 authorization evidence probes covering resource
+  indicators, canonical resource/audience binding, token passthrough,
+  Protected Resource Metadata, issuer evidence, bearer transport, bounded
+  step-up retries, and error semantics without converting missing evidence into
+  a pass.
+- A deterministic 20-case redaction escape corpus, JSON Schema, CLI report,
+  canary-hash verification, and secret-shaped value removal for bearer,
+  provider, cloud-key, PEM, and JWT patterns.
+- A reproducible fictional reference lab that connects a real OPA decision to
+  OTLP/HTTP and an OpenTelemetry Collector file export using pinned,
+  read-only, `no-new-privileges` containers.
+- A content-addressed TraceProof community bundle, offline verifier, pull-
+  request admission, public `submissions/trace` registry, and responsive
+  dashboard evidence ledger.
+
+### Changed
+- TraceProof now accepts bounded OTLP JSON Lines from Collector file exporters
+  and allows only an explicit frozen subset of `dsb.*` security attributes.
+- The example redaction policy and documentation now match the executable
+  attribute contract and explain that pseudonymization is not anonymization.
+
 ## [0.16.0] — 2026-08-23
 
 ### Added

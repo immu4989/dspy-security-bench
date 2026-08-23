@@ -140,6 +140,7 @@ InventoryForge = "https://github.com/immu4989/dspy-security-bench/blob/main/docs
 ContinuousProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/continuousproof.md"
 AcquisitionProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/acquisitionproof.md"
 TraceProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof.md"
+"TraceProof Runtime Kit" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof-runtime-kit.md"
 ValueProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/valueproof.md"
 "MissionPack Commons" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/mission-pack-commons.md"
 "Control Evidence Registry" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/control-evidence-registry.md"
@@ -149,6 +150,7 @@ Integrations = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/i
 "Incident Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/incident"
 "Source Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/source"
 "Authority Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/authority"
+"Trace Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/trace"
 
 [project.scripts]
 dspy-security-bench = "dspy_security_bench.cli:main"

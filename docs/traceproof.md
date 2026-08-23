@@ -1,7 +1,7 @@
 # TraceProof
 
 TraceProof is a local, privacy-bounded flight recorder for tool-using AI. It
-converts an OpenTelemetry JSON export into pseudonymized evidence, applies
+converts OpenTelemetry JSON or Collector JSON Lines into pseudonymized evidence, applies
 deterministic authorization and effect-integrity rules, and can produce SARIF,
 OSCAL 1.2.2 Assessment Results, and a synthetic replay twin.
 
@@ -20,6 +20,11 @@ dspy-security-bench trace verify artifacts/traceproof/trace-twin.json
 
 The demo contains fictional telemetry and deliberately triggers five findings.
 It does not evaluate a model, product, backend, or deployment.
+
+For a real agent, use the [TraceProof Runtime Kit](traceproof-runtime-kit.md).
+It supplies a content-free recorder, framework presets, a manifest-only doctor,
+a safe scaffold, MCP authorization probes, and a reproducible OPA +
+OpenTelemetry Collector lab.
 
 ## Analyze a local OTLP export
 
@@ -45,28 +50,65 @@ not a vulnerability verdict; the accountable owner evaluates context and risk.
 
 ## Input contract
 
-TraceProof accepts OTLP JSON with `resourceSpans`, `scopeSpans`, and `spans`, as
-produced by common file exporters. Each span may carry standard OpenTelemetry
-fields and application-provided `dsb.*` security attributes. Useful attributes
-include:
+TraceProof accepts a single OTLP JSON object, newline-delimited OTLP JSON
+objects produced by Collector file exporters, or a bounded flat span array.
+Each span may carry standard OpenTelemetry fields and a frozen subset of
+project-owned `dsb.*` security attributes. Useful attributes include:
 
 | Attribute | Meaning |
 |---|---|
-| `dsb.principal_id`, `dsb.agent_id`, `dsb.tenant_id` | authority identities; stored only as keyed hashes |
-| `dsb.authenticated` | whether the action had authenticated authority |
-| `dsb.requested_audience`, `dsb.granted_audience` | resource-server audience binding |
-| `dsb.requested_scopes`, `dsb.granted_scopes` | requested and delegated scopes |
-| `dsb.token_passthrough` | bearer token was forwarded through another agent |
-| `dsb.approval_required`, `dsb.approval_id`, `dsb.approval_bound` | human-approval evidence |
-| `dsb.parent_agent_id`, `dsb.delegated_agent_id` | delegation continuity |
-| `dsb.revoked`, `dsb.decision` | revocation state and allow/deny decision |
-| `dsb.step_up_required`, `dsb.step_up_completed` | step-up ordering |
-| `dsb.effect_expected`, `dsb.effect_receipt_id` | consequential-effect receipt evidence |
+| `dsb.auth.required`, `dsb.auth.decision` | whether authority was required and the recorded allow/deny/unknown outcome |
+| `dsb.auth.resource`, `dsb.auth.token_audience` | exact resource and downstream token audience |
+| `dsb.auth.requested_scopes`, `dsb.auth.granted_scopes` | requested and delegated scopes |
+| `dsb.auth.token_passthrough` | whether an upstream bearer token was forwarded |
+| `dsb.auth.grant_revoked` | revocation state at the decision boundary |
+| `dsb.auth.step_up_required`, `dsb.auth.step_up_completed` | step-up ordering |
+| `dsb.approval.required`, `dsb.approval.completed` | human-approval state |
+| `dsb.approval.bound_action_sha256`, `dsb.effect.action_sha256` | approval-to-action binding without arguments |
+| `dsb.auth.agent_id`, `dsb.delegation.agent_id` | executing and delegated identity; sanitized as hashes |
+| `dsb.effect.external`, `dsb.effect.receipt_id` | consequential-effect receipt evidence |
+| `dsb.mcp.*` | bounded MCP transport, resource-indicator, discovery, token-validation, and error evidence |
 
 The names describe the portable TraceProof contract; they are not an official
 OpenTelemetry semantic convention. The project tracks the evolving
 [OpenTelemetry GenAI conventions](https://github.com/open-telemetry/semantic-conventions-genai)
 and keeps security assertions under the project-owned `dsb.*` namespace.
+An attribute beginning with `dsb.` is not trusted merely because of its prefix:
+only names in `allowed_dsb_attributes` survive. Secret-shaped values are
+dropped even from approved keys.
+
+## Redaction challenge
+
+Run the frozen 20-case synthetic escape corpus whenever the sanitizer changes:
+
+```bash
+dspy-security-bench trace challenge --out artifacts/redaction-challenge.json
+```
+
+The cases exercise prompts, completions, messages, tool arguments, bodies,
+credentials, private-key markers, bearer/JWT/provider-token shapes,
+identifiers, events, arbitrary attributes, and unknown `dsb.*` keys. The report
+stores canary hashes, not the synthetic canary strings. A pass is regression
+evidence for this corpus, not proof that arbitrary telemetry is safe.
+
+## MCP authorization evidence
+
+For MCP over Streamable HTTP, TraceProof can separately evaluate nine declared
+evidence probes against the frozen stable authorization specification dated
+2025-11-25:
+
+```bash
+dspy-security-bench trace mcp analyze artifacts/trace-evidence.json \
+  --out artifacts/mcp-authorization-report.json
+dspy-security-bench trace mcp verify artifacts/mcp-authorization-report.json \
+  --evidence artifacts/trace-evidence.json
+```
+
+The report distinguishes `pass`, `fail`, `not_observed`, and
+`not_applicable`; missing telemetry never becomes a pass. `conformance_ready`
+requires every mandatory HTTP probe to be observed and passing. This is a
+selected evidence check, not full MCP certification. See the
+[stable MCP authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization).
 
 ## Frozen deterministic rules
 
@@ -95,6 +137,8 @@ The default policy is deny-by-default:
 - content fields such as prompts, completions, tool arguments, and results are
   removed, not masked;
 - common credential patterns are removed even if an attribute is allowlisted;
+- secret-shaped bearer, provider, cloud-key, PEM, and JWT values are removed
+  even when stored under an approved key;
 - principal, agent, tenant, approval, trace, and span identifiers are replaced
   with deterministic SHA-256 pseudonyms;
 - arbitrary resource and span attributes are discarded unless allowlisted;
@@ -122,6 +166,14 @@ intended document ecosystem.
 The synthetic twin contains only the minimum sanitized event and finding shape
 needed for replay-oriented regression work. It does not reproduce production
 prompts, identities, data, timing, or infrastructure.
+
+## Open community evidence
+
+Independent teams can publish a self-attested, content-addressed bundle under
+[`submissions/trace/`](../submissions/trace/README.md). Pull-request CI
+recomputes the sanitized evidence, all findings, the optional MCP report, and
+the bundle digest. Admission is based on evidence validity, not a favorable
+score. Raw source telemetry is never accepted into the registry.
 
 ## Threat model and non-claims
 

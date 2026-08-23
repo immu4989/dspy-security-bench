@@ -29,6 +29,11 @@ const safeAuthorityResultUrl = value => {
   const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/authority\/[a-z0-9-]+\.json$/;
   return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/authority";
 };
+const safeTraceResultUrl = value => {
+  const url = String(value || "");
+  const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/trace\/[a-z0-9-]+\.json$/;
+  return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/trace";
+};
 
 async function loadData() {
   const response = await fetch("data.json");
@@ -42,6 +47,7 @@ async function loadData() {
   document.querySelectorAll("[data-incident-evidence-count]").forEach(node => node.textContent = data.incidentEvidenceCount || 0);
   document.querySelectorAll("[data-source-evidence-count]").forEach(node => node.textContent = data.sourceEvidenceCount || 0);
   document.querySelectorAll("[data-authority-evidence-count]").forEach(node => node.textContent = data.authorityEvidenceCount || 0);
+  document.querySelectorAll("[data-trace-evidence-count]").forEach(node => node.textContent = data.traceEvidenceCount || 0);
   const robustness = data.models.map(model => model.robustness);
   document.querySelector("[data-min-robustness]").textContent = Math.round(Math.min(...robustness) * 100);
   document.querySelector("[data-max-robustness]").textContent = Math.round(Math.max(...robustness) * 100);
@@ -52,6 +58,7 @@ async function loadData() {
   renderIncidentEvidence(data.incidentEvidence || []);
   renderSourceEvidence(data.sourceEvidence || []);
   renderAuthorityEvidence(data.authorityEvidence || []);
+  renderTraceEvidence(data.traceEvidence || []);
 }
 
 const proofTier = {
@@ -167,6 +174,31 @@ function renderAuthorityEvidence(results) {
         ${evidenceMetric("Receipt integrity", result.receiptIntegrity)}
       </div>
       <footer><span>${Number(result.falseAllows)} false allows</span><span>${Number(result.unstablePairs)}/10 unstable pairs</span><a href="${safeAuthorityResultUrl(result.result)}">inspect evidence ↗</a></footer>
+    </article>`;
+  }).join("");
+}
+
+function renderTraceEvidence(results) {
+  const host = document.querySelector("#trace-evidence-results");
+  const empty = document.querySelector("#trace-evidence-empty");
+  if (!host || !empty) return;
+  empty.hidden = results.length > 0;
+  host.innerHTML = results.map(result => {
+    const [label, className] = proofTier[result.evidenceTier] || proofTier.self_attested;
+    const mcpObserved = result.mcpRequiredPass != null && result.mcpRequiredCount != null;
+    const mcpLabel = mcpObserved
+      ? `${Number(result.mcpRequiredPass)}/${Number(result.mcpRequiredCount)} required`
+      : "not supplied";
+    const mcpState = result.mcpConformanceReady === true ? "ready" : "review";
+    return `<article class="trace-evidence-card">
+      <header><span class="proof-tier ${className}">${label}</span><strong>${escapeHtml(result.runtime)}</strong><small>${escapeHtml(result.submitter)} · ${Number(result.traceCount)} traces / ${Number(result.spanCount)} spans</small></header>
+      <div class="trace-policy-id"><span>redaction policy</span><strong>${escapeHtml(result.policyId)}</strong></div>
+      <div class="trace-evidence-metrics">
+        <div><span>Findings</span><strong>${Number(result.findingCount)}</strong><small>deterministically recomputed</small></div>
+        <div class="danger"><span>Critical / high</span><strong>${Number(result.critical)} / ${Number(result.high)}</strong><small>human review required</small></div>
+        <div class="${mcpState}"><span>MCP authorization</span><strong>${mcpLabel}</strong><small>${mcpObserved ? "frozen 2025-11-25 probe" : "optional evidence"}</small></div>
+      </div>
+      <footer><span>${escapeHtml(result.createdAt)}</span><a href="${safeTraceResultUrl(result.result)}">inspect sanitized bundle ↗</a></footer>
     </article>`;
   }).join("");
 }

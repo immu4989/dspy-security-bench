@@ -57,8 +57,10 @@ def test_submission_ci_recomputes_bundles_from_the_lockfile():
     assert "uv run --locked --no-sync" in workflow
     assert '"submissions/source/**"' in workflow
     assert '"submissions/authority/**"' in workflow
+    assert '"submissions/trace/**"' in workflow
     assert '"dspy_security_bench/mission/**"' in workflow
     assert '"dspy_security_bench/authority/**"' in workflow
+    assert '"dspy_security_bench/trace/**"' in workflow
 
 
 def test_release_attests_built_distributions_before_publish():
@@ -161,3 +163,12 @@ def test_framework_issue_form_is_valid_and_requires_redaction_confirmation():
         "options"
     ]
     assert any(option.get("required") for option in options)
+
+
+def test_traceproof_issue_form_forbids_raw_telemetry_and_requires_non_claims():
+    form = yaml.safe_load((ROOT / ".github/ISSUE_TEMPLATE/trace-runtime-evidence.yml").read_text())
+    assert form["name"] == "TraceProof runtime evidence"
+    introduction = form["body"][0]["attributes"]["value"]
+    assert "Never paste or attach raw OTLP" in introduction
+    safety = next(item for item in form["body"] if item.get("id") == "safety")
+    assert sum(option.get("required") is True for option in safety["attributes"]["options"]) == 2

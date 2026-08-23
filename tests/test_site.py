@@ -11,10 +11,12 @@ from scripts.generate_site_data import (
     INCIDENT_SUBMISSIONS_DIR,
     RESULTS_DIR,
     SOURCE_SUBMISSIONS_DIR,
+    TRACE_SUBMISSIONS_DIR,
     _control_evidence_results,
     _incident_evidence_results,
     _proofrun_results,
     _source_evidence_results,
+    _trace_evidence_results,
     build_payload,
 )
 
@@ -109,6 +111,12 @@ def test_site_payload_exposes_the_open_authority_evidence_registry():
     payload = build_payload()
     assert payload["authorityEvidenceCount"] == len(payload["authorityEvidence"])
     assert AUTHORITY_SUBMISSIONS_DIR.name == "authority"
+
+
+def test_site_payload_exposes_the_open_trace_evidence_registry():
+    payload = build_payload()
+    assert payload["traceEvidenceCount"] == len(payload["traceEvidence"])
+    assert TRACE_SUBMISSIONS_DIR.name == "trace"
 
 
 def test_site_payload_exposes_commons_protocol_not_product_claims():
@@ -237,9 +245,41 @@ def test_site_presents_traceproof_as_local_privacy_bounded_evidence():
     assert "SARIF" in page
     assert "OSCAL 1.2.2" in page
     assert "dspy-security-bench trace demo --out-dir artifacts/traceproof" in page
+    assert "Open TraceProof evidence ledger" in page
+    assert 'id="trace-evidence-results"' in page
+    assert "MCP 2025-11-25 probes" in page
 
     script = (SITE / "app.js").read_text()
     assert 'bindCommandCopy("#trace-copy"' in script
+    assert 'document.querySelector("#trace-evidence-results")' in script
+    assert "safeTraceResultUrl(result.result)" in script
+
+
+def test_trace_registry_rows_are_privacy_bounded_and_escape_ready(tmp_path):
+    from dspy_security_bench.trace.evidence import build_trace_submission_bundle
+    from dspy_security_bench.trace.proof import analyze_trace_evidence, build_trace_evidence
+    from dspy_security_bench.trace.runtime import TraceRecorder
+
+    recorder = TraceRecorder(service_name="independent-runtime")
+    recorder.record(operation="invoke_agent", agent_name="agent")
+    evidence = build_trace_evidence(recorder.to_otlp_json())
+    report = analyze_trace_evidence(evidence)
+    bundle = build_trace_submission_bundle(
+        evidence,
+        report,
+        submitter="<independent-team>",
+        runtime="runtime <unsafe>@1",
+        source_repository_url="https://github.com/example/runtime/tree/commit",
+    )
+    submissions = tmp_path / "trace"
+    submissions.mkdir()
+    (submissions / "runtime.json").write_text(json.dumps(bundle))
+
+    rows = _trace_evidence_results(submissions)
+    assert rows[0]["runtime"] == "runtime <unsafe>@1"
+    assert rows[0]["spanCount"] == 1
+    assert rows[0]["mcpRequiredPass"] is None
+    assert rows[0]["evidenceTier"] == "self_attested"
 
 
 def test_site_presents_control_registry_as_evidence_not_certification():

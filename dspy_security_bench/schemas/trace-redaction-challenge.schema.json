@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/trace-redaction-challenge.schema.json",
+  "title": "TraceProof frozen synthetic redaction challenge",
+  "type": "object",
+  "required": ["schema_version", "report_type", "challenge_version", "case_count", "passed_count", "escaped_count", "cases", "status", "disclaimer", "report_sha256"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "TraceProof / Synthetic redaction challenge"},
+    "challenge_version": {"const": "traceproof-redaction-challenge-v1"},
+    "case_count": {"const": 20},
+    "passed_count": {"type": "integer", "minimum": 0, "maximum": 20},
+    "escaped_count": {"type": "integer", "minimum": 0, "maximum": 20},
+    "cases": {"type": "array", "minItems": 20, "maxItems": 20},
+    "status": {"enum": ["pass", "fail"]},
+    "disclaimer": {"type": "string"},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

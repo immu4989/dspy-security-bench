@@ -1,0 +1,38 @@
+services:
+  opa:
+    image: openpolicyagent/opa:1.16.2-rootless
+    command: ["run", "--server", "--addr=0.0.0.0:8181", "/policy/policy.rego"]
+    volumes:
+      - ./policy.rego:/policy/policy.rego:ro
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.159.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./collector.yaml:/etc/otelcol/config.yaml:ro
+      - ${TRACEPROOF_LAB_ARTIFACTS:-./artifacts}:/evidence
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  agent:
+    image: python:3.12.11-slim
+    command: ["python", "/lab/agent.py"]
+    environment:
+      OPA_URL: http://opa:8181/v1/data/traceproof/decision
+      OTLP_HTTP_URL: http://collector:4318/v1/traces
+    volumes:
+      - ./agent.py:/lab/agent.py:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    depends_on:
+      - opa
+      - collector
+    security_opt:
+      - no-new-privileges:true

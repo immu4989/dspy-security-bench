@@ -43,10 +43,38 @@ mission economics, and reviewable OSCAL assessment inputs.
 
 ---
 
+## On main: TraceProof Runtime Kit and open evidence
+
+TraceProof now reaches the live tool boundary without recording application
+content. The framework-neutral runtime wrapper supports OpenAI Agents,
+LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, DSPy, MCP, and custom loops;
+the manifest doctor never imports or runs the target.
+
+```bash
+dspy-security-bench trace runtime doctor --root .
+dspy-security-bench trace runtime scaffold \
+  --agent myapp.agent:build_agent --out traceproof_target.py
+dspy-security-bench trace challenge --out artifacts/redaction-challenge.json
+./examples/traceproof-runtime-lab/run.sh
+```
+
+The new 20-case sanitizer challenge tests secret/content escape surfaces. MCP
+authorization probes are frozen to the stable 2025-11-25 specification and
+separate `pass`, `fail`, `not_observed`, and `not_applicable`. Independent
+teams can publish only the recomputable, sanitized bundle to the
+[open TraceProof evidence registry](submissions/trace/README.md); raw telemetry
+is never accepted.
+
+[Open the Runtime Kit →](docs/traceproof-runtime-kit.md) ·
+[Inspect the reference lab →](examples/traceproof-runtime-lab/README.md) ·
+[Explore the public evidence ledger →](https://immu4989.github.io/dspy-security-bench/#traceproof)
+
+---
+
 ## New in v0.16: TraceProof operational assurance lab
 
 **Bring the trace. Leave the secrets.** TraceProof converts a local
-OpenTelemetry JSON export into pseudonymized evidence, runs 12 deterministic
+OpenTelemetry JSON/JSONL export into pseudonymized evidence, runs 12 deterministic
 authorization and effect-integrity rules, and emits reviewable JSON, SARIF,
 OSCAL 1.2.2 Assessment Results, and a synthetic replay twin. It connects to no
 collector or model provider and removes prompts, completions, tool arguments,
@@ -82,6 +110,7 @@ selection, risk acceptance, government endorsement, or authorization to
 operate.
 
 [Read the TraceProof privacy and evidence contract →](docs/traceproof.md) ·
+[Instrument a real runtime without recording content →](docs/traceproof-runtime-kit.md) ·
 [Run temporal AgentGraphTwin v2 →](docs/agentgraph-twin.md) ·
 [Sign a data-only MissionPack →](docs/mission-pack-commons.md) ·
 [Measure mission economics →](docs/valueproof.md)
@@ -1304,6 +1333,7 @@ v0.1 scope choices:
 | v0.14 — AuthorityTwin delegated-authorization conformance, normalized receipts, public evidence, and federal export | **shipped** |
 | v0.15 — Mission Assurance Commons, InventoryForge, AgentGraphTwin, ContinuousProof, AuthorityBridge, and AcquisitionProof | **shipped** |
 | v0.16 — TraceProof, AgentGraphTwin v2, live AuthorityBridge, signed MissionPack Commons, and ValueProof | **shipped** |
+| v0.17 foundation — TraceProof Runtime Kit, MCP 2025-11-25 probes, redaction challenge, reference lab, and open evidence registry | **on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

@@ -2,27 +2,31 @@
 
 Contributions are welcome. The most useful ones, roughly in order:
 
-1. **Submitting AuthorityTwin evidence for your authorization adapter** —
+1. **Submitting privacy-bounded TraceProof runtime evidence** — instrument a
+   real agent boundary, review the sanitized output, and publish a recomputable
+   bundle without raw telemetry; see
+   [`submissions/trace/`](submissions/trace/README.md).
+2. **Submitting AuthorityTwin evidence for your authorization adapter** —
    connect a real vendor-neutral bridge and publish recomputable evidence;
    see below.
-2. **Submitting a ProofRun result for your own agent** — produce recomputable,
+3. **Submitting a ProofRun result for your own agent** — produce recomputable,
    provenance-labeled evidence and open a pull request; see below.
-3. **Submitting a real control experiment** — publish policy-off/policy-on
+4. **Submitting a real control experiment** — publish policy-off/policy-on
    evidence even when the outcome is mixed or negative; see below.
-4. **Improving a native framework bridge** — reproduce an upstream SDK change,
+5. **Improving a native framework bridge** — reproduce an upstream SDK change,
    add a zero-provider-call compatibility test, and keep the benchmark contract
    framework-neutral; see below.
-5. **Authoring a MissionPack** — encode a bounded synthetic source-grounding
+6. **Authoring a MissionPack** — encode a bounded synthetic source-grounding
    mission as strict data, with expert-reviewed claims and an explicit license.
-6. **Adding a model to the base-model leaderboard** — see below.
-7. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
+7. **Adding a model to the base-model leaderboard** — see below.
+8. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
    utilities, health administration, supply chain, emergency management, or a
    commercial workflow with a clearly affected stakeholder.
-8. **Adding an attack or a defense** to the harness.
-9. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
+9. **Adding an attack or a defense** to the harness.
+10. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
    every published row ships with the result JSON that produced it, so
    disagreements should be resolvable.
-10. Bug reports and documentation fixes.
+11. Bug reports and documentation fixes.
 
 Federal and regulated-sector contributors can also propose an inert
 IncidentTwin mission pack or improve an informative FederalProof mapping. Use
