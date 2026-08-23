@@ -2,14 +2,14 @@
 
 Suggested GitHub About description:
 
-> Open mission-assurance commons for AI agents: security benchmarks, authorization-path twins, continuous evidence, and vendor-neutral acquisition packs.
+> Privacy-first security and mission-assurance lab for AI agents: TraceProof, authorization twins, MCP/OTel evidence, CI gates, and OSCAL exports.
 
 Suggested topics:
 
-`ai-agent-security`, `agent-evaluation`, `prompt-injection`,
-`delegated-authorization`, `zero-trust`, `multi-agent-systems`, `ai-assurance`,
-`federal-ai`, `oscal`, `ai-acquisition`, `continuous-assurance`, `dspy`,
-`agentdojo`, `mcp`, `opa`, `cedar`, `openfga`, `spiffe`
+`ai-agent-security`, `llm-security`, `prompt-injection`, `mcp`,
+`opentelemetry`, `dspy`, `agentdojo`, `ai-evaluation`, `authorization`,
+`zero-trust`, `oscal`, `federal-ai`, `github-actions`,
+`security-benchmark`, `agentic-ai`
 
 Keep the website field set to:
 
