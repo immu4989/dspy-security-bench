@@ -34,3 +34,19 @@ accepted; notify the affected organization through its approved channel.
 The benchmark and FederalProof exports do not provide a certification,
 authorization to operate, legal determination, or operational incident-response
 guidance.
+
+## TraceProof data handling
+
+TraceProof processes OTLP JSON offline and uses a deny-by-default allowlist, but
+operators remain responsible for the source telemetry and output artifacts.
+Do not import credentials, CUI, classified information, personal data, customer
+content, or production traces unless you are authorized and the local retention
+boundary permits it. Pseudonymized identifiers remain linkable and may be
+guessable when the source space has low entropy.
+
+Review the generated redaction policy before use, keep input and output files in
+approved storage, and inspect the redaction counters. If sensitive content is
+found in a TraceProof artifact, stop distribution, follow the owning
+organization's incident process, rotate exposed credentials where applicable,
+and report a sanitizer defect privately when the package failed its documented
+contract. Do not attach sensitive artifacts to a public issue.

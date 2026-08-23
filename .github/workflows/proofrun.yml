@@ -128,7 +128,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.15.0
+          ref: v0.16.0
           path: engine
 
       - name: Install uv
@@ -307,7 +307,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: immu4989/dspy-security-bench
-          ref: v0.15.0
+          ref: v0.16.0
           path: engine
 
       - name: Set up Python

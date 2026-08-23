@@ -9,6 +9,43 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.16.0] — 2026-08-23
+
+### Added
+- **TraceProof**, an offline, deny-by-default OTLP JSON sanitizer and agent
+  flight recorder with pseudonymized identities, 12 deterministic
+  authorization/effect rules, canonical evidence, complete offline
+  verification, SARIF, OSCAL 1.2.2 Assessment Results, and synthetic replay
+  twins.
+- **AgentGraphTwin v2** with six clean/injected temporal, parallel, and
+  multi-effect pairs covering token-exchange audience binding, delegation
+  continuity, step-up ordering, revocation latency, approval races, and
+  one-decision/multiple-effect boundaries.
+- An opt-in **live AuthorityBridge runner** that invokes an operator-declared
+  backend command without a shell, uses canonical JSON stdin/stdout, and emits
+  versioned self-attested OPA, Cedar, OpenFGA, OAuth-bound MCP, or SPIFFE
+  conformance evidence without recording credentials or command text.
+- **Signed MissionPack Commons** with Ed25519 key generation, self-contained
+  signed envelopes, local catalog build/verification, an optional `signing`
+  dependency, and strict separation between signature validity and pack trust.
+- Five clearly synthetic public-service MissionPacks for benefits assistance,
+  grants review, emergency logistics, records release, and critical-
+  infrastructure operator confirmation.
+- **ValueProof** content-addressed owner observations and comparability checks
+  for mission success, safe mission rate, observed cost, latency, human review,
+  recovery, and portability rework—without ranking or forecasting.
+- Strict JSON Schemas, examples, tests, release guidance, and an expanded
+  responsive TraceProof dashboard flight recorder.
+
+### Changed
+- ContinuousProof can now baseline and compare verified TraceProof,
+  AgentGraphTwin v2, and ValueProof evidence, including lower-is-better
+  findings, severity, unsafe-effect, cost, latency, review, recovery, and
+  portability metrics.
+- The Mission Assurance Commons guide now links mission scoping, signed
+  protocols, operational telemetry, temporal authorization, evidence drift,
+  observed mission economics, and vendor-neutral acquisition inputs.
+
 ## [0.15.0] — 2026-08-23
 
 ### Added

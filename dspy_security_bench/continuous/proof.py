@@ -14,7 +14,23 @@ DISCLAIMER = (
     "decisions. It is not continuous monitoring of a production system, certification, a risk "
     "acceptance, compliance determination, or authorization to operate."
 )
-_LOWER_IS_BETTER = ("unsafe", "false", "error", "failure", "blast", "harm_event")
+_LOWER_IS_BETTER = (
+    "unsafe",
+    "false",
+    "error",
+    "failure",
+    "blast",
+    "harm_event",
+    "finding",
+    "critical",
+    "high",
+    "medium",
+    "low",
+    "cost",
+    "latency",
+    "minutes",
+    "rework",
+)
 _NON_METRICS = ("count", "trials", "seconds", "pair_count")
 
 
@@ -26,7 +42,7 @@ def build_evidence_snapshot(payload: Mapping[str, Any], *, label: str) -> dict[s
     kind, errors = _verify_evidence(payload)
     if errors:
         raise ValueError("evidence verification failed: " + "; ".join(errors))
-    summary = payload.get("summary", {})
+    summary = payload.get("metrics", {}) if kind == "value" else payload.get("summary", {})
     snapshot: dict[str, Any] = {
         "schema_version": 1,
         "proof_type": SNAPSHOT_TYPE,
@@ -203,6 +219,14 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         from dspy_security_bench.graph.benchmark import verify_graph_report
 
         return "agent-graph", verify_graph_report(payload)
+    if report_type == "AgentGraphTwin v2 / Temporal multi-agent authorization assurance":
+        from dspy_security_bench.graph.v2 import verify_agent_graph_twin_v2
+
+        return "agent-graph-v2", verify_agent_graph_twin_v2(payload)
+    if report_type == "TraceProof / Privacy-bounded agent trace analysis":
+        from dspy_security_bench.trace.proof import verify_trace_report
+
+        return "trace", verify_trace_report(payload)
     if report_type == "AuthorityTwin / Delegated authorization conformance":
         from dspy_security_bench.authority.benchmark import verify_authority_report
 
@@ -215,14 +239,33 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         from dspy_security_bench.incident.benchmark import verify_incident_report
 
         return "incident", verify_incident_report(payload)
+    if payload.get("proof_type") == "dspy-security-bench-valueproof-observation":
+        from dspy_security_bench.value.proof import verify_value_proof
+
+        return "value", verify_value_proof(payload)
     raise ValueError(
-        "unsupported evidence; use a verified AgentGraphTwin, AuthorityTwin, MissionPackTwin, or IncidentTwin report"
+        "unsupported evidence; use a verified AgentGraphTwin, TraceProof, AuthorityTwin, "
+        "MissionPackTwin, IncidentTwin, or ValueProof report"
     )
 
 
 def _identity(payload: Mapping[str, Any]) -> dict[str, Any]:
-    fields = ("protocol_sha256", "policy_sha256", "scenario_version", "adapter", "agent", "pack_id")
-    return {field: payload[field] for field in fields if field in payload}
+    fields = (
+        "protocol_sha256",
+        "policy_sha256",
+        "scenario_version",
+        "adapter",
+        "agent",
+        "pack_id",
+        "source_evidence_sha256",
+    )
+    identity = {field: payload[field] for field in fields if field in payload}
+    measurement = payload.get("measurement")
+    if isinstance(measurement, Mapping):
+        for field in ("mission_id", "candidate", "protocol_sha256", "currency", "boundary"):
+            if field in measurement:
+                identity[field] = measurement[field]
+    return identity
 
 
 def _metrics(summary: Mapping[str, Any], prefix: str = "summary") -> dict[str, float]:

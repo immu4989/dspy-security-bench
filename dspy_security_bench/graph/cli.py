@@ -22,10 +22,24 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--json-out")
     verify = commands.add_parser("verify", help="verify a graph report offline")
     verify.add_argument("path")
+    v2_describe = commands.add_parser(
+        "v2-describe", help="show the temporal and parallel v2 protocol"
+    )
+    v2_describe.add_argument("--json", action="store_true", dest="as_json")
+    v2_demo = commands.add_parser("v2-demo", help="compare bounded and ambient temporal adapters")
+    v2_demo.add_argument("--json", action="store_true", dest="as_json")
+    v2_run = commands.add_parser("v2-run", help="evaluate a temporal graph adapter")
+    v2_run.add_argument("--adapter", help="module:callable returning a TemporalGraphAdapter")
+    v2_run.add_argument("--reference", choices=("bounded", "ambient"), default="bounded")
+    v2_run.add_argument("--json-out")
+    v2_verify = commands.add_parser("v2-verify", help="verify an AgentGraphTwin v2 report offline")
+    v2_verify.add_argument("path")
     args = parser.parse_args(argv)
     if args.command is None:
         parser.print_help()
         return 0
+    if args.command and args.command.startswith("v2-"):
+        return _v2(args)
     from dspy_security_bench.graph.benchmark import run_agent_graph_twin, verify_graph_report
     from dspy_security_bench.graph.protocol import (
         DISCLAIMER,
@@ -85,7 +99,87 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     except (AttributeError, ImportError, TypeError, ValueError, OSError) as exc:
         print(f"[graph] run failed: {exc}", file=sys.stderr)
+    return 2
+
+
+def _v2(args) -> int:
+    from dspy_security_bench.graph.v2 import (
+        DISCLAIMER,
+        SCENARIO_VERSION,
+        build_ambient_temporal_graph_adapter,
+        build_bounded_temporal_graph_adapter,
+        build_v2_scenarios,
+        protocol_sha256_v2,
+        run_agent_graph_twin_v2,
+        verify_agent_graph_twin_v2,
+    )
+
+    if args.command == "v2-describe":
+        payload = {
+            "scenario_version": SCENARIO_VERSION,
+            "protocol_sha256": protocol_sha256_v2(),
+            "pairs": [item.to_dict() for item in build_v2_scenarios() if item.variant == "clean"],
+            "disclaimer": DISCLAIMER,
+        }
+        print(
+            json.dumps(payload, indent=2, sort_keys=True) if args.as_json else _describe_v2(payload)
+        )
+        return 0
+    if args.command == "v2-verify":
+        try:
+            payload = json.loads(Path(args.path).read_text())
+            errors = verify_agent_graph_twin_v2(payload)
+        except (OSError, json.JSONDecodeError) as exc:
+            errors = (str(exc),)
+        if errors:
+            print("[graph] v2 verification failed: " + "; ".join(errors), file=sys.stderr)
+            return 1
+        print(f"[graph] verified AgentGraphTwin v2 report {args.path}")
+        return 0
+    factories = {
+        "bounded": build_bounded_temporal_graph_adapter,
+        "ambient": build_ambient_temporal_graph_adapter,
+    }
+    if args.command == "v2-demo":
+        reports = [
+            run_agent_graph_twin_v2(factory(), adapter_factory=factory)
+            for factory in factories.values()
+        ]
+        if args.as_json:
+            print(json.dumps(reports, indent=2, sort_keys=True))
+        else:
+            for report in reports:
+                summary = report["summary"]
+                print(
+                    f"{report['adapter']}: {summary['attack_resistance']:.0%} resistance, "
+                    f"{summary['clean_mission_utility']:.0%} clean utility, "
+                    f"{summary['total_unsafe_effects']} unsafe effects"
+                )
+        return 0
+    try:
+        factory = _load_factory(args.adapter) if args.adapter else factories[args.reference]
+        report = run_agent_graph_twin_v2(factory(), adapter_factory=factory)
+    except (ImportError, TypeError, ValueError) as exc:
+        print(f"[graph] v2 run failed: {exc}", file=sys.stderr)
         return 2
+    if args.json_out:
+        Path(args.json_out).write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+        print(f"[graph] wrote {args.json_out}")
+    summary = report["summary"]
+    print(
+        f"[graph] v2 {summary['attack_resistance']:.0%} resistance; {summary['total_unsafe_effects']} unsafe effects"
+    )
+    return 0
+
+
+def _describe_v2(payload: dict) -> str:
+    lines = [
+        f"AgentGraphTwin v2 ({payload['scenario_version']})",
+        f"Protocol sha256: {payload['protocol_sha256']}",
+    ]
+    lines.extend(f"  - {item['pair_id']}: {item['title']}" for item in payload["pairs"])
+    lines.append(payload["disclaimer"])
+    return "\n".join(lines)
 
 
 def _run_reference(name: str) -> dict:

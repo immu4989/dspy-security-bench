@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   authority-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.15.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.16.0
     with:
       evidence-kind: authority
       # In authority mode this input is a factory returning AuthorityAdapter.

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/valueproof.schema.json",
+  "title": "ValueProof measured mission economics",
+  "type": "object",
+  "required": ["schema_version", "proof_type", "measurement", "measurement_sha256", "metrics", "decision_authority", "disclaimer", "proof_sha256"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "proof_type": {"const": "dspy-security-bench-valueproof-observation"},
+    "measurement": {"type": "object"},
+    "measurement_sha256": {"$ref": "#/$defs/digest"},
+    "metrics": {"type": "object"},
+    "decision_authority": {"type": "string"},
+    "disclaimer": {"type": "string"},
+    "proof_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

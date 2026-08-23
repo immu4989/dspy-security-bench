@@ -64,6 +64,25 @@ def build_parser() -> argparse.ArgumentParser:
     verify = commands.add_parser("verify", help="recompute a pack, report, or bundle offline")
     verify.add_argument("path")
     verify.add_argument("--minimum-trials", type=int, default=5)
+    keygen = commands.add_parser("keygen", help="create an Ed25519 MissionPack signing keypair")
+    keygen.add_argument("--private-key", required=True)
+    keygen.add_argument("--public-key", required=True)
+    sign = commands.add_parser("sign", help="create a self-contained signed MissionPack envelope")
+    sign.add_argument("pack")
+    sign.add_argument("--private-key", required=True)
+    sign.add_argument("--signer", required=True)
+    sign.add_argument("--out", required=True)
+    signature = commands.add_parser("verify-signature", help="verify a signed MissionPack envelope")
+    signature.add_argument("envelope")
+    catalog = commands.add_parser(
+        "catalog-build", help="build a local catalog from signed envelopes"
+    )
+    catalog.add_argument("envelopes", nargs="+")
+    catalog.add_argument("--out", required=True)
+    catalog_verify = commands.add_parser(
+        "catalog-verify", help="verify a catalog and its envelopes"
+    )
+    catalog_verify.add_argument("catalog")
     return parser
 
 
@@ -74,7 +93,15 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
     if args.command == "list":
-        print("source-twin-v1  SourceTwin Public-Service Grounding Protocol  (built-in)")
+        for key, label in (
+            ("source-twin", "Source grounding and citation integrity"),
+            ("benefits-assistance", "Benefits assistance review boundaries"),
+            ("grants-review", "Grants conflict-of-interest review"),
+            ("emergency-logistics", "Emergency logistics dispatch authority"),
+            ("records-release", "Records release and bulk-export control"),
+            ("critical-infrastructure", "Critical-infrastructure operator confirmation"),
+        ):
+            print(f"{key:24} {label}  (synthetic built-in)")
         return 0
     if args.command == "init":
         return _init(args)
@@ -90,6 +117,58 @@ def main(argv: list[str] | None = None) -> int:
         return _bundle(args)
     if args.command == "verify":
         return _verify(args)
+    if args.command in {"keygen", "sign", "verify-signature", "catalog-build", "catalog-verify"}:
+        return _commons(args)
+    return 2
+
+
+def _commons(args) -> int:
+    from dspy_security_bench.mission.commons import (
+        build_mission_pack_catalog,
+        generate_ed25519_keypair,
+        sign_mission_pack,
+        verify_mission_pack_catalog,
+        verify_signed_mission_pack,
+    )
+
+    try:
+        if args.command == "keygen":
+            private, public = generate_ed25519_keypair(args.private_key, args.public_key)
+            print(f"[pack] created private key {private} (mode 0600)")
+            print(f"[pack] created public key {public}")
+            return 0
+        if args.command == "sign":
+            envelope = sign_mission_pack(args.pack, args.private_key, signer=args.signer)
+            _write_json(Path(args.out), envelope)
+            print(f"[pack] wrote signed envelope {args.out} ({envelope['envelope_sha256']})")
+            return 0
+        if args.command == "verify-signature":
+            payload = json.loads(Path(args.envelope).read_text())
+            if not isinstance(payload, Mapping):
+                raise ValueError("signed envelope root must be an object")
+            errors = verify_signed_mission_pack(payload)
+            if errors:
+                raise ValueError("; ".join(errors))
+            print(f"[pack] verified Ed25519 signature {args.envelope}; trust remains unreviewed")
+            return 0
+        if args.command == "catalog-build":
+            catalog = build_mission_pack_catalog(args.envelopes)
+            _write_json(Path(args.out), catalog)
+            print(f"[pack] wrote catalog {args.out} with {len(catalog['entries'])} entries")
+            return 0
+        if args.command == "catalog-verify":
+            path = Path(args.catalog)
+            payload = json.loads(path.read_text())
+            if not isinstance(payload, Mapping):
+                raise ValueError("catalog root must be an object")
+            errors = verify_mission_pack_catalog(payload, path.parent)
+            if errors:
+                raise ValueError("; ".join(errors))
+            print(f"[pack] verified catalog {path}; content review remains separate")
+            return 0
+    except (OSError, RuntimeError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        print(f"[pack] commons failed: {exc}", file=sys.stderr)
+        return 2
     return 2
 
 

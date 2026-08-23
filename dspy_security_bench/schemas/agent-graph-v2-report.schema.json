@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/agent-graph-v2-report.schema.json",
+  "title": "AgentGraphTwin v2 report",
+  "type": "object",
+  "required": ["schema_version", "report_type", "scenario_version", "protocol_sha256", "adapter", "trial_isolation", "summary", "pairs", "disclaimer", "report_sha256"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 2},
+    "report_type": {"const": "AgentGraphTwin v2 / Temporal multi-agent authorization assurance"},
+    "scenario_version": {"const": "agentgraphtwin-v2"},
+    "protocol_sha256": {"$ref": "#/$defs/digest"},
+    "adapter": {"type": "string", "minLength": 1},
+    "trial_isolation": {"enum": ["fresh_adapter_per_case", "shared_adapter_across_cases"]},
+    "summary": {"type": "object"},
+    "pairs": {"type": "array", "minItems": 6, "maxItems": 6},
+    "disclaimer": {"type": "string"},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

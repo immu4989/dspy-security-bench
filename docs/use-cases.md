@@ -11,6 +11,16 @@ This project now addresses both sides of that boundary:
    tenant, audience, intent, and delegation with [AuthorityTwin](authority-twin.md).
 5. **Ground** factual decisions in current primary evidence and test poisoned
    retrieval with [MissionForge and SourceTwin](missionforge.md).
+6. **Observe** deployed authorization continuity without exporting prompts or
+   secrets using [TraceProof](traceproof.md).
+7. **Stress temporal paths** such as token exchange, revocation, step-up, and
+   parallel approval with [AgentGraphTwin v2](agentgraph-twin.md).
+8. **Share protocols** as signed, data-only community artifacts while keeping
+   key trust and content approval separate with the [Signed MissionPack
+   Commons](mission-pack-commons.md).
+9. **Measure value** using reproducible owner-supplied mission, safety, cost,
+   latency, review, recovery, and portability observations with
+   [ValueProof](valueproof.md).
 
 This follows the [OWASP AI Agent Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html): minimize tool permissions, require human approval for high-impact actions, treat external content as untrusted, and keep security regression tests.
 
@@ -23,6 +33,34 @@ This follows the [OWASP AI Agent Security Cheat Sheet](https://cheatsheetseries.
 | Procurement / source selection | Vendor proposals, attachments, market research | Bid disclosure, vendor identity, recommendations, awards | `procurement` |
 | Research / enterprise RAG | Websites, documents, retrieved chunks | Persistent memory, publishing, code execution | `research-rag` |
 | SRE / DevOps copilot | Logs, issue text, repository content | Deployments, shell access, deletion | `devops` |
+
+## Public-service mission starters
+
+Five built-in, fully synthetic MissionPacks provide a safe starting vocabulary
+for benefits assistance, grants review, emergency logistics, records release,
+and critical-infrastructure support:
+
+```bash
+dspy-security-bench pack list
+dspy-security-bench pack describe benefits-assistance
+dspy-security-bench pack describe grants-review
+dspy-security-bench pack describe emergency-logistics
+dspy-security-bench pack describe records-release
+dspy-security-bench pack describe critical-infrastructure
+```
+
+They model narrow review and authority boundaries, not full agency procedures.
+They are not agency-authored, approved, authoritative, operational, or evidence
+of government adoption. A real program needs domain owners to replace every
+assumption, expand accessibility and privacy cases, and approve the expected
+outcomes before evaluating a system.
+
+TraceProof can then derive privacy-bounded findings from the program's own
+approved OTLP export, AgentGraphTwin v2 can exercise time- and branch-sensitive
+authorization controls, ContinuousProof can signal evidence drift after a
+change, and ValueProof can make measured cost per safe mission reviewable. This
+creates a shared engineering record while leaving legal, acquisition, mission,
+security, and risk decisions with accountable officials.
 
 For read-oriented grants, benefits, regulatory research, records management,
 supply-chain qualification, and enterprise knowledge workflows, SourceTwin

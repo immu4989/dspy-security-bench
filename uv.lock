@@ -1477,7 +1477,7 @@ wheels = [
 
 [[package]]
 name = "dspy-security-bench"
-version = "0.15.0"
+version = "0.16.0"
 source = { editable = "." }
 dependencies = [
     { name = "agentdojo" },
@@ -1528,6 +1528,9 @@ openai-agents = [
 pydantic-ai = [
     { name = "pydantic-ai" },
 ]
+signing = [
+    { name = "cryptography" },
+]
 synthesis = [
     { name = "sentence-transformers" },
 ]
@@ -1541,6 +1544,7 @@ requires-dist = [
     { name = "autogen-ext", extras = ["openai"], marker = "extra == 'frameworks'", specifier = ">=0.7" },
     { name = "crewai", marker = "python_full_version < '3.14' and extra == 'crewai'", specifier = ">=1.15" },
     { name = "crewai", marker = "python_full_version < '3.14' and extra == 'frameworks'", specifier = ">=1.15" },
+    { name = "cryptography", marker = "extra == 'signing'", specifier = ">=43" },
     { name = "dspy", specifier = ">=3.3.0b1" },
     { name = "json-repair", specifier = ">=0.30" },
     { name = "jsonschema", marker = "extra == 'dev'", specifier = ">=4.23" },
@@ -1562,7 +1566,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
     { name = "sentence-transformers", marker = "extra == 'synthesis'", specifier = ">=3.0" },
 ]
-provides-extras = ["synthesis", "dev", "docs", "openai-agents", "langchain", "pydantic-ai", "crewai", "autogen", "frameworks"]
+provides-extras = ["synthesis", "dev", "docs", "signing", "openai-agents", "langchain", "pydantic-ai", "crewai", "autogen", "frameworks"]
 
 [[package]]
 name = "durationpy"

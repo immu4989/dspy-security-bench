@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes thirteen related security surfaces:
+`dspy-security-bench` exposes seventeen related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -37,6 +37,16 @@ v0.1 research choices are labeled separately from the current product surface.
     then recomputes owner-threshold drift reports offline.
 13. **AcquisitionProof** — exports content-addressed, vendor-neutral technical
     evaluation inputs while leaving source selection and risk with officials.
+14. **TraceProof** — sanitizes local OTLP JSON into pseudonymized evidence and
+    deterministically derives authorization/effect findings, SARIF, OSCAL, and
+    synthetic replay twins.
+15. **AgentGraphTwin v2** — evaluates temporal ordering, parallel branches,
+    revocation latency, and one-decision/multiple-effect authorization paths.
+16. **Signed MissionPack Commons** — signs validated data-only protocols with
+    Ed25519 and binds verified envelopes into local catalogs while keeping
+    signature trust separate from content review.
+17. **ValueProof** — recomputes owner-supplied mission, safety, cost, latency,
+    review, recovery, and portability observations without ranking candidates.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer
@@ -56,15 +66,18 @@ dspy_security_bench/
 │   ├── protocol.py             # frozen synthetic identity/authority twins
 │   ├── adapter.py              # vendor-neutral contract + reference fixtures
 │   ├── bridges.py              # external policy/IAM translation contracts
+│   ├── live.py                 # operator-command real-backend conformance
 │   ├── benchmark.py            # trace, receipt, effect, and metric recomputation
 │   ├── repeat.py               # Wilson intervals + content-addressed evidence
 │   └── cli.py                  # describe, demo, run, repeat, bundle, verify
 ├── incident/                   # inert cyber-response mission assurance
 ├── inventory/                  # bounded public inventory → synthetic pack
-├── graph/                      # multi-agent authorization-path twins
+├── graph/                      # v1 + temporal/parallel v2 authorization twins
 ├── continuous/                 # verified baseline and drift evidence
 ├── acquisition/                # neutral technical acquisition packages
-├── mission/                    # data-only MissionForge + SourceTwin protocol
+├── trace/                      # offline OTLP sanitization + deterministic rules
+├── value/                      # content-addressed observed mission economics
+├── mission/                    # data-only packs, SourceTwin, signatures/catalog
 ├── federal/                    # verified evidence to OSCAL assessment inputs
 ├── procurement/                # ImpactTwin clean/poisoned mission assurance
 │   ├── scenarios.py            # frozen synthetic procurement twin protocol

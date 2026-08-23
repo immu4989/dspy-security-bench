@@ -76,6 +76,23 @@ def build_parser() -> argparse.ArgumentParser:
     bridge_scaffold.add_argument("backend")
     bridge_scaffold.add_argument("--out", default="authority_adapter.py")
     bridge_scaffold.add_argument("--force", action="store_true")
+    bridge_run = bridge_commands.add_parser(
+        "run", help="exercise an operator-controlled real backend command"
+    )
+    bridge_run.add_argument("backend")
+    bridge_run.add_argument("--backend-version", required=True)
+    bridge_run.add_argument(
+        "--command",
+        dest="backend_command",
+        required=True,
+        help="command that reads canonical JSON on stdin and writes backend response JSON",
+    )
+    bridge_run.add_argument("--timeout", type=float, default=15.0)
+    bridge_run.add_argument("--json-out", required=True)
+    bridge_verify = bridge_commands.add_parser(
+        "verify", help="verify operator-executed backend conformance evidence offline"
+    )
+    bridge_verify.add_argument("path")
     return parser
 
 
@@ -111,7 +128,9 @@ def _bridge(args, parser: argparse.ArgumentParser) -> int:
     )
 
     if args.bridge_command is None:
-        print("Usage: dspy-security-bench authority bridge <list|demo|scaffold> [args...]")
+        print(
+            "Usage: dspy-security-bench authority bridge <list|demo|scaffold|run|verify> [args...]"
+        )
         return 0
     if args.bridge_command == "list":
         payload = [item.to_dict() for item in AUTHORITY_BRIDGES]
@@ -160,6 +179,46 @@ def _bridge(args, parser: argparse.ArgumentParser) -> int:
             f"Next: dspy-security-bench authority run --adapter "
             f"{destination.stem}:build_authority_adapter"
         )
+        return 0
+    if args.bridge_command == "run":
+        from dspy_security_bench.authority.live import run_live_bridge_conformance
+
+        try:
+            report = run_live_bridge_conformance(
+                backend=args.backend,
+                backend_version=args.backend_version,
+                command=args.backend_command,
+                timeout_seconds=args.timeout,
+            )
+        except (RuntimeError, TypeError, ValueError) as exc:
+            print(f"[authority] live bridge run failed: {exc}", file=sys.stderr)
+            return 2
+        _write_json(Path(args.json_out), report)
+        summary = report["authority_report"]["summary"]
+        print(
+            f"[authority] {args.backend}@{args.backend_version}: "
+            f"{summary['attack_resistance']:.0%} resistance, "
+            f"{summary['clean_mission_utility']:.0%} clean utility"
+        )
+        print(f"[authority] wrote self-attested live evidence {args.json_out}")
+        return 0
+    if args.bridge_command == "verify":
+        from dspy_security_bench.authority.live import verify_live_bridge_conformance
+
+        try:
+            payload = json.loads(Path(args.path).read_text())
+            if not isinstance(payload, Mapping):
+                raise ValueError("JSON root must be an object")
+            errors = verify_live_bridge_conformance(payload)
+        except (OSError, json.JSONDecodeError, ValueError) as exc:
+            errors = (str(exc),)
+        if errors:
+            print(
+                "[authority] live evidence verification failed: " + "; ".join(errors),
+                file=sys.stderr,
+            )
+            return 2
+        print(f"[authority] verified self-attested live evidence {args.path}")
         return 0
     return 2
 

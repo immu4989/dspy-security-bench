@@ -15,7 +15,7 @@ jobs:
         with:
           version: "0.12.3"
       - name: Install the pinned benchmark
-        run: uv tool install dspy-security-bench==0.15.0
+        run: uv tool install dspy-security-bench==0.16.0
       - name: Produce candidate graph evidence
         run: dspy-security-bench graph run --adapter myapp.authority:build_adapter --json-out candidate-report.json
       - name: Capture verified candidate snapshot

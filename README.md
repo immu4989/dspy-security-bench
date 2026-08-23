@@ -6,10 +6,10 @@
 
 ### Measure whether tool-using AI is robust, grounded, controlled, and authorized
 
-An open **Mission Assurance Commons** for your own agent: reproducible security
-benchmarks, public-use-case test drafting, multi-agent authorization paths,
-continuous evidence, policy-efficacy registries, vendor-neutral acquisition
-packs, and OSCAL assessment inputs.
+An open **Mission Assurance Commons** for your own agent: privacy-bounded
+operational traces, reproducible security twins, multi-agent authorization
+paths, continuous evidence, signed data-only mission protocols, measured
+mission economics, and reviewable OSCAL assessment inputs.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -18,6 +18,8 @@ packs, and OSCAL assessment inputs.
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
 [![ProofRun](https://img.shields.io/badge/ProofRun-attested%20evidence-8F78FF)](docs/proofrun.md)
+[![TraceProof](https://img.shields.io/badge/TraceProof-local%20OTLP%20evidence-5EEAD4)](docs/traceproof.md)
+[![ValueProof](https://img.shields.io/badge/ValueProof-observed%20mission%20economics-FBBF24)](docs/valueproof.md)
 [![AuthorityTwin](https://img.shields.io/badge/AuthorityTwin-delegated%20authorization-FFD36E)](docs/authority-twin.md)
 [![AgentGraphTwin](https://img.shields.io/badge/AgentGraphTwin-multi--agent%20paths-87E5FF)](docs/agentgraph-twin.md)
 [![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
@@ -41,9 +43,54 @@ packs, and OSCAL assessment inputs.
 
 ---
 
-## New: Mission Assurance Commons
+## New in v0.16: TraceProof operational assurance lab
 
-**Start with a mission—not a vendor claim.** v0.15 connects four new,
+**Bring the trace. Leave the secrets.** TraceProof converts a local
+OpenTelemetry JSON export into pseudonymized evidence, runs 12 deterministic
+authorization and effect-integrity rules, and emits reviewable JSON, SARIF,
+OSCAL 1.2.2 Assessment Results, and a synthetic replay twin. It connects to no
+collector or model provider and removes prompts, completions, tool arguments,
+credentials, identifiers, and unapproved attributes by default.
+
+```bash
+pip install dspy-security-bench
+dspy-security-bench trace demo --out-dir artifacts/traceproof
+dspy-security-bench trace init-policy --out traceproof-redaction.yaml
+# Review the generated allowlist before processing local telemetry.
+dspy-security-bench trace import otlp-export.json \
+  --policy traceproof-redaction.yaml \
+  --out artifacts/trace-evidence.json
+dspy-security-bench trace analyze artifacts/trace-evidence.json \
+  --out artifacts/trace-report.json \
+  --sarif-out artifacts/trace-results.sarif
+```
+
+v0.16 also adds:
+
+- **AgentGraphTwin v2** for temporal ordering, parallel approval races,
+  revocation latency, token exchange, and multi-effect authorization paths;
+- an opt-in **live AuthorityBridge runner** for a declared OPA, Cedar, OpenFGA,
+  OAuth-bound MCP, or SPIFFE backend command;
+- **Signed MissionPack Commons** with Ed25519 envelopes, offline catalogs, and
+  five clearly synthetic public-service pack examples; and
+- **ValueProof**, which recomputes owner-measured cost per safe mission,
+  latency, review, recovery, and portability observations without ranking
+  candidates or forecasting savings.
+
+All results remain technical inputs, not certification, compliance, source
+selection, risk acceptance, government endorsement, or authorization to
+operate.
+
+[Read the TraceProof privacy and evidence contract →](docs/traceproof.md) ·
+[Run temporal AgentGraphTwin v2 →](docs/agentgraph-twin.md) ·
+[Sign a data-only MissionPack →](docs/mission-pack-commons.md) ·
+[Measure mission economics →](docs/valueproof.md)
+
+---
+
+## Mission Assurance Commons foundation
+
+**Start with a mission—not a vendor claim.** v0.15 introduced four
 independently verifiable workflows:
 
 1. **InventoryForge** turns a bounded local public AI inventory into a
@@ -247,7 +294,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.15.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.16.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -471,7 +518,7 @@ The recommended reusable workflow produces the bundle and shareable SVG card:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.15.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.16.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent
@@ -613,11 +660,15 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 | 🏆 **Compare models** | A frozen, reproducible [leaderboard](LEADERBOARD.md) of base-model injection-robustness — 14 models across 10 families, from frontier to open-weights. |
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
 | 🔌 **Connect your framework** | Run [`integrate`](docs/integrations.md) for OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, or an MCP/custom callback, then validate it without model spend using `doctor`. |
+| ✈️ **Sanitize operational traces** | Use [TraceProof](docs/traceproof.md) to keep OTLP processing local, remove prompts and secrets, find 12 authorization/effect failures, and export JSON, SARIF, OSCAL, or a synthetic replay twin. |
+| 🕸️ **Test multi-agent authority** | Run [AgentGraphTwin v2](docs/agentgraph-twin.md) against token exchange, revocation, step-up, parallel approval, and multi-effect paths. |
 | 🧾 **Produce verifiable evidence** | Use [ProofRun](docs/proofrun.md) to preserve raw repeated trials, recompute statistics offline, and attach GitHub/Sigstore provenance to the exact result bytes. |
 | 🌐 **Publish control evidence** | Add a policy-bound experiment to the [Open Control Evidence Registry](docs/control-evidence-registry.md), with raw paired trials, honest uncertainty, provenance tiers, and a shareable evidence card. |
 | ⚖️ **Measure mission impact** | Run [ImpactTwin / ProcureBench](docs/impact-twin.md): clean/poisoned procurement twins that score decision drift, protected-data release, authority bypass, and synthetic funds at risk. |
 | 🧪 **Prove a control works** | Run [ControlTwin](docs/control-twin.md) for a functional policy-off/on delta, then [RepeatControlTwin](docs/repeat-control-twin.md) for uncertainty bounds, effect stability, and conservative CI gates. |
 | 🔐 **Enforce least agency** | Put deterministic policy around live tool calls: allow, deny, or require approval. Includes [production profiles](docs/use-cases.md) for support, finance, RAG, and DevOps. |
+| ✍️ **Share data-only protocols** | Sign and catalog reviewed MissionPacks with the [Signed MissionPack Commons](docs/mission-pack-commons.md), keeping signature validity separate from content trust. |
+| 📐 **Recompute mission value** | Use [ValueProof](docs/valueproof.md) for owner-measured cost per safe mission, latency, human review, recovery, and portability—with no rankings or forecasts. |
 | 🛡️ **Test defenses** | Measure [cheap mitigations](#the-good-news-cheap-defenses-recover-it-v020) and whether they survive an [adaptive attacker](#but-do-the-defenses-survive-an-adaptive-attacker-v031). |
 | 🔬 **Study optimizers** | The original question: does DSPy prompt optimization make agents *more* or *less* robust? |
 | 📚 **Get oriented in the literature** | [RELATED_WORK.md](RELATED_WORK.md) — a sourced map of agentic prompt-injection work as of August 2026, including which well-known "leaderboards" rank detectors or humans rather than models. |
@@ -1251,6 +1302,8 @@ v0.1 scope choices:
 | v0.12 — IncidentTwin cyber-response missions, FederalProof OSCAL exports, and supply-chain hardening | **shipped** |
 | v0.13 — MissionForge data-only evaluation SDK and SourceTwin deterministic grounding probes | **shipped** |
 | v0.14 — AuthorityTwin delegated-authorization conformance, normalized receipts, public evidence, and federal export | **shipped** |
+| v0.15 — Mission Assurance Commons, InventoryForge, AgentGraphTwin, ContinuousProof, AuthorityBridge, and AcquisitionProof | **shipped** |
+| v0.16 — TraceProof, AgentGraphTwin v2, live AuthorityBridge, signed MissionPack Commons, and ValueProof | **shipped** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

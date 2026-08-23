@@ -15,9 +15,12 @@ numeric metrics, and its own canonical digest. A drift report records identity
 changes, all common metric deltas, directionality, the owner-supplied threshold,
 and whether review is needed.
 
-Supported v1 source reports are AgentGraphTwin, AuthorityTwin, MissionPackTwin,
-and IncidentTwin. The source report is independently verified before a baseline
-can be created.
+Supported source reports are AgentGraphTwin v1/v2, AuthorityTwin,
+MissionPackTwin, IncidentTwin, TraceProof analysis, and ValueProof observations.
+The source report is independently verified before a baseline can be created.
+Directionality is explicit: higher security/utility rates are better, while
+findings, severity counts, unsafe effects, cost, latency, review time, recovery
+time, and portability rework are lower-is-better.
 
 ContinuousProof is evidence-change detection, not a production observer. It
 does not schedule tests, monitor infrastructure, choose thresholds, accept

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/signed-mission-pack.schema.json",
+  "title": "Signed MissionPack Commons envelope",
+  "type": "object",
+  "required": ["schema_version", "envelope_type", "algorithm", "signer", "public_key_spki_base64", "public_key_sha256", "payload", "payload_sha256", "signature_base64", "trust_status", "disclaimer", "envelope_sha256"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "envelope_type": {"const": "dspy-security-bench-signed-mission-pack"},
+    "algorithm": {"const": "Ed25519"},
+    "signer": {"type": "string", "minLength": 1},
+    "public_key_spki_base64": {"type": "string", "minLength": 1},
+    "public_key_sha256": {"$ref": "#/$defs/digest"},
+    "payload": {"type": "object"},
+    "payload_sha256": {"$ref": "#/$defs/digest"},
+    "signature_base64": {"type": "string", "minLength": 1},
+    "trust_status": {"const": "cryptographically_valid_unreviewed"},
+    "disclaimer": {"type": "string"},
+    "envelope_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

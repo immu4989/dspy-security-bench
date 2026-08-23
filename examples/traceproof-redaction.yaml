@@ -1,0 +1,47 @@
+schema_version: 1
+policy_id: traceproof-example-default-deny
+allow_attributes:
+  - gen_ai.agent.name
+  - gen_ai.operation.name
+  - gen_ai.request.model
+  - gen_ai.response.model
+  - gen_ai.tool.name
+  - mcp.method.name
+  - mcp.tool.name
+  - rpc.method
+  - server.address
+  - service.name
+  - error.type
+hash_attributes:
+  - agent.id
+  - agent_id
+  - enduser.id
+  - principal.id
+  - principal_id
+  - session.id
+  - session_id
+  - tenant
+  - user.id
+drop_attributes:
+  - access_token
+  - api_key
+  - apikey
+  - arguments
+  - authorization
+  - completion
+  - content
+  - cookie
+  - message
+  - password
+  - private_key
+  - prompt
+  - refresh_token
+  - request.body
+  - response.body
+  - secret
+  - tool.call.arguments
+allow_dsb_security_attributes: true
+keep_span_names: false
+max_spans: 10000
+max_attributes_per_span: 256
+max_value_chars: 512

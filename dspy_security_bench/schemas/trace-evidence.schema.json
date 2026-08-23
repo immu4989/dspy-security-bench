@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/trace-evidence.schema.json",
+  "title": "TraceProof normalized trace evidence",
+  "type": "object",
+  "required": ["schema_version", "evidence_type", "source_sha256", "policy_sha256", "trace_count", "span_count", "spans", "redaction_summary", "evidence_sha256", "disclaimer"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "evidence_type": {"const": "traceproof-normalized-trace"},
+    "source_format": {"const": "opentelemetry-json"},
+    "source_sha256": {"$ref": "#/$defs/digest"},
+    "policy": {"type": "object"},
+    "policy_sha256": {"$ref": "#/$defs/digest"},
+    "salt_sha256": {"$ref": "#/$defs/digest"},
+    "trace_count": {"type": "integer", "minimum": 1},
+    "span_count": {"type": "integer", "minimum": 1, "maximum": 10000},
+    "spans": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "required": ["trace_id", "span_id", "parent_span_id", "name", "kind", "start_time_unix_nano", "duration_ms", "status", "scope", "resource", "attributes", "events"],
+        "additionalProperties": false,
+        "properties": {
+          "trace_id": {"$ref": "#/$defs/pseudonym"},
+          "span_id": {"$ref": "#/$defs/pseudonym"},
+          "parent_span_id": {"oneOf": [{"$ref": "#/$defs/pseudonym"}, {"type": "null"}]},
+          "name": {"type": "string", "maxLength": 512},
+          "kind": {"type": "string"},
+          "start_time_unix_nano": {"type": "integer", "minimum": 0},
+          "duration_ms": {"type": "number", "minimum": 0},
+          "status": {"type": "string"},
+          "scope": {"type": "string"},
+          "resource": {"type": "object"},
+          "attributes": {"type": "object"},
+          "events": {"type": "array"}
+        }
+      }
+    },
+    "redaction_summary": {"type": "object"},
+    "disclaimer": {"type": "string"},
+    "evidence_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "pseudonym": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

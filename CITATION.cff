@@ -11,7 +11,7 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.15.0
+version: 0.16.0
 date-released: 2026-08-23
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
@@ -62,6 +62,14 @@ abstract: >-
   AcquisitionProof exports vendor-neutral mission test plans, owner-defined
   QASP objective inputs, portability checks, cost-observation fields, and
   reevaluation triggers without automating a procurement decision.
+  TraceProof converts operator-supplied OpenTelemetry JSON into privacy-bounded,
+  pseudonymized evidence; applies deterministic authorization and external-effect
+  rules; and exports synthetic replay twins, SARIF, and OSCAL observations.
+  AgentGraphTwin v2 adds temporal ordering, token exchange, delegation continuity,
+  step-up approval, revocation, parallel races, and multi-effect boundaries.
+  ValueProof computes measured mission economics without forecasts or rankings.
+  MissionPack Commons adds self-contained Ed25519 envelopes and a separately
+  governed, content-addressed catalog for community mission protocols.
 keywords:
   - prompt-injection
   - llm-security
@@ -86,6 +94,10 @@ keywords:
   - multi-agent-systems
   - continuous-assurance
   - ai-acquisition
+  - opentelemetry
+  - mcp-security
+  - agent-observability
+  - mission-economics
   - agentdojo
   - dspy
 # doi: "10.5281/zenodo.XXXXXXX"

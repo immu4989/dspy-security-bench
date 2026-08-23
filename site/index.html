@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="An open mission-assurance commons for AI agents: authorization paths, public-use-case test packs, continuous regression evidence, and vendor-neutral acquisition packages.">
+  <meta name="description" content="A privacy-first mission-assurance commons for AI agents: sanitize operational traces, replay authorization failures, test public missions, and export reviewable evidence.">
   <meta property="og:title" content="DSPy Security Bench — Mission Assurance Commons">
-  <meta property="og:description" content="Turn public AI missions into synthetic tests, trace authority across agent graphs, detect evidence drift, and export reviewable acquisition inputs.">
+  <meta property="og:description" content="TraceProof turns local agent telemetry into sanitized evidence, deterministic security findings, synthetic replays, SARIF, and OSCAL—without uploading prompts or secrets.">
   <meta property="og:image" content="assets/mission-assurance-commons-v015.png">
   <meta name="twitter:card" content="summary_large_image">
   <title>DSPy Security Bench — Measure before you trust</title>
@@ -27,6 +27,7 @@
         <span>DSPy <b>Security Bench</b></span>
       </a>
       <div class="nav-links" id="nav-links">
+        <a href="#traceproof">TraceProof</a>
         <a href="#commons">Commons</a>
         <a href="#leaderboard">Leaderboard</a>
         <a href="#connect">Connect</a>
@@ -50,7 +51,7 @@
       <div class="hero-content reveal">
         <div class="eyebrow"><span class="pulse"></span> Mission Assurance Commons · open evidence</div>
         <h1>Make agent trust<br><em>inspectable.</em></h1>
-        <p class="hero-copy">Turn real public missions into safe synthetic tests, trace delegated authority across agent graphs, catch regressions, and export decision-ready evidence—without automating the accountable decision.</p>
+        <p class="hero-copy">Sanitize real agent traces locally, replay authorization failures as safe synthetic twins, test public missions, catch regressions, and export reviewable evidence—without automating the accountable decision.</p>
         <div class="hero-actions">
           <a class="button primary" href="#commons">Enter the commons <span aria-hidden="true">↓</span></a>
           <a class="button secondary" href="https://github.com/immu4989/dspy-security-bench">Run it locally <span aria-hidden="true">→</span></a>
@@ -67,8 +68,71 @@
     <section class="metrics" aria-label="Benchmark summary">
       <div class="metric reveal"><span class="metric-value" data-model-count>14</span><span class="metric-label">models measured</span></div>
       <div class="metric reveal"><span class="metric-value" data-family-count>10</span><span class="metric-label">model families</span></div>
-      <div class="metric reveal"><span class="metric-value">5 bridges</span><span class="metric-label">policy + identity ecosystems</span></div>
-      <div class="metric reveal"><span class="metric-value">6 graph twins</span><span class="metric-label">multi-agent authority paths</span></div>
+      <div class="metric reveal"><span class="metric-value">12 trace rules</span><span class="metric-label">authorization + effect signals</span></div>
+      <div class="metric reveal"><span class="metric-value">6 temporal twins</span><span class="metric-label">parallel + multi-effect paths</span></div>
+    </section>
+
+    <section class="section traceproof-section" id="traceproof" aria-labelledby="traceproof-title">
+      <div class="traceproof-grid" aria-hidden="true"></div>
+      <div class="traceproof-heading reveal">
+        <div>
+          <span class="section-kicker">New · TraceProof agent flight recorder</span>
+          <h2 id="traceproof-title">Bring the trace.<br><em>Leave the secrets.</em></h2>
+        </div>
+        <p>Transform a local OpenTelemetry export into a pseudonymized evidence graph, deterministic authorization findings, a synthetic replay twin, SARIF, and OSCAL. Raw prompts, tool arguments, credentials, and unapproved attributes are removed by default.</p>
+      </div>
+
+      <div class="flight-recorder reveal">
+        <div class="flight-topbar">
+          <span><i></i> OFFLINE / LOCAL CUSTODY</span>
+          <code>TRACEPROOF::SANITIZER::V1</code>
+          <b>NO COLLECTOR CONNECTION</b>
+        </div>
+        <div class="flight-body">
+          <article class="trace-ingest">
+            <header><span>01</span><div><b>Ingest</b><small>OTLP JSON export</small></div></header>
+            <ul>
+              <li><span>trace + span IDs</span><b>HASH</b></li>
+              <li class="removed"><span>prompt content</span><b>DROP</b></li>
+              <li class="removed"><span>tool arguments</span><b>DROP</b></li>
+              <li class="removed"><span>access tokens</span><b>DROP</b></li>
+              <li><span>authorization signals</span><b>KEEP</b></li>
+            </ul>
+            <div class="privacy-meter"><span>privacy boundary</span><i></i><strong>DEFAULT DENY</strong></div>
+          </article>
+
+          <div class="flight-path" aria-label="Sanitized trace path from human intent through two agents to an MCP tool">
+            <div class="path-line"></div>
+            <div class="path-node safe"><i>01</i><span>human intent</span><small>pseudonymized</small></div>
+            <div class="path-node safe"><i>02</i><span>orchestrator</span><small>scope: read</small></div>
+            <div class="path-node danger"><i>03</i><span>worker agent</span><small>scope: write</small></div>
+            <div class="path-node blocked"><i>04</i><span>MCP effect</span><small>contained</small></div>
+            <div class="flight-alert"><span>FIRST UNSAFE EDGE</span><strong>scope exceeds grant</strong><code>TP004 · HIGH</code></div>
+          </div>
+
+          <article class="trace-outputs">
+            <header><span>03</span><div><b>Evidence</b><small>review, replay, automate</small></div></header>
+            <div class="finding-stack">
+              <div class="critical"><span>TP002</span><b>Audience mismatch</b><small>critical</small></div>
+              <div class="critical"><span>TP003</span><b>Token passthrough</b><small>critical</small></div>
+              <div class="high"><span>TP004</span><b>Scope exceeds grant</b><small>high</small></div>
+            </div>
+            <ul class="export-rail" aria-label="TraceProof export formats">
+              <li>JSON</li><li>SARIF</li><li>OSCAL 1.2.2</li><li>SYNTHETIC TWIN</li>
+            </ul>
+          </article>
+        </div>
+        <div class="flight-footer">
+          <div><span>$</span><code>dspy-security-bench trace demo --out-dir artifacts/traceproof</code></div>
+          <button id="trace-copy" type="button">Copy command</button>
+          <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof.md">Open TraceProof guide <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+
+      <div class="traceproof-boundary reveal">
+        <strong>What this proves</strong><span>the supplied sanitized bytes, deterministic rule results, and content-addressed replay</span>
+        <strong>What remains human</strong><span>trace completeness, operational context, severity acceptance, compliance, and deployment decisions</span>
+      </div>
     </section>
 
     <section class="section commons-section" id="commons" aria-labelledby="commons-title">
@@ -88,7 +152,7 @@
         </article>
         <i aria-hidden="true">→</i>
         <article>
-          <span>02 / TRACE</span><b>AgentGraphTwin</b><p>Find the first unsafe authorization edge and calculate synthetic blast radius.</p><code>graph run</code>
+          <span>02 / TRACE</span><b>TraceProof + GraphTwin</b><p>Sanitize field traces, then find unsafe temporal, parallel, and multi-effect paths.</p><code>trace analyze · graph v2-run</code>
         </article>
         <i aria-hidden="true">→</i>
         <article>
@@ -106,8 +170,8 @@
           <h3>See where delegated authority breaks.</h3>
           <p>AgentGraphTwin keeps the mission fixed while mutating exactly one security-relevant edge. Receipts bind the request, adapter, policy, principal, decision, and reason.</p>
           <dl>
-            <div><dt>Pairs</dt><dd>06</dd></div>
-            <div><dt>Graph hops</dt><dd>03</dd></div>
+            <div><dt>V2 pairs</dt><dd>06</dd></div>
+            <div><dt>Path modes</dt><dd>04</dd></div>
             <div><dt>Real effects</dt><dd>00</dd></div>
           </dl>
         </div>
@@ -132,7 +196,7 @@
           <li><b>OAuth + MCP</b><small>token-bound tools</small></li>
           <li><b>SPIFFE</b><small>workload identity</small></li>
         </ul>
-        <p>Compatibility fixtures validate translation into the benchmark contract. They do not execute, certify, or endorse the named backend.</p>
+        <p>Translation fixtures remain clearly labeled and do not execute, certify, or endorse the named backend. The operator-controlled command runner can execute a declared backend and version locally, producing self-attested conformance evidence without recording credentials or the command itself.</p>
       </div>
 
       <div class="commons-actions reveal">
@@ -316,7 +380,7 @@
 
 <span class="yaml-key">jobs:</span>
   <span class="yaml-key">proofrun:</span>
-    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.15.0
+    <span class="yaml-key">uses:</span> immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.16.0
     <span class="yaml-key">with:</span>
       <span class="yaml-key">agent:</span> myapp.security:build_agent
       <span class="yaml-key">trials:</span> 10</code></pre>
@@ -743,7 +807,7 @@
       <div class="mission-aurora" aria-hidden="true"></div>
       <div class="mission-heading reveal">
         <div>
-          <span class="section-kicker">Public-sector mission assurance · v0.15</span>
+          <span class="section-kicker">Public-sector mission assurance · v0.16</span>
           <h2 id="mission-title">From agent action<br><em>to reviewable evidence.</em></h2>
         </div>
         <p>Exercise a cyber-response agent inside an inert digital twin, repeat the exact counterfactual protocol, and transform verified evidence into standards-shaped assessment inputs—without claiming certification.</p>

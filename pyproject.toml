@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dspy-security-bench"
-version = "0.15.0"
+version = "0.16.0"
 description = "Open mission-assurance commons for secure, authorized, and reviewable AI agents."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -47,6 +47,11 @@ keywords = [
     "multi-agent-systems",
     "continuous-assurance",
     "ai-acquisition",
+    "opentelemetry",
+    "agent-observability",
+    "mcp-security",
+    "mission-economics",
+    "ed25519",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -86,6 +91,9 @@ dev = [
 docs = [
     "mkdocs>=1.6",
     "mkdocs-material>=9.5",
+]
+signing = [
+    "cryptography>=43",
 ]
 openai-agents = [
     "openai-agents>=0.20",
@@ -131,6 +139,9 @@ AgentGraphTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs
 InventoryForge = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/inventoryforge.md"
 ContinuousProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/continuousproof.md"
 AcquisitionProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/acquisitionproof.md"
+TraceProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof.md"
+ValueProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/valueproof.md"
+"MissionPack Commons" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/mission-pack-commons.md"
 "Control Evidence Registry" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/control-evidence-registry.md"
 Integrations = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/integrations.md"
 "Impact Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/impact"

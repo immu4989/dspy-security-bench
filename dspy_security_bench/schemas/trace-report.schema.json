@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/trace-report.schema.json",
+  "title": "TraceProof deterministic analysis report",
+  "type": "object",
+  "required": ["schema_version", "report_type", "source_evidence_sha256", "policy_sha256", "summary", "rules", "findings", "disclaimer", "report_sha256"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "TraceProof / Privacy-bounded agent trace analysis"},
+    "source_evidence_sha256": {"$ref": "#/$defs/digest"},
+    "policy_sha256": {"$ref": "#/$defs/digest"},
+    "summary": {"type": "object"},
+    "rules": {"type": "array", "minItems": 12, "maxItems": 12},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["finding_id", "rule_id", "severity", "trace_id", "span_id", "title", "evidence", "remediation"],
+        "additionalProperties": false,
+        "properties": {
+          "finding_id": {"type": "string", "pattern": "^[0-9a-f]{24}$"},
+          "rule_id": {"type": "string", "pattern": "^TP0(0[1-9]|1[0-2])$"},
+          "severity": {"enum": ["critical", "high", "medium", "low"]},
+          "trace_id": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+          "span_id": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+          "title": {"type": "string"},
+          "evidence": {"type": "object"},
+          "remediation": {"type": "string"}
+        }
+      }
+    },
+    "disclaimer": {"type": "string"},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

@@ -11,6 +11,16 @@ from dspy_security_bench.continuous.proof import (
     verify_continuous_proof,
 )
 from dspy_security_bench.graph.benchmark import run_agent_graph_twin
+from dspy_security_bench.graph.v2 import (
+    build_bounded_temporal_graph_adapter,
+    run_agent_graph_twin_v2,
+)
+from dspy_security_bench.trace.proof import (
+    analyze_trace_evidence,
+    build_trace_evidence,
+    demo_otlp_payload,
+)
+from dspy_security_bench.value.proof import build_value_proof, measurement_template
 
 
 def _report():
@@ -63,3 +73,23 @@ def test_rehashed_extra_continuous_claim_is_rejected():
 
     baseline["proof_sha256"] = canonical_sha256(baseline)
     assert "snapshot fields are incomplete or unsupported" in verify_continuous_proof(baseline)
+
+
+def test_continuousproof_accepts_trace_graph_v2_and_value_evidence():
+    trace = analyze_trace_evidence(build_trace_evidence(demo_otlp_payload()))
+    graph = run_agent_graph_twin_v2(
+        build_bounded_temporal_graph_adapter(),
+        adapter_factory=build_bounded_temporal_graph_adapter,
+    )
+    measurement = measurement_template()
+    measurement.update(successful_missions=90, safe_missions=80, total_observed_cost=100.0)
+    value = build_value_proof(measurement)
+    snapshots = [
+        build_evidence_snapshot(trace, label="trace"),
+        build_evidence_snapshot(graph, label="graph-v2"),
+        build_evidence_snapshot(value, label="value"),
+    ]
+    assert [item["evidence_kind"] for item in snapshots] == ["trace", "agent-graph-v2", "value"]
+    assert all(verify_continuous_proof(item) == () for item in snapshots)
+    assert snapshots[0]["metrics"]["summary.critical"] == 2.0
+    assert snapshots[2]["metrics"]["summary.cost_per_safe_mission"] == 1.25

@@ -7,6 +7,8 @@ Subcommands:
   graph       Trace authorization failures across multi-agent execution paths.
   watch       Detect assurance regressions from verified evidence baselines.
   acquisition Export vendor-neutral, owner-governed evaluation packages.
+  trace       Turn local agent telemetry into privacy-bounded assurance evidence.
+  value       Recompute owner-supplied mission economics without ranking.
   authority   Test agent identity and delegated-authorization enforcement.
   impact      Run counterfactual procurement mission-assurance tests.
   incident    Run synthetic cyber-response mission-assurance tests.
@@ -72,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__)
         print(
             "Usage: dspy-security-bench "
-            "<init|integrate|doctor|scan|impact|incident|pack|authority|inventory|graph|watch|acquisition|policy|proofrun|federal|synthesize|validate> [args...]"
+            "<init|integrate|doctor|scan|impact|incident|pack|authority|inventory|graph|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
         )
         return 0
 
@@ -123,6 +125,14 @@ def main(argv: list[str] | None = None) -> int:
         from dspy_security_bench.acquisition.cli import main as acquisition_main
 
         return acquisition_main(rest)
+    if sub == "trace":
+        from dspy_security_bench.trace.cli import main as trace_main
+
+        return trace_main(rest)
+    if sub == "value":
+        from dspy_security_bench.value.cli import main as value_main
+
+        return value_main(rest)
     if sub == "policy":
         from dspy_security_bench.policy_cli import main as policy_main
 
@@ -148,7 +158,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"unknown subcommand {sub!r}. Use: "
-        "init | integrate | doctor | scan | impact | incident | pack | authority | inventory | graph | watch | acquisition | policy | proofrun | federal | synthesize | validate",
+        "init | integrate | doctor | scan | impact | incident | pack | authority | inventory | graph | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
         file=sys.stderr,
     )
     return 2

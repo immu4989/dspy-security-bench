@@ -85,7 +85,15 @@ def canonical_sha256(payload: Any) -> str:
 
 
 def builtin_pack_path(name: str = "source-twin"):
-    aliases = {"source-twin": "source-twin-v1.yaml", "source-twin-v1": "source-twin-v1.yaml"}
+    aliases = {
+        "source-twin": "source-twin-v1.yaml",
+        "source-twin-v1": "source-twin-v1.yaml",
+        "benefits-assistance": "benefits-assistance-v1.yaml",
+        "grants-review": "grants-review-v1.yaml",
+        "emergency-logistics": "emergency-logistics-v1.yaml",
+        "records-release": "records-release-v1.yaml",
+        "critical-infrastructure": "critical-infrastructure-v1.yaml",
+    }
     try:
         filename = aliases[name]
     except KeyError as exc:
@@ -100,7 +108,15 @@ def load_mission_pack(path_or_builtin: str | Path | Mapping[str, Any]) -> Missio
         return validate_mission_pack(path_or_builtin, source="<mapping>")
     value = str(path_or_builtin)
     resource = None
-    if value in {"source-twin", "source-twin-v1"}:
+    if value in {
+        "source-twin",
+        "source-twin-v1",
+        "benefits-assistance",
+        "grants-review",
+        "emergency-logistics",
+        "records-release",
+        "critical-infrastructure",
+    }:
         resource = builtin_pack_path(value)
         text = resource.read_text()
         source = f"builtin:{value}"

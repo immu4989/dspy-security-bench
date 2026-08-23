@@ -227,6 +227,21 @@ def test_site_presents_mission_assurance_commons_with_accountable_boundaries():
     assert 'bindCommandCopy("#graph-copy"' in script
 
 
+def test_site_presents_traceproof_as_local_privacy_bounded_evidence():
+    page = (SITE / "index.html").read_text()
+    assert 'id="traceproof"' in page
+    assert "Bring the trace" in page
+    assert "OFFLINE / LOCAL CUSTODY" in page
+    assert "TRACEPROOF::SANITIZER::V1" in page
+    assert "Raw prompts" in page
+    assert "SARIF" in page
+    assert "OSCAL 1.2.2" in page
+    assert "dspy-security-bench trace demo --out-dir artifacts/traceproof" in page
+
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#trace-copy"' in script
+
+
 def test_site_presents_control_registry_as_evidence_not_certification():
     page = (SITE / "index.html").read_text()
     assert 'id="control-registry"' in page

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "mission_id": "synthetic-records-assistance",
+  "measurement_id": "replace-with-local-observation-id",
+  "candidate": "replace-with-system-under-test",
+  "protocol_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "boundary": "Replace with model, tools, policy, infrastructure, and included cost categories.",
+  "currency": "USD",
+  "attempted_missions": 100,
+  "successful_missions": 0,
+  "safe_missions": 0,
+  "total_observed_cost": 0.0,
+  "total_latency_ms": 0.0,
+  "human_review_minutes": 0.0,
+  "recovery_minutes": 0.0,
+  "portability_rework_hours": 0.0,
+  "observation_basis": "Template values are not evidence; replace every field with measured local observations."
+}
