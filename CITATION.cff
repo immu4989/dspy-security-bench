@@ -11,8 +11,8 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.14.0
-date-released: 2026-08-19
+version: 0.15.0
+date-released: 2026-08-23
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
 url: "https://github.com/immu4989/dspy-security-bench"
@@ -52,6 +52,16 @@ abstract: >-
   decision receipts, simulated-effect containment, repeated uncertainty,
   content-addressed public evidence, ProofRun provenance, and FederalProof
   assessment export.
+  InventoryForge turns bounded public AI-use-case inventories into contact-free,
+  tamper-evident normalization reports and explicitly synthetic MissionPack
+  drafts requiring accountable review. AgentGraphTwin traces six multi-agent
+  authorization-path mutations, attributing first unsafe edge and synthetic
+  blast radius. AuthorityBridge provides translation contracts for OPA, Cedar,
+  OpenFGA, OAuth-bound MCP tools, and SPIFFE. ContinuousProof compares verified
+  evidence identities and metrics using owner-supplied thresholds.
+  AcquisitionProof exports vendor-neutral mission test plans, owner-defined
+  QASP objective inputs, portability checks, cost-observation fields, and
+  reevaluation triggers without automating a procurement decision.
 keywords:
   - prompt-injection
   - llm-security
@@ -73,6 +83,9 @@ keywords:
   - delegated-authorization
   - authorization-conformance
   - zero-trust
+  - multi-agent-systems
+  - continuous-assurance
+  - ai-acquisition
   - agentdojo
   - dspy
 # doi: "10.5281/zenodo.XXXXXXX"

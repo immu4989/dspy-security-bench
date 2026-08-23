@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/continuous-proof.schema.json",
+  "title": "ContinuousProof snapshot or drift report",
+  "type": "object",
+  "required": ["schema_version", "proof_type", "disclaimer", "proof_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "proof_type": {"enum": ["dspy-security-bench-continuousproof-snapshot", "dspy-security-bench-continuousproof-drift"]},
+    "disclaimer": {"type": "string", "minLength": 1},
+    "proof_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"proof_type": {"const": "dspy-security-bench-continuousproof-snapshot"}}},
+      "then": {"required": ["label", "evidence_kind", "evidence_sha256", "identity", "metrics"]},
+      "else": {"required": ["evidence_kind", "baseline", "candidate", "policy", "identity_changes", "metric_changes", "status"]}
+    }
+  ]
+}

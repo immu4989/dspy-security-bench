@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dspy-security-bench"
-version = "0.14.0"
-description = "Agent authorization conformance lab, mission-assurance benchmark, CI gate, and attested evidence pipeline."
+version = "0.15.0"
+description = "Open mission-assurance commons for secure, authorized, and reviewable AI agents."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
@@ -44,6 +44,9 @@ keywords = [
     "delegated-authorization",
     "authorization-conformance",
     "zero-trust",
+    "multi-agent-systems",
+    "continuous-assurance",
+    "ai-acquisition",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -124,6 +127,10 @@ FederalProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/f
 MissionForge = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/missionforge.md"
 SourceTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/missionforge.md"
 AuthorityTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/authority-twin.md"
+AgentGraphTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/agentgraph-twin.md"
+InventoryForge = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/inventoryforge.md"
+ContinuousProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/continuousproof.md"
+AcquisitionProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/acquisitionproof.md"
 "Control Evidence Registry" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/control-evidence-registry.md"
 Integrations = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/integrations.md"
 "Impact Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/impact"

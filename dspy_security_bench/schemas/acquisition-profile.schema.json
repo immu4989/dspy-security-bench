@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/acquisition-profile.schema.json",
+  "title": "AcquisitionProof owner profile",
+  "type": "object",
+  "required": ["schema_version", "profile_type", "acquisition_id", "mission", "outcomes", "portability", "pricing", "data_governance", "reevaluation_triggers"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "profile_type": {"const": "dspy-security-bench-acquisitionproof-profile"},
+    "acquisition_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "mission": {"type": "object", "required": ["name", "description", "owner"], "additionalProperties": false, "properties": {"name": {"type": "string", "minLength": 1}, "description": {"type": "string", "minLength": 1}, "owner": {"type": "string", "minLength": 1}}},
+    "outcomes": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "metric", "direction", "target", "rationale"], "additionalProperties": false, "properties": {"id": {"type": "string"}, "metric": {"type": "string", "minLength": 1}, "direction": {"enum": ["at_least", "at_most"]}, "target": {"type": "number"}, "rationale": {"type": "string", "minLength": 1}}}},
+    "portability": {"type": "object"},
+    "pricing": {"type": "object"},
+    "data_governance": {"type": "object"},
+    "reevaluation_triggers": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  }
+}

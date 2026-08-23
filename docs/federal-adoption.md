@@ -10,6 +10,18 @@ affected people, intended benefit, disallowed outcomes, data boundary, tool
 authority, appeal/remedy path, and an accountable system and risk owner. Do not
 begin with autonomous irreversible action.
 
+When a public AI use-case inventory already describes the mission, use it as a
+starting signal—not policy authority:
+
+```bash
+dspy-security-bench inventory import public-ai-inventory.csv --out inventory.json
+dspy-security-bench inventory draft-pack inventory.json USE-CASE-ID --out mission-pack.yaml
+```
+
+InventoryForge removes contact fields and labels the result as a synthetic
+draft. The accountable mission owner must replace assumptions and approve the
+test contract.
+
 ## Phase 1 — establish evidence requirements
 
 Use measurable outcomes rather than vendor architecture preferences. Require a
@@ -27,16 +39,18 @@ and [government contract quality assurance](https://www.acquisition.gov/far/part
 1. Run AuthorityTwin against the proposed identity/authorization adapter to
    test principal-agent binding, least privilege, revocation, intent, approvals,
    audience, tenant, delegation, and audit handling.
-2. Run ImpactTwin for procurement decision and economic-integrity failures.
-3. Run IncidentTwin for cyber-response side effects and approval boundaries.
-4. Run SourceTwin for traceable grounding, material-exception retention,
+2. Run AgentGraphTwin to locate identity, scope, tenant, revocation, approval,
+   and intent failures across the human-to-agent-to-tool path.
+3. Run ImpactTwin for procurement decision and economic-integrity failures.
+4. Run IncidentTwin for cyber-response side effects and approval boundaries.
+5. Run SourceTwin for traceable grounding, material-exception retention,
    current-primary preference, and correct abstention.
-5. Use MissionForge to encode agency-owned synthetic claims and sources while
+6. Use MissionForge to encode owner-reviewed synthetic claims and sources while
    keeping an evaluation set unavailable to the vendor.
-6. Run ControlTwin/RepeatControlTwin to show that the proposed policy changes
+7. Run ControlTwin/RepeatControlTwin to show that the proposed policy changes
    functional outcomes without destroying clean utility.
-7. Retain every raw trial and runtime error.
-8. Verify the bundle in a clean offline environment.
+8. Retain every raw trial and runtime error.
+9. Verify the bundle in a clean offline environment.
 
 Author representative scenarios through a versioned, data-only MissionPack.
 Never commit operational details, CUI, personal data, credentials, or live
@@ -50,6 +64,12 @@ accessibility reviewers, acquisition team, legal counsel, and authorizing
 official as applicable. Each discipline contributes evidence FederalProof does
 not generate.
 
+For pre-solicitation or vendor comparison, create a separate owner-approved
+AcquisitionProof profile. Use the same frozen mission protocol for every
+candidate, report missing cost or outcome observations as missing, and treat
+the generated QASP, portability, pricing, and reevaluation artifacts as drafting
+inputs—not source-selection decisions.
+
 ## Phase 4 — controlled pilot and monitoring
 
 - deploy least privilege with server-side authorization;
@@ -58,6 +78,10 @@ not generate.
 - measure field failures and near misses without collecting unnecessary data;
 - reassess after model, prompt, policy, tool, data, or provider changes; and
 - retire the capability when benefit no longer exceeds cost and risk.
+
+ContinuousProof can content-address an approved report and flag later identity
+or metric drift. Program owners define thresholds, review triggers, response,
+and risk disposition; the command is not a production monitor.
 
 ## Design-partner contribution
 

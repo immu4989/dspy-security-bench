@@ -6,9 +6,10 @@
 
 ### Measure whether tool-using AI is robust, grounded, controlled, and authorized
 
-A reproducible **leaderboard**, CI gate, delegated-authorization conformance lab,
-declarative agency mission-pack SDK, source-grounding and public-interest twins,
-policy-efficacy registries, and OSCAL evidence pipeline for **your own agent**.
+An open **Mission Assurance Commons** for your own agent: reproducible security
+benchmarks, public-use-case test drafting, multi-agent authorization paths,
+continuous evidence, policy-efficacy registries, vendor-neutral acquisition
+packs, and OSCAL assessment inputs.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -18,6 +19,8 @@ policy-efficacy registries, and OSCAL evidence pipeline for **your own agent**.
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
 [![ProofRun](https://img.shields.io/badge/ProofRun-attested%20evidence-8F78FF)](docs/proofrun.md)
 [![AuthorityTwin](https://img.shields.io/badge/AuthorityTwin-delegated%20authorization-FFD36E)](docs/authority-twin.md)
+[![AgentGraphTwin](https://img.shields.io/badge/AgentGraphTwin-multi--agent%20paths-87E5FF)](docs/agentgraph-twin.md)
+[![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
 [![MissionForge](https://img.shields.io/badge/MissionForge-data--only%20agency%20packs-8FFFB0)](docs/missionforge.md)
 [![SourceTwin](https://img.shields.io/badge/SourceTwin-grounding%20probes-5FBDFF)](docs/missionforge.md)
 [![IncidentTwin](https://img.shields.io/badge/IncidentTwin-cyber%20mission%20assurance-3B82F6)](docs/incident-twin.md)
@@ -35,6 +38,41 @@ policy-efficacy registries, and OSCAL evidence pipeline for **your own agent**.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## New: Mission Assurance Commons
+
+**Start with a mission—not a vendor claim.** v0.15 connects four new,
+independently verifiable workflows:
+
+1. **InventoryForge** turns a bounded local public AI inventory into a
+   contact-free normalized report and human-review-required synthetic
+   MissionPack draft.
+2. **AgentGraphTwin** traces six multi-hop authorization failures and reports
+   the first unsafe edge plus synthetic blast radius.
+3. **ContinuousProof** compares verified evidence baselines after a model,
+   policy, adapter, tool, or data change using owner-supplied thresholds.
+4. **AcquisitionProof** exports vendor-neutral test plans, QASP objective
+   inputs, portability checks, cost-observation fields, and reevaluation
+   triggers.
+
+AuthorityBridge adds deny-by-default integration starters and translation
+fixtures for **OPA, Cedar, OpenFGA, OAuth-bound MCP tools, and SPIFFE**.
+
+```bash
+pip install dspy-security-bench
+dspy-security-bench inventory import examples/public-ai-inventory.csv --out inventory.json
+dspy-security-bench inventory draft-pack inventory.json DEMO-ACQ-001 --out mission-pack.yaml
+dspy-security-bench graph demo
+dspy-security-bench authority bridge list
+```
+
+The workflow supports technical evaluation and accountable review. It does not
+automate compliance, source selection, risk acceptance, or authorization to
+operate, and it does not imply government endorsement.
+
+[Open the end-to-end Mission Assurance Commons guide →](docs/mission-assurance-commons.md)
 
 ---
 
@@ -209,7 +247,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.15.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -433,7 +471,7 @@ The recommended reusable workflow produces the bundle and shareable SVG card:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.14.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.15.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent

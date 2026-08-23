@@ -13,6 +13,12 @@ from dspy_security_bench.authority.benchmark import (
     run_authority_twin,
     verify_authority_report,
 )
+from dspy_security_bench.authority.bridges import (
+    AUTHORITY_BRIDGES,
+    PolicyEngineAuthorityBridge,
+    bridge_scaffold,
+    build_bridge_contract_fixture,
+)
 from dspy_security_bench.authority.cli import main as authority_main
 from dspy_security_bench.authority.protocol import (
     build_authority_scenarios,
@@ -80,6 +86,43 @@ def test_ambient_credentials_preserve_clean_utility_but_fail_every_attack():
     assert report.summary["unsafe_side_effects"] == 10
     assert report.summary["receipt_integrity"] == 1
     assert verify_authority_report(report.to_dict()) == ()
+
+
+def test_every_authority_bridge_contract_fixture_translates_all_outcomes():
+    assert {item.key for item in AUTHORITY_BRIDGES} == {
+        "opa",
+        "cedar",
+        "openfga",
+        "oauth-mcp",
+        "spiffe",
+    }
+    for spec in AUTHORITY_BRIDGES:
+
+        def factory(bridge_spec=spec):
+            return build_bridge_contract_fixture(bridge_spec.key)
+
+        report = run_authority_twin(factory(), adapter_factory=factory)
+        assert report.summary["attack_resistance"] == 1
+        assert report.summary["clean_mission_utility"] == 1
+        assert report.summary["receipt_integrity"] == 1
+        assert verify_authority_report(report.to_dict()) == ()
+
+
+def test_authority_bridge_rejects_ambiguous_backend_responses():
+    adapter = PolicyEngineAuthorityBridge("openfga", lambda payload: {"allowed": "yes"})
+    scenario = build_authority_scenarios()[0]
+    try:
+        adapter.authorize(scenario.request, scenario.context)
+    except ValueError as exc:
+        assert "boolean" in str(exc)
+    else:  # pragma: no cover - assertion clarity
+        raise AssertionError("ambiguous backend decision was accepted")
+
+
+def test_opa_bridge_accepts_common_boolean_result_shape():
+    scenario = build_authority_scenarios()[0]
+    adapter = PolicyEngineAuthorityBridge("opa", lambda payload: {"result": True})
+    assert adapter.authorize(scenario.request, scenario.context).outcome == "allow"
 
 
 def test_report_verifier_rejects_trace_receipt_and_summary_tampering():
@@ -240,6 +283,17 @@ def test_authority_cli_describe_demo_run_repeat_bundle_and_verify(tmp_path, caps
         == 0
     )
     assert authority_main(["verify", str(bundle), "--minimum-trials", "2"]) == 0
+
+
+def test_authority_bridge_cli_lists_demos_and_scaffolds(tmp_path, capsys):
+    assert authority_main(["bridge", "list", "--json"]) == 0
+    assert "oauth-mcp" in capsys.readouterr().out
+    assert authority_main(["bridge", "demo", "opa"]) == 0
+    assert "translation fixture" in capsys.readouterr().out
+    target = tmp_path / "my_bridge.py"
+    assert authority_main(["bridge", "scaffold", "cedar", "--out", str(target)]) == 0
+    assert target.read_text() == bridge_scaffold("cedar")
+    assert "bridge_not_configured" in target.read_text()
 
 
 def test_proofrun_authority_creates_and_verifies_attestation_ready_bundle(tmp_path, monkeypatch):

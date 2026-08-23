@@ -111,6 +111,13 @@ def test_site_payload_exposes_the_open_authority_evidence_registry():
     assert AUTHORITY_SUBMISSIONS_DIR.name == "authority"
 
 
+def test_site_payload_exposes_commons_protocol_not_product_claims():
+    commons = build_payload()["missionAssuranceCommons"]
+    assert commons["agentGraphTwin"]["pairCount"] == 6
+    assert commons["authorityBridges"] == ["opa", "cedar", "openfga", "oauth-mcp", "spiffe"]
+    assert "not executed" in commons["fixtureClaim"]
+
+
 def test_site_evidence_links_are_deployable_urls():
     for model in build_payload()["models"]:
         assert model["result"].startswith("https://github.com/immu4989/dspy-security-bench/")
@@ -196,6 +203,28 @@ def test_site_presents_authoritytwin_as_conformance_not_certification():
     assert 'document.querySelector("#authority-evidence-results")' in script
     assert 'bindCommandCopy("#authority-copy"' in script
     assert "safeAuthorityResultUrl(result.result)" in script
+
+
+def test_site_presents_mission_assurance_commons_with_accountable_boundaries():
+    page = (SITE / "index.html").read_text()
+    for value in (
+        'id="commons"',
+        "InventoryForge",
+        "AgentGraphTwin",
+        "ContinuousProof",
+        "AcquisitionProof",
+        "FIRST UNSAFE EDGE",
+        "OPA",
+        "Cedar",
+        "OpenFGA",
+        "SPIFFE",
+    ):
+        assert value in page
+    assert "do not execute, certify, or endorse the named backend" in page
+    assert "automating the accountable decision" in page
+    assert "mission-assurance-commons-v015.png" in page
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#graph-copy"' in script
 
 
 def test_site_presents_control_registry_as_evidence_not_certification():

@@ -361,5 +361,31 @@
   "sourceEvidenceCount": 0,
   "sourceEvidence": [],
   "authorityEvidenceCount": 0,
-  "authorityEvidence": []
+  "authorityEvidence": [],
+  "missionAssuranceCommons": {
+    "inventoryForge": {
+      "inputLimitBytes": 5000000,
+      "recordLimit": 5000
+    },
+    "agentGraphTwin": {
+      "scenarioVersion": "agentgraphtwin-v1",
+      "pairCount": 6
+    },
+    "continuousProof": {
+      "schemaVersion": 1,
+      "thresholdOwner": "evidence-owner"
+    },
+    "acquisitionProof": {
+      "schemaVersion": 1,
+      "decisionAuthority": "accountable-owner"
+    },
+    "authorityBridges": [
+      "opa",
+      "cedar",
+      "openfga",
+      "oauth-mcp",
+      "spiffe"
+    ],
+    "fixtureClaim": "translation-only; named backends not executed"
+  }
 }

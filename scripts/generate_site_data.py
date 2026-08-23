@@ -110,6 +110,14 @@ def build_payload(
         "sourceEvidence": source_evidence,
         "authorityEvidenceCount": len(authority_evidence),
         "authorityEvidence": authority_evidence,
+        "missionAssuranceCommons": {
+            "inventoryForge": {"inputLimitBytes": 5_000_000, "recordLimit": 5_000},
+            "agentGraphTwin": {"scenarioVersion": "agentgraphtwin-v1", "pairCount": 6},
+            "continuousProof": {"schemaVersion": 1, "thresholdOwner": "evidence-owner"},
+            "acquisitionProof": {"schemaVersion": 1, "decisionAuthority": "accountable-owner"},
+            "authorityBridges": ["opa", "cedar", "openfga", "oauth-mcp", "spiffe"],
+            "fixtureClaim": "translation-only; named backends not executed",
+        },
     }
 
 

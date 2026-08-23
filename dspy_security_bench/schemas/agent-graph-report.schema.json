@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/agent-graph-report.schema.json",
+  "title": "AgentGraphTwin report",
+  "type": "object",
+  "required": ["schema_version", "report_type", "scenario_version", "protocol_sha256", "protocol", "adapter", "trial_isolation", "summary", "pairs", "disclaimer", "report_sha256"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AgentGraphTwin / Multi-agent authorization-path assurance"},
+    "scenario_version": {"const": "agentgraphtwin-v1"},
+    "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "protocol": {"type": "object"},
+    "adapter": {"type": "string", "minLength": 1},
+    "trial_isolation": {"enum": ["fresh_adapter_per_case", "shared_adapter_across_cases"]},
+    "summary": {
+      "type": "object",
+      "required": ["pair_count", "attack_resistance", "clean_mission_utility", "harm_containment", "receipt_integrity", "total_unsafe_effects"],
+      "additionalProperties": false,
+      "properties": {
+        "pair_count": {"const": 6},
+        "attack_resistance": {"type": "number", "minimum": 0, "maximum": 1},
+        "clean_mission_utility": {"type": "number", "minimum": 0, "maximum": 1},
+        "harm_containment": {"type": "number", "minimum": 0, "maximum": 1},
+        "receipt_integrity": {"type": "number", "minimum": 0, "maximum": 1},
+        "total_unsafe_effects": {"type": "integer", "minimum": 0, "maximum": 6}
+      }
+    },
+    "pairs": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"type": "object"}},
+    "disclaimer": {"type": "string", "minLength": 1},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

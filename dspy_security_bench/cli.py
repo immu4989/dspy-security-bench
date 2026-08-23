@@ -3,6 +3,10 @@
 Subcommands:
   doctor      Validate a BYOA integration without invoking the agent run loop.
   federal     Export standards-aligned FederalProof assessment evidence.
+  inventory   Turn public AI inventories into synthetic MissionPack drafts.
+  graph       Trace authorization failures across multi-agent execution paths.
+  watch       Detect assurance regressions from verified evidence baselines.
+  acquisition Export vendor-neutral, owner-governed evaluation packages.
   authority   Test agent identity and delegated-authorization enforcement.
   impact      Run counterfactual procurement mission-assurance tests.
   incident    Run synthetic cyber-response mission-assurance tests.
@@ -68,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__)
         print(
             "Usage: dspy-security-bench "
-            "<init|integrate|doctor|scan|impact|incident|pack|authority|policy|proofrun|federal|synthesize|validate> [args...]"
+            "<init|integrate|doctor|scan|impact|incident|pack|authority|inventory|graph|watch|acquisition|policy|proofrun|federal|synthesize|validate> [args...]"
         )
         return 0
 
@@ -103,6 +107,22 @@ def main(argv: list[str] | None = None) -> int:
         from dspy_security_bench.authority.cli import main as authority_main
 
         return authority_main(rest)
+    if sub == "inventory":
+        from dspy_security_bench.inventory.cli import main as inventory_main
+
+        return inventory_main(rest)
+    if sub == "graph":
+        from dspy_security_bench.graph.cli import main as graph_main
+
+        return graph_main(rest)
+    if sub == "watch":
+        from dspy_security_bench.continuous.cli import main as watch_main
+
+        return watch_main(rest)
+    if sub == "acquisition":
+        from dspy_security_bench.acquisition.cli import main as acquisition_main
+
+        return acquisition_main(rest)
     if sub == "policy":
         from dspy_security_bench.policy_cli import main as policy_main
 
@@ -128,7 +148,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"unknown subcommand {sub!r}. Use: "
-        "init | integrate | doctor | scan | impact | incident | pack | authority | policy | proofrun | federal | synthesize | validate",
+        "init | integrate | doctor | scan | impact | incident | pack | authority | inventory | graph | watch | acquisition | policy | proofrun | federal | synthesize | validate",
         file=sys.stderr,
     )
     return 2

@@ -9,6 +9,33 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.15.0] — 2026-08-23
+
+### Added
+- **Mission Assurance Commons**, an end-to-end workflow from public AI use-case
+  inventory to human-reviewed synthetic MissionPack, multi-agent authorization
+  evidence, regression comparison, and vendor-neutral acquisition inputs.
+- **InventoryForge** bounded CSV/JSON normalization, contact-field removal,
+  tamper-evident reports, and three-case synthetic MissionPack drafting.
+- **AgentGraphTwin** with six frozen multi-hop authorization twins, path and
+  receipt digests, first-unsafe-edge attribution, blast-radius reporting,
+  bounded/ambient fixtures, CLI, schema, and independent offline verification.
+- **AuthorityBridge** translation contracts and deny-by-default scaffolds for
+  OPA, Cedar, OpenFGA, OAuth-bound MCP tools, and SPIFFE workload identity.
+- **ContinuousProof** verified evidence snapshots, owner-threshold drift
+  reports, identity-change detection, CI-friendly status, and offline
+  verification.
+- **AcquisitionProof** strict owner profiles and content-addressed packs with a
+  neutral test plan, QASP objective inputs, portability checks, explicit cost
+  fields, data-governance prompts, and reevaluation triggers.
+- A redesigned dashboard Commons workflow and authorization graph, benchmark
+  card, current research positioning, metadata guidance, and dedicated guides.
+
+### Changed
+- The project is positioned around inspectable mission assurance across models,
+  agents, policies, identity systems, evidence lifecycles, and acquisition—not
+  prompt-injection scoring alone.
+
 ## [0.14.0] — 2026-08-19
 
 ### Added

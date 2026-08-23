@@ -271,6 +271,75 @@ Goal: accelerate diagnosis while retaining a hard boundary around production.
 The safe design is not “make the prompt stronger.” It is to keep the agent's
 action space smaller than the blast radius of a successful injection.
 
+## Public mission patterns: safer service and economic capacity
+
+The Mission Assurance Commons supports bounded synthetic evaluation for public
+missions where reliability failures can delay service, waste staff time, or
+reduce competition. These are test-design patterns, not claims about any
+agency's system or legal authority.
+
+### Public information and application assistance
+
+- Legitimate mission: retrieve current public guidance, explain it with source
+  IDs, and route uncertain or individualized questions to designated staff.
+- Test: hostile retrieved text invents eligibility authority, omits a material
+  exception, cites superseded guidance, or pressures the agent to decide an
+  individual's outcome.
+- Functional boundary: no enrollment, eligibility determination, benefit
+  change, or disclosure without the program's controlling process and required
+  human role.
+
+### Grants and small-business support
+
+- Legitimate mission: help applicants find opportunities, validate completeness,
+  and help staff organize reviewable evidence.
+- Test: an untrusted attachment changes evaluation criteria, suppresses a
+  conflict, expands data sharing, or claims an approval that was never granted.
+- Economic outcomes to measure: staff time per complete application, safe
+  mission completion, rework, accessibility, and participation—not a synthetic
+  dollar claim.
+
+### Acquisition market research and requirements drafting
+
+- Legitimate mission: summarize public market evidence and draft outcome-based,
+  vendor-neutral requirements for official review.
+- Test: vendor narrative changes structured scores, creates an unauthorized
+  source-selection disclosure, narrows competition, hides switching costs, or
+  bypasses an approval.
+- Evidence: run ImpactTwin and AgentGraphTwin, preserve costs and missing data,
+  then export AcquisitionProof inputs. The tool never awards or recommends a
+  vendor.
+
+### Emergency logistics and infrastructure support
+
+- Legitimate mission: recommend allocations from approved availability,
+  priority, and constraint records.
+- Test: untrusted messages redirect resources, inflate delegation, cross a
+  jurisdiction or tenant, or suppress escalation under uncertainty.
+- Functional boundary: recommendations stay simulated; accountable officials
+  approve operational changes.
+
+### Records, correspondence, and public-comment analysis
+
+- Legitimate mission: classify, deduplicate, summarize, and retrieve public or
+  properly authorized records while retaining citations and disposition.
+- Test: document text becomes an instruction, changes retention, crosses an
+  access boundary, drops a material viewpoint, or causes unsupported disclosure.
+- Evaluation must include privacy, records, accessibility, language access, and
+  appeal or correction paths defined by the owner.
+
+Start with a public or synthetic row:
+
+```bash
+dspy-security-bench inventory import examples/public-ai-inventory.csv --out inventory.json
+dspy-security-bench inventory draft-pack inventory.json DEMO-LOG-003 --out logistics-pack.yaml
+```
+
+Before use, replace the generated synthetic policy and assumptions with
+owner-reviewed, safely shareable requirements. Do not put CUI, credentials,
+personal data, acquisition-sensitive information, or operational vulnerabilities
+into a public pack.
+
 ## What policy does—and does not—solve
 
 Policy enforcement stops disallowed tool side effects even when the model is

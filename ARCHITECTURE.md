@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes nine related security surfaces:
+`dspy-security-bench` exposes thirteen related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -29,6 +29,14 @@ v0.1 research choices are labeled separately from the current product surface.
    adapters with frozen clean/adversarial pairs and normalized receipts.
 9. **FederalProof** — binds verified evidence to owner-supplied deployment
    context and exports OSCAL-shaped assessment inputs without certifying them.
+10. **InventoryForge** — normalizes bounded public-use-case inventories and
+    drafts contact-free, synthetic MissionPacks for accountable review.
+11. **AgentGraphTwin** — composes AuthorityAdapter decisions into frozen
+    multi-hop paths with first-unsafe-edge and blast-radius evidence.
+12. **ContinuousProof** — captures verified evidence identities and metrics,
+    then recomputes owner-threshold drift reports offline.
+13. **AcquisitionProof** — exports content-addressed, vendor-neutral technical
+    evaluation inputs while leaving source selection and risk with officials.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer
@@ -47,10 +55,15 @@ dspy_security_bench/
 ├── authority/                  # delegated-authorization conformance lab
 │   ├── protocol.py             # frozen synthetic identity/authority twins
 │   ├── adapter.py              # vendor-neutral contract + reference fixtures
+│   ├── bridges.py              # external policy/IAM translation contracts
 │   ├── benchmark.py            # trace, receipt, effect, and metric recomputation
 │   ├── repeat.py               # Wilson intervals + content-addressed evidence
 │   └── cli.py                  # describe, demo, run, repeat, bundle, verify
 ├── incident/                   # inert cyber-response mission assurance
+├── inventory/                  # bounded public inventory → synthetic pack
+├── graph/                      # multi-agent authorization-path twins
+├── continuous/                 # verified baseline and drift evidence
+├── acquisition/                # neutral technical acquisition packages
 ├── mission/                    # data-only MissionForge + SourceTwin protocol
 ├── federal/                    # verified evidence to OSCAL assessment inputs
 ├── procurement/                # ImpactTwin clean/poisoned mission assurance

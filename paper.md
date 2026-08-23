@@ -1,11 +1,11 @@
 ---
-title: 'dspy-security-bench: a reproducible harness for measuring prompt-injection robustness in tool-using LLM agents'
+title: 'dspy-security-bench: reproducible mission-assurance evidence for tool-using AI agents'
 tags:
   - Python
-  - machine learning
+  - AI agents
   - AI security
-  - prompt injection
-  - LLM agents
+  - authorization
+  - mission assurance
   - benchmarking
 authors:
   - name: Imran Ahamed
@@ -14,110 +14,143 @@ authors:
 affiliations:
   - name: VEZRAN
     index: 1
-date: 2026-07-27
+date: 2026-08-23
 bibliography: paper.bib
 ---
 
 <!--
 DRAFT — not submitted.
 
-JOSS requires a repository to have been public for more than six months with
-active development spanning that period. This repository was created
-2026-06-16, so the earliest eligible submission is around 2026-12-16. JOSS also
-requires evidence that the software is used for research beyond aspirational
-statements, which is the thing to build in the interim.
-
-Before submitting: replace the placeholder ORCID, confirm the affiliation, and
-refresh the model/family counts and the paragraph describing the leaderboard,
-which will have moved on.
+The repository was made public on 2026-06-16. JOSS's six-month substantial
+research-software requirement therefore cannot be met before approximately
+2026-12-16. Before submission: replace the placeholder ORCID, confirm the
+affiliation, refresh counts and release metadata, and document independent
+research use. Feature breadth is not a substitute for external use.
 -->
 
 # Summary
 
-Language-model agents that call tools put untrusted text into their own context
-by design: retrieved documents, tool output, emails, web pages. An indirect
-prompt injection hides instructions in that text and attempts to redirect the
-agent toward an attacker's goal. Whether a given model resists this is not
-predicted by its capability scores, and measuring it requires running a full
-agent loop against an environment that can verify whether the attacker actually
-succeeded.
+Tool-using language-model agents turn model output into external effects. Their
+failure surface therefore spans more than indirect prompt injection: an agent
+may misuse delegated authority, cross tenant boundaries, follow instructions
+embedded in retrieved evidence, omit controlling sources, execute unsafe
+incident-response actions, or continue operating after its behavior regresses.
+Meaningful evaluation must preserve mission utility, observe functional
+effects, bind results to an exact protocol and policy, and keep accountable
+decisions outside the scorer.
 
-`dspy-security-bench` is a Python harness for making that measurement
-reproducibly. It wraps the AgentDojo benchmark environments [@debenedetti2024agentdojo]
-and adds three things a bare benchmark run does not provide: a frozen
-measurement protocol so results from different runs and different people are
-comparable, a durability criterion that decides when a result is stable enough
-to state as a claim, and a published leaderboard generated directly from
-committed per-run result files.
+`dspy-security-bench` is an open Python workbench for producing that evidence.
+It combines a reproducible AgentDojo [@debenedetti2024agentdojo] prompt-injection
+leaderboard with synthetic counterfactual protocols for procurement, execution
+policy, incident response, source grounding, delegated authorization, and
+multi-agent authorization paths. It also provides declarative mission packs,
+repeated-trial uncertainty, content-addressed evidence, CI gates, provenance,
+OSCAL 1.2.2 assessment inputs, continuous evidence comparison, and
+vendor-neutral acquisition artifacts.
 
 # Statement of need
 
-Published prompt-injection results are difficult to compare. Numbers are
-reported at different attack budgets, on different agent surfaces, with and
-without deployment safeguards, and at attempt level or scenario level; the same
-model can span a very wide range depending only on which of these is chosen.
-Vendor-published figures often benchmark the vendor's own models without
-safeguards against competitors' production endpoints. Meanwhile the public
-per-model tables that do exist are static artefacts of a paper and are not
-refreshed as new models ship.
+Agent evaluations are commonly difficult to compare because they use different
+tasks, attacks, safeguards, agent frameworks, sampling units, and definitions
+of success. A high refusal rate may hide an agent that fails every legitimate
+mission. A strong base-model result may disappear behind a broad tool
+credential. A policy demonstration may report blocked calls without measuring
+safe recovery. A governance crosswalk may imply assurance without retaining the
+underlying observations.
 
-The gap this software addresses is not a shortage of measurements but a shortage
-of *reproducible* ones. Large red-teaming studies produce the most authoritative
-numbers available, but a study involving hundreds of human participants cannot
-be re-run by a third party who wants to check a result or measure a newly
-released model. `dspy-security-bench` is designed so that a single researcher
-can produce a comparable measurement for a new model in a few hours and for a
-few dollars of API spend, and so that anyone can audit the resulting number
-against the raw per-task results committed alongside it.
+The software addresses this reproducibility gap at three layers. First, it
+freezes each protocol and records a canonical SHA-256 identity. Second, it
+derives security and utility claims from structured observations and synthetic
+state transitions rather than model self-report or an LLM judge. Third, it
+preserves raw trial evidence, recomputes published summaries offline, and
+separates content integrity, builder provenance, and independent reproduction.
 
-The software targets three groups: researchers who need a controlled harness for
-agentic injection experiments; practitioners choosing a base model for a
-tool-using agent, who need to know that this property is not implied by
-capability benchmarks; and engineering teams who want a regression gate, for
-which the package ships a `scan` command that evaluates an arbitrary agent and
-emits SARIF with OWASP LLM01, NIST AI 100-2 and MITRE ATLAS mappings.
+The primary users are researchers studying agent security; engineering teams
+placing regression gates around tool-using agents; mission owners authoring
+bounded evaluations; identity and policy teams testing delegated authority;
+and public or private acquisition teams that need comparable technical inputs
+without an automated source-selection decision.
 
 # Design
 
-Three decisions shape the implementation.
+## Frozen counterfactual protocols
 
-**The protocol is a frozen, hashed contract.** Suites, attack, agent scaffold,
-decoding parameters and the exact task list live in a single YAML file whose
-hash is recorded in every result. Changing anything under that block invalidates
-existing rows rather than silently making them incomparable.
+Most specialties use clean/adversarial twins. Structured facts, requested
+mission, tool surface, and expected result remain fixed while one untrusted or
+security-relevant surface changes. ProcureBench mutates vendor narrative;
+IncidentTwin mutates hostile alert context; SourceTwin mutates retrieved
+content; AuthorityTwin mutates identity, scope, tenant, audience, revocation,
+approval, delegation, intent, sensitivity, or audit state; AgentGraphTwin maps
+six of those controls onto multi-hop human-to-agent-to-tool paths.
 
-**Both axes are always reported.** Every result records task utility alongside
-attack-failure rate. This is necessary rather than decorative: an agent that
-accomplishes nothing also fails to accomplish the attacker's goal, so a security
-figure without a utility figure cannot distinguish a robust model from an
-ineffective one.
+The protocol, expected outcomes, and policy are serialized and hashed. Reports
+cannot silently compare trials run under different contracts. Offline verifiers
+reconstruct case, pair, metric, receipt, and digest claims.
 
-**Uncertainty is treated at the right level.** Each configuration is run
-multiple times, but at temperature 0 those repeats are technical replicates —
-in practice nearly all of them return identical results. Confidence intervals
-are therefore produced by a cluster bootstrap over task pairs rather than over
-pooled repeats, which would otherwise understate every interval. A result is
-published as a *confirmed* claim only when its interval lies entirely within one
-robustness band and that band is stable across repeats; otherwise it is
-published as *provisional*, with its number, and no band asserted.
+## Functional evidence and mission utility
 
-The harness is framework-agnostic: agents built with DSPy [@khattab2024dspy] are
-supported directly, and any other agent can be measured through a generic
-adapter.
+The benchmark records synthetic tool-state transitions and environment-owned
+action traces. It reports clean mission utility separately from attack
+resistance and harm containment. ControlTwin additionally compares policy-off
+and policy-on conditions, separating blocked harm, safe mission recovery, and
+clean-utility preservation. SourceTwin scores structured claim and source IDs,
+including abstention and material exceptions, without treating an LLM as the
+truth oracle.
+
+## Uncertainty and provenance
+
+Repeated protocols instantiate fresh agents or adapters, preserve each trial,
+report outcome stability, and use Wilson intervals for fixed-protocol success.
+The original model leaderboard uses a cluster bootstrap over task pairs because
+temperature-zero repeats are technical replicates. GitHub/Sigstore workflows
+can attest exact result bytes and source context. Provenance identifies how
+evidence was produced; it does not reveal hosted-model internals or make a
+result representative of deployment.
+
+## Mission Assurance Commons
+
+MissionForge defines strict data-only YAML/JSON evaluation packs. InventoryForge
+normalizes bounded local public AI inventories, removes contact fields, and
+drafts synthetic packs that require owner review. AuthorityBridge translates
+OPA, Cedar, OpenFGA, OAuth/MCP, and SPIFFE-shaped decisions into the benchmark
+contract without owning backend credentials. ContinuousProof compares verified
+evidence identities and metrics using owner-defined thresholds. AcquisitionProof
+exports comparable objectives, test plans, portability checks, cost fields, and
+reevaluation triggers. FederalProof exports verified repeated evidence as
+informative OSCAL 1.2.2 assessment inputs.
+
+# Research positioning
+
+The software complements rather than replaces large red-team studies,
+standards, and production monitoring. AgentDojo supplies dynamic task
+environments and functional attack-success checks. DSPy [@khattab2024dspy]
+supplies the default programmable agent scaffold. NIST's AI Agent Standards
+Initiative and agent identity and authorization work motivate interoperable
+evaluation around identity, least privilege, delegation, intent, and audit
+evidence. U.S. federal AI and acquisition guidance motivates ongoing mission
+testing, public use-case inventories, portability, cost observation, and
+reviewable evidence. The repository maps to these sources informatively and
+does not claim control satisfaction or government endorsement.
 
 # Limitations
 
-The measurement is deliberately narrow and should be read as a lower bound on
-attackability rather than a robustness guarantee. It uses fixed attack templates
-rather than attacks re-optimised against each target, a single attempt per task
-pair, and one agent surface. Published work shows each of these choices can
-change the resulting figure substantially. These limitations are documented in
-the repository alongside the results.
+Every included protocol is synthetic and covers declared failure classes rather
+than all attacks or real missions. Fixed attacks are not adaptively optimized
+against each target. Framework adapters, tool descriptions, decoding, provider
+updates, latency, identity infrastructure, and production data can change
+behavior. Hosted inference is not independently observable from a client-side
+trace. Hashes provide tamper evidence rather than signer identity. Repeated
+fixed scenarios are not a population sample. Generated inventory packs contain
+assumptions, not agency requirements. Acquisition and OSCAL artifacts are
+technical inputs, not compliance, source selection, risk acceptance,
+certification, or an authorization to operate.
 
 # Acknowledgements
 
-This work builds directly on AgentDojo [@debenedetti2024agentdojo] for its task
-environments and functional attack-success checks, and on DSPy
-[@khattab2024dspy] for the agent implementation used by the default scaffold.
+This work builds on AgentDojo [@debenedetti2024agentdojo] for its dynamic agent
+security environments and DSPy [@khattab2024dspy] for the default agent
+implementation. The project also benefits from public standards and guidance
+published by NIST, NCCoE, OMB, GSA, GAO, OWASP, MITRE, and the research
+community.
 
 # References

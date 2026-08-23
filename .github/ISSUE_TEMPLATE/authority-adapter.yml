@@ -28,7 +28,7 @@ body:
     attributes:
       label: Versions
       description: Include the product/SDK, Python, and dspy-security-bench versions.
-      placeholder: "policy SDK 2.1, Python 3.12, dspy-security-bench 0.14.0"
+      placeholder: "policy SDK 2.1, Python 3.12, dspy-security-bench 0.15.0"
     validations:
       required: true
   - type: textarea

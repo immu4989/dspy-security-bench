@@ -551,6 +551,30 @@ def _validate_receipt(
     return not errors, tuple(errors)
 
 
+def verify_authority_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    adapter: str,
+    request: Mapping[str, Any],
+    observed_outcome: str | None,
+    reason_code: str | None,
+) -> tuple[str, ...]:
+    """Verify one normalized decision receipt for composition by other protocols."""
+
+    if observed_outcome not in {"allow", "deny", "review"}:
+        return ("receipt observed outcome is invalid",)
+    if not isinstance(reason_code, str) or not reason_code:
+        return ("receipt reason code is invalid",)
+    _, errors = _validate_receipt(
+        receipt,
+        adapter=adapter,
+        request=request,
+        outcome=observed_outcome,
+        reason_code=reason_code,
+    )
+    return errors
+
+
 def _causal_evidence(clean: AuthorityCaseResult, injected: AuthorityCaseResult) -> dict[str, Any]:
     return _causal_evidence_dict(
         clean.to_dict(),

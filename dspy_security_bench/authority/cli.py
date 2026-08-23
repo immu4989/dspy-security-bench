@@ -59,6 +59,23 @@ def build_parser() -> argparse.ArgumentParser:
     verify = commands.add_parser("verify", help="recompute a report or evidence bundle offline")
     verify.add_argument("path")
     verify.add_argument("--minimum-trials", type=int, default=5)
+
+    bridge = commands.add_parser(
+        "bridge", help="list, exercise, or scaffold policy/IAM AuthorityAdapter bridges"
+    )
+    bridge_commands = bridge.add_subparsers(dest="bridge_command")
+    bridge_list = bridge_commands.add_parser("list", help="show supported bridge contracts")
+    bridge_list.add_argument("--json", action="store_true", dest="as_json")
+    bridge_demo = bridge_commands.add_parser(
+        "demo", help="exercise dependency-free translation fixtures"
+    )
+    bridge_demo.add_argument("backend", nargs="?", default="all")
+    bridge_scaffold = bridge_commands.add_parser(
+        "scaffold", help="write a deny-by-default bridge starter"
+    )
+    bridge_scaffold.add_argument("backend")
+    bridge_scaffold.add_argument("--out", default="authority_adapter.py")
+    bridge_scaffold.add_argument("--force", action="store_true")
     return parser
 
 
@@ -80,6 +97,70 @@ def main(argv: list[str] | None = None) -> int:
         return _bundle(args)
     if args.command == "verify":
         return _verify(args)
+    if args.command == "bridge":
+        return _bridge(args, parser)
+    return 2
+
+
+def _bridge(args, parser: argparse.ArgumentParser) -> int:
+    from dspy_security_bench.authority.bridges import (
+        AUTHORITY_BRIDGES,
+        build_bridge_contract_fixture,
+        get_authority_bridge,
+        write_bridge_scaffold,
+    )
+
+    if args.bridge_command is None:
+        print("Usage: dspy-security-bench authority bridge <list|demo|scaffold> [args...]")
+        return 0
+    if args.bridge_command == "list":
+        payload = [item.to_dict() for item in AUTHORITY_BRIDGES]
+        if args.as_json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            for item in AUTHORITY_BRIDGES:
+                print(f"{item.key:10} {item.label} — {item.interface}")
+            print(
+                "Contract fixtures verify translation only; no named backend product is executed."
+            )
+        return 0
+    if args.bridge_command == "demo":
+        from dspy_security_bench.authority.benchmark import run_authority_twin
+
+        try:
+            names = (
+                [item.key for item in AUTHORITY_BRIDGES]
+                if args.backend == "all"
+                else [get_authority_bridge(args.backend).key]
+            )
+        except ValueError as exc:
+            print(f"[authority] bridge demo failed: {exc}", file=sys.stderr)
+            return 2
+        for name in names:
+
+            def factory(bridge_name=name):
+                return build_bridge_contract_fixture(bridge_name)
+
+            report = run_authority_twin(factory(), adapter_factory=factory)
+            print(
+                f"{name:10} translation fixture: "
+                f"{report.summary['attack_resistance']:.0%} resistance, "
+                f"{report.summary['clean_mission_utility']:.0%} clean utility"
+            )
+        print("Fixtures exercise bridge translation, not the named backend product or deployment.")
+        return 0
+    if args.bridge_command == "scaffold":
+        try:
+            destination = write_bridge_scaffold(args.out, args.backend, force=args.force)
+        except (FileExistsError, OSError, ValueError) as exc:
+            print(f"[authority] bridge scaffold failed: {exc}", file=sys.stderr)
+            return 2 if not isinstance(exc, FileExistsError) else 1
+        print(f"[authority] created {destination}")
+        print(
+            f"Next: dspy-security-bench authority run --adapter "
+            f"{destination.stem}:build_authority_adapter"
+        )
+        return 0
     return 2
 
 

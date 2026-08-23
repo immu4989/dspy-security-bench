@@ -1,0 +1,33 @@
+name: Continuous agent assurance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.3"
+      - name: Install the pinned benchmark
+        run: uv tool install dspy-security-bench==0.15.0
+      - name: Produce candidate graph evidence
+        run: dspy-security-bench graph run --adapter myapp.authority:build_adapter --json-out candidate-report.json
+      - name: Capture verified candidate snapshot
+        run: dspy-security-bench watch baseline candidate-report.json --label "${{ github.sha }}" --out candidate.json
+      - name: Compare with owner-approved baseline
+        run: dspy-security-bench watch compare assurance-baseline.json candidate.json --max-regression 0.02 --out drift.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: continuousproof
+          path: |
+            candidate-report.json
+            candidate.json
+            drift.json
+          if-no-files-found: warn
