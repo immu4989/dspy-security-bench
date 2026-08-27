@@ -1,0 +1,60 @@
+name: CausalProof runtime evidence
+description: Propose a structural OTLP integration, binding pattern, or content-free evidence bundle.
+title: "[CausalProof] "
+labels: ["enhancement", "evidence"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help turn runtime structure into reviewable schedule evidence. Never paste or attach raw OTLP, prompts, responses, attributes, events, arguments, results, credentials, customer data, CUI, or production incident details. Share only synthetic inputs or a locally reviewed CausalProof community bundle.
+  - type: dropdown
+    id: contribution_kind
+    attributes:
+      label: Contribution kind
+      options:
+        - Content-free community evidence bundle
+        - Runtime or Collector integration
+        - Span-to-event binding pattern
+        - Causal ambiguity challenge case
+        - Documentation or reference lab improvement
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Frozen versions
+      description: Runtime, instrumentation library, Collector, Python, and dspy-security-bench versions.
+      placeholder: "runtime 1.2.3, OTel Collector 0.x, Python 3.12, dspy-security-bench 0.17.0"
+    validations:
+      required: true
+  - type: textarea
+    id: topology
+    attributes:
+      label: Runtime topology and provenance
+      description: Describe the participating services and which relationships are observed parents, asserted edges, generic links, or timing candidates.
+    validations:
+      required: true
+  - type: textarea
+    id: binding
+    attributes:
+      label: Binding and reproduction
+      description: Link to public synthetic code, an exact source commit, or a proposed submissions/causal bundle. Explain how structural span identities map to atomic ScheduleProof events.
+    validations:
+      required: true
+  - type: textarea
+    id: gaps
+    attributes:
+      label: Instrumentation gaps and claim boundary
+      description: State dropped or missing spans, clock assumptions, manual assertions, sampling behavior, and everything this evidence cannot establish.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety and evidence contract
+      options:
+        - label: I reviewed the shared material and removed span names, attributes, events, status, prompts, arguments/results, secrets, private identifiers, and operational incident details.
+          required: true
+        - label: I understand a valid CausalProof bundle is not proof of trace completeness, semantic correctness, certification, compliance, government endorsement, or authorization to operate.
+          required: true
+        - label: I can help test the change using synthetic data with no provider calls in CI.

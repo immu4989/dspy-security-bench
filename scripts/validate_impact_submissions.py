@@ -10,6 +10,8 @@ from urllib.parse import urlparse
 
 from dspy_security_bench.authority.repeat import BUNDLE_TYPE as AUTHORITY_BUNDLE_TYPE
 from dspy_security_bench.authority.repeat import verify_authority_submission_bundle
+from dspy_security_bench.causal.registry import BUNDLE_TYPE as CAUSAL_BUNDLE_TYPE
+from dspy_security_bench.causal.registry import verify_causal_submission_bundle
 from dspy_security_bench.incident.repeat import BUNDLE_TYPE as INCIDENT_BUNDLE_TYPE
 from dspy_security_bench.incident.repeat import verify_incident_submission_bundle
 from dspy_security_bench.mission.repeat import BUNDLE_TYPE as SOURCE_BUNDLE_TYPE
@@ -35,6 +37,7 @@ def main() -> int:
         *sorted((root / "submissions" / "source").glob("*.json")),
         *sorted((root / "submissions" / "authority").glob("*.json")),
         *sorted((root / "submissions" / "trace").glob("*.json")),
+        *sorted((root / "submissions" / "causal").glob("*.json")),
     ]
     if not submissions:
         print("[submissions] no JSON submissions committed yet")
@@ -61,6 +64,9 @@ def main() -> int:
                 eligible = result.community_eligible
             elif bundle.get("bundle_type") == TRACE_BUNDLE_TYPE:
                 result = verify_trace_submission_bundle(bundle)
+                eligible = result.community_eligible
+            elif bundle.get("bundle_type") == CAUSAL_BUNDLE_TYPE:
+                result = verify_causal_submission_bundle(bundle)
                 eligible = result.community_eligible
             else:
                 result = verify_submission_bundle(bundle)

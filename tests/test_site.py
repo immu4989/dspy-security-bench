@@ -6,6 +6,7 @@ from pathlib import Path
 from scripts.generate_site_data import (
     AUTHORITY_SUBMISSIONS_DIR,
     BENIGN_DIR,
+    CAUSAL_SUBMISSIONS_DIR,
     CONTROL_SUBMISSIONS_DIR,
     DEFAULT_OUT,
     INCIDENT_SUBMISSIONS_DIR,
@@ -117,6 +118,12 @@ def test_site_payload_exposes_the_open_trace_evidence_registry():
     payload = build_payload()
     assert payload["traceEvidenceCount"] == len(payload["traceEvidence"])
     assert TRACE_SUBMISSIONS_DIR.name == "trace"
+
+
+def test_site_payload_exposes_the_open_causal_evidence_registry():
+    payload = build_payload()
+    assert payload["causalEvidenceCount"] == len(payload["causalEvidence"])
+    assert CAUSAL_SUBMISSIONS_DIR.name == "causal"
 
 
 def test_site_payload_exposes_commons_protocol_not_product_claims():

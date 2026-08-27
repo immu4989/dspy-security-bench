@@ -52,6 +52,8 @@ keywords = [
     "mcp-security",
     "race-condition",
     "model-checking",
+    "distributed-tracing",
+    "causal-inference",
     "mission-economics",
     "ed25519",
 ]
@@ -143,6 +145,7 @@ ContinuousProof = "https://github.com/immu4989/dspy-security-bench/blob/main/doc
 AcquisitionProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/acquisitionproof.md"
 TraceProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof.md"
 ScheduleProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/scheduleproof.md"
+CausalProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/causalproof.md"
 "TraceProof Runtime Kit" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof-runtime-kit.md"
 ValueProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/valueproof.md"
 "MissionPack Commons" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/mission-pack-commons.md"

@@ -48,6 +48,7 @@ async function loadData() {
   document.querySelectorAll("[data-source-evidence-count]").forEach(node => node.textContent = data.sourceEvidenceCount || 0);
   document.querySelectorAll("[data-authority-evidence-count]").forEach(node => node.textContent = data.authorityEvidenceCount || 0);
   document.querySelectorAll("[data-trace-evidence-count]").forEach(node => node.textContent = data.traceEvidenceCount || 0);
+  document.querySelectorAll("[data-causal-evidence-count]").forEach(node => node.textContent = data.causalEvidenceCount || 0);
   const robustness = data.models.map(model => model.robustness);
   document.querySelector("[data-min-robustness]").textContent = Math.round(Math.min(...robustness) * 100);
   document.querySelector("[data-max-robustness]").textContent = Math.round(Math.max(...robustness) * 100);
@@ -342,7 +343,22 @@ bindCommandCopy("#authority-copy", "dspy-security-bench authority demo");
 bindCommandCopy("#federal-copy", "dspy-security-bench federal init");
 bindCommandCopy("#graph-copy", "dspy-security-bench graph demo");
 bindCommandCopy("#trace-copy", "dspy-security-bench trace demo --out-dir artifacts/traceproof");
+bindCommandCopy("#causal-copy", "dspy-security-bench causal demo --out-dir artifacts/causalproof");
 bindCommandCopy("#schedule-copy", "dspy-security-bench schedule demo");
+
+document.querySelectorAll("[data-causal-view]").forEach(button => {
+  button.addEventListener("click", () => {
+    const consoleNode = document.querySelector(".causal-console");
+    if (!consoleNode) return;
+    const mode = button.dataset.causalView;
+    consoleNode.dataset.causalMode = mode;
+    document.querySelectorAll("[data-causal-view]").forEach(item => {
+      const selected = item === button;
+      item.classList.toggle("active", selected);
+      item.setAttribute("aria-pressed", String(selected));
+    });
+  });
+});
 
 const menuButton = document.querySelector(".menu-button");
 menuButton.addEventListener("click", () => {

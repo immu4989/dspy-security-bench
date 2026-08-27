@@ -24,6 +24,7 @@ assessment inputs.
 [![AuthorityTwin](https://img.shields.io/badge/AuthorityTwin-delegated%20authorization-FFD36E)](docs/authority-twin.md)
 [![AgentGraphTwin](https://img.shields.io/badge/AgentGraphTwin-multi--agent%20paths-87E5FF)](docs/agentgraph-twin.md)
 [![ScheduleProof](https://img.shields.io/badge/ScheduleProof-bounded%20race%20checking-FF8AC5)](docs/scheduleproof.md)
+[![CausalProof](https://img.shields.io/badge/CausalProof-trace%E2%86%92proof%20edges-A88BFF)](docs/causalproof.md)
 [![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
 [![MissionForge](https://img.shields.io/badge/MissionForge-data--only%20agency%20packs-8FFFB0)](docs/missionforge.md)
 [![SourceTwin](https://img.shields.io/badge/SourceTwin-grounding%20probes-5FBDFF)](docs/missionforge.md)
@@ -42,6 +43,33 @@ assessment inputs.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## On main: CausalProof — from runtime structure to proof-ready schedules
+
+**A trace can show relationships. It cannot silently decide which relationships
+are proof.** CausalProof reads only structural OTLP fields and creates a
+provenance ledger that keeps observed parents, owner assertions, undirected span
+links, and non-proving timing candidates separate. Only observed parent edges
+and explicit assertions enter the generated ScheduleProof graph.
+
+```bash
+pip install "dspy-security-bench @ git+https://github.com/immu4989/dspy-security-bench@main"
+dspy-security-bench causal demo --out-dir artifacts/causalproof
+dspy-security-bench causal run trace.json causal-manifest.json \
+  --report-out artifacts/causalproof.json \
+  --scenario-out artifacts/scheduleproof.json \
+  --schedule-report-out artifacts/scheduleproof-report.json \
+  --fail-on-review --fail-on-unsafe --require-complete
+```
+
+Span names, attributes, events, status, resource metadata, prompts, arguments,
+results, and credentials are never read. Public bundles strip them, preserve the
+structural evidence chain, and are independently recomputed in the open
+[CausalProof registry](submissions/causal/README.md). See the
+[CausalProof guide](docs/causalproof.md) for federal and enterprise mission
+patterns, manifest semantics, privacy boundaries, and standards anchors.
 
 ---
 
@@ -722,6 +750,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
 | 🔌 **Connect your framework** | Run [`integrate`](docs/integrations.md) for OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, or an MCP/custom callback, then validate it without model spend using `doctor`. |
 | ✈️ **Sanitize operational traces** | Use [TraceProof](docs/traceproof.md) to keep OTLP processing local, remove prompts and secrets, find 12 authorization/effect failures, and export JSON, SARIF, OSCAL, or a synthetic replay twin. |
+| 🧭 **Turn runtime structure into proof** | Use [CausalProof](docs/causalproof.md) to keep observed parents, owner assertions, undirected links, and wall-clock hints separate before ScheduleProof exploration. |
 | 🕸️ **Test multi-agent authority** | Run [AgentGraphTwin v2](docs/agentgraph-twin.md) against token exchange, revocation, step-up, parallel approval, and multi-effect paths. |
 | 🧾 **Produce verifiable evidence** | Use [ProofRun](docs/proofrun.md) to preserve raw repeated trials, recompute statistics offline, and attach GitHub/Sigstore provenance to the exact result bytes. |
 | 🌐 **Publish control evidence** | Add a policy-bound experiment to the [Open Control Evidence Registry](docs/control-evidence-registry.md), with raw paired trials, honest uncertainty, provenance tiers, and a shareable evidence card. |
@@ -1366,6 +1395,7 @@ v0.1 scope choices:
 | v0.15 — Mission Assurance Commons, InventoryForge, AgentGraphTwin, ContinuousProof, AuthorityBridge, and AcquisitionProof | **shipped** |
 | v0.16 — TraceProof, AgentGraphTwin v2, live AuthorityBridge, signed MissionPack Commons, and ValueProof | **shipped** |
 | v0.17 — TraceProof Runtime Kit, MCP 2025-11-25 probes, redaction challenge, open evidence registry, and ScheduleProof v1 | **shipped** |
+| CausalProof v1 — structural OTLP causality, provenance-separated proof edges, and public recomputation | **on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

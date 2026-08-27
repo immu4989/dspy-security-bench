@@ -364,6 +364,8 @@
   "authorityEvidence": [],
   "traceEvidenceCount": 0,
   "traceEvidence": [],
+  "causalEvidenceCount": 0,
+  "causalEvidence": [],
   "missionAssuranceCommons": {
     "inventoryForge": {
       "inputLimitBytes": 5000000,

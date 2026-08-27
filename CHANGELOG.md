@@ -9,6 +9,14 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+### Added
+- **CausalProof v1**, a content-free OTLP structural converter that separates
+  observed parents, operator assertions, undirected span links, and non-proving
+  wall-clock candidates before generating a strict ScheduleProof scenario.
+- Offline CausalProof verification, diagnostics for instrumentation gaps and
+  dropped records, an end-to-end CLI, strict manifest/report/submission schemas,
+  and CI-recomputed content-addressed community bundles.
+
 ## [0.17.0] — 2026-08-27
 
 ### Added

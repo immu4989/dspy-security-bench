@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/causalproof-report.schema.json",
+  "title": "CausalProof v1 report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "protocol_sha256", "source_sha256", "manifest_sha256", "summary", "observations", "relations", "diagnostics", "schedule_scenario", "claim_boundary", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "CausalProof / Runtime-to-ScheduleProof evidence"},
+    "protocol_version": {"const": "causalproof-v1"},
+    "protocol_sha256": {"$ref": "#/$defs/digest"},
+    "source_sha256": {"$ref": "#/$defs/digest"},
+    "manifest_sha256": {"$ref": "#/$defs/digest"},
+    "report_sha256": {"$ref": "#/$defs/digest"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "span_records", "bound_events", "matched_events", "trusted_edges", "observed_parent_edges", "asserted_edges", "observed_links", "timing_candidates", "diagnostic_count"],
+      "properties": {
+        "status": {"enum": ["ready", "review_required"]},
+        "span_records": {"type": "integer", "minimum": 1, "maximum": 10000},
+        "bound_events": {"type": "integer", "minimum": 2, "maximum": 12},
+        "matched_events": {"type": "integer", "minimum": 0, "maximum": 12},
+        "trusted_edges": {"type": "integer", "minimum": 0, "maximum": 66},
+        "observed_parent_edges": {"type": "integer", "minimum": 0, "maximum": 66},
+        "asserted_edges": {"type": "integer", "minimum": 0, "maximum": 66},
+        "observed_links": {"type": "integer", "minimum": 0},
+        "timing_candidates": {"type": "integer", "minimum": 0},
+        "diagnostic_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "observations": {"type": "array", "maxItems": 12, "items": {"$ref": "#/$defs/observation"}},
+    "relations": {"type": "array", "items": {"$ref": "#/$defs/relation"}},
+    "diagnostics": {"type": "array", "items": {"$ref": "#/$defs/diagnostic"}},
+    "schedule_scenario": {"type": ["object", "null"]},
+    "claim_boundary": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,79}$"},
+    "observation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["event_id", "span_fingerprint", "has_parent", "link_count"],
+      "properties": {"event_id": {"$ref": "#/$defs/id"}, "span_fingerprint": {"$ref": "#/$defs/digest"}, "has_parent": {"type": "boolean"}, "link_count": {"type": "integer", "minimum": 0}}
+    },
+    "relation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["from_event", "to_event", "provenance", "direction", "schedule_eligible", "rationale"],
+      "properties": {
+        "from_event": {"$ref": "#/$defs/id"}, "to_event": {"$ref": "#/$defs/id"},
+        "provenance": {"enum": ["observed_parent", "asserted", "observed_link", "timing_candidate"]},
+        "direction": {"enum": ["before", "related", "candidate_before"]},
+        "schedule_eligible": {"type": "boolean"}, "rationale": {"type": "string", "minLength": 1, "maxLength": 300}
+      }
+    },
+    "diagnostic": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "severity", "name", "message"],
+      "properties": {"code": {"pattern": "^CP[0-9]{3}$"}, "severity": {"enum": ["warning", "error"]}, "name": {"type": "string", "minLength": 1}, "message": {"type": "string", "minLength": 1}}
+    }
+  }
+}

@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="A privacy-first mission-assurance commons for AI agents: sanitize operational traces, replay authorization failures, test public missions, and export reviewable evidence.">
+  <meta name="description" content="Privacy-first assurance for AI agents: sanitize traces, separate causal evidence from assertions, explore authorization races, and export reviewable artifacts.">
   <meta property="og:title" content="DSPy Security Bench — Mission Assurance Commons">
-  <meta property="og:description" content="TraceProof turns local agent telemetry into sanitized evidence, deterministic security findings, synthetic replays, SARIF, and OSCAL—without uploading prompts or secrets.">
+  <meta property="og:description" content="TraceProof, CausalProof, and ScheduleProof turn local agent telemetry into privacy-bounded evidence and reproducible security findings—without uploading prompts or secrets.">
   <meta property="og:image" content="assets/mission-assurance-commons-v015.png">
   <meta name="twitter:card" content="summary_large_image">
   <title>DSPy Security Bench — Measure before you trust</title>
@@ -28,6 +28,7 @@
       </a>
       <div class="nav-links" id="nav-links">
         <a href="#traceproof">TraceProof</a>
+        <a href="#causalproof">CausalProof</a>
         <a href="#scheduleproof">ScheduleProof</a>
         <a href="#commons">Commons</a>
         <a href="#leaderboard">Leaderboard</a>
@@ -140,6 +141,75 @@
           <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof-runtime-kit.md">open runtime kit →</a>
         </div>
         <footer><span>content-free runtime wrapper</span><span>20-case redaction challenge</span><span>MCP 2025-11-25 probes</span><span>offline recomputation</span></footer>
+      </div>
+    </section>
+
+    <section class="section causalproof-section" id="causalproof" aria-labelledby="causalproof-title">
+      <div class="causalproof-aura" aria-hidden="true"></div>
+      <div class="causalproof-heading reveal">
+        <div>
+          <span class="section-kicker">CausalProof · runtime structure to proof</span>
+          <h2 id="causalproof-title">Observed. Asserted.<br><em>Never blurred.</em></h2>
+        </div>
+        <p>Turn structural OpenTelemetry evidence into a ScheduleProof draft without treating span links or wall clocks as proof. Names, attributes, events, prompts, arguments, results, and credentials are never read.</p>
+      </div>
+
+      <div class="causal-console reveal" data-causal-mode="proof">
+        <header class="causal-topbar">
+          <span><i></i> STRUCTURAL FIELDS ONLY</span>
+          <code>CAUSALPROOF::PROVENANCE_LEDGER::V1</code>
+          <div class="causal-toggle" role="group" aria-label="Causal graph view">
+            <button class="active" type="button" data-causal-view="proof" aria-pressed="true">Proof edges</button>
+            <button type="button" data-causal-view="all" aria-pressed="false">All observations</button>
+          </div>
+        </header>
+
+        <div class="causal-stage">
+          <div class="causal-graph" aria-label="Causal graph separating proof-eligible parents and assertions from undirected links and timing candidates">
+            <div class="causal-node node-grant"><small>BOUND / 01</small><strong>grant</strong><code>authority-1042</code></div>
+            <div class="causal-node node-approve"><small>BOUND / 02</small><strong>approve</strong><code>decision-1042</code></div>
+            <div class="causal-node node-exchange"><small>BOUND / 03</small><strong>exchange</strong><code>token-1042</code></div>
+            <div class="causal-node node-revoke"><small>BOUND / 04</small><strong>revoke</strong><code>authority-1042</code></div>
+            <div class="causal-node node-commit"><small>BOUND / 05</small><strong>commit</strong><code>effect-1042</code></div>
+
+            <div class="causal-edge edge-parent-a"><span>observed parent</span></div>
+            <div class="causal-edge edge-parent-b"><span>observed parent</span></div>
+            <div class="causal-edge edge-parent-c"><span>observed parent</span></div>
+            <div class="causal-edge edge-asserted"><span>owner assertion</span></div>
+            <div class="causal-edge edge-link nonproof"><span>span link · related only</span></div>
+            <div class="causal-edge edge-time nonproof"><span>clock candidate · no proof</span></div>
+          </div>
+
+          <aside class="causal-ledger">
+            <header><span>EDGE PROVENANCE</span><strong>4 trusted / 2 held out</strong></header>
+            <ol>
+              <li class="trusted"><i></i><div><strong>grant → exchange</strong><span>observed_parent</span></div><b>IN</b></li>
+              <li class="trusted"><i></i><div><strong>exchange → commit</strong><span>observed_parent</span></div><b>IN</b></li>
+              <li class="asserted"><i></i><div><strong>approve → commit</strong><span>asserted · rationale bound</span></div><b>IN</b></li>
+              <li class="held nonproof"><i></i><div><strong>grant ~ approve</strong><span>observed_link · undirected</span></div><b>OUT</b></li>
+              <li class="held nonproof"><i></i><div><strong>revoke ? commit</strong><span>timing_candidate</span></div><b>OUT</b></li>
+            </ol>
+            <div class="causal-verdict"><span>SCHEDULEPROOF DRAFT</span><strong>revocation race preserved</strong><small>Wall-clock order cannot erase a reachable unsafe schedule.</small></div>
+          </aside>
+        </div>
+
+        <footer class="causal-footer">
+          <div><span>$</span><code>dspy-security-bench causal demo --out-dir artifacts/causalproof</code></div>
+          <button id="causal-copy" type="button">Copy command</button>
+          <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/causalproof.md">Open CausalProof guide <span aria-hidden="true">→</span></a>
+        </footer>
+      </div>
+
+      <div class="causal-principles reveal">
+        <article><span>01 / OBSERVE</span><strong>Parents are evidence</strong><p>Same-trace parent identifiers become directional, schedule-eligible edges.</p></article>
+        <article><span>02 / ASSERT</span><strong>Architecture stays explicit</strong><p>Owner guarantees require a bounded rationale and retain asserted provenance.</p></article>
+        <article><span>03 / HOLD OUT</span><strong>Links are not arrows</strong><p>Generic span links remain undirected until the operator supplies a guarantee.</p></article>
+        <article><span>04 / REVIEW</span><strong>Clocks are not causality</strong><p>Timing order is visible for investigation but can never enter the proof graph.</p></article>
+      </div>
+
+      <div class="causal-registry reveal">
+        <div><span>OPEN CAUSAL EVIDENCE</span><strong><b data-causal-evidence-count>0</b> independently recomputable bundles</strong><p>CI rebuilds the structural trace → causal ledger → ScheduleProof chain. Unsafe results are admissible; unverifiable evidence is not.</p></div>
+        <a href="https://github.com/immu4989/dspy-security-bench/tree/main/submissions/causal">Inspect the registry <span aria-hidden="true">↗</span></a>
       </div>
     </section>
 
