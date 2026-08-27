@@ -223,6 +223,10 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         from dspy_security_bench.graph.v2 import verify_agent_graph_twin_v2
 
         return "agent-graph-v2", verify_agent_graph_twin_v2(payload)
+    if report_type == "ScheduleProof / Bounded agent authorization interleaving assurance":
+        from dspy_security_bench.schedule.proof import verify_schedule_report
+
+        return "schedule", verify_schedule_report(payload)
     if report_type == "TraceProof / Privacy-bounded agent trace analysis":
         from dspy_security_bench.trace.proof import verify_trace_report
 
@@ -245,13 +249,14 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         return "value", verify_value_proof(payload)
     raise ValueError(
         "unsupported evidence; use a verified AgentGraphTwin, TraceProof, AuthorityTwin, "
-        "MissionPackTwin, IncidentTwin, or ValueProof report"
+        "MissionPackTwin, IncidentTwin, ScheduleProof, or ValueProof report"
     )
 
 
 def _identity(payload: Mapping[str, Any]) -> dict[str, Any]:
     fields = (
         "protocol_sha256",
+        "scenario_sha256",
         "policy_sha256",
         "scenario_version",
         "adapter",

@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes eighteen related security surfaces:
+`dspy-security-bench` exposes nineteen related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -51,6 +51,9 @@ v0.1 research choices are labeled separately from the current product surface.
     framework-neutral tool boundary, checks a frozen MCP authorization evidence
     profile, exercises sanitizer escape cases, and packages sanitized public
     submissions for offline recomputation.
+19. **ScheduleProof** — counts and explores the valid topological interleavings
+    of a strict data-only authorization graph, checks eight effect-boundary
+    invariants, and emits minimal causal counterexamples plus SARIF.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer
@@ -77,6 +80,7 @@ dspy_security_bench/
 ├── incident/                   # inert cyber-response mission assurance
 ├── inventory/                  # bounded public inventory → synthetic pack
 ├── graph/                      # v1 + temporal/parallel v2 authorization twins
+├── schedule/                   # bounded interleaving explorer + SARIF export
 ├── continuous/                 # verified baseline and drift evidence
 ├── acquisition/                # neutral technical acquisition packages
 ├── trace/                      # runtime recorder, OTLP sanitization, rules

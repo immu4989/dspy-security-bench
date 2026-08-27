@@ -235,6 +235,23 @@ def test_site_presents_mission_assurance_commons_with_accountable_boundaries():
     assert 'bindCommandCopy("#graph-copy"' in script
 
 
+def test_site_presents_scheduleproof_as_bounded_model_not_probability():
+    page = (SITE / "index.html").read_text()
+    assert 'id="scheduleproof"' in page
+    for value in (
+        "The happy path is",
+        "SCHEDULEPROOF::TOPOLOGICAL_EXPLORER::V1",
+        "7 / 7",
+        "SP001 · stale authority",
+        "Probability?",
+        "A truncated search without a finding is review",
+        "dspy-security-bench schedule demo",
+    ):
+        assert value in page
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#schedule-copy"' in script
+
+
 def test_site_presents_traceproof_as_local_privacy_bounded_evidence():
     page = (SITE / "index.html").read_text()
     assert 'id="traceproof"' in page

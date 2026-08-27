@@ -9,7 +9,8 @@
 An open **Mission Assurance Commons** for your own agent: privacy-bounded
 operational traces, reproducible security twins, multi-agent authorization
 paths, continuous evidence, signed data-only mission protocols, measured
-mission economics, and reviewable OSCAL assessment inputs.
+mission economics, bounded authorization-race checking, and reviewable OSCAL
+assessment inputs.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -22,6 +23,7 @@ mission economics, and reviewable OSCAL assessment inputs.
 [![ValueProof](https://img.shields.io/badge/ValueProof-observed%20mission%20economics-FBBF24)](docs/valueproof.md)
 [![AuthorityTwin](https://img.shields.io/badge/AuthorityTwin-delegated%20authorization-FFD36E)](docs/authority-twin.md)
 [![AgentGraphTwin](https://img.shields.io/badge/AgentGraphTwin-multi--agent%20paths-87E5FF)](docs/agentgraph-twin.md)
+[![ScheduleProof](https://img.shields.io/badge/ScheduleProof-bounded%20race%20checking-FF8AC5)](docs/scheduleproof.md)
 [![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
 [![MissionForge](https://img.shields.io/badge/MissionForge-data--only%20agency%20packs-8FFFB0)](docs/missionforge.md)
 [![SourceTwin](https://img.shields.io/badge/SourceTwin-grounding%20probes-5FBDFF)](docs/missionforge.md)
@@ -40,6 +42,36 @@ mission economics, and reviewable OSCAL assessment inputs.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## On main: ScheduleProof bounded authorization-race checking
+
+**The happy path is one schedule. Security has to survive every schedule the
+design permits.** ScheduleProof takes a strict data-only partial-order graph,
+counts every reachable interleaving, exhaustively explores up to 100,000
+schedules, checks eight authorization invariants, and returns the shortest
+causal counterexample. It executes no model, tool, credential, or production
+effect.
+
+```bash
+dspy-security-bench schedule demo
+dspy-security-bench schedule init \
+  --profile revocation-race --out scheduleproof.json
+dspy-security-bench schedule run scheduleproof.json \
+  --json-out artifacts/scheduleproof.json \
+  --sarif-out artifacts/scheduleproof.sarif \
+  --fail-on-unsafe --require-complete
+dspy-security-bench schedule verify artifacts/scheduleproof.json
+```
+
+Results distinguish `bounded_safe`, `unsafe`, and `incomplete_review`. The
+unsafe-schedule fraction is permanently labeled as a schedule-space ratio—not
+a production probability. Reports bind the frozen protocol and scenario
+digests, recompute fully offline, export SARIF, and work with ContinuousProof.
+
+[Explore ScheduleProof →](docs/scheduleproof.md) ·
+[Inspect the strict scenario schema →](dspy_security_bench/schemas/scheduleproof-scenario.schema.json)
 
 ---
 
@@ -1334,6 +1366,7 @@ v0.1 scope choices:
 | v0.15 — Mission Assurance Commons, InventoryForge, AgentGraphTwin, ContinuousProof, AuthorityBridge, and AcquisitionProof | **shipped** |
 | v0.16 — TraceProof, AgentGraphTwin v2, live AuthorityBridge, signed MissionPack Commons, and ValueProof | **shipped** |
 | v0.17 foundation — TraceProof Runtime Kit, MCP 2025-11-25 probes, redaction challenge, reference lab, and open evidence registry | **on main** |
+| ScheduleProof v1 — bounded exhaustive authorization interleavings, causal counterexamples, SARIF, and offline verification | **on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

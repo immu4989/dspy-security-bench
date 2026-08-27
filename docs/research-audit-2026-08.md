@@ -186,3 +186,36 @@ unobserved attack paths. The nominal Wilson and McNemar calculations also treat
 pair-trial executions as exchangeable. Shared provider conditions can correlate
 cases, so the raw trials and per-pair stability remain part of the evidence
 rather than being discarded behind a p-value.
+
+## Follow-on: ScheduleProof bounded authorization interleavings
+
+The August 27 landscape refresh reviewed the NIST AI Agent Standards
+Initiative, NCCoE's 2026 software and AI agent identity/authorization concept
+paper, NIST's evaluation-probe work, the draft NIST TEVV-Athlon framework, and
+the stable MCP 2025-11-25 authorization and Tasks specifications. Together they
+reinforce a practical need for interoperable authorization evidence,
+machine-readable verification, explicit test boundaries, resource/audience
+binding, and authorization-context continuity. AgentGraphTwin v2 covered six
+fixed temporal examples, but it could not answer a different question: which
+other event schedules remain valid when a real design guarantees only a partial
+order?
+
+ScheduleProof makes that gap falsifiable. A strict data-only scenario declares
+typed grant, revoke, approval, token-exchange, and effect events plus only the
+happens-before edges the operator says are enforced. A deterministic explorer
+computes the exact number of reachable topological schedules, visits every one
+up to a declared bound, checks eight execution-boundary invariants, and retains
+the shortest counterexample prefix and causal slice for each failure class.
+Truncation without a finding becomes `incomplete_review`, never safe. The
+unsafe-schedule fraction is explicitly a schedule-space ratio and not a
+production probability.
+
+The work does not claim that model checking, topological exploration,
+authorization logic, or concurrency testing is individually novel, and this
+dated review is not sufficient to substantiate a global-first claim. The
+research contribution is their integration into a content-addressed
+agent-authorization protocol with strict denial-of-service bounds, SARIF,
+ContinuousProof identity, and full offline semantic recomputation. The main
+validity threat remains model adequacy: omitted events, false ordering edges,
+non-atomic operations, network failure, or weak-memory behavior can make a
+complete bounded result irrelevant to production.

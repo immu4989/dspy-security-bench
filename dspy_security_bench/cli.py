@@ -5,6 +5,7 @@ Subcommands:
   federal     Export standards-aligned FederalProof assessment evidence.
   inventory   Turn public AI inventories into synthetic MissionPack drafts.
   graph       Trace authorization failures across multi-agent execution paths.
+  schedule    Exhaustively explore bounded agent authorization interleavings.
   watch       Detect assurance regressions from verified evidence baselines.
   acquisition Export vendor-neutral, owner-governed evaluation packages.
   trace       Turn local agent telemetry into privacy-bounded assurance evidence.
@@ -74,7 +75,7 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__)
         print(
             "Usage: dspy-security-bench "
-            "<init|integrate|doctor|scan|impact|incident|pack|authority|inventory|graph|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
+            "<init|integrate|doctor|scan|impact|incident|pack|authority|inventory|graph|schedule|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
         )
         return 0
 
@@ -117,6 +118,10 @@ def main(argv: list[str] | None = None) -> int:
         from dspy_security_bench.graph.cli import main as graph_main
 
         return graph_main(rest)
+    if sub == "schedule":
+        from dspy_security_bench.schedule.cli import main as schedule_main
+
+        return schedule_main(rest)
     if sub == "watch":
         from dspy_security_bench.continuous.cli import main as watch_main
 
@@ -158,7 +163,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"unknown subcommand {sub!r}. Use: "
-        "init | integrate | doctor | scan | impact | incident | pack | authority | inventory | graph | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
+        "init | integrate | doctor | scan | impact | incident | pack | authority | inventory | graph | schedule | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
         file=sys.stderr,
     )
     return 2

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/scheduleproof-scenario.schema.json",
+  "title": "ScheduleProof v1 scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scenario_type", "scenario_id", "title", "description", "events", "happens_before", "invariants", "exploration"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scenario_type": {"const": "dspy-security-bench-scheduleproof-scenario"},
+    "scenario_id": {"$ref": "#/$defs/id"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 160},
+    "description": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "events": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 12,
+      "items": {"oneOf": [
+        {"$ref": "#/$defs/grant"},
+        {"$ref": "#/$defs/revoke"},
+        {"$ref": "#/$defs/approval"},
+        {"$ref": "#/$defs/token_exchange"},
+        {"$ref": "#/$defs/effect"}
+      ]}
+    },
+    "happens_before": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 66,
+      "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/id"}}
+    },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {"enum": ["active_authority_at_use", "approval_before_effect", "single_use_approval", "token_before_effect", "scope_attenuation", "audience_binding", "identity_binding", "unique_effect_and_receipt"]}
+    },
+    "exploration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_schedules"],
+      "properties": {"max_schedules": {"type": "integer", "minimum": 1, "maximum": 100000}}
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,79}$"},
+    "scopes": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "grant": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "kind", "actor", "authority_id", "subject", "resource", "scopes", "audience"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "kind": {"const": "grant"}, "actor": {"$ref": "#/$defs/id"}, "authority_id": {"$ref": "#/$defs/id"}, "subject": {"$ref": "#/$defs/id"}, "resource": {"$ref": "#/$defs/id"}, "scopes": {"$ref": "#/$defs/scopes"}, "audience": {"$ref": "#/$defs/id"}}
+    },
+    "revoke": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "kind", "actor", "authority_id"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "kind": {"const": "revoke"}, "actor": {"$ref": "#/$defs/id"}, "authority_id": {"$ref": "#/$defs/id"}}
+    },
+    "approval": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "kind", "actor", "decision_id", "subject", "resource", "scopes", "audience", "max_uses"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "kind": {"const": "approval"}, "actor": {"$ref": "#/$defs/id"}, "decision_id": {"$ref": "#/$defs/id"}, "subject": {"$ref": "#/$defs/id"}, "resource": {"$ref": "#/$defs/id"}, "scopes": {"$ref": "#/$defs/scopes"}, "audience": {"$ref": "#/$defs/id"}, "max_uses": {"type": "integer", "minimum": 1, "maximum": 16}}
+    },
+    "token_exchange": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "kind", "actor", "token_id", "authority_id", "subject", "resource", "scopes", "audience"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "kind": {"const": "token_exchange"}, "actor": {"$ref": "#/$defs/id"}, "token_id": {"$ref": "#/$defs/id"}, "authority_id": {"$ref": "#/$defs/id"}, "subject": {"$ref": "#/$defs/id"}, "resource": {"$ref": "#/$defs/id"}, "scopes": {"$ref": "#/$defs/scopes"}, "audience": {"$ref": "#/$defs/id"}}
+    },
+    "effect": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "kind", "actor", "effect_id", "subject", "resource", "scope", "audience", "authority_id", "decision_id", "token_id", "receipt_id"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "kind": {"const": "effect"}, "actor": {"$ref": "#/$defs/id"}, "effect_id": {"$ref": "#/$defs/id"}, "subject": {"$ref": "#/$defs/id"}, "resource": {"$ref": "#/$defs/id"}, "scope": {"$ref": "#/$defs/id"}, "audience": {"$ref": "#/$defs/id"}, "authority_id": {"$ref": "#/$defs/id"}, "decision_id": {"$ref": "#/$defs/id"}, "token_id": {"$ref": "#/$defs/id"}, "receipt_id": {"$ref": "#/$defs/id"}}
+    }
+  }
+}

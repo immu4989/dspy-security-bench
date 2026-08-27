@@ -50,6 +50,8 @@ keywords = [
     "opentelemetry",
     "agent-observability",
     "mcp-security",
+    "race-condition",
+    "model-checking",
     "mission-economics",
     "ed25519",
 ]
@@ -140,6 +142,7 @@ InventoryForge = "https://github.com/immu4989/dspy-security-bench/blob/main/docs
 ContinuousProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/continuousproof.md"
 AcquisitionProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/acquisitionproof.md"
 TraceProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof.md"
+ScheduleProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/scheduleproof.md"
 "TraceProof Runtime Kit" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof-runtime-kit.md"
 ValueProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/valueproof.md"
 "MissionPack Commons" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/mission-pack-commons.md"

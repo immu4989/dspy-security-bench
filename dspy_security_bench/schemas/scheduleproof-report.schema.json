@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/scheduleproof-report.schema.json",
+  "title": "ScheduleProof v1 report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "protocol_sha256", "analyzer", "scenario_sha256", "scenario", "summary", "minimal_counterexample", "counterexamples", "disclaimer", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "ScheduleProof / Bounded agent authorization interleaving assurance"},
+    "protocol_version": {"const": "scheduleproof-v1"},
+    "protocol_sha256": {"$ref": "#/$defs/digest"},
+    "analyzer": {"const": "reference-exhaustive-topological-explorer"},
+    "scenario_sha256": {"$ref": "#/$defs/digest"},
+    "scenario": {"type": "object"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "event_count", "dependency_count", "invariant_count", "reachable_schedule_count", "schedules_explored", "complete_exploration", "safe_schedules", "unsafe_schedules", "unsafe_schedule_fraction", "unsafe_schedule_fraction_is_probability", "counterexample_class_count"],
+      "properties": {
+        "status": {"enum": ["bounded_safe", "unsafe", "incomplete_review"]},
+        "event_count": {"type": "integer", "minimum": 2, "maximum": 12},
+        "dependency_count": {"type": "integer", "minimum": 0, "maximum": 66},
+        "invariant_count": {"type": "integer", "minimum": 1, "maximum": 8},
+        "reachable_schedule_count": {"type": "integer", "minimum": 1},
+        "schedules_explored": {"type": "integer", "minimum": 1, "maximum": 100000},
+        "complete_exploration": {"type": "boolean"},
+        "safe_schedules": {"type": "integer", "minimum": 0},
+        "unsafe_schedules": {"type": "integer", "minimum": 0},
+        "unsafe_schedule_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+        "unsafe_schedule_fraction_is_probability": {"const": false},
+        "counterexample_class_count": {"type": "integer", "minimum": 0, "maximum": 9}
+      }
+    },
+    "minimal_counterexample": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/counterexample"}]},
+    "counterexamples": {"type": "array", "maxItems": 9, "items": {"$ref": "#/$defs/counterexample"}},
+    "disclaimer": {"type": "string", "minLength": 1},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,79}$"},
+    "edge": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/id"}},
+    "counterexample": {
+      "type": "object", "additionalProperties": false,
+      "required": ["violation_id", "title", "event_id", "schedule_prefix", "causal_event_ids", "missing_happens_before", "repair_hint"],
+      "properties": {
+        "violation_id": {"type": "string", "pattern": "^SP00[1-9]$"},
+        "title": {"type": "string", "minLength": 1},
+        "event_id": {"$ref": "#/$defs/id"},
+        "schedule_prefix": {"type": "array", "minItems": 1, "maxItems": 12, "items": {"$ref": "#/$defs/id"}},
+        "causal_event_ids": {"type": "array", "minItems": 1, "maxItems": 12, "items": {"$ref": "#/$defs/id"}},
+        "missing_happens_before": {"type": "array", "items": {"$ref": "#/$defs/edge"}},
+        "repair_hint": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

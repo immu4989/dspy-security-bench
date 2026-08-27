@@ -10,6 +10,14 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **ScheduleProof v1**, a strict data-only bounded model checker that counts
+  reachable agent-authorization schedules, exhaustively explores up to 100,000
+  topological interleavings, checks eight commit-boundary invariants, and emits
+  minimal causal counterexamples without executing a model or tool.
+- Four synthetic authoring profiles for hardened payment, revocation race,
+  token-exchange race, and parallel single-use approval replay; strict scenario
+  and report schemas; offline semantic verification; SARIF 2.1.0; CI gating;
+  and a dedicated responsive dashboard race visual.
 - **TraceProof Runtime Kit** with a framework-neutral, metadata-only tool-call
   recorder; OpenAI Agents, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen,
   DSPy, MCP, and custom-loop presets; a manifest-only doctor; and a generated
@@ -30,6 +38,8 @@ several of them changed published numbers.
   dashboard evidence ledger.
 
 ### Changed
+- ContinuousProof now baselines ScheduleProof protocol and scenario identity
+  and compares its unsafe-schedule evidence as a lower-is-better metric.
 - TraceProof now accepts bounded OTLP JSON Lines from Collector file exporters
   and allows only an explicit frozen subset of `dsb.*` security attributes.
 - The example redaction policy and documentation now match the executable

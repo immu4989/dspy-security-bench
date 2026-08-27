@@ -15,6 +15,9 @@ compliance or safety overclaims.
   allowlisting, and secret-shaped value scanning.
 - A reproducible OPA + OpenTelemetry Collector reference lab and a validity-
   based public TraceProof evidence registry with dashboard cards.
+- ScheduleProof v1 bounded exhaustive interleaving analysis with eight
+  authorization invariants, exact schedule counts, minimal causal
+  counterexamples, strict schemas, SARIF, and ContinuousProof baselines.
 
 ## Delivered in v0.16
 
@@ -68,8 +71,9 @@ compliance or safety overclaims.
   dashboard.
 - ContinuousProof support for repeated evidence bundles and signed longitudinal
   timelines, while retaining owner-controlled thresholds and risk decisions.
-- Property-based and schedule-fuzzed AgentGraphTwin scenarios, separately
-  identified from the frozen v1 and v2 conformance protocols.
+- Property-based generators and real-runtime schedule capture feeding the
+  separately versioned ScheduleProof protocol without changing frozen
+  AgentGraphTwin v1 or v2 scenarios.
 
 ## Later
 

@@ -210,6 +210,36 @@ requires at least five trials, a fresh agent for every case, zero runtime errors
 and complete nested recomputation. A low score is acceptable; hand-editing or
 selectively dropping trials is not.
 
+## Contributing a ScheduleProof scenario
+
+ScheduleProof v1 is frozen measurement logic. Changes to event semantics,
+invariant meaning, enumeration order, bounds, status vocabulary, or derived
+metrics require a separately identified protocol version; do not silently
+change v1. New starter scenarios may use the existing contract when they:
+
+- contain only synthetic, data-only events and no production identifiers,
+  credentials, endpoints, personal data, CUI, or executable hooks;
+- include only happens-before edges the described design actually enforces;
+- remain within the 12-event and 100,000-schedule denial-of-service bounds;
+- add tests for complete exploration, expected counterexample classes, JSON
+  Schema validation, semantic tamper detection, and offline recomputation; and
+- label fixtures and public-service use cases without implying deployment
+  evidence, agency review, government endorsement, certification, compliance,
+  risk acceptance, or authorization to operate.
+
+Run a contribution locally with:
+
+```bash
+dspy-security-bench schedule run scenario.json \
+  --json-out report.json --sarif-out report.sarif \
+  --fail-on-unsafe --require-complete
+dspy-security-bench schedule verify report.json
+```
+
+An intentionally unsafe fixture is welcome when its purpose is explicit and
+its minimal counterexample is regression-tested. An incomplete search without a
+finding must remain `incomplete_review`, never relabeled as safe.
+
 ## Statistical conventions
 
 Three are load-bearing and easy to get wrong. They are explained in

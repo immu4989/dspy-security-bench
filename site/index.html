@@ -28,16 +28,10 @@
       </a>
       <div class="nav-links" id="nav-links">
         <a href="#traceproof">TraceProof</a>
+        <a href="#scheduleproof">ScheduleProof</a>
         <a href="#commons">Commons</a>
         <a href="#leaderboard">Leaderboard</a>
         <a href="#connect">Connect</a>
-        <a href="#proofrun">ProofRun</a>
-        <a href="#authority-twin">AuthorityTwin</a>
-        <a href="#source-twin">SourceTwin</a>
-        <a href="#impact">ImpactTwin</a>
-        <a href="#control">ControlTwin</a>
-        <a href="#mission-assurance">FederalProof</a>
-        <a href="#scan">CI scanner</a>
         <a class="nav-cta" href="https://github.com/immu4989/dspy-security-bench">View on GitHub <span aria-hidden="true">↗</span></a>
       </div>
       <button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="nav-links">Menu</button>
@@ -69,7 +63,7 @@
       <div class="metric reveal"><span class="metric-value" data-model-count>14</span><span class="metric-label">models measured</span></div>
       <div class="metric reveal"><span class="metric-value" data-family-count>10</span><span class="metric-label">model families</span></div>
       <div class="metric reveal"><span class="metric-value">12 trace rules</span><span class="metric-label">authorization + effect signals</span></div>
-      <div class="metric reveal"><span class="metric-value">6 temporal twins</span><span class="metric-label">parallel + multi-effect paths</span></div>
+      <div class="metric reveal"><span class="metric-value">23 schedules</span><span class="metric-label">4 bounded race profiles</span></div>
     </section>
 
     <section class="section traceproof-section" id="traceproof" aria-labelledby="traceproof-title">
@@ -146,6 +140,84 @@
           <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof-runtime-kit.md">open runtime kit →</a>
         </div>
         <footer><span>content-free runtime wrapper</span><span>20-case redaction challenge</span><span>MCP 2025-11-25 probes</span><span>offline recomputation</span></footer>
+      </div>
+    </section>
+
+    <section class="section scheduleproof-section" id="scheduleproof" aria-labelledby="scheduleproof-title">
+      <div class="scheduleproof-mesh" aria-hidden="true"></div>
+      <div class="scheduleproof-heading reveal">
+        <div>
+          <span class="section-kicker">ScheduleProof · bounded interleaving assurance</span>
+          <h2 id="scheduleproof-title">The happy path is<br><em>one schedule.</em></h2>
+        </div>
+        <p>Declare only the ordering your design truly enforces. ScheduleProof counts every reachable interleaving, checks eight authorization invariants, and returns the shortest causal counterexample—without executing a model, credential, tool, or effect.</p>
+      </div>
+
+      <div class="schedule-console reveal">
+        <header class="schedule-topbar">
+          <span><i></i> EXHAUSTIVE / BOUNDED</span>
+          <code>SCHEDULEPROOF::TOPOLOGICAL_EXPLORER::V1</code>
+          <b>ATOMIC EVENT MODEL</b>
+        </header>
+
+        <div class="schedule-stage">
+          <div class="schedule-declaration">
+            <span>DECLARED PARTIAL ORDER</span>
+            <div class="event-chain" aria-label="Grant before token exchange; approval and token exchange before commit; revocation is unordered with commit">
+              <div class="event-stack">
+                <div class="event grant"><small>01A</small><strong>grant</strong><code>authority-1</code></div>
+                <div class="event approval"><small>01B</small><strong>approve</strong><code>max_uses: 1</code></div>
+              </div>
+              <i class="event-arrow">→</i>
+              <div class="event exchange"><small>02</small><strong>exchange</strong><code>aud: payments-mcp</code></div>
+              <i class="event-fork">⌁</i>
+              <div class="event-stack">
+                <div class="event revoke"><small>03B</small><strong>revoke</strong><code>authority-1</code></div>
+                <div class="event commit"><small>03A</small><strong>commit</strong><code>payment-1042</code></div>
+              </div>
+            </div>
+            <p><b>Missing guarantee:</b> commit and revocation can race. The graph—not a preferred trace—defines the search space.</p>
+          </div>
+
+          <div class="schedule-split" aria-hidden="true"><span>7</span><small>reachable<br>schedules</small><i></i></div>
+
+          <div class="schedule-outcomes">
+            <article class="schedule-safe">
+              <header><span>ORDER / 02</span><b>BOUNDED SAFE</b></header>
+              <ol><li>grant</li><li>exchange</li><li>approve</li><li>commit</li><li>revoke</li></ol>
+              <footer>authority active at commit <strong>✓</strong></footer>
+            </article>
+            <article class="schedule-unsafe">
+              <header><span>ORDER / 05</span><b>UNSAFE</b></header>
+              <ol><li>grant</li><li>exchange</li><li>approve</li><li class="bad">revoke</li><li class="failed">commit</li></ol>
+              <footer>SP001 · stale authority <strong>!</strong></footer>
+            </article>
+          </div>
+        </div>
+
+        <div class="schedule-counterexample">
+          <div><span>MINIMAL CAUSAL COUNTEREXAMPLE</span><strong>approve → grant → exchange → revoke → <em>commit</em></strong></div>
+          <dl>
+            <div><dt>Explored</dt><dd>7 / 7</dd></div>
+            <div><dt>Unsafe</dt><dd>4</dd></div>
+            <div><dt>Coverage</dt><dd>complete</dd></div>
+            <div><dt>Probability?</dt><dd>no</dd></div>
+          </dl>
+          <p><b>Repair direction</b> Revalidate named authority atomically at effect commit. A suggested fix is evidence for review—not an automated risk decision.</p>
+        </div>
+
+        <footer class="schedule-footer">
+          <div><span>$</span><code>dspy-security-bench schedule demo</code></div>
+          <button id="schedule-copy" type="button">Copy command</button>
+          <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/scheduleproof.md">Open ScheduleProof guide <span aria-hidden="true">→</span></a>
+        </footer>
+      </div>
+
+      <div class="schedule-claims reveal">
+        <article><span>01</span><strong>Exact bounded coverage</strong><p>Counts the full topological schedule space before exploration.</p></article>
+        <article><span>02</span><strong>Eight invariants</strong><p>Authority, approval, token, scope, audience, identity, effect, and receipt.</p></article>
+        <article><span>03</span><strong>Offline recomputation</strong><p>Protocol and scenario digests bind every derived count and counterexample.</p></article>
+        <article><span>04</span><strong>Honest incompleteness</strong><p>A truncated search without a finding is review—not a safe result.</p></article>
       </div>
     </section>
 

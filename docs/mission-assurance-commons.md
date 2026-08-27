@@ -2,15 +2,16 @@
 
 Mission Assurance Commons is the end-to-end workflow for turning a bounded AI
 use case and locally held operational evidence into reviewable, portable
-assurance artifacts. v0.16 adds privacy-bounded telemetry, temporal graphs,
-real-backend bridge execution, signed community protocols, and measured mission
-economics:
+assurance artifacts. The current Commons adds privacy-bounded telemetry,
+temporal graphs, bounded authorization-race exploration, real-backend bridge
+execution, signed community protocols, and measured mission economics:
 
 ```text
 public inventory ──→ reviewed/signed MissionPack ──→ synthetic twin tests
 local OTLP export ─→ sanitized TraceProof evidence ─→ temporal graph tests
                                                        ↓
-                    drift comparison ← ValueProof ← acquisition review inputs
+                    drift comparison ← ScheduleProof race exploration
+                              ↑        ← ValueProof ← acquisition review inputs
 ```
 
 It is designed for program owners, evaluators, engineers, researchers, and
@@ -107,7 +108,27 @@ boundaries. A live AuthorityBridge can exercise an operator-controlled OPA,
 Cedar, OpenFGA, OAuth-bound MCP, or SPIFFE command using a bounded JSON
 contract; its execution claim remains self-attested.
 
-### 5. Detect evidence drift with ContinuousProof
+### 5. Explore every declared authorization interleaving with ScheduleProof
+
+```bash
+dspy-security-bench schedule init \
+  --profile hardened-payment --out scheduleproof.json
+# Replace the starter events and happens-before edges with the reviewed design.
+dspy-security-bench schedule run scheduleproof.json \
+  --json-out artifacts/scheduleproof.json \
+  --sarif-out artifacts/scheduleproof.sarif \
+  --fail-on-unsafe --require-complete
+dspy-security-bench schedule verify artifacts/scheduleproof.json
+```
+
+ScheduleProof counts every topological ordering of the declared graph and
+exhaustively checks up to 100,000 schedules for active authority, prior and
+single-use approval, resource-bound token exchange, scope attenuation, identity
+and audience continuity, and replay-safe effect receipts. A bounded-safe result
+applies only to the supplied atomic-event model; the explored unsafe fraction
+is not a runtime probability. Read the [ScheduleProof guide](scheduleproof.md).
+
+### 6. Detect evidence drift with ContinuousProof
 
 ```bash
 dspy-security-bench watch baseline artifacts/agent-graph.json \
@@ -120,7 +141,7 @@ dspy-security-bench watch compare artifacts/baseline.json artifacts/candidate.js
 Thresholds are owner supplied. A `review` result is a change signal, not an
 automatic deployment rejection or risk decision.
 
-### 6. Add owner-measured mission economics
+### 7. Add owner-measured mission economics
 
 ```bash
 dspy-security-bench value build value-observation.json \
@@ -132,7 +153,7 @@ ValueProof makes observed cost per safe mission, latency, review, recovery, and
 portability arithmetic reproducible. It does not estimate savings or rank a
 vendor. Read the [ValueProof measurement guide](valueproof.md).
 
-### 7. Package comparable acquisition inputs
+### 8. Package comparable acquisition inputs
 
 ```bash
 dspy-security-bench acquisition init --out acquisition-profile.json
@@ -171,6 +192,8 @@ synthetic examples do not count as independent evidence.
   linkable and are not anonymization.
 - Benchmark tools use fictional principals, resources, approvals, costs, and
   effects. No real payment, isolation, account, or network mutation occurs.
+- ScheduleProof consumes a declared atomic-event graph and executes nothing. It
+  cannot discover omitted events or establish production scheduler behavior.
 - Adapters are an external trust boundary. The harness records normalized
   outputs but does not own production identity, credentials, or policy.
 - Hashes make local evidence tamper evident. They are not signatures,

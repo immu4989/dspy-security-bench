@@ -342,6 +342,7 @@ bindCommandCopy("#authority-copy", "dspy-security-bench authority demo");
 bindCommandCopy("#federal-copy", "dspy-security-bench federal init");
 bindCommandCopy("#graph-copy", "dspy-security-bench graph demo");
 bindCommandCopy("#trace-copy", "dspy-security-bench trace demo --out-dir artifacts/traceproof");
+bindCommandCopy("#schedule-copy", "dspy-security-bench schedule demo");
 
 const menuButton = document.querySelector(".menu-button");
 menuButton.addEventListener("click", () => {
