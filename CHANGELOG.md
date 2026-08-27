@@ -9,6 +9,8 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.17.0] — 2026-08-27
+
 ### Added
 - **ScheduleProof v1**, a strict data-only bounded model checker that counts
   reachable agent-authorization schedules, exhaustively explores up to 100,000

@@ -11,8 +11,8 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.16.0
-date-released: 2026-08-23
+version: 0.17.0
+date-released: 2026-08-27
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
 url: "https://github.com/immu4989/dspy-security-bench"
@@ -70,6 +70,12 @@ abstract: >-
   ValueProof computes measured mission economics without forecasts or rankings.
   MissionPack Commons adds self-contained Ed25519 envelopes and a separately
   governed, content-addressed catalog for community mission protocols.
+  The TraceProof Runtime Kit records metadata-only tool-boundary events across
+  seven agent-framework profiles and tests sanitizer and MCP authorization
+  evidence without retaining application content. ScheduleProof exhaustively
+  explores bounded authorization-event interleavings, reports exact schedule
+  coverage and minimal causal counterexamples, and exports offline-verifiable
+  JSON and SARIF without executing a model or tool.
 keywords:
   - prompt-injection
   - llm-security

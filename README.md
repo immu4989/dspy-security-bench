@@ -45,7 +45,7 @@ assessment inputs.
 
 ---
 
-## On main: ScheduleProof bounded authorization-race checking
+## New in v0.17: ScheduleProof bounded authorization-race checking
 
 **The happy path is one schedule. Security has to survive every schedule the
 design permits.** ScheduleProof takes a strict data-only partial-order graph,
@@ -75,7 +75,7 @@ digests, recompute fully offline, export SARIF, and work with ContinuousProof.
 
 ---
 
-## On main: TraceProof Runtime Kit and open evidence
+## v0.17: TraceProof Runtime Kit and open evidence
 
 TraceProof now reaches the live tool boundary without recording application
 content. The framework-neutral runtime wrapper supports OpenAI Agents,
@@ -355,7 +355,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.16.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.17.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -579,7 +579,7 @@ The recommended reusable workflow produces the bundle and shareable SVG card:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.16.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.17.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent
@@ -1365,8 +1365,7 @@ v0.1 scope choices:
 | v0.14 — AuthorityTwin delegated-authorization conformance, normalized receipts, public evidence, and federal export | **shipped** |
 | v0.15 — Mission Assurance Commons, InventoryForge, AgentGraphTwin, ContinuousProof, AuthorityBridge, and AcquisitionProof | **shipped** |
 | v0.16 — TraceProof, AgentGraphTwin v2, live AuthorityBridge, signed MissionPack Commons, and ValueProof | **shipped** |
-| v0.17 foundation — TraceProof Runtime Kit, MCP 2025-11-25 probes, redaction challenge, reference lab, and open evidence registry | **on main** |
-| ScheduleProof v1 — bounded exhaustive authorization interleavings, causal counterexamples, SARIF, and offline verification | **on main** |
+| v0.17 — TraceProof Runtime Kit, MCP 2025-11-25 probes, redaction challenge, open evidence registry, and ScheduleProof v1 | **shipped** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
