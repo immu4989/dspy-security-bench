@@ -16,6 +16,10 @@ several of them changed published numbers.
 - Offline CausalProof verification, diagnostics for instrumentation gaps and
   dropped records, an end-to-end CLI, strict manifest/report/submission schemas,
   and CI-recomputed content-addressed community bundles.
+- Native OpenAI Agents SDK `TracingProcessor` and LangGraph
+  `BaseCallbackHandler` bridges with deterministic identifier pseudonymization,
+  explicit atomic-event binding, no-provider-call compatibility tests, safe
+  scaffolds, and a dedicated runtime integration guide.
 
 ## [0.17.0] — 2026-08-27
 

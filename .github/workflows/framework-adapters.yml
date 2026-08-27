@@ -5,7 +5,9 @@ on:
     branches: [main]
     paths:
       - "dspy_security_bench/integrations/**"
+      - "dspy_security_bench/causal/runtime.py"
       - "tests/test_framework_compat.py"
+      - "tests/test_causal_runtime.py"
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/framework-adapters.yml"
@@ -13,7 +15,9 @@ on:
     branches: [main]
     paths:
       - "dspy_security_bench/integrations/**"
+      - "dspy_security_bench/causal/runtime.py"
       - "tests/test_framework_compat.py"
+      - "tests/test_causal_runtime.py"
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/framework-adapters.yml"

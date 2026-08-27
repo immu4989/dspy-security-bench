@@ -11,6 +11,9 @@ offline-verifiable. It never reads span names, attributes, events, status,
 resource data, instrumentation scope, prompts, tool arguments, tool results, or
 credentials.
 
+Native privacy-bounded bridges for the **OpenAI Agents SDK** and **LangGraph**
+are documented in the [runtime integration guide](causalproof-runtime-integrations.md).
+
 ## Why the distinction matters
 
 | Evidence | Meaning | Inserted into ScheduleProof? |

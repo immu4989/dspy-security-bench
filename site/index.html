@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07111f">
   <meta name="description" content="Privacy-first assurance for AI agents: sanitize traces, separate causal evidence from assertions, explore authorization races, and export reviewable artifacts.">
   <meta property="og:title" content="DSPy Security Bench — Mission Assurance Commons">
-  <meta property="og:description" content="TraceProof, CausalProof, and ScheduleProof turn local agent telemetry into privacy-bounded evidence and reproducible security findings—without uploading prompts or secrets.">
+  <meta property="og:description" content="TraceProof, CausalProof, and ScheduleProof turn local agent telemetry into privacy-bounded evidence, with native OpenAI Agents and LangGraph bridges.">
   <meta property="og:image" content="assets/mission-assurance-commons-v015.png">
   <meta name="twitter:card" content="summary_large_image">
   <title>DSPy Security Bench — Measure before you trust</title>
@@ -205,6 +205,26 @@
         <article><span>02 / ASSERT</span><strong>Architecture stays explicit</strong><p>Owner guarantees require a bounded rationale and retain asserted provenance.</p></article>
         <article><span>03 / HOLD OUT</span><strong>Links are not arrows</strong><p>Generic span links remain undirected until the operator supplies a guarantee.</p></article>
         <article><span>04 / REVIEW</span><strong>Clocks are not causality</strong><p>Timing order is visible for investigation but can never enter the proof graph.</p></article>
+      </div>
+
+      <div class="causal-bridges reveal" aria-label="CausalProof native runtime bridges">
+        <header>
+          <div><span>02 / NATIVE BRIDGES</span><strong>Instrument where agents actually run.</strong></div>
+          <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/causalproof-runtime-integrations.md">Open integration guide <span aria-hidden="true">↗</span></a>
+        </header>
+        <div>
+          <article>
+            <span class="bridge-mark openai-mark">OA</span>
+            <div><small>OPENAI AGENTS SDK</small><strong>TracingProcessor</strong><p>Reads five structural lifecycle fields. Native span payloads, errors, prompts, responses, and tool I/O stay outside the bridge.</p></div>
+            <b>LOCAL</b>
+          </article>
+          <article>
+            <span class="bridge-mark langgraph-mark">LG</span>
+            <div><small>LANGGRAPH</small><strong>BaseCallbackHandler</strong><p>Binds selected graph nodes while discarding state, messages, inputs, outputs, errors, and tool data without inspection.</p></div>
+            <b>LOCAL</b>
+          </article>
+        </div>
+        <footer><code>$ dspy-security-bench causal scaffold openai-agents --out causal_bridge.py</code><span>zero provider calls · explicit event bindings · offline verification</span></footer>
       </div>
 
       <div class="causal-registry reveal">

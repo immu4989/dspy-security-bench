@@ -26,6 +26,16 @@ def main(argv: list[str] | None = None) -> int:
     commands = parser.add_subparsers(dest="command")
     describe = commands.add_parser("describe", help="show the frozen CausalProof protocol")
     describe.add_argument("--json", action="store_true", dest="as_json")
+    integrations = commands.add_parser(
+        "integrations", help="list privacy-bounded native runtime bridges"
+    )
+    integrations.add_argument("--json", action="store_true", dest="as_json")
+    scaffold = commands.add_parser(
+        "scaffold", help="write a review-first OpenAI Agents or LangGraph bridge"
+    )
+    scaffold.add_argument("framework", choices=("openai-agents", "langgraph"))
+    scaffold.add_argument("--out", required=True)
+    scaffold.add_argument("--force", action="store_true")
     demo = commands.add_parser("demo", help="run the fictional content-free reference case")
     demo.add_argument("--out-dir")
     init = commands.add_parser("init", help="write fictional starter OTLP and binding files")
@@ -70,6 +80,29 @@ def main(argv: list[str] | None = None) -> int:
             for provenance, meaning in payload["provenance_classes"].items():
                 print(f"  - {provenance}: {meaning}")
             print(payload["claim_boundary"])
+        return 0
+    if args.command == "integrations":
+        from dspy_security_bench.causal.runtime import integration_catalog
+
+        catalog = integration_catalog()
+        if args.as_json:
+            print(json.dumps(catalog, indent=2, sort_keys=True))
+        else:
+            for item in catalog:
+                print(f"{item['key']}: {item['label']} ({item['hook']})")
+                print(f"  structure: {item['structural_source']}")
+                print(f"  boundary: {item['content_boundary']}")
+        return 0
+    if args.command == "scaffold":
+        from dspy_security_bench.causal.runtime import integration_scaffold
+
+        destination = Path(args.out)
+        if destination.exists() and not args.force:
+            print("[causal] kept existing scaffold (use --force to replace)", file=sys.stderr)
+            return 2
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(integration_scaffold(args.framework), encoding="utf-8")
+        print(f"[causal] wrote {args.framework} bridge to {destination}")
         return 0
     if args.command in {"demo", "init"}:
         trace, manifest = build_demo_inputs()

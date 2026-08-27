@@ -126,6 +126,15 @@ def test_site_payload_exposes_the_open_causal_evidence_registry():
     assert CAUSAL_SUBMISSIONS_DIR.name == "causal"
 
 
+def test_site_exposes_native_causal_runtime_bridges_and_accessible_graph_toggle():
+    html = (SITE / "index.html").read_text()
+    assert "CausalProof native runtime bridges" in html
+    assert "OPENAI AGENTS SDK" in html
+    assert "LANGGRAPH" in html
+    assert 'data-causal-view="proof" aria-pressed="true"' in html
+    assert "causalproof-runtime-integrations.md" in html
+
+
 def test_site_payload_exposes_commons_protocol_not_product_claims():
     commons = build_payload()["missionAssuranceCommons"]
     assert commons["agentGraphTwin"]["pairCount"] == 6

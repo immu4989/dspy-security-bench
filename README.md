@@ -69,7 +69,8 @@ results, and credentials are never read. Public bundles strip them, preserve the
 structural evidence chain, and are independently recomputed in the open
 [CausalProof registry](submissions/causal/README.md). See the
 [CausalProof guide](docs/causalproof.md) for federal and enterprise mission
-patterns, manifest semantics, privacy boundaries, and standards anchors.
+patterns, or use the native [OpenAI Agents SDK and LangGraph runtime bridges](docs/causalproof-runtime-integrations.md)
+to generate local structural evidence without provider calls.
 
 ---
 
