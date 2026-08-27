@@ -41,8 +41,7 @@ Primary specifications:
 ## Five-minute reference run
 
 ```bash
-# CausalProof is currently on main and will enter the next tagged release.
-pip install "dspy-security-bench @ git+https://github.com/immu4989/dspy-security-bench@main"
+pip install dspy-security-bench==0.18.0
 
 dspy-security-bench causal demo --out-dir artifacts/causalproof
 

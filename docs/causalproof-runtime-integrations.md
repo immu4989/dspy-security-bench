@@ -13,7 +13,7 @@ The operator supplies each `grant`, `approval`, `token_exchange`, `revoke`, or
 `effect` event and remains accountable for that binding.
 
 ```bash
-pip install "dspy-security-bench[openai-agents,langchain]"
+pip install "dspy-security-bench[openai-agents,langchain]==0.18.0"
 dspy-security-bench causal integrations
 
 dspy-security-bench causal scaffold openai-agents --out causal_openai.py

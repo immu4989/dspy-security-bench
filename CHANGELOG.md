@@ -9,6 +9,8 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.18.0] — 2026-08-27
+
 ### Added
 - **CausalProof v1**, a content-free OTLP structural converter that separates
   observed parents, operator assertions, undirected span links, and non-proving
@@ -600,7 +602,13 @@ several of them changed published numbers.
 - First end-to-end run: DSPy optimizers × AgentDojo attacks in one harness,
   workspace suite, single model.
 
-[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.17.0...v0.18.0
+[0.17.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.16.0...v0.17.0
+[0.16.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.15.0...v0.16.0
+[0.15.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.14.0...v0.15.0
+[0.14.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.13.0...v0.14.0
+[0.13.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/immu4989/dspy-security-bench/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.10.0...v0.11.0

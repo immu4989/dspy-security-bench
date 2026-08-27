@@ -46,7 +46,7 @@ assessment inputs.
 
 ---
 
-## On main: CausalProof — from runtime structure to proof-ready schedules
+## New in v0.18: CausalProof — from runtime structure to proof-ready schedules
 
 **A trace can show relationships. It cannot silently decide which relationships
 are proof.** CausalProof reads only structural OTLP fields and creates a
@@ -55,7 +55,7 @@ links, and non-proving timing candidates separate. Only observed parent edges
 and explicit assertions enter the generated ScheduleProof graph.
 
 ```bash
-pip install "dspy-security-bench @ git+https://github.com/immu4989/dspy-security-bench@main"
+pip install dspy-security-bench==0.18.0
 dspy-security-bench causal demo --out-dir artifacts/causalproof
 dspy-security-bench causal run trace.json causal-manifest.json \
   --report-out artifacts/causalproof.json \
@@ -384,7 +384,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.17.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.18.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -608,7 +608,7 @@ The recommended reusable workflow produces the bundle and shareable SVG card:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.17.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.18.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent
@@ -1396,7 +1396,7 @@ v0.1 scope choices:
 | v0.15 — Mission Assurance Commons, InventoryForge, AgentGraphTwin, ContinuousProof, AuthorityBridge, and AcquisitionProof | **shipped** |
 | v0.16 — TraceProof, AgentGraphTwin v2, live AuthorityBridge, signed MissionPack Commons, and ValueProof | **shipped** |
 | v0.17 — TraceProof Runtime Kit, MCP 2025-11-25 probes, redaction challenge, open evidence registry, and ScheduleProof v1 | **shipped** |
-| CausalProof v1 — structural OTLP causality, provenance-separated proof edges, and public recomputation | **on main** |
+| v0.18 — CausalProof structural causality, native OpenAI Agents/LangGraph bridges, and public recomputation | **shipped** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

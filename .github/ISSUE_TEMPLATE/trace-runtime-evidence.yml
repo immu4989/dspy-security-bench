@@ -39,7 +39,7 @@ body:
     attributes:
       label: Frozen versions
       description: Runtime, Python, dspy-security-bench, Collector, and policy version where applicable.
-      placeholder: "runtime 1.2.3, Python 3.12, dspy-security-bench 0.17.0"
+      placeholder: "runtime 1.2.3, Python 3.12, dspy-security-bench 0.18.0"
     validations:
       required: true
   - type: textarea

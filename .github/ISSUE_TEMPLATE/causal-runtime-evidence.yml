@@ -24,7 +24,7 @@ body:
     attributes:
       label: Frozen versions
       description: Runtime, instrumentation library, Collector, Python, and dspy-security-bench versions.
-      placeholder: "runtime 1.2.3, OTel Collector 0.x, Python 3.12, dspy-security-bench 0.17.0"
+      placeholder: "runtime 1.2.3, OTel Collector 0.x, Python 3.12, dspy-security-bench 0.18.0"
     validations:
       required: true
   - type: textarea

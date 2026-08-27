@@ -11,7 +11,7 @@ authors:
     given-names: Imran
     email: immu4989@gmail.com
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add once registered
-version: 0.17.0
+version: 0.18.0
 date-released: 2026-08-27
 license: Apache-2.0
 repository-code: "https://github.com/immu4989/dspy-security-bench"
@@ -76,6 +76,11 @@ abstract: >-
   explores bounded authorization-event interleavings, reports exact schedule
   coverage and minimal causal counterexamples, and exports offline-verifiable
   JSON and SARIF without executing a model or tool.
+  CausalProof converts structural OpenTelemetry parentage into a
+  provenance-separated ScheduleProof draft while keeping owner assertions,
+  generic span links, and wall-clock candidates distinct. Native OpenAI Agents
+  SDK and LangGraph bridges emit pseudonymized structural evidence and explicit
+  atomic-event bindings without inspecting application content.
 keywords:
   - prompt-injection
   - llm-security
@@ -103,6 +108,7 @@ keywords:
   - opentelemetry
   - mcp-security
   - agent-observability
+  - causal-graphs
   - mission-economics
   - agentdojo
   - dspy

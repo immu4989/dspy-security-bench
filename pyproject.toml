@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dspy-security-bench"
-version = "0.17.0"
+version = "0.18.0"
 description = "Open mission-assurance commons for secure, authorized, and reviewable AI agents."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -147,6 +147,7 @@ TraceProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/tra
 ScheduleProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/scheduleproof.md"
 CausalProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/causalproof.md"
 "CausalProof Runtime Bridges" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/causalproof-runtime-integrations.md"
+"Causal Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/causal"
 "TraceProof Runtime Kit" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof-runtime-kit.md"
 ValueProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/valueproof.md"
 "MissionPack Commons" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/mission-pack-commons.md"
