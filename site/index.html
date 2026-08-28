@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="Privacy-first assurance for AI agents: sanitize traces, separate causal evidence from assertions, explore authorization races, and export reviewable artifacts.">
+  <meta name="description" content="Privacy-first assurance for AI agents: contain autonomous collectives, sanitize traces, separate causal evidence from assertions, explore authorization races, and export reviewable artifacts.">
   <meta property="og:title" content="DSPy Security Bench — Mission Assurance Commons">
-  <meta property="og:description" content="TraceProof, CausalProof, and ScheduleProof turn local agent telemetry into privacy-bounded evidence, with native OpenAI Agents and LangGraph bridges.">
+  <meta property="og:description" content="CollectiveGuard, TraceProof, CausalProof, and ScheduleProof turn structural agent telemetry into privacy-bounded containment and authorization evidence.">
   <meta property="og:image" content="assets/mission-assurance-commons-v015.png">
   <meta name="twitter:card" content="summary_large_image">
   <title>DSPy Security Bench — Measure before you trust</title>
@@ -27,6 +27,7 @@
         <span>DSPy <b>Security Bench</b></span>
       </a>
       <div class="nav-links" id="nav-links">
+        <a href="#collectiveguard">CollectiveGuard</a>
         <a href="#traceproof">TraceProof</a>
         <a href="#causalproof">CausalProof</a>
         <a href="#scheduleproof">ScheduleProof</a>
@@ -46,7 +47,7 @@
       <div class="hero-content reveal">
         <div class="eyebrow"><span class="pulse"></span> Mission Assurance Commons · open evidence</div>
         <h1>Make agent trust<br><em>inspectable.</em></h1>
-        <p class="hero-copy">Sanitize real agent traces locally, replay authorization failures as safe synthetic twins, test public missions, catch regressions, and export reviewable evidence—without automating the accountable decision.</p>
+        <p class="hero-copy">Contain autonomous agent collectives, sanitize real traces locally, replay authorization failures as safe synthetic twins, catch regressions, and export reviewable evidence—without automating the accountable decision.</p>
         <div class="hero-actions">
           <a class="button primary" href="#commons">Enter the commons <span aria-hidden="true">↓</span></a>
           <a class="button secondary" href="https://github.com/immu4989/dspy-security-bench">Run it locally <span aria-hidden="true">→</span></a>
@@ -65,6 +66,97 @@
       <div class="metric reveal"><span class="metric-value" data-family-count>10</span><span class="metric-label">model families</span></div>
       <div class="metric reveal"><span class="metric-value">12 trace rules</span><span class="metric-label">authorization + effect signals</span></div>
       <div class="metric reveal"><span class="metric-value">23 schedules</span><span class="metric-label">4 bounded race profiles</span></div>
+    </section>
+
+    <section class="section collective-section" id="collectiveguard" aria-labelledby="collective-title">
+      <div class="collective-grid" aria-hidden="true"></div>
+      <div class="collective-orbit orbit-a" aria-hidden="true"></div>
+      <div class="collective-orbit orbit-b" aria-hidden="true"></div>
+      <div class="collective-heading reveal">
+        <div>
+          <span class="section-kicker">CollectiveGuard · autonomous-agent containment</span>
+          <h2 id="collective-title">One run was isolated.<br><em>The collective was not.</em></h2>
+        </div>
+        <p>Reconstruct cross-run coordination, indirect egress, peer-authority laundering, unsafe persistence, evaluator access, and missed response windows from structural events alone. No prompts, reasoning, messages, secrets, or exploit payloads enter the protocol.</p>
+      </div>
+
+      <div class="collective-console reveal">
+        <header class="collective-topbar">
+          <span><i></i> LOCAL / CONTENT-FREE</span>
+          <code>COLLECTIVEGUARD::CONTAINMENT-PLANE::V1</code>
+          <b>13 DETERMINISTIC RULES</b>
+        </header>
+
+        <div class="collective-stage">
+          <div class="collective-map" aria-label="Two isolated agent runs form an unapproved communication path through a shared service before reaching a third-party boundary">
+            <article class="collective-run run-alpha">
+              <header><span>RUN / A</span><b>BLOCKED</b></header>
+              <strong>evaluation worker</strong>
+              <small>task dependency unavailable</small>
+              <ul><li>scope: packages:read</li><li>egress: mirror only</li></ul>
+              <div class="run-signal">+20s <b>opaque write</b></div>
+            </article>
+
+            <div class="collective-channel">
+              <span>SHARED SERVICE</span>
+              <strong>artifact channel</strong>
+              <small>packages allowed<br>communication denied</small>
+              <i></i>
+              <b>CG001</b>
+            </div>
+
+            <article class="collective-run run-beta">
+              <header><span>RUN / B</span><b class="danger">DRIFT</b></header>
+              <strong>evaluation worker</strong>
+              <small>adopts peer action</small>
+              <ul><li>authority: peer “go”</li><li>egress: indirect path</li></ul>
+              <div class="run-signal danger">+70s <b>material effect</b></div>
+            </article>
+
+            <div class="collective-target evaluator-target"><span>PROTECTED</span><strong>grader</strong><small>CG006 · access</small></div>
+            <div class="collective-target external-target"><span>OUT OF BOUNDS</span><strong>third party</strong><small>CG003 · egress</small></div>
+            <div class="collective-flow flow-write"><i></i><span>opaque artifact</span></div>
+            <div class="collective-flow flow-read"><i></i><span>cross-run read</span></div>
+            <div class="collective-flow flow-evaluator"><i></i></div>
+            <div class="collective-flow flow-external"><i></i></div>
+          </div>
+
+          <aside class="containment-rail">
+            <header><span>RESPONSE WINDOW</span><strong>signal → accountable stop</strong></header>
+            <ol>
+              <li class="signal"><i></i><div><span>+90s</span><strong>coordination alert</strong></div><b>HIGH</b></li>
+              <li class="signal critical"><i></i><div><span>+100s</span><strong>boundary alert</strong></div><b>CRITICAL</b></li>
+              <li class="late"><i></i><div><span>+800s</span><strong>responder paged</strong></div><b>+700s</b></li>
+              <li class="late"><i></i><div><span>+1300s</span><strong>all runs paused</strong></div><b>+1200s</b></li>
+            </ol>
+            <div class="containment-clock">
+              <div><span>declared limit</span><strong>900<small>s</small></strong></div>
+              <div><span>observed stop</span><strong>1200<small>s</small></strong></div>
+              <b>MISSED</b>
+            </div>
+            <div class="containment-verdict"><span>EARLIEST VISIBLE INTERVENTION</span><strong>side-read · +30s</strong><small>Evidence about the supplied record—not proof that telemetry is complete.</small></div>
+          </aside>
+        </div>
+
+        <footer class="collective-footer">
+          <div><span>$</span><code>dspy-security-bench collective demo --out-dir artifacts/collectiveguard</code></div>
+          <button id="collective-copy" type="button">Copy command</button>
+          <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/collectiveguard.md">Open CollectiveGuard guide <span aria-hidden="true">→</span></a>
+        </footer>
+      </div>
+
+      <div class="collective-principles reveal">
+        <article><span>01 / SEPARATE</span><strong>Shared access is not shared authority</strong><p>Package, artifact, storage, and browser services stay bound to run identity and declared purpose.</p></article>
+        <article><span>02 / STOP</span><strong>Impossible work gets a safe exit</strong><p>Owner-defined action budgets turn clarification and pause into measurable system behavior.</p></article>
+        <article><span>03 / RESPOND</span><strong>Every alert has a clock</strong><p>Paging, containment, evidence preservation, and restart approval remain distinct accountable events.</p></article>
+        <article><span>04 / DIVERSIFY</span><strong>Independence is structural</strong><p>Two controls only count as independent when their declared failure domains are actually different.</p></article>
+      </div>
+
+      <div class="collective-boundary reveal">
+        <div><span>PROCESSED</span><strong>identifiers · categories · offsets · bindings</strong></div>
+        <div class="zero-content"><span>CONTENT FIELDS</span><strong>0</strong></div>
+        <div><span>EXCLUDED</span><strong>prompts · reasoning · messages · secrets · payloads</strong></div>
+      </div>
     </section>
 
     <section class="section traceproof-section" id="traceproof" aria-labelledby="traceproof-title">

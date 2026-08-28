@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes nineteen related security surfaces:
+`dspy-security-bench` exposes twenty-one related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -54,6 +54,13 @@ v0.1 research choices are labeled separately from the current product surface.
 19. **ScheduleProof** — counts and explores the valid topological interleavings
     of a strict data-only authorization graph, checks eight effect-boundary
     invariants, and emits minimal causal counterexamples plus SARIF.
+20. **CausalProof** — converts structural runtime parentage and explicit owner
+    assertions into a provenance-separated ScheduleProof draft while keeping
+    undirected links and wall-clock candidates outside the proof graph.
+21. **CollectiveGuard** — analyzes content-free structural records for
+    autonomous-agent collectives, reconstructing cross-run communication,
+    boundary and authority failures, safe-stop behavior, response windows,
+    recovery approval, and independent-control coverage.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer
@@ -81,6 +88,8 @@ dspy_security_bench/
 ├── inventory/                  # bounded public inventory → synthetic pack
 ├── graph/                      # v1 + temporal/parallel v2 authorization twins
 ├── schedule/                   # bounded interleaving explorer + SARIF export
+├── causal/                     # structural trace causality + runtime bridges
+├── collective/                 # collective containment analyzer + SARIF export
 ├── continuous/                 # verified baseline and drift evidence
 ├── acquisition/                # neutral technical acquisition packages
 ├── trace/                      # runtime recorder, OTLP sanitization, rules

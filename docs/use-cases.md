@@ -21,6 +21,9 @@ This project now addresses both sides of that boundary:
 9. **Measure value** using reproducible owner-supplied mission, safety, cost,
    latency, review, recovery, and portability observations with
    [ValueProof](valueproof.md).
+10. **Contain collectives** by measuring cross-run channels, indirect egress,
+    peer authority, safe-stop, evaluator integrity, response windows, and
+    independent defenses with [CollectiveGuard](collectiveguard.md).
 
 This follows the [OWASP AI Agent Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html): minimize tool permissions, require human approval for high-impact actions, treat external content as untrusted, and keep security regression tests.
 
@@ -61,6 +64,13 @@ authorization controls, ContinuousProof can signal evidence drift after a
 change, and ValueProof can make measured cost per safe mission reviewable. This
 creates a shared engineering record while leaving legal, acquisition, mission,
 security, and risk decisions with accountable officials.
+
+For tool-using training, evaluation, cyber-defense, software-engineering, and
+long-running research agents, CollectiveGuard adds a system-level view that one
+run's policy cannot provide. It can reveal when a shared package cache, artifact
+store, browser service, or message bus becomes an unapproved cross-run channel;
+when a peer instruction is treated as authority; and whether a declared alert
+actually reaches containment and evidence preservation in time.
 
 For read-oriented grants, benefits, regulatory research, records management,
 supply-chain qualification, and enterprise knowledge workflows, SourceTwin

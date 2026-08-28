@@ -342,6 +342,7 @@ bindCommandCopy("#source-copy", "dspy-security-bench pack run source-twin --agen
 bindCommandCopy("#authority-copy", "dspy-security-bench authority demo");
 bindCommandCopy("#federal-copy", "dspy-security-bench federal init");
 bindCommandCopy("#graph-copy", "dspy-security-bench graph demo");
+bindCommandCopy("#collective-copy", "dspy-security-bench collective demo --out-dir artifacts/collectiveguard");
 bindCommandCopy("#trace-copy", "dspy-security-bench trace demo --out-dir artifacts/traceproof");
 bindCommandCopy("#causal-copy", "dspy-security-bench causal demo --out-dir artifacts/causalproof");
 bindCommandCopy("#schedule-copy", "dspy-security-bench schedule demo");

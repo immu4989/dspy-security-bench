@@ -36,6 +36,11 @@ production system or decide whether a regression is acceptable.
 AcquisitionProof trusts an owner-supplied profile and verified snapshot. Its
 manifest preserves bytes, not the truth or completeness of owner declarations.
 
+CollectiveGuard trusts only the supplied structural scenario. It rejects
+application content fields, recomputes derived paths and response windows, and
+binds the result to the scenario bytes. It cannot prove exporter completeness,
+event authenticity, clock accuracy, production containment, or model alignment.
+
 ## Threats addressed
 
 - narrative-only scores hiding harmful tool side effects;
@@ -54,6 +59,9 @@ manifest preserves bytes, not the truth or completeness of owner declarations.
   outcome;
 - metric or protocol drift hidden by replacing a benchmark screenshot; and
 - missing acquisition cost or outcome observations silently treated as passes.
+- unapproved cross-run side channels, indirect egress, peer instructions treated
+  as authority, cross-run credentials, evaluator access, unsafe persistence,
+  late escalation/containment, unapproved restart, and correlated defenses.
 
 ## Threats not solved
 
@@ -71,6 +79,9 @@ manifest preserves bytes, not the truth or completeness of owner declarations.
 - asynchronous graph races, graph-wide production blast radius, backend policy
   semantics beyond the normalized bridge contract, or continuous production
   telemetry.
+- omitted collective events, covert channels without a shared structural
+  identifier, fabricated offsets, or assurance that an observed response action
+  had its intended production effect.
 
 Use least privilege, protected branches, required reviews, secret scanning,
 artifact attestations, dependency review, CodeQL, Scorecard, SBOMs, reproducible

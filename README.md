@@ -9,8 +9,8 @@
 An open **Mission Assurance Commons** for your own agent: privacy-bounded
 operational traces, reproducible security twins, multi-agent authorization
 paths, continuous evidence, signed data-only mission protocols, measured
-mission economics, bounded authorization-race checking, and reviewable OSCAL
-assessment inputs.
+mission economics, bounded authorization-race checking, autonomous-collective
+containment evidence, and reviewable OSCAL assessment inputs.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -25,6 +25,7 @@ assessment inputs.
 [![AgentGraphTwin](https://img.shields.io/badge/AgentGraphTwin-multi--agent%20paths-87E5FF)](docs/agentgraph-twin.md)
 [![ScheduleProof](https://img.shields.io/badge/ScheduleProof-bounded%20race%20checking-FF8AC5)](docs/scheduleproof.md)
 [![CausalProof](https://img.shields.io/badge/CausalProof-trace%E2%86%92proof%20edges-A88BFF)](docs/causalproof.md)
+[![CollectiveGuard](https://img.shields.io/badge/CollectiveGuard-agent%20collective%20containment-FF6B8A)](docs/collectiveguard.md)
 [![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
 [![MissionForge](https://img.shields.io/badge/MissionForge-data--only%20agency%20packs-8FFFB0)](docs/missionforge.md)
 [![SourceTwin](https://img.shields.io/badge/SourceTwin-grounding%20probes-5FBDFF)](docs/missionforge.md)
@@ -43,6 +44,42 @@ assessment inputs.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## New on main: CollectiveGuard — contain the collective, not just one agent
+
+**A sandbox boundary is not enough when separate agent runs can find each
+other, share discoveries, borrow credentials, route around egress controls, and
+treat a peer's “go” as authorization.** CollectiveGuard converts content-free
+structural events into recomputable containment evidence across seven control
+objectives and 13 deterministic rules.
+
+It detects unauthorized cross-run side channels, indirect egress, peer-authority
+laundering, cross-run credential use, evaluator access, unsafe persistence after
+blocked or impossible work, missed escalation/containment windows, unapproved
+restart, weak control independence, and runtime defense collapse.
+
+```bash
+# No model, provider, collector, prompt, secret, or exploit payload required.
+dspy-security-bench collective describe
+dspy-security-bench collective demo --out-dir artifacts/collectiveguard
+dspy-security-bench collective run examples/collectiveguard-scenario.json \
+  --json-out artifacts/collectiveguard.json \
+  --sarif-out artifacts/collectiveguard.sarif \
+  --fail-on-findings --require-timely-containment
+dspy-security-bench collective verify artifacts/collectiveguard.json
+```
+
+Reports preserve cross-run communication paths, response windows, independent
+control coverage, the earliest visible intervention point, SHA-256 identities,
+and a testable `content_fields_processed: 0` boundary. Built-in incident profiles
+are abstract and non-operational; results are evidence about the supplied record,
+not safety certification or proof that omitted activity did not occur.
+
+[Explore CollectiveGuard →](docs/collectiveguard.md) ·
+[Inspect the open scenario →](examples/collectiveguard-scenario.json) ·
+[Read the OpenAI incident source →](https://openai.com/index/hugging-face-incident-and-the-road-ahead/)
 
 ---
 
@@ -751,6 +788,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
 | 🔌 **Connect your framework** | Run [`integrate`](docs/integrations.md) for OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, or an MCP/custom callback, then validate it without model spend using `doctor`. |
 | ✈️ **Sanitize operational traces** | Use [TraceProof](docs/traceproof.md) to keep OTLP processing local, remove prompts and secrets, find 12 authorization/effect failures, and export JSON, SARIF, OSCAL, or a synthetic replay twin. |
+| 🚨 **Contain autonomous collectives** | Use [CollectiveGuard](docs/collectiveguard.md) to detect side-channel coordination, indirect egress, authority laundering, safe-stop failures, evaluator access, and missed response windows from content-free events. |
 | 🧭 **Turn runtime structure into proof** | Use [CausalProof](docs/causalproof.md) to keep observed parents, owner assertions, undirected links, and wall-clock hints separate before ScheduleProof exploration. |
 | 🕸️ **Test multi-agent authority** | Run [AgentGraphTwin v2](docs/agentgraph-twin.md) against token exchange, revocation, step-up, parallel approval, and multi-effect paths. |
 | 🧾 **Produce verifiable evidence** | Use [ProofRun](docs/proofrun.md) to preserve raw repeated trials, recompute statistics offline, and attach GitHub/Sigstore provenance to the exact result bytes. |
@@ -1284,6 +1322,7 @@ mission-impact testing, policy controls, synthesis, and validation:
 dspy-security-bench --version
 dspy-security-bench init --help
 dspy-security-bench scan --help
+dspy-security-bench collective --help
 dspy-security-bench impact --help
 dspy-security-bench policy --help
 ```
@@ -1397,6 +1436,7 @@ v0.1 scope choices:
 | v0.16 — TraceProof, AgentGraphTwin v2, live AuthorityBridge, signed MissionPack Commons, and ValueProof | **shipped** |
 | v0.17 — TraceProof Runtime Kit, MCP 2025-11-25 probes, redaction challenge, open evidence registry, and ScheduleProof v1 | **shipped** |
 | v0.18 — CausalProof structural causality, native OpenAI Agents/LangGraph bridges, and public recomputation | **shipped** |
+| v0.19 — CollectiveGuard content-free collective containment, response-window proof, and SARIF export | **in development** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

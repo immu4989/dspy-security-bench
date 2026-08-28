@@ -81,6 +81,11 @@ abstract: >-
   generic span links, and wall-clock candidates distinct. Native OpenAI Agents
   SDK and LangGraph bridges emit pseudonymized structural evidence and explicit
   atomic-event bindings without inspecting application content.
+  CollectiveGuard analyzes content-free structural event records for autonomous
+  agent collectives, detecting unapproved cross-run communication, indirect
+  egress, peer-authority laundering, credential misuse, evaluator access,
+  unsafe persistence, missed response windows, recovery approval failures, and
+  non-independent or collapsed defenses with offline-verifiable JSON and SARIF.
 keywords:
   - prompt-injection
   - llm-security
@@ -103,6 +108,8 @@ keywords:
   - authorization-conformance
   - zero-trust
   - multi-agent-systems
+  - agent-containment
+  - autonomous-agent-collectives
   - continuous-assurance
   - ai-acquisition
   - opentelemetry

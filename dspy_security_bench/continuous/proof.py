@@ -227,6 +227,10 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         from dspy_security_bench.schedule.proof import verify_schedule_report
 
         return "schedule", verify_schedule_report(payload)
+    if report_type == "CollectiveGuard / Autonomous-agent collective containment assurance":
+        from dspy_security_bench.collective.proof import verify_collective_report
+
+        return "collective", verify_collective_report(payload)
     if report_type == "TraceProof / Privacy-bounded agent trace analysis":
         from dspy_security_bench.trace.proof import verify_trace_report
 
@@ -249,7 +253,7 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         return "value", verify_value_proof(payload)
     raise ValueError(
         "unsupported evidence; use a verified AgentGraphTwin, TraceProof, AuthorityTwin, "
-        "MissionPackTwin, IncidentTwin, ScheduleProof, or ValueProof report"
+        "MissionPackTwin, IncidentTwin, ScheduleProof, CollectiveGuard, or ValueProof report"
     )
 
 

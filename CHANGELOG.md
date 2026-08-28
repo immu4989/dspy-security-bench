@@ -9,6 +9,24 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+### Added
+- **CollectiveGuard v1**, a content-free structural assurance protocol for
+  autonomous-agent collectives with 13 deterministic rules covering unapproved
+  cross-run side channels, channel-boundary violations, indirect egress,
+  peer-authority laundering, cross-run credential use, evaluator access, unsafe
+  persistence, response windows, evidence preservation, restart approval,
+  defense independence, and runtime control collapse.
+- Strict scenario/report JSON Schemas, three abstract non-operational reference
+  profiles, an adoption-ready example, complete offline recomputation and
+  tamper detection, JSON/SARIF export, CI gates, and stakeholder guidance for
+  frontier labs, enterprises, cybersecurity providers, technology partners,
+  government agencies, and critical-infrastructure operators.
+- Response-window evidence, cross-run communication paths, independent failure-
+  domain coverage, earliest visible intervention attribution, and an explicit
+  `content_fields_processed: 0` privacy boundary.
+- Owner-declared response-actor binding and decision actor/issuer matching so
+  self-labeled authorization cannot satisfy containment or recovery evidence.
+
 ## [0.18.0] — 2026-08-27
 
 ### Added

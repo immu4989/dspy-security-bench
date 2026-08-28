@@ -45,6 +45,8 @@ keywords = [
     "authorization-conformance",
     "zero-trust",
     "multi-agent-systems",
+    "agent-containment",
+    "autonomous-agent-collectives",
     "continuous-assurance",
     "ai-acquisition",
     "opentelemetry",
@@ -146,6 +148,7 @@ AcquisitionProof = "https://github.com/immu4989/dspy-security-bench/blob/main/do
 TraceProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof.md"
 ScheduleProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/scheduleproof.md"
 CausalProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/causalproof.md"
+CollectiveGuard = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/collectiveguard.md"
 "CausalProof Runtime Bridges" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/causalproof-runtime-integrations.md"
 "Causal Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/causal"
 "TraceProof Runtime Kit" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof-runtime-kit.md"

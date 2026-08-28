@@ -2,14 +2,15 @@
 
 Suggested GitHub About description:
 
-> Privacy-first security and mission-assurance lab for AI agents: TraceProof, authorization twins, MCP/OTel evidence, CI gates, and OSCAL exports.
+> Privacy-first AI agent assurance: CollectiveGuard containment, TraceProof, authorization twins, MCP/OTel evidence, CI gates, and OSCAL exports.
 
 Suggested topics:
 
 `ai-agent-security`, `llm-security`, `prompt-injection`, `mcp`,
 `opentelemetry`, `dspy`, `agentdojo`, `ai-evaluation`, `authorization`,
 `zero-trust`, `oscal`, `federal-ai`, `github-actions`,
-`security-benchmark`, `agentic-ai`
+`security-benchmark`, `agentic-ai`, `agent-containment`,
+`autonomous-agent-collectives`
 
 Keep the website field set to:
 

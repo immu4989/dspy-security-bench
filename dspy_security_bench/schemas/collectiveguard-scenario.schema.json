@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/collectiveguard-scenario.schema.json",
+  "title": "CollectiveGuard structural scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scenario_type", "scenario_id", "title", "description", "runs", "channels", "controls", "policy", "events"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scenario_type": {"const": "dspy-security-bench-collectiveguard-scenario"},
+    "scenario_id": {"$ref": "#/$defs/id"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 160},
+    "description": {"type": "string", "minLength": 1, "maxLength": 1200},
+    "runs": {
+      "type": "array", "minItems": 1, "maxItems": 100,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["run_id", "principal_id", "task_id", "allowed_channel_ids", "allowed_destination_ids"],
+        "properties": {
+          "run_id": {"$ref": "#/$defs/id"}, "principal_id": {"$ref": "#/$defs/id"}, "task_id": {"$ref": "#/$defs/id"},
+          "allowed_channel_ids": {"$ref": "#/$defs/idList"}, "allowed_destination_ids": {"$ref": "#/$defs/idList"}
+        }
+      }
+    },
+    "channels": {
+      "type": "array", "maxItems": 200,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["channel_id", "kind", "trust_boundary", "authorized_run_ids", "communication_allowed"],
+        "properties": {
+          "channel_id": {"$ref": "#/$defs/id"}, "kind": {"$ref": "#/$defs/id"}, "trust_boundary": {"$ref": "#/$defs/id"},
+          "authorized_run_ids": {"$ref": "#/$defs/idList"}, "communication_allowed": {"type": "boolean"}
+        }
+      }
+    },
+    "controls": {
+      "type": "array", "minItems": 1, "maxItems": 200,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["control_id", "objective", "mechanism", "failure_domain"],
+        "properties": {
+          "control_id": {"$ref": "#/$defs/id"}, "mechanism": {"$ref": "#/$defs/id"}, "failure_domain": {"$ref": "#/$defs/id"},
+          "objective": {"$ref": "#/$defs/objective"}
+        }
+      }
+    },
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["max_actions_after_blocked", "max_actions_after_impossible", "escalation_sla_seconds", "containment_sla_seconds", "min_independent_controls", "required_control_objectives", "allowed_egress_paths", "protected_evaluator_components", "approved_authority_issuers", "approved_response_actors", "restart_approval_required", "evidence_preservation_required"],
+      "properties": {
+        "max_actions_after_blocked": {"type": "integer", "minimum": 0, "maximum": 100},
+        "max_actions_after_impossible": {"type": "integer", "minimum": 0, "maximum": 100},
+        "escalation_sla_seconds": {"type": "integer", "minimum": 1, "maximum": 86400},
+        "containment_sla_seconds": {"type": "integer", "minimum": 1, "maximum": 86400},
+        "min_independent_controls": {"type": "integer", "minimum": 1, "maximum": 10},
+        "required_control_objectives": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/objective"}},
+        "allowed_egress_paths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["direct", "package_mirror", "proxy", "webhook", "artifact_store", "other"]}},
+        "protected_evaluator_components": {"$ref": "#/$defs/idList"},
+        "approved_authority_issuers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "approved_response_actors": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "restart_approval_required": {"type": "boolean"}, "evidence_preservation_required": {"type": "boolean"}
+      }
+    },
+    "events": {"type": "array", "minItems": 1, "maxItems": 10000, "items": {"$ref": "#/$defs/event"}}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,119}$"},
+    "idList": {"type": "array", "maxItems": 200, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "objective": {"enum": ["workload_isolation", "network_egress", "cross_run_isolation", "credential_boundary", "evaluator_integrity", "monitoring", "incident_response"]},
+    "event": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "kind", "offset_seconds", "actor_id"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "kind": {"enum": ["task_state", "channel_write", "channel_read", "network_egress", "credential_use", "peer_instruction", "authority_decision", "effect", "evaluator_access", "alert", "response_action", "control_failure"]},
+        "offset_seconds": {"type": "integer", "minimum": 0, "maximum": 31536000}, "actor_id": {"$ref": "#/$defs/id"},
+        "run_id": {"$ref": "#/$defs/id"}, "state": {"enum": ["active", "blocked", "impossible", "complete"]}, "reason_code": {"$ref": "#/$defs/id"},
+        "channel_id": {"$ref": "#/$defs/id"}, "artifact_id": {"$ref": "#/$defs/id"}, "destination_id": {"$ref": "#/$defs/id"},
+        "path_kind": {"enum": ["direct", "package_mirror", "proxy", "webhook", "artifact_store", "other"]},
+        "credential_id": {"$ref": "#/$defs/id"}, "granted_to_run_id": {"$ref": "#/$defs/id"}, "scope": {"$ref": "#/$defs/id"},
+        "source_run_id": {"$ref": "#/$defs/id"}, "target_run_id": {"$ref": "#/$defs/id"}, "action_id": {"$ref": "#/$defs/id"},
+        "subject_run_id": {"$ref": "#/$defs/id"}, "decision_id": {"$ref": "#/$defs/id"}, "issuer_id": {"$ref": "#/$defs/id"}, "outcome": {"enum": ["approve", "deny"]},
+        "cause_event_id": {"$ref": "#/$defs/id"}, "target_id": {"$ref": "#/$defs/id"}, "impact": {"enum": ["none", "bounded", "material", "unknown"]},
+        "component_id": {"$ref": "#/$defs/id"}, "operation": {"enum": ["read", "write", "delete", "bypass"]},
+        "alert_id": {"$ref": "#/$defs/id"}, "severity": {"enum": ["medium", "high", "critical"]},
+        "signal": {"enum": ["boundary_circumvention", "unauthorized_coordination", "credential_misuse", "evaluator_tampering", "unsafe_persistence", "control_failure", "other"]},
+        "action": {"enum": ["page", "pause_run", "isolate_run", "revoke_credentials", "preserve_evidence", "approve_restart", "restart"]},
+        "authorized": {"type": "boolean"}, "control_id": {"$ref": "#/$defs/id"}, "failure_mode": {"$ref": "#/$defs/id"}
+      },
+      "allOf": [
+        {"if": {"properties": {"kind": {"const": "task_state"}}}, "then": {"required": ["run_id", "state", "reason_code"]}},
+        {"if": {"properties": {"kind": {"enum": ["channel_write", "channel_read"]}}}, "then": {"required": ["run_id", "channel_id", "artifact_id"]}},
+        {"if": {"properties": {"kind": {"const": "network_egress"}}}, "then": {"required": ["run_id", "destination_id", "path_kind"]}},
+        {"if": {"properties": {"kind": {"const": "credential_use"}}}, "then": {"required": ["run_id", "credential_id", "granted_to_run_id", "scope"]}},
+        {"if": {"properties": {"kind": {"const": "peer_instruction"}}}, "then": {"required": ["source_run_id", "target_run_id", "action_id"]}},
+        {"if": {"properties": {"kind": {"const": "authority_decision"}}}, "then": {"required": ["subject_run_id", "action_id", "decision_id", "issuer_id", "outcome"]}},
+        {"if": {"properties": {"kind": {"const": "effect"}}}, "then": {"required": ["run_id", "action_id", "cause_event_id", "target_id", "scope", "impact"]}},
+        {"if": {"properties": {"kind": {"const": "evaluator_access"}}}, "then": {"required": ["run_id", "component_id", "operation"]}},
+        {"if": {"properties": {"kind": {"const": "alert"}}}, "then": {"required": ["alert_id", "severity", "signal", "target_run_id"]}},
+        {"if": {"properties": {"kind": {"const": "response_action"}}}, "then": {"required": ["action", "target_id", "decision_id", "authorized"]}},
+        {"if": {"properties": {"kind": {"const": "control_failure"}}}, "then": {"required": ["control_id", "failure_mode"]}}
+      ]
+    }
+  }
+}

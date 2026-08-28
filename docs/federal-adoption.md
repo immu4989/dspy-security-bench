@@ -43,14 +43,17 @@ and [government contract quality assurance](https://www.acquisition.gov/far/part
    and intent failures across the human-to-agent-to-tool path.
 3. Run ImpactTwin for procurement decision and economic-integrity failures.
 4. Run IncidentTwin for cyber-response side effects and approval boundaries.
-5. Run SourceTwin for traceable grounding, material-exception retention,
+5. Run CollectiveGuard against a synthetic structural record to test cross-run
+   isolation, egress, safe-stop, evaluator integrity, response windows, restart
+   approval, and independent containment controls.
+6. Run SourceTwin for traceable grounding, material-exception retention,
    current-primary preference, and correct abstention.
-6. Use MissionForge to encode owner-reviewed synthetic claims and sources while
+7. Use MissionForge to encode owner-reviewed synthetic claims and sources while
    keeping an evaluation set unavailable to the vendor.
-7. Run ControlTwin/RepeatControlTwin to show that the proposed policy changes
+8. Run ControlTwin/RepeatControlTwin to show that the proposed policy changes
    functional outcomes without destroying clean utility.
-8. Retain every raw trial and runtime error.
-9. Verify the bundle in a clean offline environment.
+9. Retain every raw trial and runtime error.
+10. Verify the bundle in a clean offline environment.
 
 Author representative scenarios through a versioned, data-only MissionPack.
 Never commit operational details, CUI, personal data, credentials, or live

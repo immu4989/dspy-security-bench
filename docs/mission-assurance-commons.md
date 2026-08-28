@@ -9,6 +9,7 @@ execution, signed community protocols, and measured mission economics:
 ```text
 public inventory ──→ reviewed/signed MissionPack ──→ synthetic twin tests
 local OTLP export ─→ sanitized TraceProof evidence ─→ temporal graph tests
+                 └──→ CollectiveGuard containment ─────┤
                                                        ↓
                     drift comparison ← ScheduleProof race exploration
                               ↑        ← ValueProof ← acquisition review inputs
@@ -108,7 +109,25 @@ boundaries. A live AuthorityBridge can exercise an operator-controlled OPA,
 Cedar, OpenFGA, OAuth-bound MCP, or SPIFFE command using a bounded JSON
 contract; its execution claim remains self-attested.
 
-### 5. Explore every declared authorization interleaving with ScheduleProof
+### 5. Test collective containment with CollectiveGuard
+
+```bash
+dspy-security-bench collective init \
+  --profile hardened-collective --out collectiveguard.json
+dspy-security-bench collective run collectiveguard.json \
+  --json-out artifacts/collectiveguard.json \
+  --sarif-out artifacts/collectiveguard.sarif \
+  --fail-on-findings --require-timely-containment
+```
+
+CollectiveGuard uses identifiers, categorical events, and relative offsets to
+measure cross-run communication, indirect egress, peer-authority laundering,
+credential and evaluator boundaries, safe-stop behavior, incident response,
+restart approval, and control independence. It processes no prompts, reasoning,
+messages, tool I/O, credentials, or exploit payloads. See the
+[CollectiveGuard protocol](collectiveguard.md).
+
+### 6. Explore every declared authorization interleaving with ScheduleProof
 
 ```bash
 dspy-security-bench schedule init \
@@ -128,7 +147,7 @@ and audience continuity, and replay-safe effect receipts. A bounded-safe result
 applies only to the supplied atomic-event model; the explored unsafe fraction
 is not a runtime probability. Read the [ScheduleProof guide](scheduleproof.md).
 
-### 6. Detect evidence drift with ContinuousProof
+### 7. Detect evidence drift with ContinuousProof
 
 ```bash
 dspy-security-bench watch baseline artifacts/agent-graph.json \
@@ -194,6 +213,8 @@ synthetic examples do not count as independent evidence.
   effects. No real payment, isolation, account, or network mutation occurs.
 - ScheduleProof consumes a declared atomic-event graph and executes nothing. It
   cannot discover omitted events or establish production scheduler behavior.
+- CollectiveGuard consumes an owner-supplied structural event record and cannot
+  prove that telemetry is complete or that an unobserved violation did not occur.
 - Adapters are an external trust boundary. The harness records normalized
   outputs but does not own production identity, credentials, or policy.
 - Hashes make local evidence tamper evident. They are not signatures,

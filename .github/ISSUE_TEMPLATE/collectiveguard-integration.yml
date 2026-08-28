@@ -1,0 +1,73 @@
+name: CollectiveGuard integration or challenge
+description: Propose a runtime exporter, structural challenge case, or content-free evidence bundle.
+title: "[CollectiveGuard] "
+labels: ["enhancement", "evidence"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help make autonomous-agent collectives independently testable. Never paste or attach prompts, responses, message bodies, tool arguments/results, credentials, personal data, CUI, proprietary topology, or details from a live incident. Share only synthetic inputs or a locally reviewed, content-free CollectiveGuard scenario.
+  - type: dropdown
+    id: contribution_kind
+    attributes:
+      label: Contribution kind
+      options:
+        - Runtime or orchestration exporter
+        - Content-free community evidence bundle
+        - Synthetic coordination challenge case
+        - Control objective or response-window improvement
+        - Documentation or reference lab improvement
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Frontier model evaluation or training
+        - Enterprise multi-agent application
+        - Cybersecurity or incident-response platform
+        - Government or critical-infrastructure lab
+        - Open-source agent framework
+        - Another synthetic research environment
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Frozen versions
+      description: Include orchestrator, runtime, Python, policy, and dspy-security-bench versions where applicable.
+      placeholder: "runtime 1.2.3, Python 3.12, policy cg-1, dspy-security-bench main"
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Observation and authority boundary
+      description: Explain which component emits structural events, which system is authoritative for effects and decisions, and what is deliberately removed before export.
+    validations:
+      required: true
+  - type: textarea
+    id: challenge
+    attributes:
+      label: Synthetic reproduction or proposed contract
+      description: Link public synthetic code, an exact source commit, or a proposed content-free scenario. Describe expected findings and the earliest safe intervention.
+    validations:
+      required: true
+  - type: textarea
+    id: limitations
+    attributes:
+      label: Coverage gaps and claim boundary
+      description: State missing events, clock assumptions, unobserved channels, manual assertions, and everything this evidence cannot establish.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety and evidence contract
+      options:
+        - label: I reviewed the material and removed content, secrets, private identifiers, production topology, operational incident details, and sensitive government information.
+          required: true
+        - label: I understand a valid CollectiveGuard report is not proof of telemetry completeness, model alignment, certification, compliance, government endorsement, or authorization to operate.
+          required: true
+        - label: I can help test the contribution using synthetic data with no provider calls in CI.

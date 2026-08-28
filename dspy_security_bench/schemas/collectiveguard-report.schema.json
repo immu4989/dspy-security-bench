@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/collectiveguard-report.schema.json",
+  "title": "CollectiveGuard recomputable report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "protocol_sha256", "analyzer", "scenario_sha256", "scenario", "summary", "communication_paths", "response_windows", "control_coverage", "earliest_intervention", "findings", "disclaimer", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "CollectiveGuard / Autonomous-agent collective containment assurance"},
+    "protocol_version": {"const": "collectiveguard-v1"},
+    "protocol_sha256": {"$ref": "#/$defs/digest"},
+    "analyzer": {"const": "collectiveguard-structural-analyzer-v1"},
+    "scenario_sha256": {"$ref": "#/$defs/digest"},
+    "scenario": {"type": "object"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "event_count", "finding_count", "critical_findings", "high_findings", "medium_findings", "rule_count", "affected_run_ids", "affected_resource_ids", "first_violation_offset_seconds", "first_alert_offset_seconds", "first_material_effect_offset_seconds", "intervention_window_seconds", "containment_status", "content_fields_processed"],
+      "properties": {
+        "status": {"enum": ["no_violation_observed", "violations_detected"]},
+        "event_count": {"type": "integer", "minimum": 1}, "finding_count": {"type": "integer", "minimum": 0},
+        "critical_findings": {"type": "integer", "minimum": 0}, "high_findings": {"type": "integer", "minimum": 0}, "medium_findings": {"type": "integer", "minimum": 0}, "rule_count": {"type": "integer", "minimum": 0},
+        "affected_run_ids": {"type": "array", "items": {"type": "string"}}, "affected_resource_ids": {"type": "array", "items": {"type": "string"}},
+        "first_violation_offset_seconds": {"type": ["integer", "null"]}, "first_alert_offset_seconds": {"type": ["integer", "null"]}, "first_material_effect_offset_seconds": {"type": ["integer", "null"]}, "intervention_window_seconds": {"type": ["integer", "null"]},
+        "containment_status": {"enum": ["not_observed", "timely", "late", "missing"]}, "content_fields_processed": {"const": 0}
+      }
+    },
+    "communication_paths": {"type": "array", "items": {"type": "object"}},
+    "response_windows": {"type": "array", "items": {"type": "object"}},
+    "control_coverage": {"type": "array", "items": {"type": "object"}},
+    "earliest_intervention": {"type": ["object", "null"]},
+    "findings": {"type": "array", "items": {"type": "object", "required": ["rule_id", "title", "severity", "control_objective", "event_id", "offset_seconds", "run_ids", "resource_ids", "evidence_event_ids", "repair_hint"]}},
+    "disclaimer": {"type": "string", "minLength": 1},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

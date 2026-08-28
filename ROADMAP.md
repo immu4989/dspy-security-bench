@@ -4,6 +4,17 @@ The roadmap prioritizes useful public evidence over feature count. Dates are
 not commitments; proposals should preserve offline reproducibility and avoid
 compliance or safety overclaims.
 
+## Delivered on main after v0.18
+
+- CollectiveGuard v1 content-free structural containment analysis with 13
+  deterministic cross-run, egress, authority, credential, evaluator, safe-stop,
+  response-window, recovery, and defense-independence rules.
+- Three abstract non-operational collective profiles, strict schemas, complete
+  offline recomputation, SARIF, CI gates, stakeholder adoption guidance, and a
+  testable zero-content-field boundary.
+- CausalProof v1 structural runtime causality with native OpenAI Agents SDK and
+  LangGraph bridges.
+
 ## Delivered on main after v0.16
 
 - A content-free TraceProof Runtime Kit at the existing `Agent` / `BenchTool`

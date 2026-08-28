@@ -16,7 +16,8 @@ changes, all common metric deltas, directionality, the owner-supplied threshold,
 and whether review is needed.
 
 Supported source reports are AgentGraphTwin v1/v2, AuthorityTwin,
-MissionPackTwin, IncidentTwin, TraceProof analysis, and ValueProof observations.
+MissionPackTwin, IncidentTwin, TraceProof analysis, ScheduleProof,
+CollectiveGuard, and ValueProof observations.
 The source report is independently verified before a baseline can be created.
 Directionality is explicit: higher security/utility rates are better, while
 findings, severity counts, unsafe effects, cost, latency, review time, recovery

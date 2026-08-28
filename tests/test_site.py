@@ -135,6 +135,26 @@ def test_site_exposes_native_causal_runtime_bridges_and_accessible_graph_toggle(
     assert "causalproof-runtime-integrations.md" in html
 
 
+def test_site_presents_collectiveguard_as_content_free_containment_evidence():
+    html = (SITE / "index.html").read_text()
+    for value in (
+        'id="collectiveguard"',
+        "One run was isolated.",
+        "COLLECTIVEGUARD::CONTAINMENT-PLANE::V1",
+        "CG001",
+        "CG003",
+        "CG006",
+        "EARLIEST VISIBLE INTERVENTION",
+        "CONTENT FIELDS",
+        "prompts · reasoning · messages · secrets · payloads",
+        "dspy-security-bench collective demo --out-dir artifacts/collectiveguard",
+        "collectiveguard.md",
+    ):
+        assert value in html
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#collective-copy"' in script
+
+
 def test_site_payload_exposes_commons_protocol_not_product_claims():
     commons = build_payload()["missionAssuranceCommons"]
     assert commons["agentGraphTwin"]["pairCount"] == 6

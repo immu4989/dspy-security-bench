@@ -5,6 +5,7 @@ Subcommands:
   federal     Export standards-aligned FederalProof assessment evidence.
   inventory   Turn public AI inventories into synthetic MissionPack drafts.
   graph       Trace authorization failures across multi-agent execution paths.
+  collective  Analyze structural containment evidence for autonomous agent collectives.
   causal      Convert structural runtime causality into proof-ready schedules.
   schedule    Exhaustively explore bounded agent authorization interleavings.
   watch       Detect assurance regressions from verified evidence baselines.
@@ -76,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__)
         print(
             "Usage: dspy-security-bench "
-            "<init|integrate|doctor|scan|impact|incident|pack|authority|inventory|graph|causal|schedule|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
+            "<init|integrate|doctor|scan|impact|incident|pack|authority|inventory|graph|collective|causal|schedule|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
         )
         return 0
 
@@ -119,6 +120,10 @@ def main(argv: list[str] | None = None) -> int:
         from dspy_security_bench.graph.cli import main as graph_main
 
         return graph_main(rest)
+    if sub == "collective":
+        from dspy_security_bench.collective.cli import main as collective_main
+
+        return collective_main(rest)
     if sub == "causal":
         from dspy_security_bench.causal.cli import main as causal_main
 
@@ -168,7 +173,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"unknown subcommand {sub!r}. Use: "
-        "init | integrate | doctor | scan | impact | incident | pack | authority | inventory | graph | causal | schedule | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
+        "init | integrate | doctor | scan | impact | incident | pack | authority | inventory | graph | collective | causal | schedule | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
         file=sys.stderr,
     )
     return 2
