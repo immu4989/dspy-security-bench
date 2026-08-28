@@ -4,7 +4,7 @@ The roadmap prioritizes useful public evidence over feature count. Dates are
 not commitments; proposals should preserve offline reproducibility and avoid
 compliance or safety overclaims.
 
-## Delivered on main after v0.18
+## Delivered in v0.19
 
 - CollectiveGuard v1 content-free structural containment analysis with 13
   deterministic cross-run, egress, authority, credential, evaluator, safe-stop,

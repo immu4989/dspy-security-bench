@@ -9,6 +9,8 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+## [0.19.0] — 2026-08-27
+
 ### Added
 - **CollectiveGuard v1**, a content-free structural assurance protocol for
   autonomous-agent collectives with 13 deterministic rules covering unapproved
@@ -620,7 +622,8 @@ several of them changed published numbers.
 - First end-to-end run: DSPy optimizers × AgentDojo attacks in one harness,
   workspace suite, single model.
 
-[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/immu4989/dspy-security-bench/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/immu4989/dspy-security-bench/compare/v0.15.0...v0.16.0

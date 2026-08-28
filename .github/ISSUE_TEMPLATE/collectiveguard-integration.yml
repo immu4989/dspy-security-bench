@@ -37,7 +37,7 @@ body:
     attributes:
       label: Frozen versions
       description: Include orchestrator, runtime, Python, policy, and dspy-security-bench versions where applicable.
-      placeholder: "runtime 1.2.3, Python 3.12, policy cg-1, dspy-security-bench main"
+      placeholder: "runtime 1.2.3, Python 3.12, policy cg-1, dspy-security-bench 0.19.0"
     validations:
       required: true
   - type: textarea

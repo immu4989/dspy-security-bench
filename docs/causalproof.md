@@ -41,7 +41,7 @@ Primary specifications:
 ## Five-minute reference run
 
 ```bash
-pip install dspy-security-bench==0.18.0
+pip install dspy-security-bench==0.19.0
 
 dspy-security-bench causal demo --out-dir artifacts/causalproof
 

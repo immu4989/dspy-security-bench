@@ -47,7 +47,7 @@ containment evidence, and reviewable OSCAL assessment inputs.
 
 ---
 
-## New on main: CollectiveGuard — contain the collective, not just one agent
+## New in v0.19: CollectiveGuard — contain the collective, not just one agent
 
 **A sandbox boundary is not enough when separate agent runs can find each
 other, share discoveries, borrow credentials, route around egress controls, and
@@ -62,6 +62,7 @@ restart, weak control independence, and runtime defense collapse.
 
 ```bash
 # No model, provider, collector, prompt, secret, or exploit payload required.
+pip install dspy-security-bench==0.19.0
 dspy-security-bench collective describe
 dspy-security-bench collective demo --out-dir artifacts/collectiveguard
 dspy-security-bench collective run examples/collectiveguard-scenario.json \
@@ -92,7 +93,7 @@ links, and non-proving timing candidates separate. Only observed parent edges
 and explicit assertions enter the generated ScheduleProof graph.
 
 ```bash
-pip install dspy-security-bench==0.18.0
+pip install dspy-security-bench==0.19.0
 dspy-security-bench causal demo --out-dir artifacts/causalproof
 dspy-security-bench causal run trace.json causal-manifest.json \
   --report-out artifacts/causalproof.json \
@@ -421,7 +422,7 @@ permissions:
 
 jobs:
   proofrun:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.18.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.19.0
     with:
       agent: myapp.security:build_agent
       trials: 10
@@ -645,7 +646,7 @@ The recommended reusable workflow produces the bundle and shareable SVG card:
 ```yaml
 jobs:
   control-evidence:
-    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.18.0
+    uses: immu4989/dspy-security-bench/.github/workflows/proofrun.yml@v0.19.0
     with:
       evidence-kind: control
       agent: myapp.security:build_agent
@@ -1436,7 +1437,7 @@ v0.1 scope choices:
 | v0.16 — TraceProof, AgentGraphTwin v2, live AuthorityBridge, signed MissionPack Commons, and ValueProof | **shipped** |
 | v0.17 — TraceProof Runtime Kit, MCP 2025-11-25 probes, redaction challenge, open evidence registry, and ScheduleProof v1 | **shipped** |
 | v0.18 — CausalProof structural causality, native OpenAI Agents/LangGraph bridges, and public recomputation | **shipped** |
-| v0.19 — CollectiveGuard content-free collective containment, response-window proof, and SARIF export | **in development** |
+| v0.19 — CollectiveGuard content-free collective containment, response-window proof, and SARIF export | **shipped** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 
