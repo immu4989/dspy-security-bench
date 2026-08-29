@@ -12,8 +12,15 @@ on:
       - "submissions/incident/**"
       - "submissions/source/**"
       - "submissions/authority/**"
+      - "submissions/trace/**"
+      - "submissions/causal/**"
+      - "submissions/collective/**"
+      - "submissions/defense/**"
       - "submissions/reproductions.json"
       - "submissions/attestations.json"
+      - "dspy_security_bench/defend/evidence.py"
+      - "dspy_security_bench/defend/protocol.py"
+      - "dspy_security_bench/mission/loader.py"
       - "scripts/generate_site_data.py"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
@@ -30,11 +37,17 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Direct script execution puts scripts/ on sys.path. Add the checkout root so
+      # site generation can import the package without downloading dependencies.
+      PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
+      - name: Install site generator dependency
+        run: python -m pip install --disable-pip-version-check "PyYAML==6.0.3"
       - name: Regenerate leaderboard data
         run: python scripts/generate_site_data.py
       - name: Verify generated data is committed
