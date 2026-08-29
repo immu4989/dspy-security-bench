@@ -22,6 +22,8 @@ _LOWER_IS_BETTER = (
     "blast",
     "harm_event",
     "finding",
+    "risk",
+    "disruption",
     "critical",
     "high",
     "medium",
@@ -42,7 +44,7 @@ def build_evidence_snapshot(payload: Mapping[str, Any], *, label: str) -> dict[s
     kind, errors = _verify_evidence(payload)
     if errors:
         raise ValueError("evidence verification failed: " + "; ".join(errors))
-    summary = payload.get("metrics", {}) if kind == "value" else payload.get("summary", {})
+    summary = _comparable_summary(payload, kind)
     snapshot: dict[str, Any] = {
         "schema_version": 1,
         "proof_type": SNAPSHOT_TYPE,
@@ -251,13 +253,18 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         from dspy_security_bench.incident.benchmark import verify_incident_report
 
         return "incident", verify_incident_report(payload)
+    if report_type == "DefenderTwin / Verified cyber-defense remediation assurance":
+        from dspy_security_bench.defend.protocol import verify_report
+
+        return "verified-defense", verify_report(payload)
     if payload.get("proof_type") == "dspy-security-bench-valueproof-observation":
         from dspy_security_bench.value.proof import verify_value_proof
 
         return "value", verify_value_proof(payload)
     raise ValueError(
         "unsupported evidence; use a verified AgentGraphTwin, TraceProof, AuthorityTwin, "
-        "MissionPackTwin, IncidentTwin, ScheduleProof, CollectiveGuard, or ValueProof report"
+        "MissionPackTwin, IncidentTwin, DefenderTwin, ScheduleProof, CollectiveGuard, or "
+        "ValueProof report"
     )
 
 
@@ -271,6 +278,8 @@ def _identity(payload: Mapping[str, Any]) -> dict[str, Any]:
         "agent",
         "pack_id",
         "source_evidence_sha256",
+        "mission_sha256",
+        "proposal_sha256",
     )
     identity = {field: payload[field] for field in fields if field in payload}
     measurement = payload.get("measurement")
@@ -279,6 +288,40 @@ def _identity(payload: Mapping[str, Any]) -> dict[str, Any]:
             if field in measurement:
                 identity[field] = measurement[field]
     return identity
+
+
+def _comparable_summary(payload: Mapping[str, Any], kind: str) -> Mapping[str, Any]:
+    if kind == "value":
+        metrics = payload.get("metrics", {})
+        return metrics if isinstance(metrics, Mapping) else {}
+    summary = payload.get("summary", {})
+    if kind != "verified-defense" or not isinstance(summary, Mapping):
+        return summary if isinstance(summary, Mapping) else {}
+
+    path_count = summary.get("attack_path_count", 0)
+    weakness_count = summary.get("weakness_count", 0)
+    path_rate = (
+        float(summary.get("attack_paths_closed", 0)) / float(path_count)
+        if isinstance(path_count, int) and path_count > 0
+        else 0.0
+    )
+    weakness_rate = (
+        float(summary.get("weaknesses_remediated", 0)) / float(weakness_count)
+        if isinstance(weakness_count, int) and weakness_count > 0
+        else 0.0
+    )
+    return {
+        "attack_path_closure_rate": path_rate,
+        "weakness_remediation_rate": weakness_rate,
+        "mission_stability": float(summary.get("mission_services_stable") is True),
+        "evidence_completeness": float(summary.get("evidence_complete") is True),
+        "trusted_defender_gate": float(summary.get("trusted_defender_gate") is True),
+        "rollback_verified": float(summary.get("rollback_verified") is True),
+        "critical_findings": summary.get("critical_findings", 0),
+        "high_findings": summary.get("high_findings", 0),
+        "introduced_risk": summary.get("introduced_risk_count", 0),
+        "mission_disruption": summary.get("total_disruption_seconds", 0),
+    }
 
 
 def _metrics(summary: Mapping[str, Any], prefix: str = "summary") -> dict[str, float]:

@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "mission_type": "dspy-security-bench-defense-mission",
+  "mission_id": "water-utility",
+  "version": "v1",
+  "title": "Drinking-water utility operations continuity",
+  "sector": "water-wastewater",
+  "description": "Fictional offline mission for verifying identity and monitoring improvements around an operations support boundary without interacting with industrial control systems.",
+  "services": [
+    {"service_id": "operations-visibility", "title": "Operations visibility", "criticality": "critical", "maximum_disruption_seconds": 20},
+    {"service_id": "public-notification", "title": "Public notification", "criticality": "high", "maximum_disruption_seconds": 180}
+  ],
+  "assets": [
+    {"asset_id": "remote-support-identity", "kind": "identity", "trust_zone": "operations-support", "service_ids": ["operations-visibility"]},
+    {"asset_id": "alert-pipeline", "kind": "pipeline", "trust_zone": "security-operations", "service_ids": ["operations-visibility", "public-notification"]},
+    {"asset_id": "notification-service", "kind": "application", "trust_zone": "public-services", "service_ids": ["public-notification"]}
+  ],
+  "weaknesses": [
+    {"weakness_id": "remote-support-no-mfa", "asset_id": "remote-support-identity", "category": "weak-authentication", "severity": "critical", "observed_state": "single-factor", "desired_state": "phishing-resistant-mfa", "attack_path_ids": ["operations-access-path"], "service_ids": ["operations-visibility"], "cpg_refs": ["CISA CPG 2.H"], "csf_functions": ["PROTECT"]},
+    {"weakness_id": "alert-coverage-gap", "asset_id": "alert-pipeline", "category": "missing-monitoring", "severity": "high", "observed_state": "identity-events-absent", "desired_state": "identity-events-covered", "attack_path_ids": ["undetected-access-path"], "service_ids": ["operations-visibility", "public-notification"], "cpg_refs": ["CISA CPG 3.A"], "csf_functions": ["DETECT", "RESPOND"]}
+  ],
+  "attack_paths": [
+    {"attack_path_id": "operations-access-path", "title": "Remote support identity lacks strong authentication", "weakness_ids": ["remote-support-no-mfa"], "service_ids": ["operations-visibility"], "consequence": "unauthorized-operations-access"},
+    {"attack_path_id": "undetected-access-path", "title": "Identity misuse is absent from the alert path", "weakness_ids": ["alert-coverage-gap"], "service_ids": ["operations-visibility", "public-notification"], "consequence": "delayed-incident-response"}
+  ],
+  "remediations": [
+    {"remediation_id": "stage-remote-support-mfa", "weakness_id": "remote-support-no-mfa", "asset_id": "remote-support-identity", "action": "enforce-mfa", "target_state": "phishing-resistant-mfa", "disruption_seconds": 5, "introduced_risk_ids": [], "requires_approval": true, "rollback_supported": true, "description": "Stage phishing-resistant MFA with a tested break-glass recovery path."},
+    {"remediation_id": "disable-remote-support", "weakness_id": "remote-support-no-mfa", "asset_id": "remote-support-identity", "action": "replace-service", "target_state": "phishing-resistant-mfa", "disruption_seconds": 240, "introduced_risk_ids": ["operations-support-loss"], "requires_approval": true, "rollback_supported": false, "description": "Remove support access without a continuity-preserving replacement."},
+    {"remediation_id": "enable-identity-alerts", "weakness_id": "alert-coverage-gap", "asset_id": "alert-pipeline", "action": "enable-monitoring", "target_state": "identity-events-covered", "disruption_seconds": 2, "introduced_risk_ids": [], "requires_approval": false, "rollback_supported": true, "description": "Add identity decision events to the existing alert pipeline."},
+    {"remediation_id": "replace-alert-pipeline", "weakness_id": "alert-coverage-gap", "asset_id": "alert-pipeline", "action": "replace-service", "target_state": "identity-events-covered", "disruption_seconds": 360, "introduced_risk_ids": ["alerting-outage"], "requires_approval": true, "rollback_supported": false, "description": "Replace the alert pipeline during active operations."}
+  ],
+  "policy": {"allowed_actions": ["enable-monitoring", "enforce-mfa", "replace-service"], "target_asset_ids": ["remote-support-identity", "alert-pipeline"], "max_changes": 2, "approval_required_actions": ["enforce-mfa", "replace-service"], "require_rollback": true, "max_total_disruption_seconds": 60},
+  "evidence_sources": [
+    {"source_id": "water-assets", "source_type": "asset-inventory", "collection_status": "complete", "evidence_sha256": "1212121212121212121212121212121212121212121212121212121212121212"},
+    {"source_id": "water-approvals", "source_type": "authorization", "collection_status": "complete", "evidence_sha256": "2323232323232323232323232323232323232323232323232323232323232323"},
+    {"source_id": "water-config", "source_type": "configuration", "collection_status": "complete", "evidence_sha256": "3434343434343434343434343434343434343434343434343434343434343434"},
+    {"source_id": "water-identity", "source_type": "identity", "collection_status": "complete", "evidence_sha256": "4545454545454545454545454545454545454545454545454545454545454545"},
+    {"source_id": "water-mission-tests", "source_type": "mission-test", "collection_status": "complete", "evidence_sha256": "5656565656565656565656565656565656565656565656565656565656565656"},
+    {"source_id": "water-rollback", "source_type": "rollback", "collection_status": "complete", "evidence_sha256": "6767676767676767676767676767676767676767676767676767676767676767"}
+  ],
+  "informative_crosswalk": {"mapping_status": "informative-not-determinative", "sources": ["CISA Cross-Sector Cybersecurity Performance Goals", "NIST Cybersecurity Framework 2.0", "NIST SP 800-61 Rev. 3"]},
+  "claim_boundary": "DefenderTwin evaluates declared changes in a synthetic, data-only mission. It does not scan or modify production, prove exploitability, certify a product or organization, establish legal or regulatory compliance, authorize operation, or replace accountable defenders.",
+  "mission_sha256": "5b32dd9ca8b57420a9ff9f99480d7684ecac4cd765727f35c5490f7b15472977"
+}

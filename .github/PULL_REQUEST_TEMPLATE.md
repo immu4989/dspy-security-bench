@@ -13,9 +13,10 @@
 
 <!-- Delete this section if the PR is not a community result. -->
 
-- [ ] The matching offline verifier passes for `submissions/impact/`, `control/`, `incident/`, `source/`, `authority/`, or `trace/`
+- [ ] The matching offline verifier passes for `submissions/impact/`, `control/`, `incident/`, `source/`, `authority/`, `trace/`, `causal/`, `collective/`, or `defense/`
 - [ ] Trial-based bundles contain at least five complete trials; TraceProof bundles recompute from sanitized evidence
 - [ ] The source URL describes the evaluated agent configuration
 - [ ] No raw OTLP, provider credentials, private prompts, tool arguments/results, identifiers, or sensitive production data are included
+- [ ] Defense evidence contains only synthetic or sanitized structural state; no live targets, exploit payloads, or unpatched private vulnerability details are included
 - [ ] I identified the evidence tier: self-attested / GitHub-attested / trusted builder
 - [ ] I understand that provenance does not independently authenticate provider responses

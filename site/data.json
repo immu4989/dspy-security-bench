@@ -379,6 +379,8 @@
       "result": "https://github.com/immu4989/dspy-security-bench/blob/main/submissions/collective/reference-runtime.json"
     }
   ],
+  "defenseEvidenceCount": 0,
+  "defenseEvidence": [],
   "missionAssuranceCommons": {
     "inventoryForge": {
       "inputLimitBytes": 5000000,

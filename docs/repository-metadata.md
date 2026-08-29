@@ -2,7 +2,7 @@
 
 Suggested GitHub About description:
 
-> Privacy-first AI agent assurance: CollectiveGuard containment, TraceProof, authorization twins, MCP/OTel evidence, CI gates, and OSCAL exports.
+> Prove AI cyber defenses work: DefenderTwin remediation, CollectiveGuard containment, private-by-default evidence, CI gates, and OSCAL exports.
 
 Suggested topics:
 
@@ -10,7 +10,8 @@ Suggested topics:
 `opentelemetry`, `dspy`, `agentdojo`, `ai-evaluation`, `authorization`,
 `zero-trust`, `oscal`, `federal-ai`, `github-actions`,
 `security-benchmark`, `agentic-ai`, `agent-containment`,
-`autonomous-agent-collectives`
+`autonomous-agent-collectives`, `cyber-defense`, `verified-remediation`,
+`cyber-range`
 
 Keep the website field set to:
 

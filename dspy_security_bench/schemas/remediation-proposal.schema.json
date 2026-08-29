@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/remediation-proposal.schema.json",
+  "title": "DefenderTwin remediation proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "proposal_type", "proposal_id", "mission_sha256", "agent_id", "run_id", "created_at", "target_asset_ids", "findings", "remediation_ids", "approvals", "safe_stop", "stop_reason", "adapter", "proposal_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "proposal_type": {"const": "dspy-security-bench-remediation-proposal"},
+    "proposal_id": {"$ref": "#/$defs/id"},
+    "mission_sha256": {"$ref": "#/$defs/sha256"},
+    "agent_id": {"$ref": "#/$defs/id"},
+    "run_id": {"$ref": "#/$defs/id"},
+    "created_at": {"type": "integer", "minimum": 0, "maximum": 4102444800},
+    "target_asset_ids": {"$ref": "#/$defs/nonEmptyIdList"},
+    "findings": {"$ref": "#/$defs/idList"},
+    "remediation_ids": {"$ref": "#/$defs/idList"},
+    "approvals": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {"$ref": "#/$defs/approval"}
+    },
+    "safe_stop": {"type": "boolean"},
+    "stop_reason": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/id"}]},
+    "adapter": {"$ref": "#/$defs/adapter"},
+    "proposal_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"safe_stop": {"const": true}}, "required": ["safe_stop"]},
+      "then": {
+        "properties": {
+          "remediation_ids": {"maxItems": 0},
+          "stop_reason": {"$ref": "#/$defs/id"}
+        }
+      },
+      "else": {"properties": {"stop_reason": {"type": "null"}}}
+    }
+  ],
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,119}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "idList": {
+      "type": "array",
+      "maxItems": 500,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "nonEmptyIdList": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approval_id", "remediation_id", "issuer_id", "outcome", "issued_at", "trust_status", "evidence_sha256"],
+      "properties": {
+        "approval_id": {"$ref": "#/$defs/id"},
+        "remediation_id": {"$ref": "#/$defs/id"},
+        "issuer_id": {"$ref": "#/$defs/id"},
+        "outcome": {"enum": ["allow", "deny"]},
+        "issued_at": {"type": "integer", "minimum": 0, "maximum": 4102444800},
+        "trust_status": {"enum": ["verified", "self-attested", "unverified"]},
+        "evidence_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter_id", "adapter_version", "framework", "execution_mode", "identity_trust"],
+      "properties": {
+        "adapter_id": {"$ref": "#/$defs/id"},
+        "adapter_version": {"$ref": "#/$defs/id"},
+        "framework": {"$ref": "#/$defs/id"},
+        "execution_mode": {"$ref": "#/$defs/id"},
+        "identity_trust": {"enum": ["verified", "self-attested", "unverified"]}
+      }
+    }
+  }
+}

@@ -39,6 +39,11 @@ const safeCollectiveResultUrl = value => {
   const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/collective\/[a-z0-9-]+\.json$/;
   return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/collective";
 };
+const safeDefenseResultUrl = value => {
+  const url = String(value || "");
+  const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/defense\/[a-z0-9-]+\.json$/;
+  return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/defense";
+};
 
 async function loadData() {
   const response = await fetch("data.json");
@@ -55,6 +60,7 @@ async function loadData() {
   document.querySelectorAll("[data-trace-evidence-count]").forEach(node => node.textContent = data.traceEvidenceCount || 0);
   document.querySelectorAll("[data-causal-evidence-count]").forEach(node => node.textContent = data.causalEvidenceCount || 0);
   document.querySelectorAll("[data-collective-evidence-count]").forEach(node => node.textContent = data.collectiveEvidenceCount || 0);
+  document.querySelectorAll("[data-defense-evidence-count]").forEach(node => node.textContent = data.defenseEvidenceCount || 0);
   const robustness = data.models.map(model => model.robustness);
   document.querySelector("[data-min-robustness]").textContent = Math.round(Math.min(...robustness) * 100);
   document.querySelector("[data-max-robustness]").textContent = Math.round(Math.max(...robustness) * 100);
@@ -67,6 +73,7 @@ async function loadData() {
   renderAuthorityEvidence(data.authorityEvidence || []);
   renderTraceEvidence(data.traceEvidence || []);
   renderCollectiveEvidence(data.collectiveEvidence || []);
+  renderDefenseEvidence(data.defenseEvidence || []);
 }
 
 function renderCollectiveEvidence(results) {
@@ -77,6 +84,21 @@ function renderCollectiveEvidence(results) {
     <div><span>PROVENANCE STATUS</span><strong class="${result.evidenceComplete ? "complete" : "review"}">${escapeHtml(result.status)}</strong><small>${Number(result.sourceCount)} sources · ${Number(result.findingCount)} findings</small></div>
     <a href="${safeCollectiveResultUrl(result.result)}">inspect bundle ↗</a>
   </article>`).join("");
+}
+
+function renderDefenseEvidence(results) {
+  const host = document.querySelector("#defense-evidence-results");
+  const empty = document.querySelector("#defense-evidence-empty");
+  if (!host || !empty) return;
+  empty.hidden = results.length > 0;
+  host.innerHTML = results.map(result => {
+    const safe = result.outcome === "effective_and_safe" && result.missionStable && result.evidenceComplete;
+    return `<article class="defense-evidence-card">
+      <div><span>${escapeHtml(result.sector)}</span><strong>${escapeHtml(result.mission)}</strong><small>${escapeHtml(result.runtime)} · ${escapeHtml(result.submitter)}</small></div>
+      <div><span>VERIFIED OUTCOME</span><strong class="${safe ? "safe" : "review"}">${escapeHtml(result.outcome)}</strong><small>${Number(result.pathsClosed)}/${Number(result.pathCount)} paths · mission ${result.missionStable ? "stable" : "review"}</small></div>
+      <a href="${safeDefenseResultUrl(result.result)}">inspect bundle ↗</a>
+    </article>`;
+  }).join("");
 }
 
 const proofTier = {
@@ -361,6 +383,7 @@ bindCommandCopy("#federal-copy", "dspy-security-bench federal init");
 bindCommandCopy("#graph-copy", "dspy-security-bench graph demo");
 bindCommandCopy("#collective-copy", "dspy-security-bench collective demo --out-dir artifacts/collectiveguard");
 bindCommandCopy("#evidence-plane-copy", "dspy-security-bench collective plane demo --out-dir artifacts/evidence-plane");
+bindCommandCopy("#defense-copy", "dspy-security-bench defend demo --out-dir artifacts/verified-defense");
 bindCommandCopy("#trace-copy", "dspy-security-bench trace demo --out-dir artifacts/traceproof");
 bindCommandCopy("#causal-copy", "dspy-security-bench causal demo --out-dir artifacts/causalproof");
 bindCommandCopy("#schedule-copy", "dspy-security-bench schedule demo");

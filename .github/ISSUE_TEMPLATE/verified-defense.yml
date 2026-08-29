@@ -1,0 +1,49 @@
+name: Verified cyber-defense contribution
+description: Propose a DefenderTwin adapter, synthetic mission, or independently recomputable remediation result.
+title: "[defense] "
+labels: ["verified-defense"]
+body:
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Contribution type
+      options:
+        - Synthetic critical-service mission
+        - Defender adapter
+        - Remediation evidence bundle
+        - Independent reproduction
+        - Standards or sector review
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source repository and immutable revision
+      placeholder: https://github.com/owner/repo/tree/commit
+    validations:
+      required: true
+  - type: textarea
+    id: users
+    attributes:
+      label: Who benefits and what decision improves?
+      description: Name the operator, decision, and measurable outcome rather than a broad safety claim.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Reproduction command and evidence
+      description: Include local commands, expected outcome, mission continuity checks, and known gaps.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety and disclosure boundary
+      options:
+        - label: The contribution performs no unauthorized or live-target testing.
+          required: true
+        - label: It contains no credentials, private telemetry, exploit payloads, or unpatched private vulnerability details.
+          required: true
+        - label: I understand that registry admission is not certification, endorsement, or authorization to operate.
+          required: true

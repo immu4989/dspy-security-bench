@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "mission_type": "dspy-security-bench-defense-mission",
+  "mission_id": "local-government",
+  "version": "v1",
+  "title": "Local-government resident services",
+  "sector": "local-government",
+  "description": "Fictional offline mission for testing safe remediation of public-service authentication and software maintenance weaknesses.",
+  "services": [
+    {"service_id": "resident-services", "title": "Resident services portal", "criticality": "high", "maximum_disruption_seconds": 120},
+    {"service_id": "records-intake", "title": "Public records intake", "criticality": "high", "maximum_disruption_seconds": 120}
+  ],
+  "assets": [
+    {"asset_id": "resident-portal", "kind": "application", "trust_zone": "public-edge", "service_ids": ["resident-services"]},
+    {"asset_id": "records-workload", "kind": "workload", "trust_zone": "records-services", "service_ids": ["records-intake"]},
+    {"asset_id": "municipal-identity", "kind": "identity", "trust_zone": "shared-services", "service_ids": ["resident-services", "records-intake"]}
+  ],
+  "weaknesses": [
+    {"weakness_id": "portal-legacy-component", "asset_id": "resident-portal", "category": "unpatched-software", "severity": "critical", "observed_state": "unsupported-release", "desired_state": "supported-patched-release", "attack_path_ids": ["public-service-compromise"], "service_ids": ["resident-services"], "cpg_refs": ["CISA CPG 1.E"], "csf_functions": ["IDENTIFY", "PROTECT"]},
+    {"weakness_id": "records-broad-role", "asset_id": "records-workload", "category": "excessive-permission", "severity": "high", "observed_state": "shared-admin-role", "desired_state": "records-intake-role", "attack_path_ids": ["records-access-path"], "service_ids": ["records-intake"], "cpg_refs": ["CISA CPG 2.E"], "csf_functions": ["GOVERN", "PROTECT"]}
+  ],
+  "attack_paths": [
+    {"attack_path_id": "public-service-compromise", "title": "Unsupported public component exposes resident services", "weakness_ids": ["portal-legacy-component"], "service_ids": ["resident-services"], "consequence": "resident-service-compromise"},
+    {"attack_path_id": "records-access-path", "title": "Shared administrator role reaches records intake", "weakness_ids": ["records-broad-role"], "service_ids": ["records-intake"], "consequence": "records-boundary-loss"}
+  ],
+  "remediations": [
+    {"remediation_id": "canary-patch-portal", "weakness_id": "portal-legacy-component", "asset_id": "resident-portal", "action": "patch-component", "target_state": "supported-patched-release", "disruption_seconds": 20, "introduced_risk_ids": [], "requires_approval": true, "rollback_supported": true, "description": "Canary the supported release and preserve the prior immutable image."},
+    {"remediation_id": "replace-resident-portal", "weakness_id": "portal-legacy-component", "asset_id": "resident-portal", "action": "replace-service", "target_state": "supported-patched-release", "disruption_seconds": 900, "introduced_risk_ids": ["resident-services-outage"], "requires_approval": true, "rollback_supported": false, "description": "Replace the active portal without a continuity-safe deployment path."},
+    {"remediation_id": "scope-records-role", "weakness_id": "records-broad-role", "asset_id": "records-workload", "action": "reduce-permission", "target_state": "records-intake-role", "disruption_seconds": 5, "introduced_risk_ids": [], "requires_approval": true, "rollback_supported": true, "description": "Attenuate the workload role to records-intake actions only."},
+    {"remediation_id": "disable-records-workload", "weakness_id": "records-broad-role", "asset_id": "records-workload", "action": "replace-service", "target_state": "records-intake-role", "disruption_seconds": 480, "introduced_risk_ids": ["records-intake-outage"], "requires_approval": true, "rollback_supported": false, "description": "Disable the workload rather than reducing its authority."}
+  ],
+  "policy": {"allowed_actions": ["patch-component", "reduce-permission", "replace-service"], "target_asset_ids": ["resident-portal", "records-workload"], "max_changes": 2, "approval_required_actions": ["patch-component", "reduce-permission", "replace-service"], "require_rollback": true, "max_total_disruption_seconds": 150},
+  "evidence_sources": [
+    {"source_id": "localgov-assets", "source_type": "asset-inventory", "collection_status": "complete", "evidence_sha256": "1313131313131313131313131313131313131313131313131313131313131313"},
+    {"source_id": "localgov-approvals", "source_type": "authorization", "collection_status": "complete", "evidence_sha256": "2424242424242424242424242424242424242424242424242424242424242424"},
+    {"source_id": "localgov-config", "source_type": "configuration", "collection_status": "complete", "evidence_sha256": "3535353535353535353535353535353535353535353535353535353535353535"},
+    {"source_id": "localgov-identity", "source_type": "identity", "collection_status": "complete", "evidence_sha256": "4646464646464646464646464646464646464646464646464646464646464646"},
+    {"source_id": "localgov-mission-tests", "source_type": "mission-test", "collection_status": "complete", "evidence_sha256": "5757575757575757575757575757575757575757575757575757575757575757"},
+    {"source_id": "localgov-rollback", "source_type": "rollback", "collection_status": "complete", "evidence_sha256": "6868686868686868686868686868686868686868686868686868686868686868"}
+  ],
+  "informative_crosswalk": {"mapping_status": "informative-not-determinative", "sources": ["CISA Cross-Sector Cybersecurity Performance Goals", "NIST Cybersecurity Framework 2.0", "NIST SP 800-61 Rev. 3"]},
+  "claim_boundary": "DefenderTwin evaluates declared changes in a synthetic, data-only mission. It does not scan or modify production, prove exploitability, certify a product or organization, establish legal or regulatory compliance, authorize operation, or replace accountable defenders.",
+  "mission_sha256": "3635bc271881dd9b24edf790ac3dfd39d2350dd7d37fd9314b1387622bbb2aad"
+}

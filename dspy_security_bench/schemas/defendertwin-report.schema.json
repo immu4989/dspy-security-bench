@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/defendertwin-report.schema.json",
+  "title": "DefenderTwin recomputable remediation report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "protocol_sha256", "analyzer", "mission_sha256", "proposal_sha256", "mission", "proposal", "summary", "attack_paths", "remediations", "mission_services", "evidence_coverage", "trusted_defender", "findings", "informative_crosswalk", "claim_boundary", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "DefenderTwin / Verified cyber-defense remediation assurance"},
+    "protocol_version": {"const": "defendertwin-v1"},
+    "protocol_sha256": {"$ref": "#/$defs/sha256"},
+    "analyzer": {"const": "verified-remediation-analyzer-v1"},
+    "mission_sha256": {"$ref": "#/$defs/sha256"},
+    "proposal_sha256": {"$ref": "#/$defs/sha256"},
+    "mission": {
+      "type": "object",
+      "required": ["mission_type", "mission_id", "mission_sha256"],
+      "properties": {
+        "mission_type": {"const": "dspy-security-bench-defense-mission"},
+        "mission_id": {"$ref": "#/$defs/id"},
+        "mission_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "required": ["proposal_type", "proposal_id", "proposal_sha256"],
+      "properties": {
+        "proposal_type": {"const": "dspy-security-bench-remediation-proposal"},
+        "proposal_id": {"$ref": "#/$defs/id"},
+        "proposal_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "summary": {"$ref": "#/$defs/summary"},
+    "attack_paths": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/pathResult"}
+    },
+    "remediations": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {"$ref": "#/$defs/remediationResult"}
+    },
+    "mission_services": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {"$ref": "#/$defs/serviceResult"}
+    },
+    "evidence_coverage": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/evidenceResult"}
+    },
+    "trusted_defender": {"$ref": "#/$defs/trustedDefender"},
+    "findings": {
+      "type": "array",
+      "maxItems": 5000,
+      "items": {"$ref": "#/$defs/finding"}
+    },
+    "informative_crosswalk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapping_status", "sources"],
+      "properties": {
+        "mapping_status": {"const": "informative-not-determinative"},
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1, "maxLength": 200}
+        }
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "report_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,119}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "idList": {
+      "type": "array",
+      "maxItems": 500,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "finding_count", "critical_findings", "high_findings", "weakness_count", "weaknesses_identified", "weaknesses_remediated", "attack_path_count", "attack_paths_closed", "mission_services_stable", "evidence_complete", "trusted_defender_gate", "rollback_verified", "total_disruption_seconds", "introduced_risk_count", "content_fields_processed"],
+      "properties": {
+        "outcome": {"enum": ["effective_and_safe", "effective_with_regression", "ineffective", "insufficient_evidence"]},
+        "finding_count": {"type": "integer", "minimum": 0},
+        "critical_findings": {"type": "integer", "minimum": 0},
+        "high_findings": {"type": "integer", "minimum": 0},
+        "weakness_count": {"type": "integer", "minimum": 1},
+        "weaknesses_identified": {"type": "integer", "minimum": 0},
+        "weaknesses_remediated": {"type": "integer", "minimum": 0},
+        "attack_path_count": {"type": "integer", "minimum": 1},
+        "attack_paths_closed": {"type": "integer", "minimum": 0},
+        "mission_services_stable": {"type": "boolean"},
+        "evidence_complete": {"type": "boolean"},
+        "trusted_defender_gate": {"type": "boolean"},
+        "rollback_verified": {"type": "boolean"},
+        "total_disruption_seconds": {"type": "integer", "minimum": 0},
+        "introduced_risk_count": {"type": "integer", "minimum": 0},
+        "content_fields_processed": {"const": 0}
+      }
+    },
+    "pathResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attack_path_id", "closed", "broken_by_weakness_ids", "service_ids"],
+      "properties": {
+        "attack_path_id": {"$ref": "#/$defs/id"},
+        "closed": {"type": "boolean"},
+        "broken_by_weakness_ids": {"$ref": "#/$defs/idList"},
+        "service_ids": {"$ref": "#/$defs/idList"}
+      }
+    },
+    "remediationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["remediation_id", "weakness_id", "restored_required_state", "within_scope", "approval_required", "approved", "rollback_verified", "introduced_risk_ids", "disruption_seconds"],
+      "properties": {
+        "remediation_id": {"$ref": "#/$defs/id"},
+        "weakness_id": {"$ref": "#/$defs/id"},
+        "restored_required_state": {"type": "boolean"},
+        "within_scope": {"type": "boolean"},
+        "approval_required": {"type": "boolean"},
+        "approved": {"type": "boolean"},
+        "rollback_verified": {"type": "boolean"},
+        "introduced_risk_ids": {"$ref": "#/$defs/idList"},
+        "disruption_seconds": {"type": "integer", "minimum": 0, "maximum": 86400}
+      }
+    },
+    "serviceResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["service_id", "criticality", "disruption_seconds", "maximum_disruption_seconds", "mission_stable"],
+      "properties": {
+        "service_id": {"$ref": "#/$defs/id"},
+        "criticality": {"enum": ["medium", "high", "critical"]},
+        "disruption_seconds": {"type": "integer", "minimum": 0},
+        "maximum_disruption_seconds": {"type": "integer", "minimum": 0, "maximum": 86400},
+        "mission_stable": {"type": "boolean"}
+      }
+    },
+    "evidenceResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "source_type", "collection_status", "complete"],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/id"},
+        "source_type": {"enum": ["asset-inventory", "authorization", "configuration", "identity", "mission-test", "rollback"]},
+        "collection_status": {"enum": ["complete", "partial", "missing"]},
+        "complete": {"type": "boolean"}
+      }
+    },
+    "trustedDefender": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_id", "run_id", "adapter", "target_scope_bound", "identity_traceable", "safe_stop_observed"],
+      "properties": {
+        "agent_id": {"$ref": "#/$defs/id"},
+        "run_id": {"$ref": "#/$defs/id"},
+        "adapter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["adapter_id", "adapter_version", "framework", "execution_mode", "identity_trust"],
+          "properties": {
+            "adapter_id": {"$ref": "#/$defs/id"},
+            "adapter_version": {"$ref": "#/$defs/id"},
+            "framework": {"$ref": "#/$defs/id"},
+            "execution_mode": {"$ref": "#/$defs/id"},
+            "identity_trust": {"enum": ["verified", "self-attested", "unverified"]}
+          }
+        },
+        "target_scope_bound": {"type": "boolean"},
+        "identity_traceable": {"type": "boolean"},
+        "safe_stop_observed": {"type": "boolean"}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule_id", "title", "severity", "subject_id", "evidence_ids", "detail", "repair_hint"],
+      "properties": {
+        "rule_id": {"type": "string", "pattern": "^DT00[1-9]$|^DT01[01]$"},
+        "title": {"type": "string", "minLength": 1},
+        "severity": {"enum": ["medium", "high", "critical"]},
+        "subject_id": {"$ref": "#/$defs/id"},
+        "evidence_ids": {"$ref": "#/$defs/idList"},
+        "detail": {"type": "string", "minLength": 1},
+        "repair_hint": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

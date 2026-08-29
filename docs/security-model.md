@@ -41,6 +41,13 @@ application content fields, recomputes derived paths and response windows, and
 binds the result to the scenario bytes. It cannot prove exporter completeness,
 event authenticity, clock accuracy, production containment, or model alignment.
 
+DefenderTwin trusts a frozen synthetic mission, its declared remediation
+effects, and structural evidence-status labels. It independently recomputes
+proposal bindings, attack-path closure, scope, approval timing, service
+disruption, introduced risk, rollback, and evidence completeness. It never
+executes the proposed change and cannot authenticate a declared evidence source
+or establish production effectiveness.
+
 ## Threats addressed
 
 - narrative-only scores hiding harmful tool side effects;
@@ -61,7 +68,10 @@ event authenticity, clock accuracy, production containment, or model alignment.
 - missing acquisition cost or outcome observations silently treated as passes.
 - unapproved cross-run side channels, indirect egress, peer instructions treated
   as authority, cross-run credentials, evaluator access, unsafe persistence,
-  late escalation/containment, unapproved restart, and correlated defenses.
+  late escalation/containment, unapproved restart, and correlated defenses; and
+- remediations that appear effective while exceeding authority, breaking an
+  essential service, introducing new declared risk, losing rollback, or relying
+  on incomplete evidence.
 
 ## Threats not solved
 
@@ -81,7 +91,10 @@ event authenticity, clock accuracy, production containment, or model alignment.
   telemetry.
 - omitted collective events, covert channels without a shared structural
   identifier, fabricated offsets, or assurance that an observed response action
-  had its intended production effect.
+  had its intended production effect; and
+- unmodeled attack paths, incorrect synthetic remediation effects, fabricated
+  source-completeness labels, live-system exploitability, or safe production
+  rollout of a DefenderTwin proposal.
 
 Use least privilege, protected branches, required reviews, secret scanning,
 artifact attestations, dependency review, CodeQL, Scorecard, SBOMs, reproducible

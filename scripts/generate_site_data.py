@@ -24,6 +24,7 @@ AUTHORITY_SUBMISSIONS_DIR = ROOT / "submissions/authority"
 TRACE_SUBMISSIONS_DIR = ROOT / "submissions/trace"
 CAUSAL_SUBMISSIONS_DIR = ROOT / "submissions/causal"
 COLLECTIVE_SUBMISSIONS_DIR = ROOT / "submissions/collective"
+DEFENSE_SUBMISSIONS_DIR = ROOT / "submissions/defense"
 REPRODUCTIONS = ROOT / "submissions/reproductions.json"
 ATTESTATIONS = ROOT / "submissions/attestations.json"
 DEFAULT_OUT = ROOT / "site/data.json"
@@ -41,6 +42,7 @@ def build_payload(
     trace_submissions_dir: Path = TRACE_SUBMISSIONS_DIR,
     causal_submissions_dir: Path = CAUSAL_SUBMISSIONS_DIR,
     collective_submissions_dir: Path = COLLECTIVE_SUBMISSIONS_DIR,
+    defense_submissions_dir: Path = DEFENSE_SUBMISSIONS_DIR,
     reproductions_path: Path = REPRODUCTIONS,
     attestations_path: Path = ATTESTATIONS,
 ) -> dict:
@@ -103,6 +105,7 @@ def build_payload(
     trace_evidence = _trace_evidence_results(trace_submissions_dir)
     causal_evidence = _causal_evidence_results(causal_submissions_dir)
     collective_evidence = _collective_evidence_results(collective_submissions_dir)
+    defense_evidence = _defense_evidence_results(defense_submissions_dir)
     return {
         "protocol": ", ".join(sorted(protocol_versions)),
         "modelCount": len(models),
@@ -125,6 +128,8 @@ def build_payload(
         "causalEvidence": causal_evidence,
         "collectiveEvidenceCount": len(collective_evidence),
         "collectiveEvidence": collective_evidence,
+        "defenseEvidenceCount": len(defense_evidence),
+        "defenseEvidence": defense_evidence,
         "missionAssuranceCommons": {
             "inventoryForge": {"inputLimitBytes": 5_000_000, "recordLimit": 5_000},
             "agentGraphTwin": {"scenarioVersion": "agentgraphtwin-v1", "pairCount": 6},
@@ -134,6 +139,67 @@ def build_payload(
             "fixtureClaim": "translation-only; named backends not executed",
         },
     }
+
+
+def _defense_evidence_results(submissions_dir: Path) -> list[dict]:
+    """Expose only privacy-bounded, content-addressed remediation evidence."""
+
+    from dspy_security_bench.defend.evidence import verify_evidence_bundle
+
+    results = []
+    prohibited = (
+        '"prompt"',
+        '"message_content"',
+        '"chain_of_thought"',
+        '"tool_arguments"',
+        '"tool_results"',
+        '"credentials"',
+        '"exploit_payload"',
+        '"live_target"',
+    )
+    for path in sorted(submissions_dir.glob("*.json")):
+        bundle = json.loads(path.read_text())
+        if not isinstance(bundle, dict):
+            continue
+        if bundle.get("bundle_type") != "dspy-security-bench-defense-evidence":
+            continue
+        verification = verify_evidence_bundle(bundle)
+        if not verification.community_eligible:
+            continue
+        unsigned = dict(bundle)
+        claimed = unsigned.pop("bundle_sha256", None)
+        try:
+            encoded = json.dumps(
+                unsigned,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=False,
+                allow_nan=False,
+            ).encode()
+            serialized = encoded.decode().lower()
+        except (TypeError, ValueError):
+            continue
+        if claimed != hashlib.sha256(encoded).hexdigest() or any(
+            token in serialized for token in prohibited
+        ):
+            continue
+        submission = bundle.get("submission", {})
+        summary = bundle.get("report", {}).get("summary", {})
+        results.append(
+            {
+                "mission": bundle.get("mission", {}).get("mission_id", "unknown"),
+                "sector": bundle.get("mission", {}).get("sector", "unknown"),
+                "runtime": submission.get("runtime", "unknown"),
+                "submitter": submission.get("submitter", "unknown"),
+                "outcome": summary.get("outcome", "insufficient_evidence"),
+                "pathsClosed": summary.get("attack_paths_closed", 0),
+                "pathCount": summary.get("attack_path_count", 0),
+                "missionStable": summary.get("mission_services_stable", False),
+                "evidenceComplete": summary.get("evidence_complete", False),
+                "result": f"{GITHUB}/submissions/defense/{path.name}",
+            }
+        )
+    return results
 
 
 def _collective_evidence_results(submissions_dir: Path) -> list[dict]:

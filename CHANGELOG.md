@@ -10,6 +10,23 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **Verified Cyber Defense Commons** with DefenderTwin's deterministic
+  finding → remediation → attack-path closure → mission-continuity → rollback
+  evidence chain and four explicit outcomes: `effective_and_safe`,
+  `effective_with_regression`, `ineffective`, and `insufficient_evidence`.
+- Five fully synthetic, offline sector missions for a community hospital,
+  drinking-water utility, local government, open-source maintainer, and small
+  business; bounded and deliberately disruptive reference proposals; strict
+  mission/proposal/report schemas; and zero-provider-call CLI workflows.
+- A Trusted Defender Gate covering agent/run/adapter traceability, target and
+  action scope, prior verified approval, change budgets, safe stopping, mission
+  disruption, introduced risk, and rollback.
+- Defender adapter manifests and frozen-output conformance, JSON/SARIF 2.1.0,
+  informative non-certifying OSCAL 1.2.2, privacy-bounded public evidence
+  bundles, CI registry admission, and an animated before/after remediation lab.
+- ContinuousProof ingestion for DefenderTwin, including comparable attack-path,
+  weakness, mission-continuity, evidence, authorization, rollback, risk, and
+  disruption metrics for release-to-release regression review.
 - **CollectiveGuard v2 Agent Assurance Evidence Plane**, which preserves the
   frozen v1 report while adding six evidence-source classes, per-event
   `observed`/`attested`/`asserted`/`inferred` provenance, source completeness,
@@ -32,6 +49,12 @@ several of them changed published numbers.
   evidence, and live public-registry bundles.
 
 ### Security
+- Public defense bundles reject prompt/reasoning/tool/credential/exploit/live-
+  target fields, require `raw_data_shared: false`, and keep private or embargoed
+  evidence out of the public registry.
+- A technically effective remediation fails safe status when it exceeds scope,
+  lacks verified approval, disrupts a mission, introduces risk, loses rollback,
+  or lacks complete required evidence.
 - Clean CollectiveGuard results now require complete owner-required sources and
   direct provenance for every structural event; violations remain reportable
   when evidence is partial.

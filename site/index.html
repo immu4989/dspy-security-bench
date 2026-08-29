@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="Privacy-first assurance for AI agents: contain autonomous collectives, sanitize traces, separate causal evidence from assertions, explore authorization races, and export reviewable artifacts.">
+  <meta name="description" content="Prove AI-assisted cyber defenses work: close attack paths, preserve essential services, contain autonomous collectives, and export privacy-bounded evidence.">
   <meta property="og:title" content="DSPy Security Bench — Mission Assurance Commons">
-  <meta property="og:description" content="CollectiveGuard, TraceProof, CausalProof, and ScheduleProof turn structural agent telemetry into privacy-bounded containment and authorization evidence.">
+  <meta property="og:description" content="DefenderTwin proves remediation effectiveness and mission continuity; CollectiveGuard, TraceProof, and CausalProof preserve the evidence chain.">
   <meta property="og:image" content="assets/mission-assurance-commons-v015.png">
   <meta name="twitter:card" content="summary_large_image">
   <title>DSPy Security Bench — Measure before you trust</title>
@@ -27,6 +27,7 @@
         <span>DSPy <b>Security Bench</b></span>
       </a>
       <div class="nav-links" id="nav-links">
+        <a href="#verified-defense">DefenderTwin</a>
         <a href="#collectiveguard">Evidence Plane</a>
         <a href="#traceproof">TraceProof</a>
         <a href="#causalproof">CausalProof</a>
@@ -47,7 +48,7 @@
       <div class="hero-content reveal">
         <div class="eyebrow"><span class="pulse"></span> Mission Assurance Commons · open evidence</div>
         <h1>Make agent trust<br><em>inspectable.</em></h1>
-        <p class="hero-copy">Contain autonomous agent collectives, sanitize real traces locally, replay authorization failures as safe synthetic twins, catch regressions, and export reviewable evidence—without automating the accountable decision.</p>
+        <p class="hero-copy">Prove a cyber-defense fix closes the attack path without breaking the mission. Then contain autonomous collectives, sanitize traces locally, catch regressions, and export reviewable evidence—without automating the accountable decision.</p>
         <div class="hero-actions">
           <a class="button primary" href="#commons">Enter the commons <span aria-hidden="true">↓</span></a>
           <a class="button secondary" href="https://github.com/immu4989/dspy-security-bench">Run it locally <span aria-hidden="true">→</span></a>
@@ -64,8 +65,95 @@
     <section class="metrics" aria-label="Benchmark summary">
       <div class="metric reveal"><span class="metric-value" data-model-count>14</span><span class="metric-label">models measured</span></div>
       <div class="metric reveal"><span class="metric-value" data-family-count>10</span><span class="metric-label">model families</span></div>
-      <div class="metric reveal"><span class="metric-value">12 trace rules</span><span class="metric-label">authorization + effect signals</span></div>
+      <div class="metric reveal"><span class="metric-value">5 sector twins</span><span class="metric-label">verified remediation missions</span></div>
       <div class="metric reveal"><span class="metric-value">23 schedules</span><span class="metric-label">4 bounded race profiles</span></div>
+    </section>
+
+    <section class="section verified-defense-section" id="verified-defense" aria-labelledby="verified-defense-title">
+      <div class="defense-grid" aria-hidden="true"></div>
+      <div class="defense-glow" aria-hidden="true"></div>
+      <div class="defense-heading reveal">
+        <div>
+          <span class="section-kicker">DefenderTwin · verified cyber-defense remediation</span>
+          <h2 id="verified-defense-title">Close the path.<br><em>Keep the mission alive.</em></h2>
+        </div>
+        <p>A finding is only the beginning. DefenderTwin verifies the exact before/after state, target and approval scope, essential-service continuity, introduced risk, rollback, and evidence completeness—without touching a live target.</p>
+      </div>
+
+      <div class="defense-console reveal">
+        <header class="defense-topbar">
+          <span><i></i> SYNTHETIC / NO LIVE ACTIONS</span>
+          <code>DEFENDERTWIN::VERIFIED-REMEDIATION::V1</code>
+          <b>OFFLINE RECOMPUTATION</b>
+        </header>
+        <div class="defense-stage">
+          <article class="defense-state defense-before">
+            <header><span>BEFORE / 00</span><b>EXPOSED</b></header>
+            <div class="defense-service"><i></i><div><small>ESSENTIAL SERVICE</small><strong>clinical routing</strong></div><em>LIVE</em></div>
+            <div class="attack-path path-a"><span>01</span><div><b>indirect egress</b><small>relay path allowed</small></div><em>CRITICAL</em></div>
+            <div class="attack-path path-b"><span>02</span><div><b>admin scope</b><small>cluster-wide authority</small></div><em>CRITICAL</em></div>
+            <footer><span>known paths</span><strong>2 OPEN</strong></footer>
+          </article>
+
+          <div class="defense-engine" aria-label="DefenderTwin verifies identity, scope, approval, remediation, continuity, and rollback before issuing a result">
+            <div class="engine-orbit orbit-one"><i></i><i></i><i></i></div>
+            <div class="engine-orbit orbit-two"></div>
+            <div class="engine-core"><small>VERIFY</small><strong>Δ</strong><span>before / after</span></div>
+            <div class="engine-check check-identity"><b>01</b><span>identity</span><em>BOUND</em></div>
+            <div class="engine-check check-authority"><b>02</b><span>authority</span><em>ALLOW</em></div>
+            <div class="engine-check check-mission"><b>03</b><span>mission</span><em>STABLE</em></div>
+            <div class="engine-check check-rollback"><b>04</b><span>rollback</span><em>VERIFIED</em></div>
+            <div class="repair-beam beam-in"><i></i></div>
+            <div class="repair-beam beam-out"><i></i></div>
+          </div>
+
+          <article class="defense-state defense-after">
+            <header><span>AFTER / 01</span><b>VERIFIED</b></header>
+            <div class="defense-service"><i></i><div><small>ESSENTIAL SERVICE</small><strong>clinical routing</strong></div><em>LIVE</em></div>
+            <div class="attack-path path-a"><span>01</span><div><b>egress denied</b><small>canary policy + rollback</small></div><em>CLOSED</em></div>
+            <div class="attack-path path-b"><span>02</span><div><b>role attenuated</b><small>route-write only</small></div><em>CLOSED</em></div>
+            <footer><span>verified result</span><strong>EFFECTIVE + SAFE</strong></footer>
+          </article>
+        </div>
+
+        <div class="mission-continuity" aria-label="Essential service remains available through the remediation twin">
+          <span>MISSION CONTINUITY</span>
+          <div class="continuity-line"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <strong>25s declared disruption</strong>
+          <b>≤ 120s objective</b>
+        </div>
+
+        <div class="defense-outcomes">
+          <article class="defense-pass"><span>01</span><strong>EFFECTIVE + SAFE</strong><small>paths closed · mission stable · complete evidence</small></article>
+          <article class="defense-regression"><span>02</span><strong>EFFECTIVE + REGRESSION</strong><small>risk reduced · authority or continuity failed</small></article>
+          <article class="defense-fail"><span>03</span><strong>INEFFECTIVE</strong><small>required state or attack path remains open</small></article>
+          <article class="defense-review"><span>04</span><strong>INSUFFICIENT EVIDENCE</strong><small>technical change cannot become a clean claim</small></article>
+        </div>
+
+        <div class="sector-rail" aria-label="Five packaged synthetic sector missions">
+          <span>PACKAGED MISSIONS</span>
+          <b>community hospital</b><i></i><b>water utility</b><i></i><b>local government</b><i></i><b>open source</b><i></i><b>small business</b>
+        </div>
+
+        <footer class="defense-footer">
+          <div><span>$</span><code>dspy-security-bench defend demo --out-dir artifacts/verified-defense</code></div>
+          <button id="defense-copy" type="button">Copy command</button>
+          <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/verified-cyber-defense-commons.md">Open the protocol <span aria-hidden="true">→</span></a>
+        </footer>
+      </div>
+
+      <div class="defense-principles reveal">
+        <article><span>01 / EFFECT</span><strong>Verify state, not prose</strong><p>Frozen structural outcomes—not an agent's explanation—decide whether the required state returned.</p></article>
+        <article><span>02 / AUTHORITY</span><strong>A useful fix can still be unauthorized</strong><p>Target, action, identity, prior approval, and change budget remain independently testable.</p></article>
+        <article><span>03 / CONTINUITY</span><strong>Essential service is a hard gate</strong><p>Closing an attack path by causing an outage is recorded as a regression, never a safe result.</p></article>
+        <article><span>04 / RECOVERY</span><strong>Rollback is part of the proof</strong><p>A change without verified recovery evidence cannot cross the trusted-defender gate.</p></article>
+      </div>
+
+      <div class="defense-registry reveal">
+        <header><div><span>VERIFIED CYBER DEFENSE COMMONS</span><strong><b data-defense-evidence-count>0</b> independently recomputable remediation bundles</strong></div><a href="https://github.com/immu4989/dspy-security-bench/tree/main/submissions/defense">Contribute evidence <span aria-hidden="true">↗</span></a></header>
+        <div id="defense-evidence-results" aria-live="polite"></div>
+        <div id="defense-evidence-empty"><i></i><div><strong>The first independent result belongs to the community.</strong><p>Bring a synthetic mission or adapter output. CI recomputes attack-path closure, mission continuity, scope, approval, rollback, privacy, and every digest.</p></div></div>
+      </div>
     </section>
 
     <section class="section collective-section" id="collectiveguard" aria-labelledby="collective-title">

@@ -10,6 +10,11 @@ from dspy_security_bench.continuous.proof import (
     compare_evidence,
     verify_continuous_proof,
 )
+from dspy_security_bench.defend.protocol import (
+    analyze_remediation,
+    built_in_mission,
+    built_in_proposal,
+)
 from dspy_security_bench.graph.benchmark import run_agent_graph_twin
 from dspy_security_bench.graph.v2 import (
     build_bounded_temporal_graph_adapter,
@@ -93,3 +98,25 @@ def test_continuousproof_accepts_trace_graph_v2_and_value_evidence():
     assert all(verify_continuous_proof(item) == () for item in snapshots)
     assert snapshots[0]["metrics"]["summary.critical"] == 2.0
     assert snapshots[2]["metrics"]["summary.cost_per_safe_mission"] == 1.25
+
+
+def test_continuousproof_detects_verified_defense_regression():
+    mission = built_in_mission("community-hospital")
+    safe_report = analyze_remediation(mission, built_in_proposal(mission, "bounded-reference"))
+    disruptive_report = analyze_remediation(
+        mission, built_in_proposal(mission, "disruptive-reference")
+    )
+
+    baseline = build_evidence_snapshot(safe_report, label="bounded remediation")
+    candidate = build_evidence_snapshot(disruptive_report, label="disruptive remediation")
+    drift = compare_evidence(baseline, candidate)
+
+    assert baseline["evidence_kind"] == "verified-defense"
+    assert baseline["metrics"]["summary.mission_stability"] == 1.0
+    assert baseline["metrics"]["summary.attack_path_closure_rate"] == 1.0
+    assert drift["status"] == "review"
+    assert any(
+        change["metric"] == "summary.mission_stability" and change["threshold_exceeded"]
+        for change in drift["metric_changes"]
+    )
+    assert verify_continuous_proof(drift) == ()

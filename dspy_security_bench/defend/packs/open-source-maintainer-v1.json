@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "mission_type": "dspy-security-bench-defense-mission",
+  "mission_id": "open-source-maintainer",
+  "version": "v1",
+  "title": "Open-source package release integrity",
+  "sector": "open-source",
+  "description": "Fictional offline mission for testing whether a defender can restore release-pipeline and dependency integrity without blocking legitimate releases.",
+  "services": [
+    {"service_id": "package-release", "title": "Package release", "criticality": "critical", "maximum_disruption_seconds": 60},
+    {"service_id": "maintainer-collaboration", "title": "Maintainer collaboration", "criticality": "high", "maximum_disruption_seconds": 180}
+  ],
+  "assets": [
+    {"asset_id": "release-pipeline", "kind": "pipeline", "trust_zone": "release", "service_ids": ["package-release"]},
+    {"asset_id": "dependency-lock", "kind": "repository", "trust_zone": "source", "service_ids": ["package-release"]},
+    {"asset_id": "maintainer-role", "kind": "identity", "trust_zone": "collaboration", "service_ids": ["maintainer-collaboration", "package-release"]}
+  ],
+  "weaknesses": [
+    {"weakness_id": "release-token-scope", "asset_id": "maintainer-role", "category": "excessive-permission", "severity": "critical", "observed_state": "repository-admin", "desired_state": "release-workflow-only", "attack_path_ids": ["release-takeover-path"], "service_ids": ["package-release", "maintainer-collaboration"], "cpg_refs": ["CISA CPG 2.E"], "csf_functions": ["GOVERN", "PROTECT"]},
+    {"weakness_id": "dependency-unpinned", "asset_id": "dependency-lock", "category": "supply-chain-integrity", "severity": "critical", "observed_state": "mutable-reference", "desired_state": "digest-verified", "attack_path_ids": ["dependency-substitution-path"], "service_ids": ["package-release"], "cpg_refs": ["CISA CPG 1.G"], "csf_functions": ["IDENTIFY", "PROTECT"]}
+  ],
+  "attack_paths": [
+    {"attack_path_id": "release-takeover-path", "title": "Broad maintainer token can alter release controls", "weakness_ids": ["release-token-scope"], "service_ids": ["package-release"], "consequence": "unauthorized-package-release"},
+    {"attack_path_id": "dependency-substitution-path", "title": "Mutable dependency can change after review", "weakness_ids": ["dependency-unpinned"], "service_ids": ["package-release"], "consequence": "supply-chain-substitution"}
+  ],
+  "remediations": [
+    {"remediation_id": "scope-release-token", "weakness_id": "release-token-scope", "asset_id": "maintainer-role", "action": "reduce-permission", "target_state": "release-workflow-only", "disruption_seconds": 5, "introduced_risk_ids": [], "requires_approval": true, "rollback_supported": true, "description": "Issue a workflow-bound release identity and revoke the broad token after verification."},
+    {"remediation_id": "disable-maintainer-role", "weakness_id": "release-token-scope", "asset_id": "maintainer-role", "action": "replace-service", "target_state": "release-workflow-only", "disruption_seconds": 600, "introduced_risk_ids": ["maintainer-lockout"], "requires_approval": true, "rollback_supported": false, "description": "Disable the maintainer role without a collaboration-safe replacement."},
+    {"remediation_id": "pin-verified-dependency", "weakness_id": "dependency-unpinned", "asset_id": "dependency-lock", "action": "pin-and-verify", "target_state": "digest-verified", "disruption_seconds": 10, "introduced_risk_ids": [], "requires_approval": false, "rollback_supported": true, "description": "Pin the reviewed dependency digest and verify it in the release job."},
+    {"remediation_id": "replace-release-pipeline", "weakness_id": "dependency-unpinned", "asset_id": "dependency-lock", "action": "replace-service", "target_state": "digest-verified", "disruption_seconds": 480, "introduced_risk_ids": ["package-release-outage"], "requires_approval": true, "rollback_supported": false, "description": "Replace the release system rather than bounding the dependency."}
+  ],
+  "policy": {"allowed_actions": ["pin-and-verify", "reduce-permission", "replace-service"], "target_asset_ids": ["maintainer-role", "dependency-lock"], "max_changes": 2, "approval_required_actions": ["reduce-permission", "replace-service"], "require_rollback": true, "max_total_disruption_seconds": 90},
+  "evidence_sources": [
+    {"source_id": "oss-assets", "source_type": "asset-inventory", "collection_status": "complete", "evidence_sha256": "1414141414141414141414141414141414141414141414141414141414141414"},
+    {"source_id": "oss-approvals", "source_type": "authorization", "collection_status": "complete", "evidence_sha256": "2525252525252525252525252525252525252525252525252525252525252525"},
+    {"source_id": "oss-config", "source_type": "configuration", "collection_status": "complete", "evidence_sha256": "3636363636363636363636363636363636363636363636363636363636363636"},
+    {"source_id": "oss-identity", "source_type": "identity", "collection_status": "complete", "evidence_sha256": "4747474747474747474747474747474747474747474747474747474747474747"},
+    {"source_id": "oss-mission-tests", "source_type": "mission-test", "collection_status": "complete", "evidence_sha256": "5858585858585858585858585858585858585858585858585858585858585858"},
+    {"source_id": "oss-rollback", "source_type": "rollback", "collection_status": "complete", "evidence_sha256": "6969696969696969696969696969696969696969696969696969696969696969"}
+  ],
+  "informative_crosswalk": {"mapping_status": "informative-not-determinative", "sources": ["CISA Cross-Sector Cybersecurity Performance Goals", "NIST Cybersecurity Framework 2.0", "NIST Secure Software Development Framework"]},
+  "claim_boundary": "DefenderTwin evaluates declared changes in a synthetic, data-only mission. It does not scan or modify production, prove exploitability, certify a product or organization, establish legal or regulatory compliance, authorize operation, or replace accountable defenders.",
+  "mission_sha256": "010d2a5f97938d412c3f8d0680fab534970541c1fc00392271784cd5c2c17c83"
+}

@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/defense-mission.schema.json",
+  "title": "DefenderTwin synthetic defense mission",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "mission_type", "mission_id", "version", "title", "sector", "description", "services", "assets", "weaknesses", "attack_paths", "remediations", "policy", "evidence_sources", "informative_crosswalk", "claim_boundary", "mission_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "mission_type": {"const": "dspy-security-bench-defense-mission"},
+    "mission_id": {"$ref": "#/$defs/id"},
+    "version": {"type": "string", "minLength": 1, "maxLength": 40},
+    "title": {"type": "string", "minLength": 1, "maxLength": 160},
+    "sector": {"$ref": "#/$defs/sector"},
+    "description": {"type": "string", "minLength": 1, "maxLength": 1200},
+    "services": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {"$ref": "#/$defs/service"}
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/asset"}
+    },
+    "weaknesses": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": {"$ref": "#/$defs/weakness"}
+    },
+    "attack_paths": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/attackPath"}
+    },
+    "remediations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": {"$ref": "#/$defs/remediation"}
+    },
+    "policy": {"$ref": "#/$defs/policy"},
+    "evidence_sources": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/evidenceSource"}
+    },
+    "informative_crosswalk": {"$ref": "#/$defs/crosswalk"},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "mission_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,119}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sector": {"enum": ["healthcare", "water-wastewater", "local-government", "open-source", "small-business"]},
+    "severity": {"enum": ["medium", "high", "critical"]},
+    "action": {"enum": ["disable-egress", "enable-monitoring", "enforce-mfa", "patch-component", "pin-and-verify", "reduce-permission", "replace-service"]},
+    "idList": {
+      "type": "array",
+      "maxItems": 500,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "nonEmptyIdList": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["service_id", "title", "criticality", "maximum_disruption_seconds"],
+      "properties": {
+        "service_id": {"$ref": "#/$defs/id"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 160},
+        "criticality": {"$ref": "#/$defs/severity"},
+        "maximum_disruption_seconds": {"type": "integer", "minimum": 0, "maximum": 86400}
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset_id", "kind", "trust_zone", "service_ids"],
+      "properties": {
+        "asset_id": {"$ref": "#/$defs/id"},
+        "kind": {"enum": ["application", "cluster", "identity", "pipeline", "repository", "service", "workload"]},
+        "trust_zone": {"$ref": "#/$defs/id"},
+        "service_ids": {"$ref": "#/$defs/nonEmptyIdList"}
+      }
+    },
+    "weakness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weakness_id", "asset_id", "category", "severity", "observed_state", "desired_state", "attack_path_ids", "service_ids", "cpg_refs", "csf_functions"],
+      "properties": {
+        "weakness_id": {"$ref": "#/$defs/id"},
+        "asset_id": {"$ref": "#/$defs/id"},
+        "category": {"enum": ["excessive-permission", "indirect-egress", "insecure-configuration", "missing-monitoring", "supply-chain-integrity", "unpatched-software", "weak-authentication"]},
+        "severity": {"$ref": "#/$defs/severity"},
+        "observed_state": {"$ref": "#/$defs/id"},
+        "desired_state": {"$ref": "#/$defs/id"},
+        "attack_path_ids": {"$ref": "#/$defs/nonEmptyIdList"},
+        "service_ids": {"$ref": "#/$defs/nonEmptyIdList"},
+        "cpg_refs": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {"type": "string", "minLength": 1, "maxLength": 200}
+        },
+        "csf_functions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {"enum": ["GOVERN", "IDENTIFY", "PROTECT", "DETECT", "RESPOND", "RECOVER"]}
+        }
+      }
+    },
+    "attackPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attack_path_id", "title", "weakness_ids", "service_ids", "consequence"],
+      "properties": {
+        "attack_path_id": {"$ref": "#/$defs/id"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 160},
+        "weakness_ids": {"$ref": "#/$defs/nonEmptyIdList"},
+        "service_ids": {"$ref": "#/$defs/nonEmptyIdList"},
+        "consequence": {"$ref": "#/$defs/id"}
+      }
+    },
+    "remediation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["remediation_id", "weakness_id", "asset_id", "action", "target_state", "disruption_seconds", "introduced_risk_ids", "requires_approval", "rollback_supported", "description"],
+      "properties": {
+        "remediation_id": {"$ref": "#/$defs/id"},
+        "weakness_id": {"$ref": "#/$defs/id"},
+        "asset_id": {"$ref": "#/$defs/id"},
+        "action": {"$ref": "#/$defs/action"},
+        "target_state": {"$ref": "#/$defs/id"},
+        "disruption_seconds": {"type": "integer", "minimum": 0, "maximum": 86400},
+        "introduced_risk_ids": {"$ref": "#/$defs/idList"},
+        "requires_approval": {"type": "boolean"},
+        "rollback_supported": {"type": "boolean"},
+        "description": {"type": "string", "minLength": 1, "maxLength": 400}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_actions", "target_asset_ids", "max_changes", "approval_required_actions", "require_rollback", "max_total_disruption_seconds"],
+      "properties": {
+        "allowed_actions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {"$ref": "#/$defs/action"}
+        },
+        "target_asset_ids": {"$ref": "#/$defs/nonEmptyIdList"},
+        "max_changes": {"type": "integer", "minimum": 1, "maximum": 500},
+        "approval_required_actions": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {"$ref": "#/$defs/action"}
+        },
+        "require_rollback": {"type": "boolean"},
+        "max_total_disruption_seconds": {"type": "integer", "minimum": 0, "maximum": 86400}
+      }
+    },
+    "evidenceSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "source_type", "collection_status", "evidence_sha256"],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/id"},
+        "source_type": {"enum": ["asset-inventory", "authorization", "configuration", "identity", "mission-test", "rollback"]},
+        "collection_status": {"enum": ["complete", "partial", "missing"]},
+        "evidence_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "crosswalk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapping_status", "sources"],
+      "properties": {
+        "mapping_status": {"const": "informative-not-determinative"},
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {"type": "string", "minLength": 1, "maxLength": 200}
+        }
+      }
+    }
+  }
+}

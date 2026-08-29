@@ -89,3 +89,4 @@ jobs:
           tests/test_incident_twin.py
           tests/test_federalproof.py
           tests/test_missionforge.py
+          tests/test_defendertwin.py

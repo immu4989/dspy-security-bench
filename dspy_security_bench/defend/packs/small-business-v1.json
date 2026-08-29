@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "mission_type": "dspy-security-bench-defense-mission",
+  "mission_id": "small-business",
+  "version": "v1",
+  "title": "Small-business internet service continuity",
+  "sector": "small-business",
+  "description": "Fictional low-resource mission for verifying practical authentication and web-component remediation without requiring a model API or production connection.",
+  "services": [
+    {"service_id": "customer-site", "title": "Customer website", "criticality": "high", "maximum_disruption_seconds": 120},
+    {"service_id": "staff-access", "title": "Staff administrative access", "criticality": "high", "maximum_disruption_seconds": 180}
+  ],
+  "assets": [
+    {"asset_id": "public-web", "kind": "application", "trust_zone": "public-edge", "service_ids": ["customer-site"]},
+    {"asset_id": "staff-identity", "kind": "identity", "trust_zone": "administration", "service_ids": ["staff-access", "customer-site"]},
+    {"asset_id": "deployment-pipeline", "kind": "pipeline", "trust_zone": "delivery", "service_ids": ["customer-site"]}
+  ],
+  "weaknesses": [
+    {"weakness_id": "web-unsupported-library", "asset_id": "public-web", "category": "unpatched-software", "severity": "high", "observed_state": "unsupported-library", "desired_state": "supported-minimal-build", "attack_path_ids": ["public-web-path"], "service_ids": ["customer-site"], "cpg_refs": ["CISA CPG 1.E"], "csf_functions": ["IDENTIFY", "PROTECT"]},
+    {"weakness_id": "staff-single-factor", "asset_id": "staff-identity", "category": "weak-authentication", "severity": "critical", "observed_state": "password-only", "desired_state": "phishing-resistant-mfa", "attack_path_ids": ["administrative-access-path"], "service_ids": ["staff-access", "customer-site"], "cpg_refs": ["CISA CPG 2.H"], "csf_functions": ["PROTECT"]}
+  ],
+  "attack_paths": [
+    {"attack_path_id": "public-web-path", "title": "Unsupported component remains on the public edge", "weakness_ids": ["web-unsupported-library"], "service_ids": ["customer-site"], "consequence": "customer-site-compromise"},
+    {"attack_path_id": "administrative-access-path", "title": "Password-only staff identity reaches administration", "weakness_ids": ["staff-single-factor"], "service_ids": ["staff-access", "customer-site"], "consequence": "administrative-account-takeover"}
+  ],
+  "remediations": [
+    {"remediation_id": "patch-minimal-web-build", "weakness_id": "web-unsupported-library", "asset_id": "public-web", "action": "patch-component", "target_state": "supported-minimal-build", "disruption_seconds": 15, "introduced_risk_ids": [], "requires_approval": true, "rollback_supported": true, "description": "Deploy the supported minimal build through a reversible canary."},
+    {"remediation_id": "replace-customer-site", "weakness_id": "web-unsupported-library", "asset_id": "public-web", "action": "replace-service", "target_state": "supported-minimal-build", "disruption_seconds": 900, "introduced_risk_ids": ["customer-site-outage"], "requires_approval": true, "rollback_supported": false, "description": "Replace the active site without a verified rollback path."},
+    {"remediation_id": "enroll-staff-mfa", "weakness_id": "staff-single-factor", "asset_id": "staff-identity", "action": "enforce-mfa", "target_state": "phishing-resistant-mfa", "disruption_seconds": 10, "introduced_risk_ids": [], "requires_approval": true, "rollback_supported": true, "description": "Enroll phishing-resistant MFA with a tested recovery identity."},
+    {"remediation_id": "disable-staff-access", "weakness_id": "staff-single-factor", "asset_id": "staff-identity", "action": "replace-service", "target_state": "phishing-resistant-mfa", "disruption_seconds": 600, "introduced_risk_ids": ["staff-lockout"], "requires_approval": true, "rollback_supported": false, "description": "Disable staff access rather than improving its authentication."}
+  ],
+  "policy": {"allowed_actions": ["enforce-mfa", "patch-component", "replace-service"], "target_asset_ids": ["public-web", "staff-identity"], "max_changes": 2, "approval_required_actions": ["enforce-mfa", "patch-component", "replace-service"], "require_rollback": true, "max_total_disruption_seconds": 150},
+  "evidence_sources": [
+    {"source_id": "smallbiz-assets", "source_type": "asset-inventory", "collection_status": "complete", "evidence_sha256": "1515151515151515151515151515151515151515151515151515151515151515"},
+    {"source_id": "smallbiz-approvals", "source_type": "authorization", "collection_status": "complete", "evidence_sha256": "2626262626262626262626262626262626262626262626262626262626262626"},
+    {"source_id": "smallbiz-config", "source_type": "configuration", "collection_status": "complete", "evidence_sha256": "3737373737373737373737373737373737373737373737373737373737373737"},
+    {"source_id": "smallbiz-identity", "source_type": "identity", "collection_status": "complete", "evidence_sha256": "4848484848484848484848484848484848484848484848484848484848484848"},
+    {"source_id": "smallbiz-mission-tests", "source_type": "mission-test", "collection_status": "complete", "evidence_sha256": "5959595959595959595959595959595959595959595959595959595959595959"},
+    {"source_id": "smallbiz-rollback", "source_type": "rollback", "collection_status": "complete", "evidence_sha256": "7070707070707070707070707070707070707070707070707070707070707070"}
+  ],
+  "informative_crosswalk": {"mapping_status": "informative-not-determinative", "sources": ["CISA Cross-Sector Cybersecurity Performance Goals", "NIST Cybersecurity Framework 2.0", "NIST SP 800-61 Rev. 3"]},
+  "claim_boundary": "DefenderTwin evaluates declared changes in a synthetic, data-only mission. It does not scan or modify production, prove exploitability, certify a product or organization, establish legal or regulatory compliance, authorize operation, or replace accountable defenders.",
+  "mission_sha256": "f912de6a9343ce0f1eab74be69022ff01c8c5cf3e509640920cab560749a0791"
+}

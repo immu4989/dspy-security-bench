@@ -6,6 +6,7 @@ on:
     paths:
       - "dspy_security_bench/federal/**"
       - "dspy_security_bench/incident/**"
+      - "dspy_security_bench/defend/**"
       - "scripts/build_federalproof_fixture.py"
       - "scripts/validate_federalproof_oscal.py"
       - ".github/workflows/oscal.yml"
@@ -14,6 +15,7 @@ on:
     paths:
       - "dspy_security_bench/federal/**"
       - "dspy_security_bench/incident/**"
+      - "dspy_security_bench/defend/**"
       - "scripts/build_federalproof_fixture.py"
       - "scripts/validate_federalproof_oscal.py"
       - ".github/workflows/oscal.yml"
@@ -48,6 +50,20 @@ jobs:
           echo "c8f2ce52b3c71299bb0c9e1cd950d48dc79d9f52920c543ac30b3c3f08c2e152  $RUNNER_TEMP/oscal/oscal_poam_schema.json" | sha256sum --check
       - name: Build deterministic failing pack
         run: uv run --locked --no-sync python scripts/build_federalproof_fixture.py "$RUNNER_TEMP/fixture"
+      - name: Build deterministic DefenderTwin assessment results
+        run: |
+          mkdir -p "$RUNNER_TEMP/defendertwin"
+          uv run --locked --no-sync dspy-security-bench defend proposal community-hospital \
+            --out "$RUNNER_TEMP/defendertwin/proposal.json"
+          uv run --locked --no-sync dspy-security-bench defend run \
+            community-hospital "$RUNNER_TEMP/defendertwin/proposal.json" \
+            --oscal-out "$RUNNER_TEMP/defendertwin/assessment-results.json"
+          uv run --locked --no-sync dspy-security-bench defend proposal community-hospital \
+            --profile disruptive-reference \
+            --out "$RUNNER_TEMP/defendertwin/disruptive-proposal.json"
+          uv run --locked --no-sync dspy-security-bench defend run \
+            community-hospital "$RUNNER_TEMP/defendertwin/disruptive-proposal.json" \
+            --oscal-out "$RUNNER_TEMP/defendertwin/disruptive-assessment-results.json"
       - name: Validate OSCAL assessment and POA&M structure
         run: |
           uv run --locked --no-sync python scripts/validate_federalproof_oscal.py \
@@ -55,3 +71,9 @@ jobs:
             --assessment-schema "$RUNNER_TEMP/oscal/oscal_assessment-results_schema.json" \
             --poam "$RUNNER_TEMP/fixture/failed-pack/poam.json" \
             --poam-schema "$RUNNER_TEMP/oscal/oscal_poam_schema.json"
+          uv run --locked --no-sync python scripts/validate_federalproof_oscal.py \
+            --assessment-results "$RUNNER_TEMP/defendertwin/assessment-results.json" \
+            --assessment-schema "$RUNNER_TEMP/oscal/oscal_assessment-results_schema.json"
+          uv run --locked --no-sync python scripts/validate_federalproof_oscal.py \
+            --assessment-results "$RUNNER_TEMP/defendertwin/disruptive-assessment-results.json" \
+            --assessment-schema "$RUNNER_TEMP/oscal/oscal_assessment-results_schema.json"

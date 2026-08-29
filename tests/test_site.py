@@ -10,11 +10,13 @@ from scripts.generate_site_data import (
     COLLECTIVE_SUBMISSIONS_DIR,
     CONTROL_SUBMISSIONS_DIR,
     DEFAULT_OUT,
+    DEFENSE_SUBMISSIONS_DIR,
     INCIDENT_SUBMISSIONS_DIR,
     RESULTS_DIR,
     SOURCE_SUBMISSIONS_DIR,
     TRACE_SUBMISSIONS_DIR,
     _control_evidence_results,
+    _defense_evidence_results,
     _incident_evidence_results,
     _proofrun_results,
     _source_evidence_results,
@@ -131,6 +133,73 @@ def test_site_payload_exposes_the_open_collective_evidence_registry():
     payload = build_payload()
     assert payload["collectiveEvidenceCount"] == len(payload["collectiveEvidence"])
     assert COLLECTIVE_SUBMISSIONS_DIR.name == "collective"
+
+
+def test_site_payload_exposes_the_verified_defense_registry():
+    payload = build_payload()
+    assert payload["defenseEvidenceCount"] == len(payload["defenseEvidence"])
+    assert DEFENSE_SUBMISSIONS_DIR.name == "defense"
+
+
+def test_site_presents_verified_defense_as_effect_and_continuity_evidence():
+    html = (SITE / "index.html").read_text()
+    for value in (
+        'id="verified-defense"',
+        "Close the path.",
+        "DEFENDERTWIN::VERIFIED-REMEDIATION::V1",
+        "EFFECTIVE + SAFE",
+        "EFFECTIVE + REGRESSION",
+        "INSUFFICIENT EVIDENCE",
+        "MISSION CONTINUITY",
+        "community hospital",
+        "water utility",
+        "data-defense-evidence-count",
+        'id="defense-evidence-results"',
+        "dspy-security-bench defend demo --out-dir artifacts/verified-defense",
+    ):
+        assert value in html
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#defense-copy"' in script
+    assert "renderDefenseEvidence" in script
+    assert "safeDefenseResultUrl(result.result)" in script
+
+
+def test_defense_registry_only_exposes_recomputable_public_patterns(tmp_path):
+    from dspy_security_bench.defend.evidence import build_evidence_bundle
+    from dspy_security_bench.defend.protocol import (
+        analyze_remediation,
+        built_in_mission,
+        built_in_proposal,
+    )
+
+    mission = built_in_mission("community-hospital")
+    report = analyze_remediation(mission, built_in_proposal(mission))
+    bundle = build_evidence_bundle(
+        report,
+        submitter="<independent-team>",
+        runtime="defender <runtime>@1",
+        source_repository="https://github.com/example/defender/tree/commit",
+        deployment_class="synthetic",
+    )
+    submissions = tmp_path / "defense"
+    submissions.mkdir()
+    (submissions / "valid.json").write_text(json.dumps(bundle))
+
+    private = build_evidence_bundle(
+        report,
+        submitter="private-team",
+        runtime="private-runtime",
+        source_repository="https://github.com/example/private/tree/commit",
+        deployment_class="synthetic",
+        disclosure_status="private",
+    )
+    (submissions / "private.json").write_text(json.dumps(private))
+
+    rows = _defense_evidence_results(submissions)
+    assert len(rows) == 1
+    assert rows[0]["outcome"] == "effective_and_safe"
+    assert rows[0]["runtime"] == "defender <runtime>@1"
+    assert rows[0]["pathsClosed"] == rows[0]["pathCount"]
 
 
 def test_site_exposes_native_causal_runtime_bridges_and_accessible_graph_toggle():

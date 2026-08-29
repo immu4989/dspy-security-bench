@@ -2,35 +2,39 @@
 
 Contributions are welcome. The most useful ones, roughly in order:
 
-1. **Submitting privacy-bounded TraceProof runtime evidence** — instrument a
+1. **Submitting verified cyber-defense evidence** — run a real defender adapter
+   against a fictional DefenderTwin mission, preserve unfavorable outcomes, and
+   publish a privacy-bounded recomputable bundle; see
+   [`submissions/defense/`](submissions/defense/README.md).
+2. **Submitting privacy-bounded TraceProof runtime evidence** — instrument a
    real agent boundary, review the sanitized output, and publish a recomputable
    bundle without raw telemetry; see
    [`submissions/trace/`](submissions/trace/README.md).
-2. **Submitting provenance-aware CollectiveGuard evidence** — map runtime,
+3. **Submitting provenance-aware CollectiveGuard evidence** — map runtime,
    identity, network, evaluator, response, and control observations through
    EvidenceBridge and publish a CI-recomputed bundle; see
    [`submissions/collective/`](submissions/collective/README.md).
-3. **Submitting AuthorityTwin evidence for your authorization adapter** —
+4. **Submitting AuthorityTwin evidence for your authorization adapter** —
    connect a real vendor-neutral bridge and publish recomputable evidence;
    see below.
-4. **Submitting a ProofRun result for your own agent** — produce recomputable,
+5. **Submitting a ProofRun result for your own agent** — produce recomputable,
    provenance-labeled evidence and open a pull request; see below.
-5. **Submitting a real control experiment** — publish policy-off/policy-on
+6. **Submitting a real control experiment** — publish policy-off/policy-on
    evidence even when the outcome is mixed or negative; see below.
-6. **Improving a native framework bridge** — reproduce an upstream SDK change,
+7. **Improving a native framework bridge** — reproduce an upstream SDK change,
    add a zero-provider-call compatibility test, and keep the benchmark contract
    framework-neutral; see below.
-7. **Authoring a MissionPack** — encode a bounded synthetic source-grounding
+8. **Authoring a MissionPack** — encode a bounded synthetic source-grounding
    mission as strict data, with expert-reviewed claims and an explicit license.
-8. **Adding a model to the base-model leaderboard** — see below.
-9. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
+9. **Adding a model to the base-model leaderboard** — see below.
+10. **Proposing a public-interest ImpactTwin domain** — grants, benefits,
    utilities, health administration, supply chain, emergency management, or a
    commercial workflow with a clearly affected stakeholder.
-10. **Adding an attack or a defense** to the harness.
-11. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
+11. **Adding an attack or a defense** to the harness.
+12. **Reporting a measurement you cannot reproduce.** This is genuinely valuable;
    every published row ships with the result JSON that produced it, so
    disagreements should be resolvable.
-12. Bug reports and documentation fixes.
+13. Bug reports and documentation fixes.
 
 Federal and regulated-sector contributors can also propose an inert
 IncidentTwin mission pack or improve an informative FederalProof mapping. Use

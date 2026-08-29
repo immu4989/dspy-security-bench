@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/defender-adapter-manifest.schema.json",
+  "title": "DefenderTwin adapter manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "manifest_type", "adapter_id", "adapter_version", "framework", "input_contract", "output_contract", "execution_boundary", "content_fields_processed", "supported_sectors", "source_repository", "known_gaps", "claim_boundary", "manifest_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "manifest_type": {"const": "dspy-security-bench-defender-adapter-manifest"},
+    "adapter_id": {"type": "string", "minLength": 1, "maxLength": 120},
+    "adapter_version": {"type": "string", "minLength": 1, "maxLength": 120},
+    "framework": {"type": "string", "minLength": 1, "maxLength": 120},
+    "input_contract": {"const": "defense-mission-v1"},
+    "output_contract": {"const": "remediation-proposal-v1"},
+    "execution_boundary": {"const": "synthetic-twin-no-live-target-actions"},
+    "content_fields_processed": {"const": 0},
+    "supported_sectors": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {"enum": ["healthcare", "water-wastewater", "local-government", "open-source", "small-business"]}
+    },
+    "source_repository": {"type": "string", "pattern": "^https://[^\\s]+$"},
+    "known_gaps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": {"type": "string", "minLength": 1, "maxLength": 300}
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

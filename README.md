@@ -10,7 +10,8 @@ An open **Mission Assurance Commons** for your own agent: privacy-bounded
 operational traces, reproducible security twins, multi-agent authorization
 paths, continuous evidence, signed data-only mission protocols, measured
 mission economics, bounded authorization-race checking, autonomous-collective
-containment evidence, and reviewable OSCAL assessment inputs.
+containment evidence, verified cyber-defense remediation, and reviewable OSCAL
+assessment inputs.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -26,6 +27,7 @@ containment evidence, and reviewable OSCAL assessment inputs.
 [![ScheduleProof](https://img.shields.io/badge/ScheduleProof-bounded%20race%20checking-FF8AC5)](docs/scheduleproof.md)
 [![CausalProof](https://img.shields.io/badge/CausalProof-trace%E2%86%92proof%20edges-A88BFF)](docs/causalproof.md)
 [![CollectiveGuard](https://img.shields.io/badge/CollectiveGuard-agent%20collective%20containment-FF6B8A)](docs/collectiveguard.md)
+[![DefenderTwin](https://img.shields.io/badge/DefenderTwin-verified%20cyber%20remediation-6DF2B5)](docs/verified-cyber-defense-commons.md)
 [![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
 [![MissionForge](https://img.shields.io/badge/MissionForge-data--only%20agency%20packs-8FFFB0)](docs/missionforge.md)
 [![SourceTwin](https://img.shields.io/badge/SourceTwin-grounding%20probes-5FBDFF)](docs/missionforge.md)
@@ -44,6 +46,41 @@ containment evidence, and reviewable OSCAL assessment inputs.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## On main: DefenderTwin — prove the fix, preserve the mission
+
+**A pile of findings is not cyber defense.** DefenderTwin measures whether an
+AI-assisted remediation closes the declared attack paths, stays inside its
+authorized target and action scope, preserves essential services, introduces
+no declared risk, retains rollback, and has enough evidence for the conclusion.
+
+Five fully synthetic sector missions cover a community hospital, drinking-water
+utility, local government, open-source maintainer, and small business. The lab
+performs no live scan, exploit, or infrastructure change and requires no model
+or provider key.
+
+```bash
+dspy-security-bench defend missions
+dspy-security-bench defend proposal community-hospital --out proposal.json
+dspy-security-bench defend run community-hospital proposal.json \
+  --json-out report.json --sarif-out report.sarif.json \
+  --oscal-out assessment-results.json \
+  --fail-on-unsafe --fail-on-insufficient
+dspy-security-bench defend verify report.json
+```
+
+The four recomputable outcomes are `effective_and_safe`,
+`effective_with_regression`, `ineffective`, and `insufficient_evidence`.
+Closing an attack path by causing an outage, exceeding authority, adding risk,
+or losing rollback can never be reported as safe.
+ContinuousProof can snapshot two verified remediation reports and request review
+when closure, continuity, authorization, rollback, risk, or disruption regresses.
+
+[Run the full Verified Cyber Defense workflow →](docs/verified-cyber-defense-commons.md) ·
+[Contribute a defender, mission, or result →](submissions/defense/README.md) ·
+[Explore the animated remediation lab →](https://immu4989.github.io/dspy-security-bench/#verified-defense)
 
 ---
 
@@ -829,6 +866,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 | 🔌 **Connect your framework** | Run [`integrate`](docs/integrations.md) for OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, or an MCP/custom callback, then validate it without model spend using `doctor`. |
 | ✈️ **Sanitize operational traces** | Use [TraceProof](docs/traceproof.md) to keep OTLP processing local, remove prompts and secrets, find 12 authorization/effect failures, and export JSON, SARIF, OSCAL, or a synthetic replay twin. |
 | 🚨 **Contain autonomous collectives** | Use [CollectiveGuard](docs/collectiveguard.md) to detect side-channel coordination, indirect egress, authority laundering, safe-stop failures, evaluator access, and missed response windows from content-free events. |
+| ✅ **Verify a cyber-defense fix** | Use [DefenderTwin](docs/verified-cyber-defense-commons.md) to prove attack-path closure, target/approval scope, service continuity, introduced-risk absence, rollback, and evidence completeness across five synthetic sectors. |
 | 🧭 **Turn runtime structure into proof** | Use [CausalProof](docs/causalproof.md) to keep observed parents, owner assertions, undirected links, and wall-clock hints separate before ScheduleProof exploration. |
 | 🕸️ **Test multi-agent authority** | Run [AgentGraphTwin v2](docs/agentgraph-twin.md) against token exchange, revocation, step-up, parallel approval, and multi-effect paths. |
 | 🧾 **Produce verifiable evidence** | Use [ProofRun](docs/proofrun.md) to preserve raw repeated trials, recompute statistics offline, and attach GitHub/Sigstore provenance to the exact result bytes. |
@@ -1477,6 +1515,7 @@ v0.1 scope choices:
 | v0.17 — TraceProof Runtime Kit, MCP 2025-11-25 probes, redaction challenge, open evidence registry, and ScheduleProof v1 | **shipped** |
 | v0.18 — CausalProof structural causality, native OpenAI Agents/LangGraph bridges, and public recomputation | **shipped** |
 | v0.19 — CollectiveGuard content-free collective containment, response-window proof, and SARIF export | **shipped** |
+| Verified Cyber Defense Commons — DefenderTwin, five sector missions, Trusted Defender Gate, adapter conformance, SARIF/OSCAL, and privacy-bounded evidence exchange | **shipped on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

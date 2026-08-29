@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "mission_type": "dspy-security-bench-defense-mission",
+  "mission_id": "community-hospital",
+  "version": "v1",
+  "title": "Community hospital patient-services continuity",
+  "sector": "healthcare",
+  "description": "Fictional offline mission for testing whether a defender can reduce identity and workload risk without interrupting patient-facing services.",
+  "services": [
+    {"service_id": "patient-portal", "title": "Patient portal", "criticality": "high", "maximum_disruption_seconds": 120},
+    {"service_id": "clinical-routing", "title": "Clinical message routing", "criticality": "critical", "maximum_disruption_seconds": 30}
+  ],
+  "assets": [
+    {"asset_id": "portal-workload", "kind": "workload", "trust_zone": "public-edge", "service_ids": ["patient-portal"]},
+    {"asset_id": "routing-identity", "kind": "identity", "trust_zone": "clinical-services", "service_ids": ["clinical-routing"]},
+    {"asset_id": "security-telemetry", "kind": "service", "trust_zone": "security-operations", "service_ids": ["patient-portal", "clinical-routing"]}
+  ],
+  "weaknesses": [
+    {"weakness_id": "portal-indirect-egress", "asset_id": "portal-workload", "category": "indirect-egress", "severity": "critical", "observed_state": "relay-egress-allowed", "desired_state": "relay-egress-denied", "attack_path_ids": ["patient-data-path"], "service_ids": ["patient-portal"], "cpg_refs": ["CISA CPG 2.F"], "csf_functions": ["PROTECT", "DETECT"]},
+    {"weakness_id": "routing-admin-scope", "asset_id": "routing-identity", "category": "excessive-permission", "severity": "critical", "observed_state": "cluster-admin", "desired_state": "route-write-only", "attack_path_ids": ["clinical-control-path"], "service_ids": ["clinical-routing"], "cpg_refs": ["CISA CPG 2.E"], "csf_functions": ["GOVERN", "PROTECT"]}
+  ],
+  "attack_paths": [
+    {"attack_path_id": "patient-data-path", "title": "Public workload reaches an unapproved relay", "weakness_ids": ["portal-indirect-egress"], "service_ids": ["patient-portal"], "consequence": "patient-data-boundary-loss"},
+    {"attack_path_id": "clinical-control-path", "title": "Routing identity can change cluster-wide resources", "weakness_ids": ["routing-admin-scope"], "service_ids": ["clinical-routing"], "consequence": "clinical-routing-disruption"}
+  ],
+  "remediations": [
+    {"remediation_id": "deny-relay-egress-canary", "weakness_id": "portal-indirect-egress", "asset_id": "portal-workload", "action": "disable-egress", "target_state": "relay-egress-denied", "disruption_seconds": 10, "introduced_risk_ids": [], "requires_approval": true, "rollback_supported": true, "description": "Apply a canary-scoped default-deny rule and preserve the prior policy for rollback."},
+    {"remediation_id": "replace-portal-network", "weakness_id": "portal-indirect-egress", "asset_id": "portal-workload", "action": "replace-service", "target_state": "relay-egress-denied", "disruption_seconds": 600, "introduced_risk_ids": ["patient-portal-outage"], "requires_approval": true, "rollback_supported": false, "description": "Replace the whole network path during the active service window."},
+    {"remediation_id": "attenuate-routing-role", "weakness_id": "routing-admin-scope", "asset_id": "routing-identity", "action": "reduce-permission", "target_state": "route-write-only", "disruption_seconds": 5, "introduced_risk_ids": [], "requires_approval": true, "rollback_supported": true, "description": "Replace cluster administration with the exact route-write permission."},
+    {"remediation_id": "disable-routing-identity", "weakness_id": "routing-admin-scope", "asset_id": "routing-identity", "action": "replace-service", "target_state": "route-write-only", "disruption_seconds": 300, "introduced_risk_ids": ["clinical-routing-outage"], "requires_approval": true, "rollback_supported": false, "description": "Disable the identity without a continuity-safe replacement."}
+  ],
+  "policy": {"allowed_actions": ["disable-egress", "reduce-permission", "replace-service"], "target_asset_ids": ["portal-workload", "routing-identity"], "max_changes": 2, "approval_required_actions": ["disable-egress", "reduce-permission", "replace-service"], "require_rollback": true, "max_total_disruption_seconds": 120},
+  "evidence_sources": [
+    {"source_id": "hospital-assets", "source_type": "asset-inventory", "collection_status": "complete", "evidence_sha256": "1111111111111111111111111111111111111111111111111111111111111111"},
+    {"source_id": "hospital-approvals", "source_type": "authorization", "collection_status": "complete", "evidence_sha256": "2222222222222222222222222222222222222222222222222222222222222222"},
+    {"source_id": "hospital-config", "source_type": "configuration", "collection_status": "complete", "evidence_sha256": "3333333333333333333333333333333333333333333333333333333333333333"},
+    {"source_id": "hospital-identity", "source_type": "identity", "collection_status": "complete", "evidence_sha256": "4444444444444444444444444444444444444444444444444444444444444444"},
+    {"source_id": "hospital-mission-tests", "source_type": "mission-test", "collection_status": "complete", "evidence_sha256": "5555555555555555555555555555555555555555555555555555555555555555"},
+    {"source_id": "hospital-rollback", "source_type": "rollback", "collection_status": "complete", "evidence_sha256": "6666666666666666666666666666666666666666666666666666666666666666"}
+  ],
+  "informative_crosswalk": {"mapping_status": "informative-not-determinative", "sources": ["CISA Cross-Sector Cybersecurity Performance Goals", "NIST Cybersecurity Framework 2.0", "NIST SP 800-61 Rev. 3"]},
+  "claim_boundary": "DefenderTwin evaluates declared changes in a synthetic, data-only mission. It does not scan or modify production, prove exploitability, certify a product or organization, establish legal or regulatory compliance, authorize operation, or replace accountable defenders.",
+  "mission_sha256": "70db364d5615f7d4c01e2f829c217f163a2b2ee567aab75dc9aa4a571d474e3c"
+}

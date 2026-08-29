@@ -14,6 +14,8 @@ from dspy_security_bench.causal.registry import BUNDLE_TYPE as CAUSAL_BUNDLE_TYP
 from dspy_security_bench.causal.registry import verify_causal_submission_bundle
 from dspy_security_bench.collective.registry import BUNDLE_TYPE as COLLECTIVE_BUNDLE_TYPE
 from dspy_security_bench.collective.registry import verify_collective_submission_bundle
+from dspy_security_bench.defend.evidence import BUNDLE_TYPE as DEFENSE_BUNDLE_TYPE
+from dspy_security_bench.defend.evidence import verify_evidence_bundle
 from dspy_security_bench.incident.repeat import BUNDLE_TYPE as INCIDENT_BUNDLE_TYPE
 from dspy_security_bench.incident.repeat import verify_incident_submission_bundle
 from dspy_security_bench.mission.repeat import BUNDLE_TYPE as SOURCE_BUNDLE_TYPE
@@ -41,6 +43,7 @@ def main() -> int:
         *sorted((root / "submissions" / "trace").glob("*.json")),
         *sorted((root / "submissions" / "causal").glob("*.json")),
         *sorted((root / "submissions" / "collective").glob("*.json")),
+        *sorted((root / "submissions" / "defense").glob("*.json")),
     ]
     if not submissions:
         print("[submissions] no JSON submissions committed yet")
@@ -73,6 +76,9 @@ def main() -> int:
                 eligible = result.community_eligible
             elif bundle.get("bundle_type") == COLLECTIVE_BUNDLE_TYPE:
                 result = verify_collective_submission_bundle(bundle)
+                eligible = result.community_eligible
+            elif bundle.get("bundle_type") == DEFENSE_BUNDLE_TYPE:
+                result = verify_evidence_bundle(bundle)
                 eligible = result.community_eligible
             else:
                 result = verify_submission_bundle(bundle)
