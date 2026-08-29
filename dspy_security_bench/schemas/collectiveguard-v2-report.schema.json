@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/collectiveguard-v2-report.schema.json",
+  "title": "CollectiveGuard v2 recomputable report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "protocol_sha256", "analyzer", "scenario_sha256", "scenario", "base_report", "summary", "source_coverage", "event_provenance", "diagnostics", "findings", "claim_boundary", "disclaimer", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 2},
+    "report_type": {"const": "CollectiveGuard v2 / Provenance-aware collective containment assurance"},
+    "protocol_version": {"const": "collectiveguard-v2"},
+    "protocol_sha256": {"$ref": "#/$defs/sha256"},
+    "analyzer": {"const": "collectiveguard-provenance-analyzer-v2"},
+    "scenario_sha256": {"$ref": "#/$defs/sha256"},
+    "scenario": {"type": "object"},
+    "base_report": {"type": "object"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "base_status", "finding_count", "critical_findings", "high_findings", "diagnostic_count", "required_sources_complete", "all_events_directly_supported", "all_events_meet_clean_policy", "clean_evidence_complete", "source_count", "event_count", "binding_count", "provenance_counts"],
+      "properties": {
+        "status": {"enum": ["no_violation_observed", "violations_detected", "insufficient_evidence"]},
+        "base_status": {"enum": ["no_violation_observed", "violations_detected"]},
+        "finding_count": {"type": "integer", "minimum": 0},
+        "critical_findings": {"type": "integer", "minimum": 0},
+        "high_findings": {"type": "integer", "minimum": 0},
+        "diagnostic_count": {"type": "integer", "minimum": 0},
+        "required_sources_complete": {"type": "boolean"},
+        "all_events_directly_supported": {"type": "boolean"},
+        "all_events_meet_clean_policy": {"type": "boolean"},
+        "clean_evidence_complete": {"type": "boolean"},
+        "source_count": {"type": "integer", "minimum": 1},
+        "event_count": {"type": "integer", "minimum": 1},
+        "binding_count": {"type": "integer", "minimum": 0},
+        "provenance_counts": {"type": "object"}
+      }
+    },
+    "source_coverage": {"type": "array"},
+    "event_provenance": {"type": "array"},
+    "diagnostics": {"type": "array"},
+    "findings": {"type": "array"},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "disclaimer": {"type": "string", "minLength": 1},
+    "report_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

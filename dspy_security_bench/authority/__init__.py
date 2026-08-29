@@ -10,6 +10,13 @@ from dspy_security_bench.authority.bridges import (
     AUTHORITY_BRIDGES,
     PolicyEngineAuthorityBridge,
 )
+from dspy_security_bench.authority.passport import (
+    analyze_passport,
+    built_in_passport,
+)
+from dspy_security_bench.authority.passport import (
+    verify_report as verify_passport_report,
+)
 from dspy_security_bench.authority.protocol import protocol_sha256
 
 __all__ = [
@@ -21,4 +28,7 @@ __all__ = [
     "protocol_sha256",
     "run_authority_twin",
     "verify_authority_report",
+    "analyze_passport",
+    "built_in_passport",
+    "verify_passport_report",
 ]

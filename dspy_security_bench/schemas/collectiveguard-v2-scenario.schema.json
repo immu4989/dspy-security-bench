@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/collectiveguard-v2-scenario.schema.json",
+  "title": "CollectiveGuard v2 provenance-aware scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scenario_type", "scenario_id", "title", "description", "collective_scenario", "sources", "event_bindings", "evidence_policy"],
+  "properties": {
+    "schema_version": {"const": 2},
+    "scenario_type": {"const": "dspy-security-bench-collectiveguard-v2-scenario"},
+    "scenario_id": {"$ref": "#/$defs/id"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 160},
+    "description": {"type": "string", "minLength": 1, "maxLength": 1200},
+    "collective_scenario": {"type": "object"},
+    "sources": {
+      "type": "array", "minItems": 1, "maxItems": 100,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["source_id", "source_type", "adapter", "adapter_version", "source_sha256", "collection_status", "clock_domain", "content_boundary"],
+        "properties": {
+          "source_id": {"$ref": "#/$defs/id"},
+          "source_type": {"$ref": "#/$defs/sourceType"},
+          "adapter": {"$ref": "#/$defs/id"},
+          "adapter_version": {"$ref": "#/$defs/id"},
+          "source_sha256": {"$ref": "#/$defs/sha256"},
+          "collection_status": {"enum": ["complete", "partial", "unavailable"]},
+          "clock_domain": {"$ref": "#/$defs/id"},
+          "content_boundary": {"const": "structural-identifiers-and-timing-only"}
+        }
+      }
+    },
+    "event_bindings": {
+      "type": "array", "maxItems": 30000,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["event_id", "source_id", "observation_id", "provenance", "observed_fields"],
+        "properties": {
+          "event_id": {"$ref": "#/$defs/id"},
+          "source_id": {"$ref": "#/$defs/id"},
+          "observation_id": {"$ref": "#/$defs/id"},
+          "provenance": {"enum": ["observed", "attested", "asserted", "inferred"]},
+          "observed_fields": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}
+        }
+      }
+    },
+    "evidence_policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["required_source_types", "clean_result_minimum_provenance", "retain_findings_when_evidence_partial"],
+      "properties": {
+        "required_source_types": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/sourceType"}},
+        "clean_result_minimum_provenance": {"enum": ["observed", "attested"]},
+        "retain_findings_when_evidence_partial": {"const": true}
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,119}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sourceType": {"enum": ["runtime", "identity", "network", "evaluator", "response", "control"]}
+  }
+}

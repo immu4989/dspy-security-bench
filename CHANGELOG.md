@@ -9,6 +9,35 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+### Added
+- **CollectiveGuard v2 Agent Assurance Evidence Plane**, which preserves the
+  frozen v1 report while adding six evidence-source classes, per-event
+  `observed`/`attested`/`asserted`/`inferred` provenance, source completeness,
+  explicit diagnostics, and fail-closed `insufficient_evidence` clean claims.
+- **EvidenceBridge** strict content-free ingestion contracts for runtime-neutral
+  JSON, owner-mapped OpenTelemetry agent telemetry, IAM decisions, network
+  policy, and SIEM response sources.
+- **Agent Identity Passport** content-addressed principal/agent/run/task
+  delegation, authorization, effect, nonce, expiry, and revocation evidence
+  with deterministic offline verification.
+- Owner-adjustable enterprise, frontier-lab, federal-high-impact, and
+  critical-infrastructure adoption profiles, informative NIST crosswalks, and
+  non-certifying OSCAL 1.2.2 Assessment Results export.
+- A CI-recomputed CollectiveGuard public evidence registry and fictional
+  reference bundle.
+- An observe-only ContinuousProof controller for freshness and regression
+  evidence plus append-only hash-chained assurance timelines.
+- A redesigned interactive Evidence Plane showing six-source provenance,
+  fail-closed outcomes, identity passports, adoption profiles, continuous
+  evidence, and live public-registry bundles.
+
+### Security
+- Clean CollectiveGuard results now require complete owner-required sources and
+  direct provenance for every structural event; violations remain reportable
+  when evidence is partial.
+- Controller evidence references are resolved beneath an explicit local root,
+  and the controller emits `actions_taken: 0` rather than modifying production.
+
 ## [0.19.0] — 2026-08-27
 
 ### Added

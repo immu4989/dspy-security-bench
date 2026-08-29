@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/collective-profile-assessment.schema.json",
+  "title": "CollectiveGuard adoption profile assessment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "assessment_type", "profile", "collective_report_sha256", "summary", "objectives", "mapping_status", "claim_boundary", "assessment_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "assessment_type": {"const": "dspy-security-bench-collective-profile-assessment"},
+    "profile": {"type": "object"},
+    "collective_report_sha256": {"$ref": "#/$defs/sha256"},
+    "summary": {"type": "object"},
+    "objectives": {"type": "array", "minItems": 7, "maxItems": 7},
+    "mapping_status": {"const": "informative-not-determinative"},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "assessment_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

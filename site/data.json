@@ -366,6 +366,19 @@
   "traceEvidence": [],
   "causalEvidenceCount": 0,
   "causalEvidence": [],
+  "collectiveEvidenceCount": 1,
+  "collectiveEvidence": [
+    {
+      "runtime": "fictional-reference-runtime@1.0.0",
+      "submitter": "dspy-security-bench maintainers",
+      "deploymentClass": "synthetic-reference",
+      "status": "no_violation_observed",
+      "findingCount": 0,
+      "sourceCount": 6,
+      "evidenceComplete": true,
+      "result": "https://github.com/immu4989/dspy-security-bench/blob/main/submissions/collective/reference-runtime.json"
+    }
+  ],
   "missionAssuranceCommons": {
     "inventoryForge": {
       "inputLimitBytes": 5000000,

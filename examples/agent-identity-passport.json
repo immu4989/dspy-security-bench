@@ -1,0 +1,76 @@
+{
+  "agent_id": "agent-orchestrator",
+  "audiences": [
+    "mcp://records"
+  ],
+  "authorization_receipts": [
+    {
+      "action": "records.read",
+      "audience": "mcp://records",
+      "decision": "allow",
+      "evidence_sha256": "7c5866fba30b14215ce1c84407802efb3bd8785a6fd933c49d7ce7372eefb7d1",
+      "expires_at": 1767225900,
+      "issued_at": 1767225590,
+      "issuer_id": "policy-engine",
+      "nonce": "nonce-1",
+      "receipt_id": "authorization-1",
+      "resource_id": "record-1",
+      "run_id": "run-1",
+      "scope": "records:read",
+      "subject_agent_id": "agent-orchestrator",
+      "task_id": "task-1",
+      "trust_status": "verified"
+    }
+  ],
+  "claim_boundary": "An Agent Identity Passport is content-addressed authorization evidence, not an identity credential, trust anchor, legal identity, compliance certificate, authorization to operate, or proof that unrecorded effects did not occur. Owners must authenticate issuers, validate trust roots, protect signing keys, and enforce authorization at the effect boundary.",
+  "delegation_chain": [
+    {
+      "audiences": [
+        "mcp://records"
+      ],
+      "delegate_id": "agent-orchestrator",
+      "delegator_id": "human-alice",
+      "evidence_sha256": "9a9644c612f0a4e6db353cb1f53fe9ced79ae1e06320e41eb62a5c244121266b",
+      "expires_at": 1767229200,
+      "link_id": "delegation-1",
+      "not_before": 1767225540,
+      "parent_link_id": null,
+      "scopes": [
+        "records:read"
+      ],
+      "trust_status": "verified"
+    }
+  ],
+  "effect_receipts": [
+    {
+      "action": "records.read",
+      "agent_id": "agent-orchestrator",
+      "audience": "mcp://records",
+      "authorization_receipt_id": "authorization-1",
+      "effect_id": "effect-1",
+      "evidence_sha256": "8ba80af1666d91aa167c47450b9a3ff5f61f5a97d607fb8f63e140019ce92718",
+      "executed_at": 1767225600,
+      "resource_id": "record-1",
+      "run_id": "run-1",
+      "scope": "records:read",
+      "status": "succeeded",
+      "task_id": "task-1"
+    }
+  ],
+  "evaluation_time": 1767225600,
+  "expires_at": 1767229200,
+  "issued_at": 1767225540,
+  "passport_id": "passport-bounded",
+  "passport_sha256": "4699b262c0ce7c3dc28bef915bf3ae64987a385efbeb1fbc4f7381991cef46ea",
+  "passport_type": "dspy-security-bench-agent-identity-passport",
+  "passport_version": "agent-identity-passport-v1",
+  "principal_id": "human-alice",
+  "revocations": [],
+  "run_id": "run-1",
+  "schema_version": 1,
+  "scopes": [
+    "records:read"
+  ],
+  "task_id": "task-1",
+  "tenant": "tenant-north"
+}

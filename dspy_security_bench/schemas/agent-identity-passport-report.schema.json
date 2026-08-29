@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/agent-identity-passport-report.schema.json",
+  "title": "Agent Identity Passport verification report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "passport_version", "protocol_sha256", "passport_sha256", "passport", "summary", "findings", "claim_boundary", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "dspy-security-bench-agent-identity-passport-verification"},
+    "passport_version": {"const": "agent-identity-passport-v1"},
+    "protocol_sha256": {"$ref": "#/$defs/sha256"},
+    "passport_sha256": {"$ref": "#/$defs/sha256"},
+    "passport": {"type": "object"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "finding_count", "delegation_depth", "authorization_receipt_count", "effect_receipt_count", "revocation_count", "all_authority_trust_verified"],
+      "properties": {
+        "status": {"enum": ["verified", "review_required"]},
+        "finding_count": {"type": "integer", "minimum": 0},
+        "delegation_depth": {"type": "integer", "minimum": 1},
+        "authorization_receipt_count": {"type": "integer", "minimum": 0},
+        "effect_receipt_count": {"type": "integer", "minimum": 0},
+        "revocation_count": {"type": "integer", "minimum": 0},
+        "all_authority_trust_verified": {"type": "boolean"}
+      }
+    },
+    "findings": {"type": "array"},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "report_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

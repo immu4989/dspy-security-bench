@@ -27,7 +27,7 @@
         <span>DSPy <b>Security Bench</b></span>
       </a>
       <div class="nav-links" id="nav-links">
-        <a href="#collectiveguard">CollectiveGuard</a>
+        <a href="#collectiveguard">Evidence Plane</a>
         <a href="#traceproof">TraceProof</a>
         <a href="#causalproof">CausalProof</a>
         <a href="#scheduleproof">ScheduleProof</a>
@@ -83,7 +83,7 @@
       <div class="collective-console reveal">
         <header class="collective-topbar">
           <span><i></i> LOCAL / CONTENT-FREE</span>
-          <code>COLLECTIVEGUARD::CONTAINMENT-PLANE::V1</code>
+          <code>COLLECTIVEGUARD::CONTAINMENT-PLANE::V1 + PROVENANCE::V2</code>
           <b>13 DETERMINISTIC RULES</b>
         </header>
 
@@ -156,6 +156,44 @@
         <div><span>PROCESSED</span><strong>identifiers · categories · offsets · bindings</strong></div>
         <div class="zero-content"><span>CONTENT FIELDS</span><strong>0</strong></div>
         <div><span>EXCLUDED</span><strong>prompts · reasoning · messages · secrets · payloads</strong></div>
+      </div>
+
+      <div class="evidence-plane reveal" aria-labelledby="evidence-plane-title">
+        <header>
+          <div><span>COLLECTIVEGUARD V2 / EVIDENCE PLANE</span><h3 id="evidence-plane-title">A clean result now has to earn its provenance.</h3></div>
+          <b>OFFLINE · VENDOR-NEUTRAL · FAIL-CLOSED</b>
+        </header>
+        <div class="evidence-plane-body">
+          <div class="evidence-sources" aria-label="Six independent structural evidence source classes">
+            <article><i></i><span>RUNTIME</span><strong>task · channel · effect</strong><small>observed</small></article>
+            <article><i></i><span>IDENTITY</span><strong>grant · decision · revoke</strong><small>attested</small></article>
+            <article><i></i><span>NETWORK</span><strong>destination · path</strong><small>observed</small></article>
+            <article><i></i><span>EVALUATOR</span><strong>access · integrity</strong><small>observed</small></article>
+            <article><i></i><span>RESPONSE</span><strong>alert · contain · recover</strong><small>observed</small></article>
+            <article><i></i><span>CONTROL</span><strong>availability · failure domain</strong><small>attested</small></article>
+          </div>
+          <div class="provenance-gate" aria-label="Provenance gate requires complete sources and direct event support">
+            <div class="gate-rings"><i></i><i></i><strong>V2</strong></div>
+            <span>PROVENANCE GATE</span>
+            <small>all required sources complete<br>every event directly supported</small>
+          </div>
+          <div class="evidence-outcomes">
+            <article class="outcome-clean"><span>01</span><div><strong>NO VIOLATION OBSERVED</strong><small>complete record · direct provenance</small></div></article>
+            <article class="outcome-danger"><span>02</span><div><strong>VIOLATIONS DETECTED</strong><small>findings survive evidence gaps</small></div></article>
+            <article class="outcome-review"><span>03</span><div><strong>INSUFFICIENT EVIDENCE</strong><small>no silent clean claim</small></div></article>
+          </div>
+        </div>
+        <div class="evidence-extensions">
+          <article><span>IDENTITY PASSPORT</span><strong>principal → agent → run → task → effect</strong><p>Delegation attenuation, audience/scope binding, revocation order, single-use authorization, and exact effect receipts—verified offline.</p></article>
+          <article><span>ADOPTION PROFILES</span><strong>enterprise · frontier · federal · infrastructure</strong><p>Owner-adjustable source and response objectives with informative NIST crosswalks and non-certifying OSCAL 1.2.2 export.</p></article>
+          <article><span>CONTINUOUSPROOF</span><strong>observe → verify → compare → hash-chain</strong><p>Freshness and regression evidence with zero production actions. The controller requests review; operators decide and act.</p></article>
+        </div>
+        <footer class="evidence-plane-footer">
+          <div><span>$</span><code>dspy-security-bench collective plane demo --out-dir artifacts/evidence-plane</code></div>
+          <button id="evidence-plane-copy" type="button">Copy command</button>
+          <a href="https://github.com/immu4989/dspy-security-bench/tree/main/submissions/collective"><b data-collective-evidence-count>0</b> recomputable bundles <span aria-hidden="true">↗</span></a>
+        </footer>
+        <div id="collective-evidence-results" class="collective-evidence-results" aria-live="polite"></div>
       </div>
     </section>
 

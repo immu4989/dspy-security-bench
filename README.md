@@ -47,6 +47,45 @@ containment evidence, and reviewable OSCAL assessment inputs.
 
 ---
 
+## On main: the Agent Assurance Evidence Plane
+
+**Security findings are not enough if nobody can tell which runtime, identity,
+network, evaluator, response, and control records actually support them.** The
+new Evidence Plane composes the frozen CollectiveGuard v1 analyzer with explicit
+source completeness and per-event provenance. It fails closed to
+`insufficient_evidence` instead of turning a partial clean record into a safety
+claim.
+
+It also connects four adoption surfaces that organizations previously had to
+assemble themselves:
+
+- **EvidenceBridge** maps structural records from runtime, OpenTelemetry,
+  IAM/policy, network, SIEM, evaluator, and control-plane exporters without
+  accepting prompts, messages, credentials, or tool content.
+- **Agent Identity Passport** binds principal → agent → tenant → run → task →
+  audience → scope → authorization → effect, including attenuation, expiry,
+  nonce replay, and revocation-before-effect checks.
+- **Adoption profiles** provide owner-adjustable enterprise, frontier-lab,
+  federal-high-impact, and critical-infrastructure evidence objectives with
+  explicitly informative crosswalks and non-certifying OSCAL 1.2.2 export.
+- **ContinuousProof controller** verifies freshness and drift, then appends
+  observations to a tamper-evident timeline in `observe_only` mode with
+  `actions_taken: 0`.
+
+```bash
+dspy-security-bench collective plane demo --out-dir artifacts/evidence-plane
+dspy-security-bench authority passport demo
+dspy-security-bench collective profile assess \
+  artifacts/evidence-plane/hardened-complete.report.json \
+  --profile federal-high-impact --out assessment.json --oscal-out assessment-results.json
+```
+
+[Open the Evidence Plane guide →](docs/evidence-plane.md) ·
+[Inspect the public CollectiveGuard registry →](submissions/collective/README.md) ·
+[Explore the interactive provenance gate →](https://immu4989.github.io/dspy-security-bench/#collectiveguard)
+
+---
+
 ## New in v0.19: CollectiveGuard — contain the collective, not just one agent
 
 **A sandbox boundary is not enough when separate agent runs can find each

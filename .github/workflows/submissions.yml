@@ -11,6 +11,7 @@ on:
       - "submissions/authority/**"
       - "submissions/trace/**"
       - "submissions/causal/**"
+      - "submissions/collective/**"
       - "submissions/reproductions.json"
       - "submissions/attestations.json"
       - "scripts/validate_impact_submissions.py"
@@ -20,6 +21,7 @@ on:
       - "dspy_security_bench/authority/**"
       - "dspy_security_bench/trace/**"
       - "dspy_security_bench/causal/**"
+      - "dspy_security_bench/collective/**"
       - "dspy_security_bench/proofrun.py"
       - "dspy_security_bench/schemas/**"
   push:
@@ -32,6 +34,7 @@ on:
       - "submissions/authority/**"
       - "submissions/trace/**"
       - "submissions/causal/**"
+      - "submissions/collective/**"
       - "submissions/reproductions.json"
       - "submissions/attestations.json"
       - "scripts/validate_impact_submissions.py"
@@ -41,6 +44,7 @@ on:
       - "dspy_security_bench/authority/**"
       - "dspy_security_bench/trace/**"
       - "dspy_security_bench/causal/**"
+      - "dspy_security_bench/collective/**"
       - "dspy_security_bench/proofrun.py"
       - "dspy_security_bench/schemas/**"
   workflow_dispatch:

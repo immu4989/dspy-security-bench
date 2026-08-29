@@ -7,6 +7,7 @@ from scripts.generate_site_data import (
     AUTHORITY_SUBMISSIONS_DIR,
     BENIGN_DIR,
     CAUSAL_SUBMISSIONS_DIR,
+    COLLECTIVE_SUBMISSIONS_DIR,
     CONTROL_SUBMISSIONS_DIR,
     DEFAULT_OUT,
     INCIDENT_SUBMISSIONS_DIR,
@@ -126,6 +127,12 @@ def test_site_payload_exposes_the_open_causal_evidence_registry():
     assert CAUSAL_SUBMISSIONS_DIR.name == "causal"
 
 
+def test_site_payload_exposes_the_open_collective_evidence_registry():
+    payload = build_payload()
+    assert payload["collectiveEvidenceCount"] == len(payload["collectiveEvidence"])
+    assert COLLECTIVE_SUBMISSIONS_DIR.name == "collective"
+
+
 def test_site_exposes_native_causal_runtime_bridges_and_accessible_graph_toggle():
     html = (SITE / "index.html").read_text()
     assert "CausalProof native runtime bridges" in html
@@ -153,6 +160,25 @@ def test_site_presents_collectiveguard_as_content_free_containment_evidence():
         assert value in html
     script = (SITE / "app.js").read_text()
     assert 'bindCommandCopy("#collective-copy"' in script
+
+
+def test_site_presents_the_provenance_aware_evidence_plane():
+    html = (SITE / "index.html").read_text()
+    for value in (
+        "COLLECTIVEGUARD V2 / EVIDENCE PLANE",
+        "A clean result now has to earn its provenance.",
+        "PROVENANCE GATE",
+        "INSUFFICIENT EVIDENCE",
+        "IDENTITY PASSPORT",
+        "ADOPTION PROFILES",
+        "zero production actions",
+        "data-collective-evidence-count",
+        'id="collective-evidence-results"',
+    ):
+        assert value in html
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#evidence-plane-copy"' in script
+    assert "renderCollectiveEvidence" in script
 
 
 def test_site_payload_exposes_commons_protocol_not_product_claims():

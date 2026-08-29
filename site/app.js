@@ -34,6 +34,11 @@ const safeTraceResultUrl = value => {
   const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/trace\/[a-z0-9-]+\.json$/;
   return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/trace";
 };
+const safeCollectiveResultUrl = value => {
+  const url = String(value || "");
+  const accepted = /^https:\/\/github\.com\/immu4989\/dspy-security-bench\/blob\/main\/submissions\/collective\/[a-z0-9-]+\.json$/;
+  return accepted.test(url) ? url : "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/collective";
+};
 
 async function loadData() {
   const response = await fetch("data.json");
@@ -49,6 +54,7 @@ async function loadData() {
   document.querySelectorAll("[data-authority-evidence-count]").forEach(node => node.textContent = data.authorityEvidenceCount || 0);
   document.querySelectorAll("[data-trace-evidence-count]").forEach(node => node.textContent = data.traceEvidenceCount || 0);
   document.querySelectorAll("[data-causal-evidence-count]").forEach(node => node.textContent = data.causalEvidenceCount || 0);
+  document.querySelectorAll("[data-collective-evidence-count]").forEach(node => node.textContent = data.collectiveEvidenceCount || 0);
   const robustness = data.models.map(model => model.robustness);
   document.querySelector("[data-min-robustness]").textContent = Math.round(Math.min(...robustness) * 100);
   document.querySelector("[data-max-robustness]").textContent = Math.round(Math.max(...robustness) * 100);
@@ -60,6 +66,17 @@ async function loadData() {
   renderSourceEvidence(data.sourceEvidence || []);
   renderAuthorityEvidence(data.authorityEvidence || []);
   renderTraceEvidence(data.traceEvidence || []);
+  renderCollectiveEvidence(data.collectiveEvidence || []);
+}
+
+function renderCollectiveEvidence(results) {
+  const host = document.querySelector("#collective-evidence-results");
+  if (!host) return;
+  host.innerHTML = results.map(result => `<article>
+    <div><span>${escapeHtml(result.deploymentClass)}</span><strong>${escapeHtml(result.runtime)}</strong><small>${escapeHtml(result.submitter)}</small></div>
+    <div><span>PROVENANCE STATUS</span><strong class="${result.evidenceComplete ? "complete" : "review"}">${escapeHtml(result.status)}</strong><small>${Number(result.sourceCount)} sources · ${Number(result.findingCount)} findings</small></div>
+    <a href="${safeCollectiveResultUrl(result.result)}">inspect bundle ↗</a>
+  </article>`).join("");
 }
 
 const proofTier = {
@@ -343,6 +360,7 @@ bindCommandCopy("#authority-copy", "dspy-security-bench authority demo");
 bindCommandCopy("#federal-copy", "dspy-security-bench federal init");
 bindCommandCopy("#graph-copy", "dspy-security-bench graph demo");
 bindCommandCopy("#collective-copy", "dspy-security-bench collective demo --out-dir artifacts/collectiveguard");
+bindCommandCopy("#evidence-plane-copy", "dspy-security-bench collective plane demo --out-dir artifacts/evidence-plane");
 bindCommandCopy("#trace-copy", "dspy-security-bench trace demo --out-dir artifacts/traceproof");
 bindCommandCopy("#causal-copy", "dspy-security-bench causal demo --out-dir artifacts/causalproof");
 bindCommandCopy("#schedule-copy", "dspy-security-bench schedule demo");

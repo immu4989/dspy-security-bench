@@ -12,8 +12,11 @@ body:
     attributes:
       label: Contribution kind
       options:
+        - EvidenceBridge field map or adapter
+        - Agent Identity Passport integration
         - Runtime or orchestration exporter
         - Content-free community evidence bundle
+        - Federal, sector, or frontier-lab profile review
         - Synthetic coordination challenge case
         - Control objective or response-window improvement
         - Documentation or reference lab improvement
@@ -44,7 +47,7 @@ body:
     id: boundary
     attributes:
       label: Observation and authority boundary
-      description: Explain which component emits structural events, which system is authoritative for effects and decisions, and what is deliberately removed before export.
+      description: Explain which runtime, identity, network, evaluator, response, and control components emit structural events; which system is authoritative for effects and decisions; and what is deliberately removed before export.
     validations:
       required: true
   - type: textarea
@@ -68,6 +71,6 @@ body:
       options:
         - label: I reviewed the material and removed content, secrets, private identifiers, production topology, operational incident details, and sensitive government information.
           required: true
-        - label: I understand a valid CollectiveGuard report is not proof of telemetry completeness, model alignment, certification, compliance, government endorsement, or authorization to operate.
+        - label: I understand a valid CollectiveGuard report, passport, or OSCAL export is not proof of telemetry completeness, identity, model alignment, certification, compliance, government endorsement, or authorization to operate.
           required: true
         - label: I can help test the contribution using synthetic data with no provider calls in CI.

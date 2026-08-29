@@ -93,6 +93,29 @@ def build_parser() -> argparse.ArgumentParser:
         "verify", help="verify operator-executed backend conformance evidence offline"
     )
     bridge_verify.add_argument("path")
+
+    passport = commands.add_parser(
+        "passport", help="build and verify run-bound agent identity and authority receipts"
+    )
+    passport_commands = passport.add_subparsers(dest="passport_command")
+    passport_describe = passport_commands.add_parser("describe", help="show the passport protocol")
+    passport_describe.add_argument("--json", action="store_true", dest="as_json")
+    passport_demo = passport_commands.add_parser(
+        "demo", help="run bounded, revoked, and ambient fixtures"
+    )
+    passport_demo.add_argument("--json", action="store_true", dest="as_json")
+    passport_init = passport_commands.add_parser("init", help="write a passport starter")
+    passport_init.add_argument(
+        "--profile", choices=("bounded", "revoked", "ambient"), default="bounded"
+    )
+    passport_init.add_argument("--out", required=True)
+    passport_init.add_argument("--force", action="store_true")
+    passport_run = passport_commands.add_parser("run", help="verify passport semantics")
+    passport_run.add_argument("path")
+    passport_run.add_argument("--out")
+    passport_run.add_argument("--fail-on-review", action="store_true")
+    passport_verify = passport_commands.add_parser("verify", help="recompute a passport report")
+    passport_verify.add_argument("path")
     return parser
 
 
@@ -116,7 +139,82 @@ def main(argv: list[str] | None = None) -> int:
         return _verify(args)
     if args.command == "bridge":
         return _bridge(args, parser)
+    if args.command == "passport":
+        return _passport(args)
     return 2
+
+
+def _passport(args) -> int:
+    from dspy_security_bench.authority.passport import (
+        PASSPORT_VERSION,
+        analyze_passport,
+        built_in_passport,
+        protocol_payload,
+        protocol_sha256,
+        verify_report,
+    )
+
+    if args.passport_command is None:
+        print("Usage: dspy-security-bench authority passport <describe|demo|init|run|verify>")
+        return 0
+    try:
+        if args.passport_command == "describe":
+            payload = protocol_payload()
+            if args.as_json:
+                print(json.dumps(payload, indent=2, sort_keys=True))
+            else:
+                print(f"Agent Identity Passport ({PASSPORT_VERSION})")
+                print(f"Protocol sha256: {protocol_sha256()}")
+                for rule_id, title in payload["rules"].items():
+                    print(f"  - {rule_id}: {title}")
+                print(payload["claim_boundary"])
+            return 0
+        if args.passport_command == "demo":
+            reports = [
+                analyze_passport(built_in_passport(profile))
+                for profile in ("bounded", "revoked", "ambient")
+            ]
+            if args.as_json:
+                print(json.dumps(reports, indent=2, sort_keys=True))
+            else:
+                for report in reports:
+                    print(
+                        f"{report['passport']['passport_id']}: {report['summary']['status']} · "
+                        f"{report['summary']['finding_count']} findings"
+                    )
+            return 0
+        if args.passport_command == "init":
+            destination = Path(args.out)
+            if destination.exists() and not args.force:
+                print(
+                    f"[authority] kept existing {destination} (use --force to replace)",
+                    file=sys.stderr,
+                )
+                return 2
+            _write_json(destination, built_in_passport(args.profile))
+            print(f"[authority] wrote {destination}")
+            return 0
+        payload = json.loads(Path(args.path).read_text())
+        if not isinstance(payload, Mapping):
+            raise ValueError("JSON root must be an object")
+        if args.passport_command == "verify":
+            errors = verify_report(payload)
+            if errors:
+                raise ValueError("; ".join(errors))
+            print(f"[authority] verified passport report {args.path}")
+            return 0
+        report = analyze_passport(payload)
+        if args.out:
+            _write_json(Path(args.out), report)
+            print(f"[authority] wrote {args.out}")
+        print(
+            f"[authority] {report['summary']['status']}: "
+            f"{report['summary']['finding_count']} findings"
+        )
+        return 1 if args.fail_on_review and report["summary"]["status"] == "review_required" else 0
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+        print(f"[authority] passport failed: {exc}", file=sys.stderr)
+        return 2
 
 
 def _bridge(args, parser: argparse.ArgumentParser) -> int:

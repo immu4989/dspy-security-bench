@@ -45,6 +45,52 @@ dspy-security-bench collective verify artifacts/collectiveguard/report.json
 
 The complete starter file is [examples/collectiveguard-scenario.json](../examples/collectiveguard-scenario.json). JSON Schemas are packaged for both [scenarios](../dspy_security_bench/schemas/collectiveguard-scenario.schema.json) and [reports](../dspy_security_bench/schemas/collectiveguard-report.schema.json).
 
+## Provenance-aware Evidence Plane on main
+
+CollectiveGuard v1 remains frozen. The v2 Evidence Plane composes its exact
+report with six declared source classes and per-event provenance. A result can
+now be `no_violation_observed`, `violations_detected`, or
+`insufficient_evidence`. A clean result requires every owner-required source to
+be complete and every structural event to have `observed` or `attested`
+support. Findings are retained even when evidence is partial.
+
+```bash
+dspy-security-bench collective plane describe
+dspy-security-bench collective plane demo --out-dir artifacts/evidence-plane
+dspy-security-bench collective plane init \
+  --profile hardened-complete --out collective-v2.json
+dspy-security-bench collective plane run collective-v2.json \
+  --json-out collective-v2-report.json --fail-on-insufficient
+
+# Convert through a strict, content-free ingestion manifest.
+dspy-security-bench collective bridge from-v2 collective-v2.json \
+  --adapter-profile runtime-neutral-json --out evidence-bridge.json
+dspy-security-bench collective bridge build evidence-bridge.json \
+  --out collective-v2.json
+```
+
+EvidenceBridge publishes contracts for runtime-neutral JSON, owner-mapped
+OpenTelemetry GenAI/agent span identifiers, IAM decisions, network policy logs,
+and SIEM response logs. A contract label is not a claim that the named product,
+deployment, exporter, or trust root was validated.
+
+Four frozen adoption profiles connect local objectives to enterprise,
+frontier-lab, federal-high-impact, and critical-infrastructure review:
+
+```bash
+dspy-security-bench collective profile list
+dspy-security-bench collective profile assess collective-v2-report.json \
+  --profile federal-high-impact \
+  --out profile-assessment.json \
+  --oscal-out assessment-results.json
+```
+
+The crosswalks operate at framework-function level and are deliberately marked
+`informative-not-determinative`. They are inputs to system-specific assessment,
+not automatic findings of NIST control satisfaction, compliance, certification,
+ATO, or government endorsement. See the full [Evidence Plane guide](evidence-plane.md)
+and [community registry](../submissions/collective/README.md).
+
 ## What it measures
 
 | Rule | Structural failure | Why it matters |

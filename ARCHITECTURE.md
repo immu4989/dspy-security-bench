@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes twenty-one related security surfaces:
+`dspy-security-bench` exposes twenty-five related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -61,6 +61,18 @@ v0.1 research choices are labeled separately from the current product surface.
     autonomous-agent collectives, reconstructing cross-run communication,
     boundary and authority failures, safe-stop behavior, response windows,
     recovery approval, and independent-control coverage.
+22. **CollectiveGuard v2 / EvidenceBridge** — composes v1 findings with source
+    completeness and per-event provenance, rejecting partial clean-result
+    claims and ingesting only strict structural manifests.
+23. **Agent Identity Passport** — binds delegated identity and authorization
+    receipts to a principal, tenant, run, task, audience, scope, action,
+    resource, effect, lifetime, nonce, and revocation order.
+24. **Collective adoption profiles** — evaluates owner-selectable enterprise,
+    frontier-lab, federal-high-impact, and critical-infrastructure evidence
+    objectives and emits informative non-certifying OSCAL.
+25. **ContinuousProof controller** — reads owner-selected evidence, evaluates
+    freshness and drift, and emits a hash-chained timeline while taking zero
+    production actions.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer
@@ -83,14 +95,15 @@ dspy_security_bench/
 │   ├── live.py                 # operator-command real-backend conformance
 │   ├── benchmark.py            # trace, receipt, effect, and metric recomputation
 │   ├── repeat.py               # Wilson intervals + content-addressed evidence
+│   ├── passport.py             # run-bound delegated identity/effect envelope
 │   └── cli.py                  # describe, demo, run, repeat, bundle, verify
 ├── incident/                   # inert cyber-response mission assurance
 ├── inventory/                  # bounded public inventory → synthetic pack
 ├── graph/                      # v1 + temporal/parallel v2 authorization twins
 ├── schedule/                   # bounded interleaving explorer + SARIF export
 ├── causal/                     # structural trace causality + runtime bridges
-├── collective/                 # collective containment analyzer + SARIF export
-├── continuous/                 # verified baseline and drift evidence
+├── collective/                 # containment, provenance bridge, profiles, registry
+├── continuous/                 # baselines, drift, observe-only controller/timeline
 ├── acquisition/                # neutral technical acquisition packages
 ├── trace/                      # runtime recorder, OTLP sanitization, rules
 │   ├── runtime.py              # metadata-only Agent/BenchTool instrumentation

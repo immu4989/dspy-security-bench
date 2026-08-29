@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/continuous-controller.schema.json",
+  "title": "ContinuousProof observe-only controller evidence",
+  "oneOf": [
+    {"properties": {"controller_type": {"const": "dspy-security-bench-assurance-observation-plan"}}, "required": ["controller_type", "plan_sha256"]},
+    {"properties": {"controller_type": {"const": "dspy-security-bench-assurance-observation"}}, "required": ["controller_type", "observation_sha256"]},
+    {"properties": {"controller_type": {"const": "dspy-security-bench-assurance-timeline"}}, "required": ["controller_type", "timeline_sha256"]}
+  ]
+}

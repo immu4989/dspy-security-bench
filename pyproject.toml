@@ -58,6 +58,9 @@ keywords = [
     "causal-inference",
     "mission-economics",
     "ed25519",
+    "evidence-provenance",
+    "agent-identity-passport",
+    "critical-infrastructure-ai",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -149,6 +152,8 @@ TraceProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/tra
 ScheduleProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/scheduleproof.md"
 CausalProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/causalproof.md"
 CollectiveGuard = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/collectiveguard.md"
+"Agent Assurance Evidence Plane" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/evidence-plane.md"
+"Collective Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/collective"
 "CausalProof Runtime Bridges" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/causalproof-runtime-integrations.md"
 "Causal Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/causal"
 "TraceProof Runtime Kit" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/traceproof-runtime-kit.md"

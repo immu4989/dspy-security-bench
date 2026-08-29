@@ -231,6 +231,10 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         from dspy_security_bench.collective.proof import verify_collective_report
 
         return "collective", verify_collective_report(payload)
+    if report_type == "CollectiveGuard v2 / Provenance-aware collective containment assurance":
+        from dspy_security_bench.collective.v2 import verify_report
+
+        return "collective-v2", verify_report(payload)
     if report_type == "TraceProof / Privacy-bounded agent trace analysis":
         from dspy_security_bench.trace.proof import verify_trace_report
 

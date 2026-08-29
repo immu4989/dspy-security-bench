@@ -15,6 +15,24 @@ compliance or safety overclaims.
 - CausalProof v1 structural runtime causality with native OpenAI Agents SDK and
   LangGraph bridges.
 
+## Delivered on main after v0.19
+
+- **CollectiveGuard v2 Evidence Plane** composing the frozen v1 analyzer with
+  six declared source classes, per-event provenance, strict completeness gates,
+  and a distinct `insufficient_evidence` outcome.
+- **EvidenceBridge** structural manifests for runtime-neutral JSON,
+  owner-mapped OpenTelemetry GenAI/agent spans, IAM decisions, network policy,
+  and SIEM response records without accepting prompts, messages, credentials,
+  or tool content.
+- **Agent Identity Passport** run envelopes covering delegation attenuation,
+  identity/audience/scope/action/resource binding, expiration, nonce replay,
+  revocation-before-effect, and exact authorization/effect receipts.
+- Enterprise, frontier-lab, federal-high-impact, and critical-infrastructure
+  adoption profiles with informative NIST crosswalks and non-certifying OSCAL
+  1.2.2 Assessment Results.
+- CI-recomputed public CollectiveGuard evidence bundles plus an observe-only
+  ContinuousProof freshness/regression controller and hash-chained timeline.
+
 ## Delivered on main after v0.16
 
 - A content-free TraceProof Runtime Kit at the existing `Agent` / `BenchTool`
@@ -71,8 +89,8 @@ compliance or safety overclaims.
 - Recruit domain-owner review of the five built-in public-service pack starters
   and record authorship, scope, accessibility, privacy, and known gaps without
   implying agency endorsement.
-- Add optional cryptographic provider receipt references to AuthorityTwin while
-  keeping external trust roots and key verification deployment-owned.
+- Add optional cryptographic provider signatures to Agent Identity Passport
+  receipts while keeping trust roots, key lifecycle, and validation deployment-owned.
 - Independent reproduction studies for the public IncidentTwin evidence ledger,
   SourceTwin ledger, and AuthorityTwin adapter registry, including
   cross-provider and cross-version drift analysis.
@@ -80,8 +98,8 @@ compliance or safety overclaims.
   plus optional agency-tailored OSCAL extension hooks.
 - Automated axe-core and manual assistive-technology release evidence for the
   dashboard.
-- ContinuousProof support for repeated evidence bundles and signed longitudinal
-  timelines, while retaining owner-controlled thresholds and risk decisions.
+- Add external signature envelopes and trusted timestamps to ContinuousProof
+  longitudinal timelines without giving the controller production authority.
 - Property-based generators and real-runtime schedule capture feeding the
   separately versioned ScheduleProof protocol without changing frozen
   AgentGraphTwin v1 or v2 scenarios.
