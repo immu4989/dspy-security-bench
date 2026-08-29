@@ -164,6 +164,31 @@ def test_site_presents_verified_defense_as_effect_and_continuity_evidence():
     assert "safeDefenseResultUrl(result.result)" in script
 
 
+def test_site_presents_resiliencegraph_as_an_exact_owner_governed_frontier():
+    html = (SITE / "index.html").read_text()
+    for value in (
+        'id="resiliencegraph"',
+        "Scarce resources.",
+        "RESILIENCEGRAPH::FRONTIER::V1",
+        "32 SUBSETS → 13 FEASIBLE → 10 FRONTIER",
+        "DECLARED DEPENDENCY GRAPH",
+        "Direct protection",
+        "NON-DOMINATED FRONTIER",
+        "REFERENCE · NOT A RECOMMENDATION",
+        "disruptive hospital",
+        "dspy-security-bench portfolio demo --out-dir artifacts/resiliencegraph",
+    ):
+        assert value in html
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#resilience-copy"' in script
+    commons = build_payload()["missionAssuranceCommons"]["resilienceGraph"]
+    assert commons == {
+        "protocolVersion": "resiliencegraph-v1",
+        "exactActionLimit": 18,
+        "referenceIsRecommendation": False,
+    }
+
+
 def test_defense_registry_only_exposes_recomputable_public_patterns(tmp_path):
     from dspy_security_bench.defend.evidence import build_evidence_bundle
     from dspy_security_bench.defend.protocol import (

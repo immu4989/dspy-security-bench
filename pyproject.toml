@@ -64,6 +64,9 @@ keywords = [
     "cyber-defense",
     "verified-remediation",
     "cyber-range",
+    "critical-infrastructure-resilience",
+    "cyber-risk-prioritization",
+    "pareto-frontier",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -156,6 +159,7 @@ ScheduleProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/
 CausalProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/causalproof.md"
 CollectiveGuard = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/collectiveguard.md"
 DefenderTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/verified-cyber-defense-commons.md"
+ResilienceGraph = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/resiliencegraph.md"
 "Verified Cyber Defense Commons" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/defense"
 "Agent Assurance Evidence Plane" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/evidence-plane.md"
 "Collective Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/collective"

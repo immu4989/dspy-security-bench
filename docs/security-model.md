@@ -48,6 +48,13 @@ disruption, introduced risk, rollback, and evidence completeness. It never
 executes the proposed change and cannot authenticate a declared evidence source
 or establish production effectiveness.
 
+ResilienceGraph trusts only locally verified DefenderTwin reports for candidate
+eligibility, then performs exact arithmetic over owner-supplied services,
+dependency edges, ordinal criticality, resource units, groups, constraints, and
+availability scenarios. It keeps direct service coverage separate from
+dependency reach, never infers a probability or financial benefit, and cannot
+establish that the owner's planning assumptions are complete or true.
+
 ## Threats addressed
 
 - narrative-only scores hiding harmful tool side effects;
@@ -71,7 +78,10 @@ or establish production effectiveness.
   late escalation/containment, unapproved restart, and correlated defenses; and
 - remediations that appear effective while exceeding authority, breaking an
   essential service, introducing new declared risk, losing rollback, or relying
-  on incomplete evidence.
+  on incomplete evidence; and
+- unsafe remediations entering a resource plan, dominated portfolios presented
+  as efficient, impossible owner floors silently relaxed, or a deterministic
+  tie-break mislabeled as a funding recommendation.
 
 ## Threats not solved
 
@@ -94,7 +104,10 @@ or establish production effectiveness.
   had its intended production effect; and
 - unmodeled attack paths, incorrect synthetic remediation effects, fabricated
   source-completeness labels, live-system exploitability, or safe production
-  rollout of a DefenderTwin proposal.
+  rollout of a DefenderTwin proposal; and
+- omitted infrastructure dependencies, inaccurate service mappings, real-world
+  availability probabilities, monetary loss, distributional impacts, supplier
+  ownership, or the correctness of a ResilienceGraph planning contract.
 
 Use least privilege, protected branches, required reviews, secret scanning,
 artifact attestations, dependency review, CodeQL, Scorecard, SBOMs, reproducible

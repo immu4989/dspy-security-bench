@@ -135,6 +135,11 @@ def build_payload(
             "agentGraphTwin": {"scenarioVersion": "agentgraphtwin-v1", "pairCount": 6},
             "continuousProof": {"schemaVersion": 1, "thresholdOwner": "evidence-owner"},
             "acquisitionProof": {"schemaVersion": 1, "decisionAuthority": "accountable-owner"},
+            "resilienceGraph": {
+                "protocolVersion": "resiliencegraph-v1",
+                "exactActionLimit": 18,
+                "referenceIsRecommendation": False,
+            },
             "authorityBridges": ["opa", "cedar", "openfga", "oauth-mcp", "spiffe"],
             "fixtureClaim": "translation-only; named backends not executed",
         },

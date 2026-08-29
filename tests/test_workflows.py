@@ -172,3 +172,11 @@ def test_traceproof_issue_form_forbids_raw_telemetry_and_requires_non_claims():
     assert "Never paste or attach raw OTLP" in introduction
     safety = next(item for item in form["body"] if item.get("id") == "safety")
     assert sum(option.get("required") is True for option in safety["attributes"]["options"]) == 2
+
+
+def test_resiliencegraph_issue_form_requires_assumptions_and_non_claims():
+    form = yaml.safe_load((ROOT / ".github/ISSUE_TEMPLATE/resilience-portfolio.yml").read_text())
+    assert form["name"] == "ResilienceGraph campaign"
+    assert any(item.get("id") == "assumptions" for item in form["body"])
+    boundary = next(item for item in form["body"] if item.get("id") == "boundary")
+    assert sum(option.get("required") is True for option in boundary["attributes"]["options"]) == 3

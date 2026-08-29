@@ -384,6 +384,7 @@ bindCommandCopy("#graph-copy", "dspy-security-bench graph demo");
 bindCommandCopy("#collective-copy", "dspy-security-bench collective demo --out-dir artifacts/collectiveguard");
 bindCommandCopy("#evidence-plane-copy", "dspy-security-bench collective plane demo --out-dir artifacts/evidence-plane");
 bindCommandCopy("#defense-copy", "dspy-security-bench defend demo --out-dir artifacts/verified-defense");
+bindCommandCopy("#resilience-copy", "dspy-security-bench portfolio demo --out-dir artifacts/resiliencegraph");
 bindCommandCopy("#trace-copy", "dspy-security-bench trace demo --out-dir artifacts/traceproof");
 bindCommandCopy("#causal-copy", "dspy-security-bench causal demo --out-dir artifacts/causalproof");
 bindCommandCopy("#schedule-copy", "dspy-security-bench schedule demo");

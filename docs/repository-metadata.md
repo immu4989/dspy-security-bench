@@ -2,7 +2,7 @@
 
 Suggested GitHub About description:
 
-> Prove AI cyber defenses work: DefenderTwin remediation, CollectiveGuard containment, private-by-default evidence, CI gates, and OSCAL exports.
+> Prove AI cyber defenses work, then plan the exact resilience frontier across scarce resources, shared dependencies, and stressed scenarios.
 
 Suggested topics:
 
@@ -11,7 +11,7 @@ Suggested topics:
 `zero-trust`, `oscal`, `federal-ai`, `github-actions`,
 `security-benchmark`, `agentic-ai`, `agent-containment`,
 `autonomous-agent-collectives`, `cyber-defense`, `verified-remediation`,
-`cyber-range`
+`cyber-range`, `critical-infrastructure`, `cyber-risk-management`
 
 Keep the website field set to:
 

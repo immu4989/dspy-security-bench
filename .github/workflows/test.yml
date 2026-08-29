@@ -90,3 +90,4 @@ jobs:
           tests/test_federalproof.py
           tests/test_missionforge.py
           tests/test_defendertwin.py
+          tests/test_resiliencegraph.py

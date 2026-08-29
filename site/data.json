@@ -398,6 +398,11 @@
       "schemaVersion": 1,
       "decisionAuthority": "accountable-owner"
     },
+    "resilienceGraph": {
+      "protocolVersion": "resiliencegraph-v1",
+      "exactActionLimit": 18,
+      "referenceIsRecommendation": false
+    },
     "authorityBridges": [
       "opa",
       "cedar",

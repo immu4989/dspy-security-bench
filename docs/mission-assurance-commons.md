@@ -4,12 +4,15 @@ Mission Assurance Commons is the end-to-end workflow for turning a bounded AI
 use case and locally held operational evidence into reviewable, portable
 assurance artifacts. The current Commons adds privacy-bounded telemetry,
 temporal graphs, bounded authorization-race exploration, real-backend bridge
-execution, signed community protocols, and measured mission economics:
+execution, signed community protocols, verified remediation, exact resilience
+frontiers, and measured mission economics:
 
 ```text
 public inventory ──→ reviewed/signed MissionPack ──→ synthetic twin tests
 local OTLP export ─→ sanitized TraceProof evidence ─→ temporal graph tests
                  └──→ CollectiveGuard containment ─────┤
+synthetic defense mission ─→ DefenderTwin fix proof ───┤
+verified fix proofs ───────→ ResilienceGraph frontier ─┤
                                                        ↓
                     drift comparison ← ScheduleProof race exploration
                               ↑        ← ValueProof ← acquisition review inputs
@@ -127,7 +130,35 @@ restart approval, and control independence. It processes no prompts, reasoning,
 messages, tool I/O, credentials, or exploit payloads. See the
 [CollectiveGuard protocol](collectiveguard.md).
 
-### 6. Explore every declared authorization interleaving with ScheduleProof
+### 6. Prove remediation effectiveness with DefenderTwin
+
+```bash
+dspy-security-bench defend demo --out-dir artifacts/verified-defense
+```
+
+DefenderTwin recomputes whether a bounded synthetic remediation closes declared
+attack paths, stays within target/action/approval scope, preserves essential
+services, introduces no declared risk, retains rollback, and has complete
+evidence. It executes no live change. See the
+[Verified Cyber Defense Commons](verified-cyber-defense-commons.md).
+
+### 7. Plan the exact defense frontier with ResilienceGraph
+
+```bash
+dspy-security-bench portfolio init --out resilience-campaign.json
+dspy-security-bench portfolio run resilience-campaign.json \
+  --json-out artifacts/resilience-report.json \
+  --csv-out artifacts/resilience-frontier.csv \
+  --require-fully-robust
+```
+
+ResilienceGraph excludes unsafe DefenderTwin candidates, enumerates every
+bounded subset, applies owner resource, concentration, service, and community
+constraints, replays declared availability scenarios, and exposes every
+non-dominated portfolio. The reference is deterministic and explicitly not a
+recommendation. See the [ResilienceGraph guide](resiliencegraph.md).
+
+### 8. Explore every declared authorization interleaving with ScheduleProof
 
 ```bash
 dspy-security-bench schedule init \
@@ -147,7 +178,7 @@ and audience continuity, and replay-safe effect receipts. A bounded-safe result
 applies only to the supplied atomic-event model; the explored unsafe fraction
 is not a runtime probability. Read the [ScheduleProof guide](scheduleproof.md).
 
-### 7. Detect evidence drift with ContinuousProof
+### 9. Detect evidence drift with ContinuousProof
 
 ```bash
 dspy-security-bench watch baseline artifacts/agent-graph.json \
@@ -160,7 +191,7 @@ dspy-security-bench watch compare artifacts/baseline.json artifacts/candidate.js
 Thresholds are owner supplied. A `review` result is a change signal, not an
 automatic deployment rejection or risk decision.
 
-### 7. Add owner-measured mission economics
+### 10. Add owner-measured mission economics
 
 ```bash
 dspy-security-bench value build value-observation.json \
@@ -172,7 +203,7 @@ ValueProof makes observed cost per safe mission, latency, review, recovery, and
 portability arithmetic reproducible. It does not estimate savings or rank a
 vendor. Read the [ValueProof measurement guide](valueproof.md).
 
-### 8. Package comparable acquisition inputs
+### 11. Package comparable acquisition inputs
 
 ```bash
 dspy-security-bench acquisition init --out acquisition-profile.json
@@ -196,8 +227,10 @@ The next measurable community targets are:
 1. five independently maintained real-backend AuthorityBridge integrations;
 2. three agency or domain-owner-reviewed, fully synthetic mission packs;
 3. ten externally generated TraceProof or twin evidence bundles;
-4. two independent reproductions; and
-5. one published deployment or research report describing limitations.
+4. three sector-reviewed fictional ResilienceGraph campaigns with independently
+   reproduced frontier counts;
+5. two independent reproductions; and
+6. one published deployment or research report describing limitations.
 
 These are targets, not current claims. Reference fixtures and maintainer-created
 synthetic examples do not count as independent evidence.

@@ -22,6 +22,7 @@ _LOWER_IS_BETTER = (
     "blast",
     "harm_event",
     "finding",
+    "excluded",
     "risk",
     "disruption",
     "critical",
@@ -257,14 +258,18 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         from dspy_security_bench.defend.protocol import verify_report
 
         return "verified-defense", verify_report(payload)
+    if report_type == "ResilienceGraph / Verified defense portfolio evidence":
+        from dspy_security_bench.portfolio.proof import verify_report
+
+        return "defense-portfolio", verify_report(payload)
     if payload.get("proof_type") == "dspy-security-bench-valueproof-observation":
         from dspy_security_bench.value.proof import verify_value_proof
 
         return "value", verify_value_proof(payload)
     raise ValueError(
         "unsupported evidence; use a verified AgentGraphTwin, TraceProof, AuthorityTwin, "
-        "MissionPackTwin, IncidentTwin, DefenderTwin, ScheduleProof, CollectiveGuard, or "
-        "ValueProof report"
+        "MissionPackTwin, IncidentTwin, DefenderTwin, ResilienceGraph, ScheduleProof, "
+        "CollectiveGuard, or ValueProof report"
     )
 
 
@@ -280,6 +285,7 @@ def _identity(payload: Mapping[str, Any]) -> dict[str, Any]:
         "source_evidence_sha256",
         "mission_sha256",
         "proposal_sha256",
+        "campaign_sha256",
     )
     identity = {field: payload[field] for field in fields if field in payload}
     measurement = payload.get("measurement")
@@ -295,6 +301,28 @@ def _comparable_summary(payload: Mapping[str, Any], kind: str) -> Mapping[str, A
         metrics = payload.get("metrics", {})
         return metrics if isinstance(metrics, Mapping) else {}
     summary = payload.get("summary", {})
+    if kind == "defense-portfolio" and isinstance(summary, Mapping):
+        reference = payload.get("reference_selection")
+        return {
+            "eligible_candidates": summary.get("eligible_candidate_count", 0),
+            "excluded_candidates": summary.get("excluded_candidate_count", 0),
+            "fully_robust_portfolio": float(summary.get("fully_robust_portfolio_exists") is True),
+            "frontier_portfolios": payload.get("enumeration", {}).get(
+                "frontier_portfolio_count", 0
+            ),
+            "feasible_portfolios": payload.get("enumeration", {}).get(
+                "feasible_portfolio_count", 0
+            ),
+            "robust_scenarios": reference.get("robust_scenario_count", 0)
+            if isinstance(reference, Mapping)
+            else 0,
+            "worst_direct_service_weight": reference.get("worst_direct_service_weight", 0)
+            if isinstance(reference, Mapping)
+            else 0,
+            "worst_dependency_reach_weight": reference.get("worst_dependency_reach_weight", 0)
+            if isinstance(reference, Mapping)
+            else 0,
+        }
     if kind != "verified-defense" or not isinstance(summary, Mapping):
         return summary if isinstance(summary, Mapping) else {}
 

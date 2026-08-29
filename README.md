@@ -10,8 +10,8 @@ An open **Mission Assurance Commons** for your own agent: privacy-bounded
 operational traces, reproducible security twins, multi-agent authorization
 paths, continuous evidence, signed data-only mission protocols, measured
 mission economics, bounded authorization-race checking, autonomous-collective
-containment evidence, verified cyber-defense remediation, and reviewable OSCAL
-assessment inputs.
+containment evidence, verified cyber-defense remediation, exact cross-sector
+resilience portfolios, and reviewable OSCAL assessment inputs.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -28,6 +28,7 @@ assessment inputs.
 [![CausalProof](https://img.shields.io/badge/CausalProof-trace%E2%86%92proof%20edges-A88BFF)](docs/causalproof.md)
 [![CollectiveGuard](https://img.shields.io/badge/CollectiveGuard-agent%20collective%20containment-FF6B8A)](docs/collectiveguard.md)
 [![DefenderTwin](https://img.shields.io/badge/DefenderTwin-verified%20cyber%20remediation-6DF2B5)](docs/verified-cyber-defense-commons.md)
+[![ResilienceGraph](https://img.shields.io/badge/ResilienceGraph-exact%20defense%20frontiers-F7C873)](docs/resiliencegraph.md)
 [![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
 [![MissionForge](https://img.shields.io/badge/MissionForge-data--only%20agency%20packs-8FFFB0)](docs/missionforge.md)
 [![SourceTwin](https://img.shields.io/badge/SourceTwin-grounding%20probes-5FBDFF)](docs/missionforge.md)
@@ -46,6 +47,43 @@ assessment inputs.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## On main: ResilienceGraph — fund the frontier, not the loudest finding
+
+**A verified fix still competes for scarce people, time, and money.**
+ResilienceGraph turns recomputable DefenderTwin results into an exact,
+cross-sector planning frontier. It models essential-service dependencies,
+resource ceilings, supplier concentration, prerequisites, exclusions, minimum
+service and community floors, and stressed candidate availability.
+
+Unsafe fixes are excluded by recomputing their source evidence. Every subset of
+up to 18 eligible actions is examined; feasible options are replayed under every
+declared scenario; dominated options are removed. The remaining frontier keeps
+security benefit and operational burden separate instead of hiding accountable
+judgment in one score.
+
+```bash
+dspy-security-bench portfolio init --out resilience-campaign.json
+dspy-security-bench portfolio run resilience-campaign.json \
+  --json-out resilience-report.json \
+  --csv-out resilience-frontier.csv \
+  --require-fully-robust
+dspy-security-bench portfolio verify resilience-report.json
+```
+
+The built-in fictional campaign covers healthcare, water, local government,
+open-source software, small business, and their declared digital dependencies.
+It includes an unsafe hospital option on purpose: the unfavorable evidence stays
+visible, but that action never enters the portfolio search.
+
+No output predicts incidents, monetizes harm, ranks a vendor, allocates funds,
+or recommends deployment. A deterministic reference keeps automation stable and
+is permanently labeled `reference_is_recommendation: false`.
+
+[Run the ResilienceGraph workflow →](docs/resiliencegraph.md) ·
+[Explore the interactive resilience frontier →](https://immu4989.github.io/dspy-security-bench/#resiliencegraph)
 
 ---
 
@@ -867,6 +905,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 | ✈️ **Sanitize operational traces** | Use [TraceProof](docs/traceproof.md) to keep OTLP processing local, remove prompts and secrets, find 12 authorization/effect failures, and export JSON, SARIF, OSCAL, or a synthetic replay twin. |
 | 🚨 **Contain autonomous collectives** | Use [CollectiveGuard](docs/collectiveguard.md) to detect side-channel coordination, indirect egress, authority laundering, safe-stop failures, evaluator access, and missed response windows from content-free events. |
 | ✅ **Verify a cyber-defense fix** | Use [DefenderTwin](docs/verified-cyber-defense-commons.md) to prove attack-path closure, target/approval scope, service continuity, introduced-risk absence, rollback, and evidence completeness across five synthetic sectors. |
+| 🧭 **Plan scarce defense resources** | Use [ResilienceGraph](docs/resiliencegraph.md) to exclude unsafe fixes, enumerate every bounded portfolio, stress shared dependencies and provider availability, and expose the exact non-dominated frontier. |
 | 🧭 **Turn runtime structure into proof** | Use [CausalProof](docs/causalproof.md) to keep observed parents, owner assertions, undirected links, and wall-clock hints separate before ScheduleProof exploration. |
 | 🕸️ **Test multi-agent authority** | Run [AgentGraphTwin v2](docs/agentgraph-twin.md) against token exchange, revocation, step-up, parallel approval, and multi-effect paths. |
 | 🧾 **Produce verifiable evidence** | Use [ProofRun](docs/proofrun.md) to preserve raw repeated trials, recompute statistics offline, and attach GitHub/Sigstore provenance to the exact result bytes. |
@@ -1516,6 +1555,7 @@ v0.1 scope choices:
 | v0.18 — CausalProof structural causality, native OpenAI Agents/LangGraph bridges, and public recomputation | **shipped** |
 | v0.19 — CollectiveGuard content-free collective containment, response-window proof, and SARIF export | **shipped** |
 | Verified Cyber Defense Commons — DefenderTwin, five sector missions, Trusted Defender Gate, adapter conformance, SARIF/OSCAL, and privacy-bounded evidence exchange | **shipped on main** |
+| ResilienceGraph — exact evidence-bound remediation portfolios, stressed dependency reach, resource/community floors, full Pareto frontier, CSV, and ContinuousProof | **shipped on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

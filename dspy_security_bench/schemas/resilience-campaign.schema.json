@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/resilience-campaign.schema.json",
+  "title": "ResilienceGraph exact portfolio campaign",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "campaign_type", "campaign_id", "name", "decision_owner", "decision_context", "services", "actions", "scenarios", "constraints", "claim_boundary", "campaign_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "campaign_type": {"const": "dspy-security-bench-resilience-campaign"},
+    "campaign_id": {"$ref": "#/$defs/id"},
+    "name": {"$ref": "#/$defs/text"},
+    "decision_owner": {"$ref": "#/$defs/text"},
+    "decision_context": {"$ref": "#/$defs/text"},
+    "services": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {"$ref": "#/$defs/service"}
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 18,
+      "items": {"$ref": "#/$defs/action"}
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/scenario"}
+    },
+    "constraints": {"$ref": "#/$defs/constraints"},
+    "claim_boundary": {"$ref": "#/$defs/text"},
+    "campaign_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "text": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "boundedInt": {"type": "integer", "minimum": 0, "maximum": 1000000},
+    "idList": {
+      "type": "array",
+      "maxItems": 50,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["service_id", "name", "sector", "community", "criticality_weight", "depends_on"],
+      "properties": {
+        "service_id": {"$ref": "#/$defs/id"},
+        "name": {"$ref": "#/$defs/text"},
+        "sector": {"$ref": "#/$defs/id"},
+        "community": {"$ref": "#/$defs/id"},
+        "criticality_weight": {"type": "integer", "minimum": 1, "maximum": 5},
+        "depends_on": {"$ref": "#/$defs/idList"}
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["budget_units", "workforce_units", "disruption_units"],
+      "properties": {
+        "budget_units": {"$ref": "#/$defs/boundedInt"},
+        "workforce_units": {"$ref": "#/$defs/boundedInt"},
+        "disruption_units": {"$ref": "#/$defs/boundedInt"}
+      }
+    },
+    "defenderReport": {
+      "type": "object",
+      "required": ["schema_version", "report_type", "protocol_version", "summary", "report_sha256"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "report_type": {"const": "DefenderTwin / Verified cyber-defense remediation assurance"},
+        "protocol_version": {"const": "defendertwin-v1"},
+        "summary": {"type": "object"},
+        "report_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_id", "name", "supplier_id", "planning_service_ids", "beneficiary_groups", "resource_demand", "prerequisite_action_ids", "exclusive_with_action_ids", "defender_report"],
+      "properties": {
+        "action_id": {"$ref": "#/$defs/id"},
+        "name": {"$ref": "#/$defs/text"},
+        "supplier_id": {"$ref": "#/$defs/id"},
+        "planning_service_ids": {"allOf": [{"$ref": "#/$defs/idList"}, {"minItems": 1, "maxItems": 20}]},
+        "beneficiary_groups": {"allOf": [{"$ref": "#/$defs/idList"}, {"minItems": 1, "maxItems": 20}]},
+        "resource_demand": {"$ref": "#/$defs/resources"},
+        "prerequisite_action_ids": {"allOf": [{"$ref": "#/$defs/idList"}, {"maxItems": 18}]},
+        "exclusive_with_action_ids": {"allOf": [{"$ref": "#/$defs/idList"}, {"maxItems": 18}]},
+        "defender_report": {"$ref": "#/$defs/defenderReport"}
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenario_id", "name", "unavailable_action_ids"],
+      "properties": {
+        "scenario_id": {"$ref": "#/$defs/id"},
+        "name": {"$ref": "#/$defs/text"},
+        "unavailable_action_ids": {"allOf": [{"$ref": "#/$defs/idList"}, {"maxItems": 18}]}
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_budget_units", "max_workforce_units", "max_disruption_units", "max_actions", "max_actions_per_supplier", "required_service_ids", "required_beneficiary_groups"],
+      "properties": {
+        "max_budget_units": {"$ref": "#/$defs/boundedInt"},
+        "max_workforce_units": {"$ref": "#/$defs/boundedInt"},
+        "max_disruption_units": {"$ref": "#/$defs/boundedInt"},
+        "max_actions": {"type": "integer", "minimum": 1, "maximum": 18},
+        "max_actions_per_supplier": {"type": "integer", "minimum": 1, "maximum": 18},
+        "required_service_ids": {"$ref": "#/$defs/idList"},
+        "required_beneficiary_groups": {"$ref": "#/$defs/idList"}
+      }
+    }
+  }
+}

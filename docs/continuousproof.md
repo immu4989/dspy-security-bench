@@ -17,7 +17,7 @@ and whether review is needed.
 
 Supported source reports are AgentGraphTwin v1/v2, AuthorityTwin,
 MissionPackTwin, IncidentTwin, TraceProof analysis, ScheduleProof,
-CollectiveGuard v1/v2, DefenderTwin, and ValueProof observations.
+CollectiveGuard v1/v2, DefenderTwin, ResilienceGraph, and ValueProof observations.
 The source report is independently verified before a baseline can be created.
 Directionality is explicit: higher security/utility rates are better, while
 findings, severity counts, unsafe effects, cost, latency, review time, recovery
@@ -36,6 +36,12 @@ dspy-security-bench watch baseline candidate-report.json \
 dspy-security-bench watch compare safe-baseline.json candidate.json \
   --max-regression 0 --out remediation-drift.json
 ```
+
+ResilienceGraph snapshots preserve the campaign digest and normalize candidate
+eligibility, feasible/frontier counts, whether a fully scenario-robust portfolio
+exists, and the deterministic reference's robust-scenario, worst-case direct-
+service, and dependency-reach values. Resource allocation and portfolio
+acceptance remain owner decisions.
 
 ContinuousProof is evidence-change detection, not a production observer. It
 does not schedule tests, monitor infrastructure, choose thresholds, accept

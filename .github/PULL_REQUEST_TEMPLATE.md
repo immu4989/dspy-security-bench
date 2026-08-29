@@ -18,5 +18,6 @@
 - [ ] The source URL describes the evaluated agent configuration
 - [ ] No raw OTLP, provider credentials, private prompts, tool arguments/results, identifiers, or sensitive production data are included
 - [ ] Defense evidence contains only synthetic or sanitized structural state; no live targets, exploit payloads, or unpatched private vulnerability details are included
+- [ ] ResilienceGraph campaigns use fictional/safely abstracted dependencies and label service mappings, weights, units, groups, and scenarios as owner-supplied assumptions
 - [ ] I identified the evidence tier: self-attested / GitHub-attested / trusted builder
 - [ ] I understand that provenance does not independently authenticate provider responses

@@ -243,3 +243,8 @@ authorization receipts, OSCAL, SARIF, cyber ranges, or evidence registries are
 individually new. The falsifiable contribution is their strict, privacy-bounded,
 offline-recomputable composition around verified remediation and mission
 continuity.
+
+When several verified fixes compete for constrained people, time, or budget,
+feed their complete reports into [ResilienceGraph](resiliencegraph.md). It
+excludes unsafe candidates and exposes an exact stressed portfolio frontier;
+it does not turn a favorable DefenderTwin result into a funding recommendation.

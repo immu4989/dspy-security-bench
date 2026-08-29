@@ -10,6 +10,19 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **ResilienceGraph**, an exact offline planner that recomputes embedded
+  DefenderTwin reports, excludes unsafe remediation candidates, enumerates all
+  subsets of up to 18 eligible actions, applies resource/prerequisite/exclusion/
+  supplier-concentration/service/community constraints, and exposes the complete
+  non-dominated frontier rather than a hidden weighted ranking.
+- A fictional six-service cross-sector dependency campaign spanning healthcare,
+  water, local government, open-source software, small business, and digital
+  communications; baseline and stressed provider/capacity scenarios; one
+  deliberately unsafe candidate; strict campaign/report schemas; JSON and CSV
+  output; offline recomputation; CI gates; and an interactive frontier lab.
+- ContinuousProof ingestion for ResilienceGraph campaign identity, candidate
+  eligibility, feasible/frontier counts, robust scenarios, and reference
+  worst-case direct-service and dependency-reach weights.
 - **Verified Cyber Defense Commons** with DefenderTwin's deterministic
   finding → remediation → attack-path closure → mission-continuity → rollback
   evidence chain and four explicit outcomes: `effective_and_safe`,
@@ -49,6 +62,10 @@ several of them changed published numbers.
   evidence, and live public-registry bundles.
 
 ### Security
+- ResilienceGraph never treats downstream dependency reach as verified service
+  protection, never infers scenario probabilities or economic loss, never
+  relaxes an impossible owner floor, and fixes the reference-selection label to
+  `reference_is_recommendation: false`.
 - Public defense bundles reject prompt/reasoning/tool/credential/exploit/live-
   target fields, require `raw_data_shared: false`, and keep private or embargoed
   evidence out of the public registry.

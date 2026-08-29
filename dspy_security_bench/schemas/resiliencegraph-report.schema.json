@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/resiliencegraph-report.schema.json",
+  "title": "ResilienceGraph exact verified-defense portfolio report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "protocol_sha256", "analyzer", "campaign_sha256", "campaign", "candidate_eligibility", "enumeration", "summary", "frontier", "reference_selection", "decision_authority", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "ResilienceGraph / Verified defense portfolio evidence"},
+    "protocol_version": {"const": "resiliencegraph-v1"},
+    "protocol_sha256": {"$ref": "#/$defs/sha256"},
+    "analyzer": {"const": "exact-resilience-frontier-v1"},
+    "campaign_sha256": {"$ref": "#/$defs/sha256"},
+    "campaign": {
+      "type": "object",
+      "required": ["campaign_type", "campaign_id", "campaign_sha256"],
+      "properties": {
+        "campaign_type": {"const": "dspy-security-bench-resilience-campaign"},
+        "campaign_id": {"$ref": "#/$defs/id"},
+        "campaign_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "candidate_eligibility": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 18,
+      "items": {"$ref": "#/$defs/eligibility"}
+    },
+    "enumeration": {"$ref": "#/$defs/enumeration"},
+    "summary": {"$ref": "#/$defs/summary"},
+    "frontier": {"type": "array", "items": {"$ref": "#/$defs/portfolio"}},
+    "reference_selection": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/portfolio"}]},
+    "decision_authority": {"$ref": "#/$defs/text"},
+    "claim_boundary": {"$ref": "#/$defs/text"},
+    "limitations": {"type": "array", "minItems": 5, "maxItems": 20, "items": {"$ref": "#/$defs/text"}},
+    "report_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "portfolioId": {"type": "string", "pattern": "^portfolio-[0-9a-f]{16}$"},
+    "text": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonnegative": {"type": "integer", "minimum": 0},
+    "idList": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["budget_units", "workforce_units", "disruption_units"],
+      "properties": {
+        "budget_units": {"$ref": "#/$defs/nonnegative"},
+        "workforce_units": {"$ref": "#/$defs/nonnegative"},
+        "disruption_units": {"$ref": "#/$defs/nonnegative"}
+      }
+    },
+    "eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_id", "eligible", "reasons", "defender_report_sha256", "defender_outcome", "planning_mapping_verified_by_defendertwin"],
+      "properties": {
+        "action_id": {"$ref": "#/$defs/id"},
+        "eligible": {"type": "boolean"},
+        "reasons": {"type": "array", "maxItems": 10, "items": {"$ref": "#/$defs/text"}},
+        "defender_report_sha256": {"$ref": "#/$defs/sha256"},
+        "defender_outcome": {"enum": ["effective_and_safe", "effective_with_regression", "ineffective", "insufficient_evidence"]},
+        "planning_mapping_verified_by_defendertwin": {"const": false}
+      }
+    },
+    "enumeration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eligible_action_count", "total_subsets", "feasible_portfolio_count", "frontier_portfolio_count", "complete", "action_limit"],
+      "properties": {
+        "eligible_action_count": {"$ref": "#/$defs/nonnegative"},
+        "total_subsets": {"type": "integer", "minimum": 1},
+        "feasible_portfolio_count": {"$ref": "#/$defs/nonnegative"},
+        "frontier_portfolio_count": {"$ref": "#/$defs/nonnegative"},
+        "complete": {"const": true},
+        "action_limit": {"const": 18}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "candidate_count", "eligible_candidate_count", "excluded_candidate_count", "service_count", "scenario_count", "fully_robust_portfolio_exists", "reference_portfolio_id", "reference_is_recommendation", "content_fields_processed", "live_system_actions"],
+      "properties": {
+        "outcome": {"enum": ["decision_ready", "no_feasible_portfolio"]},
+        "candidate_count": {"$ref": "#/$defs/nonnegative"},
+        "eligible_candidate_count": {"$ref": "#/$defs/nonnegative"},
+        "excluded_candidate_count": {"$ref": "#/$defs/nonnegative"},
+        "service_count": {"$ref": "#/$defs/nonnegative"},
+        "scenario_count": {"$ref": "#/$defs/nonnegative"},
+        "fully_robust_portfolio_exists": {"type": "boolean"},
+        "reference_portfolio_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/portfolioId"}]},
+        "reference_is_recommendation": {"const": false},
+        "content_fields_processed": {"const": 0},
+        "live_system_actions": {"const": 0}
+      }
+    },
+    "scenarioResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenario_id", "active_action_ids", "unavailable_selected_action_ids", "direct_service_ids", "dependency_reach_service_ids", "beneficiary_groups", "direct_service_weight", "dependency_reach_weight", "requirements_met", "missing_required_service_ids", "missing_required_beneficiary_groups"],
+      "properties": {
+        "scenario_id": {"$ref": "#/$defs/id"},
+        "active_action_ids": {"$ref": "#/$defs/idList"},
+        "unavailable_selected_action_ids": {"$ref": "#/$defs/idList"},
+        "direct_service_ids": {"$ref": "#/$defs/idList"},
+        "dependency_reach_service_ids": {"$ref": "#/$defs/idList"},
+        "beneficiary_groups": {"$ref": "#/$defs/idList"},
+        "direct_service_weight": {"$ref": "#/$defs/nonnegative"},
+        "dependency_reach_weight": {"$ref": "#/$defs/nonnegative"},
+        "requirements_met": {"type": "boolean"},
+        "missing_required_service_ids": {"$ref": "#/$defs/idList"},
+        "missing_required_beneficiary_groups": {"$ref": "#/$defs/idList"}
+      }
+    },
+    "portfolio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["portfolio_id", "selected_action_ids", "resources", "supplier_action_counts", "robust_scenario_count", "worst_direct_service_weight", "worst_dependency_reach_weight", "worst_beneficiary_group_count", "scenario_results"],
+      "properties": {
+        "portfolio_id": {"$ref": "#/$defs/portfolioId"},
+        "selected_action_ids": {"$ref": "#/$defs/idList"},
+        "resources": {"$ref": "#/$defs/resources"},
+        "supplier_action_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 1}},
+        "robust_scenario_count": {"$ref": "#/$defs/nonnegative"},
+        "worst_direct_service_weight": {"$ref": "#/$defs/nonnegative"},
+        "worst_dependency_reach_weight": {"$ref": "#/$defs/nonnegative"},
+        "worst_beneficiary_group_count": {"$ref": "#/$defs/nonnegative"},
+        "scenario_results": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"$ref": "#/$defs/scenarioResult"}}
+      }
+    }
+  }
+}

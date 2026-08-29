@@ -1,0 +1,54 @@
+name: ResilienceGraph campaign
+description: Propose a fictional cross-sector campaign, exact frontier reproduction, or planning-contract improvement.
+title: "[resilience] "
+labels: ["resiliencegraph"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ResilienceGraph needs reviewable planning problems, not sensitive infrastructure data. Use fictional or safely abstracted services, dimensionless resources, and recomputable DefenderTwin evidence. Never identify a facility, live target, unpatched private vulnerability, credential, or protected operational dependency.
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Contribution type
+      options:
+        - Fictional sector or regional campaign
+        - Independent frontier reproduction
+        - Constraint or scenario model
+        - Dependency-model review
+        - Exact-enumeration improvement
+        - Government or industry usability review
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: Accountable decision and users
+      description: Name the planning decision, who owns it, and which organizations or communities benefit.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Source evidence and reproduction
+      description: List the DefenderTwin report digests, command, subset/feasible/frontier counts, and known limitations.
+    validations:
+      required: true
+  - type: textarea
+    id: assumptions
+    attributes:
+      label: Owner-supplied assumptions
+      description: Explain service mappings, dependency edges, ordinal weights, resource units, beneficiary groups, constraints, and scenarios.
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Safety and claim boundary
+      options:
+        - label: The proposal contains no live targets, sensitive facility or dependency data, credentials, private telemetry, exploit payloads, or unpatched private vulnerability details.
+          required: true
+        - label: Dependency reach is not presented as verified downstream protection, and no probability, avoided loss, ROI, certification, funding recommendation, or government endorsement is claimed.
+          required: true
+        - label: The accountable owner—not ResilienceGraph or an AI model—retains the funding, deployment, and risk-acceptance decision.
+          required: true

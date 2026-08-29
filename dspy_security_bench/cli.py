@@ -7,6 +7,7 @@ Subcommands:
   graph       Trace authorization failures across multi-agent execution paths.
   collective  Analyze structural containment evidence for autonomous agent collectives.
   defend      Verify AI-assisted cyber-defense remediation without live target actions.
+  portfolio   Plan exact, evidence-backed defense portfolios across shared services.
   causal      Convert structural runtime causality into proof-ready schedules.
   schedule    Exhaustively explore bounded agent authorization interleavings.
   watch       Detect assurance regressions from verified evidence baselines.
@@ -78,7 +79,7 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__)
         print(
             "Usage: dspy-security-bench "
-            "<init|integrate|doctor|scan|impact|incident|pack|authority|inventory|graph|collective|defend|causal|schedule|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
+            "<init|integrate|doctor|scan|impact|incident|pack|authority|inventory|graph|collective|defend|portfolio|causal|schedule|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
         )
         return 0
 
@@ -129,6 +130,10 @@ def main(argv: list[str] | None = None) -> int:
         from dspy_security_bench.defend.cli import main as defend_main
 
         return defend_main(rest)
+    if sub == "portfolio":
+        from dspy_security_bench.portfolio.cli import main as portfolio_main
+
+        return portfolio_main(rest)
     if sub == "causal":
         from dspy_security_bench.causal.cli import main as causal_main
 
@@ -178,7 +183,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"unknown subcommand {sub!r}. Use: "
-        "init | integrate | doctor | scan | impact | incident | pack | authority | inventory | graph | collective | defend | causal | schedule | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
+        "init | integrate | doctor | scan | impact | incident | pack | authority | inventory | graph | collective | defend | portfolio | causal | schedule | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
         file=sys.stderr,
     )
     return 2
