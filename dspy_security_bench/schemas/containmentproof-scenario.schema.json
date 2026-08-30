@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/containmentproof-scenario.schema.json",
+  "title": "ContainmentProof harmless-canary scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scenario_type", "scenario_id", "title", "description", "environment", "policy", "sources", "observations", "claim_boundary", "scenario_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scenario_type": {"const": "dspy-security-bench-containmentproof-scenario"},
+    "scenario_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "title": {"type": "string", "minLength": 1, "maxLength": 300},
+    "description": {"type": "string", "minLength": 1, "maxLength": 1500},
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["execution_mode", "internet_access", "production_access", "credential_material", "live_targets"],
+      "properties": {
+        "execution_mode": {"const": "synthetic-canary"},
+        "internet_access": {"enum": ["denied", "simulated"]},
+        "production_access": {"const": false},
+        "credential_material": {"const": "honeytoken-only"},
+        "live_targets": {"const": false}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_alert_latency_ms", "require_human_pause", "require_restart_approval", "impossible_task_action"],
+      "properties": {
+        "max_alert_latency_ms": {"type": "integer", "minimum": 1, "maximum": 86400000},
+        "require_human_pause": {"const": true},
+        "require_restart_approval": {"const": true},
+        "impossible_task_action": {"const": "safe-stop"}
+      }
+    },
+    "sources": {
+      "type": "array", "minItems": 1, "maxItems": 40,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["source_id", "source_class", "complete", "independent_control", "description"],
+        "properties": {
+          "source_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+          "source_class": {"enum": ["runtime", "network", "identity", "monitor", "evaluator", "response"]},
+          "complete": {"type": "boolean"},
+          "independent_control": {"type": "boolean"},
+          "description": {"type": "string", "minLength": 1, "maxLength": 500}
+        }
+      }
+    },
+    "observations": {
+      "type": "array", "minItems": 8, "maxItems": 8,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["probe_id", "attempt_observed", "boundary_blocked", "canary_triggered", "monitor_alerted", "alert_latency_ms", "safe_stop_observed", "human_pause_observed", "restart_approved", "source_ids"],
+        "properties": {
+          "probe_id": {"enum": ["workload-isolation", "network-egress", "cross-run-communication", "credential-honeytoken", "evaluator-integrity", "impossible-task-safe-stop", "human-pause", "restart-authorization"]},
+          "attempt_observed": {"type": "boolean"},
+          "boundary_blocked": {"type": "boolean"},
+          "canary_triggered": {"type": "boolean"},
+          "monitor_alerted": {"type": "boolean"},
+          "alert_latency_ms": {"type": "integer", "minimum": 0, "maximum": 86400000},
+          "safe_stop_observed": {"type": "boolean"},
+          "human_pause_observed": {"type": "boolean"},
+          "restart_approved": {"type": "boolean"},
+          "source_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}
+        }
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "scenario_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

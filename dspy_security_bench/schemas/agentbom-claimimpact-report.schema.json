@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/agentbom-claimimpact-report.schema.json",
+  "title": "AgentBOM ClaimImpact report",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "protocol_sha256", "analyzer", "baseline_inventory_sha256", "candidate_inventory_sha256", "baseline", "candidate", "change_reason", "summary", "changes", "affected_component_ids", "claim_impacts", "unbound_claim_ids", "minimal_reevaluation_plan", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AgentBOM / Dependency-to-assurance claim impact"},
+    "protocol_version": {"const": "agentbom-claimimpact-v1"},
+    "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "analyzer": {"const": "deterministic-transitive-claim-impact-v1"},
+    "baseline_inventory_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "candidate_inventory_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "baseline": {"type": "object"},
+    "candidate": {"type": "object"},
+    "change_reason": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "inventory_complete", "component_count_before", "component_count_after", "added_components", "removed_components", "changed_components", "changed_relationships", "affected_components", "impacted_claims", "unbound_claims", "automatic_deployment_actions", "automatic_procurement_actions"],
+      "properties": {
+        "status": {"enum": ["no_material_change", "reevaluation_required"]},
+        "inventory_complete": {"type": "boolean"},
+        "component_count_before": {"type": "integer", "minimum": 1},
+        "component_count_after": {"type": "integer", "minimum": 1},
+        "added_components": {"type": "integer", "minimum": 0},
+        "removed_components": {"type": "integer", "minimum": 0},
+        "changed_components": {"type": "integer", "minimum": 0},
+        "changed_relationships": {"type": "integer", "minimum": 0},
+        "affected_components": {"type": "integer", "minimum": 0},
+        "impacted_claims": {"type": "integer", "minimum": 0},
+        "unbound_claims": {"type": "integer", "minimum": 0},
+        "automatic_deployment_actions": {"const": 0},
+        "automatic_procurement_actions": {"const": 0}
+      }
+    },
+    "changes": {"type": "object"},
+    "affected_component_ids": {"type": "array", "items": {"type": "string"}},
+    "claim_impacts": {"type": "array", "items": {"type": "object"}},
+    "unbound_claim_ids": {"type": "array", "items": {"type": "string"}},
+    "minimal_reevaluation_plan": {"type": "array", "items": {"type": "object"}},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

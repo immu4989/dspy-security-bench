@@ -10,6 +10,46 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AssuranceGraph**, a deterministic executable claim–evidence graph that
+  natively recomputes AuthorityTwin, TraceProof, CollectiveGuard v2,
+  ScheduleProof, DefenderTwin, ResilienceGraph, ContainmentProof, and AgentBOM
+  ClaimImpact artifacts before evaluating
+  frozen enterprise, frontier-lab, federal-high-impact, or
+  critical-infrastructure profile predicates.
+- Five distinct claim outcomes (`supported`, `violated`, `contradicted`,
+  `stale_evidence`, and `missing_evidence`), explicit evidence owners and ages,
+  digest pinning, path confinement, strict case/report schemas, semantic offline
+  report recomputation, and zero automatic deployment or risk-acceptance action.
+- AssuranceGraph JSON, SARIF 2.1.0, informative OSCAL 1.2.2, and polished
+  standalone HTML outputs, a native-verification `assure digest` helper, and a
+  complete eight-artifact fictional demo.
+- **ContainmentProof**, an eight-canary structural control protocol for workload
+  isolation, network egress, cross-run communication, harmless credential
+  honeytokens, evaluator integrity, impossible-task safe stop, human pause, and
+  restart authorization. Containment violations, monitor failures, and
+  incomplete evidence remain distinct; the analyzer executes no agent or action.
+- **AgentBOM ClaimImpact**, a strict AI-agent component/relationship/claim-
+  binding inventory with reverse transitive dependency closure, exact minimal
+  reevaluation plans, local CycloneDX and SPDX starter imports, SARIF, and
+  semantic offline recomputation.
+- Seven explicitly fictional AssuranceGraph sector starters for public benefits,
+  healthcare administration, financial investigation, manufacturing
+  maintenance, water operations, emergency logistics, and software development.
+- A declarative probe contribution contract that verifies favorable and
+  unfavorable local fixtures through existing native verifiers while forbidding
+  repository auto-execution, networks, secrets, live targets, and third-party
+  code loading.
+- A closed, content-addressed federal AssuranceGraph review pack containing
+  OSCAL observations, Assessment Plan inputs, an evidence index, freshness
+  plan, change triggers, and owner-only POA&M inputs, plus exact offline
+  verification and zero automatic ATO, control, or risk determinations.
+- A non-ranking public AssuranceGraph reproduction exchange that preserves
+  unfavorable, stale, withdrawn, and superseded cases, known gaps, immutable
+  revisions, and attributable independent reproduction records with zero
+  endorsements.
+- A dramatic responsive Assurance Control Plane dashboard visual connecting
+  canary status, monitoring semantics, dependency change propagation, sector
+  starters, federal review inputs, and public reproductions.
 - **ResilienceGraph**, an exact offline planner that recomputes embedded
   DefenderTwin reports, excludes unsafe remediation candidates, enumerates all
   subsets of up to 18 eligible actions, applies resource/prerequisite/exclusion/
@@ -62,6 +102,15 @@ several of them changed published numbers.
   evidence, and live public-registry bundles.
 
 ### Security
+- AssuranceGraph rejects absolute and escaping evidence paths, future-dated or
+  oversized artifacts, wrong evidence kinds, invalid native reports, digest
+  mismatches, and silently favorable resolution of contradictory evidence.
+- Probe manifests cannot name or load executable contributor code; conformance
+  confines bounded fixtures beneath an explicit root and requires native
+  semantic verification of distinct favorable and unfavorable evidence.
+- Assurance review packs use a closed file set, pin raw bytes, recompute every
+  derived artifact, reject undeclared files, and embed no source evidence
+  payloads.
 - ResilienceGraph never treats downstream dependency reach as verified service
   protection, never infers scenario probabilities or economic loss, never
   relaxes an impossible owner floor, and fixes the reference-selection label to

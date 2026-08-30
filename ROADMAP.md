@@ -17,6 +17,10 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- **AssuranceGraph v1** executable claim–evidence cases with native semantic
+  verification, frozen stakeholder profiles, five fail-closed claim outcomes,
+  digest/freshness/owner binding, strict schemas, JSON/SARIF/OSCAL/HTML output,
+  and a complete eight-artifact fictional critical-infrastructure demo.
 - **CollectiveGuard v2 Evidence Plane** composing the frozen v1 analyzer with
   six declared source classes, per-event provenance, strict completeness gates,
   and a distinct `insufficient_evidence` outcome.
@@ -32,6 +36,13 @@ compliance or safety overclaims.
   1.2.2 Assessment Results.
 - CI-recomputed public CollectiveGuard evidence bundles plus an observe-only
   ContinuousProof freshness/regression controller and hash-chained timeline.
+- ContainmentProof v1 with eight harmless canaries and separate containment,
+  monitoring, and evidence-completeness outcomes.
+- AgentBOM ClaimImpact v1 with AI-agent component and claim bindings, transitive
+  invalidation, local CycloneDX/SPDX imports, and exact reevaluation plans.
+- Seven fictional AssuranceGraph sector starters, a non-executing probe
+  contract, closed federal review packs, and a non-ranking public reproduction
+  exchange.
 
 ## Delivered on main after v0.16
 
@@ -79,6 +90,13 @@ compliance or safety overclaims.
 
 ## Next
 
+- Recruit independent ContainmentProof, AgentBOM, and complete AssuranceGraph
+  reproductions using synthetic or safely publishable evidence, including
+  unfavorable cases and documented telemetry gaps.
+- Add owner-reviewed mappings for SLSA provenance and emerging AI/ML SBOM fields
+  only where they preserve the strict AgentBOM component and claim boundary.
+- Publish conformance fixtures from multiple runtimes through the declarative
+  probe contract without accepting executable community plugins.
 - Publish independent real-backend AuthorityBridge evidence for each supported
   ecosystem, maintained by users or vendors and clearly separated from the
   bundled translation fixtures.

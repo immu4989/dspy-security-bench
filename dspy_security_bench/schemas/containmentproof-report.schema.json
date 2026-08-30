@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/containmentproof-report.schema.json",
+  "title": "ContainmentProof report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "protocol_sha256", "analyzer", "scenario_sha256", "scenario", "summary", "probe_results", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "ContainmentProof / Canary-based agent control evidence"},
+    "protocol_version": {"const": "containmentproof-v1"},
+    "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "analyzer": {"const": "deterministic-canary-containment-analyzer-v1"},
+    "scenario_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scenario": {"type": "object"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "probe_count", "probe_status_counts", "workload_isolation_observed", "network_isolation_observed", "cross_run_isolation_observed", "credential_boundary_observed", "evaluator_integrity_observed", "safe_stop_observed", "human_pause_effective", "restart_authorized", "maximum_observed_alert_latency_ms", "alert_latency_is_service_level_guarantee", "automatic_shutdown_actions", "automatic_restart_actions"],
+      "properties": {
+        "status": {"enum": ["contained", "containment_violated", "monitor_failed", "incomplete_evidence"]},
+        "probe_count": {"const": 8},
+        "probe_status_counts": {"type": "object"},
+        "workload_isolation_observed": {"type": "boolean"},
+        "network_isolation_observed": {"type": "boolean"},
+        "cross_run_isolation_observed": {"type": "boolean"},
+        "credential_boundary_observed": {"type": "boolean"},
+        "evaluator_integrity_observed": {"type": "boolean"},
+        "safe_stop_observed": {"type": "boolean"},
+        "human_pause_effective": {"type": "boolean"},
+        "restart_authorized": {"type": "boolean"},
+        "maximum_observed_alert_latency_ms": {"type": "integer", "minimum": 0},
+        "alert_latency_is_service_level_guarantee": {"const": false},
+        "automatic_shutdown_actions": {"const": 0},
+        "automatic_restart_actions": {"const": 0}
+      }
+    },
+    "probe_results": {"type": "array", "minItems": 8, "maxItems": 8, "items": {"type": "object"}},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

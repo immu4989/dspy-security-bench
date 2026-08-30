@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/assurancegraph-report.schema.json",
+  "title": "AssuranceGraph report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "report_type",
+    "protocol_version",
+    "protocol_sha256",
+    "analyzer",
+    "case",
+    "case_sha256",
+    "profile",
+    "profile_sha256",
+    "summary",
+    "evidence_results",
+    "claim_results",
+    "informative_crosswalk",
+    "claim_boundary",
+    "limitations",
+    "report_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceGraph / Executable agent assurance case"},
+    "protocol_version": {"const": "assurancegraph-v1"},
+    "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "analyzer": {"const": "deterministic-claim-evidence-graph-v1"},
+    "case": {"type": "object"},
+    "case_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "profile": {"type": "object"},
+    "profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "claim_count", "evidence_count", "verified_current_evidence", "invalid_evidence", "missing_evidence_files", "stale_evidence_files", "claim_status_counts", "automatic_deployment_actions", "automatic_risk_acceptances"],
+      "properties": {
+        "status": {"enum": ["profile_evidence_supported", "review_required", "evidence_contradicts_deployment"]},
+        "claim_count": {"type": "integer", "minimum": 1},
+        "evidence_count": {"type": "integer", "minimum": 1},
+        "verified_current_evidence": {"type": "integer", "minimum": 0},
+        "invalid_evidence": {"type": "integer", "minimum": 0},
+        "missing_evidence_files": {"type": "integer", "minimum": 0},
+        "stale_evidence_files": {"type": "integer", "minimum": 0},
+        "automatic_deployment_actions": {"const": 0},
+        "automatic_risk_acceptances": {"const": 0},
+        "claim_status_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["supported", "violated", "contradicted", "stale_evidence", "missing_evidence"],
+          "properties": {
+            "supported": {"type": "integer", "minimum": 0},
+            "violated": {"type": "integer", "minimum": 0},
+            "contradicted": {"type": "integer", "minimum": 0},
+            "stale_evidence": {"type": "integer", "minimum": 0},
+            "missing_evidence": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "evidence_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidence_id", "evidence_kind", "path", "owner", "observed_at", "max_age_seconds", "age_seconds", "expected_sha256", "actual_sha256", "verification_status", "errors"],
+        "properties": {
+          "evidence_id": {"type": "string"},
+          "evidence_kind": {"type": "string"},
+          "path": {"type": "string"},
+          "owner": {"type": "string"},
+          "observed_at": {"type": "integer"},
+          "max_age_seconds": {"type": "integer"},
+          "age_seconds": {"type": "integer"},
+          "expected_sha256": {"type": ["string", "null"]},
+          "actual_sha256": {"type": ["string", "null"]},
+          "verification_status": {"enum": ["verified_current", "verified_stale", "missing", "invalid"]},
+          "errors": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "claim_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim_id", "title", "statement", "category", "criticality", "required_evidence_kind", "status", "supporting_evidence_ids", "violating_evidence_ids", "stale_evidence_ids", "unavailable_evidence_ids", "checks", "informative_crosswalk"],
+        "properties": {
+          "claim_id": {"type": "string"},
+          "title": {"type": "string"},
+          "statement": {"type": "string"},
+          "category": {"type": "string"},
+          "criticality": {"enum": ["critical", "high"]},
+          "required_evidence_kind": {"type": "string"},
+          "status": {"enum": ["supported", "violated", "contradicted", "stale_evidence", "missing_evidence"]},
+          "supporting_evidence_ids": {"type": "array", "items": {"type": "string"}},
+          "violating_evidence_ids": {"type": "array", "items": {"type": "string"}},
+          "stale_evidence_ids": {"type": "array", "items": {"type": "string"}},
+          "unavailable_evidence_ids": {"type": "array", "items": {"type": "string"}},
+          "checks": {"type": "array"},
+          "informative_crosswalk": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "informative_crosswalk": {"type": "array", "items": {"type": "object"}},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/dspy_security_bench/schemas/assurance-review-pack-manifest.schema.json",
+  "title": "AssuranceGraph federal review-pack manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pack_schema_version", "pack_type", "case_id", "report_sha256", "profile_id", "evaluation_time", "assurance_status", "oscal_version", "files", "automatic_control_determinations", "automatic_risk_acceptances", "automatic_authorizations_to_operate", "disclaimer", "pack_sha256"],
+  "properties": {
+    "pack_schema_version": {"const": 1},
+    "pack_type": {"const": "dspy-security-bench-assurance-review-pack"},
+    "case_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "report_sha256": {"$ref": "#/$defs/digest"},
+    "profile_id": {"enum": ["enterprise-agent", "frontier-lab", "federal-high-impact", "critical-infrastructure"]},
+    "evaluation_time": {"type": "integer", "minimum": 0},
+    "assurance_status": {"enum": ["profile_evidence_supported", "review_required", "evidence_contradicts_deployment"]},
+    "oscal_version": {"const": "1.2.2"},
+    "files": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["README.md", "assessment-plan-input.json", "assessment-results.json", "assurance-report.json", "change-triggers.md", "evidence-index.json", "freshness-plan.json", "poam-input.json"],
+      "properties": {
+        "README.md": {"$ref": "#/$defs/digest"},
+        "assessment-plan-input.json": {"$ref": "#/$defs/digest"},
+        "assessment-results.json": {"$ref": "#/$defs/digest"},
+        "assurance-report.json": {"$ref": "#/$defs/digest"},
+        "change-triggers.md": {"$ref": "#/$defs/digest"},
+        "evidence-index.json": {"$ref": "#/$defs/digest"},
+        "freshness-plan.json": {"$ref": "#/$defs/digest"},
+        "poam-input.json": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "automatic_control_determinations": {"const": 0},
+    "automatic_risk_acceptances": {"const": 0},
+    "automatic_authorizations_to_operate": {"const": 0},
+    "disclaimer": {"type": "string", "minLength": 1},
+    "pack_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

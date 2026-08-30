@@ -189,6 +189,76 @@ def test_site_presents_resiliencegraph_as_an_exact_owner_governed_frontier():
     }
 
 
+def test_site_presents_assurancegraph_as_a_non_certifying_evidence_compiler():
+    html = (SITE / "index.html").read_text()
+    for value in (
+        'id="assurancegraph"',
+        "Eight proofs.",
+        "ASSURANCEGRAPH::CLAIM-EVIDENCE::V1",
+        "NATIVE EVIDENCE VERIFIERS",
+        "EXECUTABLE CLAIM GRAPH",
+        "CONTRADICTED",
+        "AUTOMATIC DEPLOYMENT ACTIONS: 0",
+        "dspy-security-bench assure demo --out-dir artifacts/assurancegraph",
+    ):
+        assert value in html
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#assurance-copy"' in script
+    commons = build_payload()["missionAssuranceCommons"]["assuranceGraph"]
+    assert commons == {
+        "protocolVersion": "assurancegraph-v1",
+        "profileCount": 4,
+        "evidenceKindCount": 8,
+        "sectorStarterCount": 7,
+        "federalReviewPackFileCount": 8,
+        "claimStatuses": [
+            "supported",
+            "violated",
+            "contradicted",
+            "stale_evidence",
+            "missing_evidence",
+        ],
+        "automaticDeploymentActions": 0,
+    }
+
+
+def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plane():
+    payload = build_payload()
+    assert payload["assuranceExchange"] == {
+        "entryCount": 0,
+        "activeEntryCount": 0,
+        "independentReproductionCount": 0,
+        "sectorCount": 0,
+        "rankingEnabled": False,
+        "automaticEndorsements": 0,
+    }
+    commons = payload["missionAssuranceCommons"]
+    assert commons["containmentProof"] == {
+        "protocolVersion": "containmentproof-v1",
+        "canaryProbeCount": 8,
+        "automaticResponseActions": 0,
+    }
+    assert commons["agentBOM"]["protocolVersion"] == "agentbom-claimimpact-v1"
+    assert commons["probeContract"]["thirdPartyCodeLoading"] is False
+
+    html = (SITE / "index.html").read_text()
+    for value in (
+        'id="control-plane"',
+        "Prove the boundary.",
+        "CONTROLPLANE::CANARIES+AGENTBOM::V1",
+        "Runtime control pulse",
+        "Dependency-to-claim ripple",
+        "VIOLATION ≠ MONITOR FAILURE ≠ INCOMPLETE EVIDENCE",
+        "AUTOMATIC SHUTDOWNS: 0",
+        "AUTOMATIC DEPLOYMENTS: 0",
+        "data-assurance-exchange-count",
+        "dspy-security-bench contain demo --out-dir artifacts/containmentproof",
+    ):
+        assert value in html
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#control-plane-copy"' in script
+
+
 def test_defense_registry_only_exposes_recomputable_public_patterns(tmp_path):
     from dspy_security_bench.defend.evidence import build_evidence_bundle
     from dspy_security_bench.defend.protocol import (

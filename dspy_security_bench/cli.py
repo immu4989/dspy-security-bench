@@ -1,6 +1,10 @@
 """Umbrella CLI: `dspy-security-bench <subcommand>`.
 
 Subcommands:
+  assure      Compile verified evidence into an executable agent assurance case.
+  contain     Analyze harmless canary containment and response evidence.
+  bom         Map agent dependencies to assurance reevaluation requirements.
+  probe       Validate data-only assurance probe contributions without loading code.
   doctor      Validate a BYOA integration without invoking the agent run loop.
   federal     Export standards-aligned FederalProof assessment evidence.
   inventory   Turn public AI inventories into synthetic MissionPack drafts.
@@ -79,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__)
         print(
             "Usage: dspy-security-bench "
-            "<init|integrate|doctor|scan|impact|incident|pack|authority|inventory|graph|collective|defend|portfolio|causal|schedule|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
+            "<init|integrate|doctor|assure|contain|bom|probe|scan|impact|incident|pack|authority|inventory|graph|collective|defend|portfolio|causal|schedule|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
         )
         return 0
 
@@ -94,6 +98,22 @@ def main(argv: list[str] | None = None) -> int:
         from dspy_security_bench.integrations.cli import doctor_main
 
         return doctor_main(rest)
+    if sub == "assure":
+        from dspy_security_bench.assurance.cli import main as assure_main
+
+        return assure_main(rest)
+    if sub == "contain":
+        from dspy_security_bench.containment.cli import main as contain_main
+
+        return contain_main(rest)
+    if sub == "bom":
+        from dspy_security_bench.supplychain.cli import main as bom_main
+
+        return bom_main(rest)
+    if sub == "probe":
+        from dspy_security_bench.probes.cli import main as probe_main
+
+        return probe_main(rest)
     if sub == "scan":
         from dspy_security_bench.scan.cli import main as scan_main
 
@@ -183,7 +203,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"unknown subcommand {sub!r}. Use: "
-        "init | integrate | doctor | scan | impact | incident | pack | authority | inventory | graph | collective | defend | portfolio | causal | schedule | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
+        "init | integrate | doctor | assure | contain | bom | probe | scan | impact | incident | pack | authority | inventory | graph | collective | defend | portfolio | causal | schedule | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
         file=sys.stderr,
     )
     return 2

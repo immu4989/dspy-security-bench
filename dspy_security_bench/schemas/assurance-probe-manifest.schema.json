@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/dspy_security_bench/schemas/assurance-probe-manifest.schema.json",
+  "title": "DSPy Security Bench declarative assurance probe manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "manifest_type", "protocol_version", "probe_id", "name", "description", "probe_version", "maintainer", "license", "evidence_contract", "fixtures", "execution_boundary", "prohibited_data_classes", "claim_boundary", "manifest_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "manifest_type": {"const": "dspy-security-bench-probe-manifest"},
+    "protocol_version": {"const": "assurance-probe-contract-v1"},
+    "probe_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "name": {"type": "string", "minLength": 1, "maxLength": 200},
+    "description": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "probe_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[a-z0-9.-]+)?$"},
+    "maintainer": {"type": "string", "minLength": 1, "maxLength": 300},
+    "license": {"type": "string", "minLength": 1, "maxLength": 100},
+    "evidence_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evidence_kind", "report_type", "native_verifier_required"],
+      "properties": {
+        "evidence_kind": {"type": "string", "minLength": 1, "maxLength": 100},
+        "report_type": {"type": "string", "minLength": 1, "maxLength": 300},
+        "native_verifier_required": {"const": true}
+      }
+    },
+    "fixtures": {
+      "type": "object", "additionalProperties": false,
+      "required": ["favorable", "unfavorable"],
+      "properties": {
+        "favorable": {"$ref": "#/$defs/favorableFixture"},
+        "unfavorable": {"$ref": "#/$defs/unfavorableFixture"}
+      }
+    },
+    "execution_boundary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["manifest_only", "repository_auto_exec", "network_access", "production_targets", "accepts_secrets", "third_party_code_loading", "max_fixture_bytes"],
+      "properties": {
+        "manifest_only": {"const": true},
+        "repository_auto_exec": {"const": false},
+        "network_access": {"const": "denied"},
+        "production_targets": {"const": false},
+        "accepts_secrets": {"const": false},
+        "third_party_code_loading": {"const": false},
+        "max_fixture_bytes": {"const": 50000000}
+      }
+    },
+    "prohibited_data_classes": {
+      "const": ["credentials-or-secrets", "live-target-identifiers", "personal-or-regulated-data", "production-telemetry", "weaponized-exploit-payloads"]
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "favorableFixture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "expected_sha256", "declared_role"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "expected_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "declared_role": {"const": "supports-the-proposed-claim-under-the-fixture-boundary"}
+      }
+    },
+    "unfavorableFixture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "expected_sha256", "declared_role"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "expected_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "declared_role": {"const": "challenges-the-proposed-claim-under-the-fixture-boundary"}
+      }
+    }
+  }
+}

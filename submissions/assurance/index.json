@@ -1,0 +1,9 @@
+{
+  "automatic_endorsements": 0,
+  "claim_boundary": "The exchange is a metadata index for independently reproducible, safely public AssuranceGraph reports. Admission validates declared structure and content identity; it does not authenticate observations, rank systems, certify safety or compliance, authorize operation, approve procurement, accept risk, or imply government endorsement.",
+  "entries": [],
+  "ranking_enabled": false,
+  "registry_sha256": "9c1ab84aa93648eb314e7a6ae239a6d029a4a2b103e351136c109135e14aa191",
+  "registry_type": "dspy-security-bench-assurance-exchange",
+  "schema_version": 1
+}

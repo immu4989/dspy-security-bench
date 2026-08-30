@@ -25,6 +25,7 @@ TRACE_SUBMISSIONS_DIR = ROOT / "submissions/trace"
 CAUSAL_SUBMISSIONS_DIR = ROOT / "submissions/causal"
 COLLECTIVE_SUBMISSIONS_DIR = ROOT / "submissions/collective"
 DEFENSE_SUBMISSIONS_DIR = ROOT / "submissions/defense"
+ASSURANCE_EXCHANGE = ROOT / "submissions/assurance/index.json"
 REPRODUCTIONS = ROOT / "submissions/reproductions.json"
 ATTESTATIONS = ROOT / "submissions/attestations.json"
 DEFAULT_OUT = ROOT / "site/data.json"
@@ -43,6 +44,7 @@ def build_payload(
     causal_submissions_dir: Path = CAUSAL_SUBMISSIONS_DIR,
     collective_submissions_dir: Path = COLLECTIVE_SUBMISSIONS_DIR,
     defense_submissions_dir: Path = DEFENSE_SUBMISSIONS_DIR,
+    assurance_exchange_path: Path = ASSURANCE_EXCHANGE,
     reproductions_path: Path = REPRODUCTIONS,
     attestations_path: Path = ATTESTATIONS,
 ) -> dict:
@@ -106,6 +108,9 @@ def build_payload(
     causal_evidence = _causal_evidence_results(causal_submissions_dir)
     collective_evidence = _collective_evidence_results(collective_submissions_dir)
     defense_evidence = _defense_evidence_results(defense_submissions_dir)
+    from dspy_security_bench.assurance.exchange import exchange_summary, load_exchange
+
+    assurance_exchange = exchange_summary(load_exchange(assurance_exchange_path))
     return {
         "protocol": ", ".join(sorted(protocol_versions)),
         "modelCount": len(models),
@@ -130,7 +135,36 @@ def build_payload(
         "collectiveEvidence": collective_evidence,
         "defenseEvidenceCount": len(defense_evidence),
         "defenseEvidence": defense_evidence,
+        "assuranceExchange": assurance_exchange,
         "missionAssuranceCommons": {
+            "assuranceGraph": {
+                "protocolVersion": "assurancegraph-v1",
+                "profileCount": 4,
+                "evidenceKindCount": 8,
+                "sectorStarterCount": 7,
+                "federalReviewPackFileCount": 8,
+                "claimStatuses": [
+                    "supported",
+                    "violated",
+                    "contradicted",
+                    "stale_evidence",
+                    "missing_evidence",
+                ],
+                "automaticDeploymentActions": 0,
+            },
+            "containmentProof": {
+                "protocolVersion": "containmentproof-v1",
+                "canaryProbeCount": 8,
+                "automaticResponseActions": 0,
+            },
+            "agentBOM": {
+                "protocolVersion": "agentbom-claimimpact-v1",
+                "automaticDeploymentActions": 0,
+            },
+            "probeContract": {
+                "protocolVersion": "assurance-probe-contract-v1",
+                "thirdPartyCodeLoading": False,
+            },
             "inventoryForge": {"inputLimitBytes": 5_000_000, "recordLimit": 5_000},
             "agentGraphTwin": {"scenarioVersion": "agentgraphtwin-v1", "pairCount": 6},
             "continuousProof": {"schemaVersion": 1, "thresholdOwner": "evidence-owner"},

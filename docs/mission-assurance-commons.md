@@ -13,8 +13,15 @@ local OTLP export ─→ sanitized TraceProof evidence ─→ temporal graph tes
                  └──→ CollectiveGuard containment ─────┤
 synthetic defense mission ─→ DefenderTwin fix proof ───┤
 verified fix proofs ───────→ ResilienceGraph frontier ─┤
+ScheduleProof race exploration ────────────────────────┤
+harmless canary records ─→ ContainmentProof ───────────┤
+AgentBOM baseline + candidate ─→ ClaimImpact ──────────┤
                                                        ↓
-                    drift comparison ← ScheduleProof race exploration
+                                  AssuranceGraph executable case
+                                            ↓
+               federal review pack + public reproduction exchange
+                                            ↓
+                    drift comparison ← ContinuousProof
                               ↑        ← ValueProof ← acquisition review inputs
 ```
 
@@ -219,6 +226,41 @@ vendor-neutral mission test plan, portability and exit checks, empty cost
 observation fields, and reevaluation triggers. It does not rank or recommend a
 vendor.
 
+### 12. Compile an executable assurance case with AssuranceGraph
+
+```bash
+dspy-security-bench assure init --profile federal-high-impact \
+  --case-id reviewed-agent-pilot --out assurance-case.json
+dspy-security-bench assure evaluate assurance-case.json \
+  --evidence-root . --out artifacts/assurance-report.json \
+  --sarif-out artifacts/assurance.sarif \
+  --oscal-out artifacts/assessment-results.json \
+  --html-out artifacts/assurance.html --fail-on-review
+```
+
+AssuranceGraph recomputes every referenced report through its native verifier,
+checks frozen profile predicates, preserves missing, stale, violated, and
+contradictory evidence, and binds the result to canonical evidence content,
+owners, boundary, and evaluation time. It is an engineering review surface—not
+certification, ATO, deployment approval, or risk acceptance. Read the
+[AssuranceGraph protocol](assurancegraph.md).
+
+### 13. Prove runtime controls and dependency currency
+
+```bash
+dspy-security-bench contain demo --out-dir artifacts/containmentproof
+dspy-security-bench bom demo --out-dir artifacts/agentbom
+dspy-security-bench assure init --sector water-operations \
+  --case-id water-agent-pilot --out assurance-case.json
+```
+
+ContainmentProof keeps control violations, monitor failures, and incomplete
+evidence separate across eight harmless canaries. AgentBOM ClaimImpact maps a
+changed dependency through the exact claims that need reevaluation. The
+declarative probe contract cannot load contributor code. Verified cases can be
+exported as a closed federal review pack or indexed in the non-ranking public
+exchange. Read the [Assurance Control Plane guide](assurance-control-plane.md).
+
 ## Contribution targets
 
 The Commons will become useful through independent evidence, not feature count.
@@ -229,8 +271,10 @@ The next measurable community targets are:
 3. ten externally generated TraceProof or twin evidence bundles;
 4. three sector-reviewed fictional ResilienceGraph campaigns with independently
    reproduced frontier counts;
-5. two independent reproductions; and
-6. one published deployment or research report describing limitations.
+5. three organization-reviewed AssuranceGraph cases built only from synthetic
+   or safely publishable evidence, including at least one unfavorable outcome;
+6. two independent reproductions; and
+7. one published deployment or research report describing limitations.
 
 These are targets, not current claims. Reference fixtures and maintainer-created
 synthetic examples do not count as independent evidence.

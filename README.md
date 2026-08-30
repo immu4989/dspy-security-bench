@@ -11,7 +11,8 @@ operational traces, reproducible security twins, multi-agent authorization
 paths, continuous evidence, signed data-only mission protocols, measured
 mission economics, bounded authorization-race checking, autonomous-collective
 containment evidence, verified cyber-defense remediation, exact cross-sector
-resilience portfolios, and reviewable OSCAL assessment inputs.
+resilience portfolios, executable claim–evidence assurance cases, and reviewable
+OSCAL assessment inputs.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -29,6 +30,9 @@ resilience portfolios, and reviewable OSCAL assessment inputs.
 [![CollectiveGuard](https://img.shields.io/badge/CollectiveGuard-agent%20collective%20containment-FF6B8A)](docs/collectiveguard.md)
 [![DefenderTwin](https://img.shields.io/badge/DefenderTwin-verified%20cyber%20remediation-6DF2B5)](docs/verified-cyber-defense-commons.md)
 [![ResilienceGraph](https://img.shields.io/badge/ResilienceGraph-exact%20defense%20frontiers-F7C873)](docs/resiliencegraph.md)
+[![AssuranceGraph](https://img.shields.io/badge/AssuranceGraph-executable%20evidence%20cases-60F5DE)](docs/assurancegraph.md)
+[![ContainmentProof](https://img.shields.io/badge/ContainmentProof-canary%20control%20evidence-7DFFB2)](docs/assurance-control-plane.md)
+[![AgentBOM](https://img.shields.io/badge/AgentBOM-dependency%E2%86%92claim%20impact-FFCA70)](docs/assurance-control-plane.md)
 [![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
 [![MissionForge](https://img.shields.io/badge/MissionForge-data--only%20agency%20packs-8FFFB0)](docs/missionforge.md)
 [![SourceTwin](https://img.shields.io/badge/SourceTwin-grounding%20probes-5FBDFF)](docs/missionforge.md)
@@ -47,6 +51,80 @@ resilience portfolios, and reviewable OSCAL assessment inputs.
 ### [Explore the interactive leaderboard →](https://immu4989.github.io/dspy-security-bench/)
 
 </div>
+
+---
+
+## On main: AssuranceGraph — from scattered reports to one reviewable decision case
+
+**An organization should not have to manually reconcile eight security tools to
+learn which deployment claims are actually supported.** AssuranceGraph composes
+AuthorityTwin, TraceProof, CollectiveGuard v2, ScheduleProof, DefenderTwin, and
+ResilienceGraph evidence with ContainmentProof runtime controls and AgentBOM
+dependency-impact evidence into a content-addressed claim graph.
+
+Every source artifact is recomputed by its native verifier before frozen profile
+predicates are applied. Claims remain explicitly `supported`, `violated`,
+`contradicted`, `stale_evidence`, or `missing_evidence`; conflicting evidence is
+never resolved by choosing the favorable report.
+
+```bash
+# Complete synthetic critical-infrastructure case: no model, key, or network.
+dspy-security-bench assure demo --out-dir artifacts/assurancegraph
+
+# Inspect or initialize organization-owned profiles.
+dspy-security-bench assure profiles
+dspy-security-bench assure init --profile federal-high-impact \
+  --case-id agency-pilot --out assurance-case.json
+# Native verification succeeds before this prints the canonical digest to pin.
+dspy-security-bench assure digest evidence/authority.json
+
+# Produce JSON, CI, assessment, and executive review surfaces.
+dspy-security-bench assure evaluate assurance-case.json --evidence-root . \
+  --out assurance-report.json --sarif-out assurance.sarif \
+  --oscal-out assessment-results.json --html-out assurance.html \
+  --fail-on-review
+```
+
+The standalone HTML report is designed for executives and engineers, while
+JSON, SARIF, and non-certifying OSCAL 1.2.2 preserve machine-readable review.
+The evaluator takes zero deployment actions and performs zero risk acceptances.
+A supported profile is evidence about a declared boundary—not proof of
+system-wide safety or an authorization to operate.
+
+[Build an executable assurance case →](docs/assurancegraph.md)
+
+---
+
+## On main: Assurance Control Plane — prove containment, then trace change impact
+
+**A clean benchmark cannot tell you whether the sandbox monitor failed, and a
+package diff cannot tell you which safety claims became stale.** ContainmentProof
+keeps eight harmless canary outcomes separate from monitoring and evidence
+failures. AgentBOM ClaimImpact maps a changed model, policy, tool, MCP server,
+dataset, identity provider, trust root, evaluator, or runtime through the exact
+dependency closure to the smallest AssuranceGraph reevaluation plan.
+
+```bash
+# Four synthetic containment outcomes: no agent, network, key, or live target.
+dspy-security-bench contain demo --out-dir artifacts/containmentproof
+
+# Changed and unchanged fictional AgentBOM comparisons.
+dspy-security-bench bom demo --out-dir artifacts/agentbom
+
+# Start from one of seven explicit sector boundaries.
+dspy-security-bench assure init --sector public-benefits \
+  --case-id benefits-pilot --out assurance-case.json
+
+# Validate a community probe without loading contributor code.
+dspy-security-bench probe conformance probe-manifest.json --fixture-root .
+```
+
+Verified cases can become a closed eight-file federal review pack with OSCAL
+observations, an evidence index, freshness plan, change triggers, and owner-only
+POA&M inputs. The public assurance exchange accepts unfavorable cases and
+independent reproductions but never ranks or endorses them.
+
+[Open the Assurance Control Plane guide →](docs/assurance-control-plane.md)
 
 ---
 
@@ -1440,6 +1518,7 @@ dspy-security-bench --version
 dspy-security-bench init --help
 dspy-security-bench scan --help
 dspy-security-bench collective --help
+dspy-security-bench assure --help
 dspy-security-bench impact --help
 dspy-security-bench policy --help
 ```
@@ -1556,6 +1635,8 @@ v0.1 scope choices:
 | v0.19 — CollectiveGuard content-free collective containment, response-window proof, and SARIF export | **shipped** |
 | Verified Cyber Defense Commons — DefenderTwin, five sector missions, Trusted Defender Gate, adapter conformance, SARIF/OSCAL, and privacy-bounded evidence exchange | **shipped on main** |
 | ResilienceGraph — exact evidence-bound remediation portfolios, stressed dependency reach, resource/community floors, full Pareto frontier, CSV, and ContinuousProof | **shipped on main** |
+| AssuranceGraph — eight native evidence kinds, executable claims, sector starters, JSON/SARIF/OSCAL/HTML, and closed federal review packs | **shipped on main** |
+| Assurance Control Plane — ContainmentProof, AgentBOM ClaimImpact, non-executing probe contract, and non-ranking public exchange | **shipped on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

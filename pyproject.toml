@@ -67,6 +67,14 @@ keywords = [
     "critical-infrastructure-resilience",
     "cyber-risk-prioritization",
     "pareto-frontier",
+    "assurance-case",
+    "claim-evidence-graph",
+    "ai-agent-assurance",
+    "runtime-containment",
+    "ai-sbom",
+    "agent-bom",
+    "software-supply-chain-security",
+    "federal-assessment",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -160,6 +168,10 @@ CausalProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/ca
 CollectiveGuard = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/collectiveguard.md"
 DefenderTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/verified-cyber-defense-commons.md"
 ResilienceGraph = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/resiliencegraph.md"
+AssuranceGraph = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurancegraph.md"
+ContainmentProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurance-control-plane.md"
+AgentBOM = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurance-control-plane.md"
+"Assurance Reproduction Exchange" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/assurance"
 "Verified Cyber Defense Commons" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/defense"
 "Agent Assurance Evidence Plane" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/evidence-plane.md"
 "Collective Evidence" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/collective"

@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes twenty-five related security surfaces:
+`dspy-security-bench` exposes twenty-nine related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -73,6 +73,19 @@ v0.1 research choices are labeled separately from the current product surface.
 25. **ContinuousProof controller** — reads owner-selected evidence, evaluates
     freshness and drift, and emits a hash-chained timeline while taking zero
     production actions.
+26. **AssuranceGraph** — composes natively verified reports into a frozen,
+    owner-selected claim–evidence profile; preserves support, violation,
+    contradiction, staleness, and absence as distinct outcomes; and emits
+    content-addressed JSON, SARIF, OSCAL, and standalone HTML review surfaces.
+27. **ContainmentProof** — separates eight harmless canary control observations
+    into contained, violated, monitor-failed, and incomplete-evidence outcomes
+    without running an agent or taking a response action.
+28. **AgentBOM ClaimImpact** — binds AI-agent components and dependency edges to
+    assurance claims, then computes the exact transitive reevaluation set after
+    a component, relationship, or binding change.
+29. **Assurance adoption layer** — provides fictional sector boundaries,
+    non-executing probe manifests, closed federal review packs, and a
+    non-ranking public reproduction exchange.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer
@@ -103,6 +116,13 @@ dspy_security_bench/
 ├── schedule/                   # bounded interleaving explorer + SARIF export
 ├── causal/                     # structural trace causality + runtime bridges
 ├── collective/                 # containment, provenance bridge, profiles, registry
+├── assurance/                  # executable claim-evidence cases + review exports
+│   ├── sectors.py              # seven fictional, intentionally incomplete starters
+│   ├── federal.py              # closed non-certifying assessor review inputs
+│   └── exchange.py             # strict non-ranking public metadata registry
+├── containment/                # harmless canary control evidence + SARIF
+├── supplychain/                # AgentBOM inventory + dependency claim impact
+├── probes/                     # data-only non-executing contribution contract
 ├── continuous/                 # baselines, drift, observe-only controller/timeline
 ├── acquisition/                # neutral technical acquisition packages
 ├── trace/                      # runtime recorder, OTLP sanitization, rules

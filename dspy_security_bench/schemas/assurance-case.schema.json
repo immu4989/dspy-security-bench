@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/assurance-case.schema.json",
+  "title": "AssuranceGraph executable assurance case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_type",
+    "case_id",
+    "title",
+    "description",
+    "decision_owner",
+    "profile_id",
+    "evaluation_time",
+    "system",
+    "evidence",
+    "claim_boundary",
+    "case_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "case_type": {"const": "dspy-security-bench-assurance-case"},
+    "case_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "title": {"type": "string", "minLength": 1, "maxLength": 500},
+    "description": {"type": "string", "minLength": 1, "maxLength": 500},
+    "decision_owner": {"type": "string", "minLength": 1, "maxLength": 500},
+    "profile_id": {
+      "enum": ["enterprise-agent", "frontier-lab", "federal-high-impact", "critical-infrastructure"]
+    },
+    "evaluation_time": {"type": "integer", "minimum": 0},
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system_id", "name", "mission", "environment", "boundary"],
+      "properties": {
+        "system_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+        "name": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "mission": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "environment": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "boundary": {"type": "string", "minLength": 1, "maxLength": 1000}
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidence_id", "evidence_kind", "path", "observed_at", "max_age_seconds", "owner", "expected_sha256"],
+        "properties": {
+          "evidence_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+          "evidence_kind": {
+            "enum": ["authority", "trace", "collective-v2", "schedule", "verified-defense", "defense-portfolio", "containment", "dependency-impact"]
+          },
+          "path": {"type": "string", "minLength": 1, "maxLength": 1000, "not": {"pattern": "(^/|(^|/)\\.\\.(/|$))"}},
+          "observed_at": {"type": "integer", "minimum": 0},
+          "max_age_seconds": {"type": "integer", "minimum": 1, "maximum": 31536000},
+          "owner": {"type": "string", "minLength": 1, "maxLength": 300},
+          "expected_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "case_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

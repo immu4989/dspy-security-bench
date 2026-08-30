@@ -61,6 +61,7 @@ async function loadData() {
   document.querySelectorAll("[data-causal-evidence-count]").forEach(node => node.textContent = data.causalEvidenceCount || 0);
   document.querySelectorAll("[data-collective-evidence-count]").forEach(node => node.textContent = data.collectiveEvidenceCount || 0);
   document.querySelectorAll("[data-defense-evidence-count]").forEach(node => node.textContent = data.defenseEvidenceCount || 0);
+  document.querySelectorAll("[data-assurance-exchange-count]").forEach(node => node.textContent = data.assuranceExchange?.entryCount || 0);
   const robustness = data.models.map(model => model.robustness);
   document.querySelector("[data-min-robustness]").textContent = Math.round(Math.min(...robustness) * 100);
   document.querySelector("[data-max-robustness]").textContent = Math.round(Math.max(...robustness) * 100);
@@ -385,6 +386,8 @@ bindCommandCopy("#collective-copy", "dspy-security-bench collective demo --out-d
 bindCommandCopy("#evidence-plane-copy", "dspy-security-bench collective plane demo --out-dir artifacts/evidence-plane");
 bindCommandCopy("#defense-copy", "dspy-security-bench defend demo --out-dir artifacts/verified-defense");
 bindCommandCopy("#resilience-copy", "dspy-security-bench portfolio demo --out-dir artifacts/resiliencegraph");
+bindCommandCopy("#assurance-copy", "dspy-security-bench assure demo --out-dir artifacts/assurancegraph");
+bindCommandCopy("#control-plane-copy", "dspy-security-bench contain demo --out-dir artifacts/containmentproof");
 bindCommandCopy("#trace-copy", "dspy-security-bench trace demo --out-dir artifacts/traceproof");
 bindCommandCopy("#causal-copy", "dspy-security-bench causal demo --out-dir artifacts/causalproof");
 bindCommandCopy("#schedule-copy", "dspy-security-bench schedule demo");

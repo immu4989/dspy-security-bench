@@ -180,3 +180,28 @@ def test_resiliencegraph_issue_form_requires_assumptions_and_non_claims():
     assert any(item.get("id") == "assumptions" for item in form["body"])
     boundary = next(item for item in form["body"] if item.get("id") == "boundary")
     assert sum(option.get("required") is True for option in boundary["attributes"]["options"]) == 3
+
+
+def test_assurancegraph_workflow_recomputes_and_preserves_review_artifacts():
+    workflow = (WORKFLOWS / "assurancegraph.yml").read_text()
+    assert "dspy-security-bench assure demo" in workflow
+    assert "dspy-security-bench assure verify" in workflow
+    assert "dspy-security-bench contain demo" in workflow
+    assert "dspy-security-bench bom demo" in workflow
+    assert "dspy-security-bench assure federal-pack" in workflow
+    assert "dspy-security-bench assure federal-verify" in workflow
+    assert "dspy-security-bench assure exchange-verify" in workflow
+    assert "tests/test_assurancegraph.py" in workflow
+    assert "tests/test_probe_contract.py" in workflow
+    assert "assurance-control-plane-reference" in workflow
+    assert "path: artifacts" in workflow
+    assert "OPENAI_API_KEY" not in workflow
+    assert "ANTHROPIC_API_KEY" not in workflow
+
+
+def test_assurancegraph_issue_form_requires_unfavorable_evidence_and_non_claims():
+    form = yaml.safe_load((ROOT / ".github/ISSUE_TEMPLATE/assurance-case.yml").read_text())
+    assert form["name"] == "AssuranceGraph case or profile"
+    assert any(item.get("id") == "unfavorable" for item in form["body"])
+    boundary = next(item for item in form["body"] if item.get("id") == "boundary")
+    assert sum(option.get("required") is True for option in boundary["attributes"]["options"]) == 3

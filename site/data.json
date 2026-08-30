@@ -381,7 +381,43 @@
   ],
   "defenseEvidenceCount": 0,
   "defenseEvidence": [],
+  "assuranceExchange": {
+    "entryCount": 0,
+    "activeEntryCount": 0,
+    "independentReproductionCount": 0,
+    "sectorCount": 0,
+    "rankingEnabled": false,
+    "automaticEndorsements": 0
+  },
   "missionAssuranceCommons": {
+    "assuranceGraph": {
+      "protocolVersion": "assurancegraph-v1",
+      "profileCount": 4,
+      "evidenceKindCount": 8,
+      "sectorStarterCount": 7,
+      "federalReviewPackFileCount": 8,
+      "claimStatuses": [
+        "supported",
+        "violated",
+        "contradicted",
+        "stale_evidence",
+        "missing_evidence"
+      ],
+      "automaticDeploymentActions": 0
+    },
+    "containmentProof": {
+      "protocolVersion": "containmentproof-v1",
+      "canaryProbeCount": 8,
+      "automaticResponseActions": 0
+    },
+    "agentBOM": {
+      "protocolVersion": "agentbom-claimimpact-v1",
+      "automaticDeploymentActions": 0
+    },
+    "probeContract": {
+      "protocolVersion": "assurance-probe-contract-v1",
+      "thirdPartyCodeLoading": false
+    },
     "inventoryForge": {
       "inputLimitBytes": 5000000,
       "recordLimit": 5000

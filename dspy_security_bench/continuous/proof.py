@@ -262,6 +262,14 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         from dspy_security_bench.portfolio.proof import verify_report
 
         return "defense-portfolio", verify_report(payload)
+    if report_type == "ContainmentProof / Canary-based agent control evidence":
+        from dspy_security_bench.containment.proof import verify_report
+
+        return "containment", verify_report(payload)
+    if report_type == "AgentBOM / Dependency-to-assurance claim impact":
+        from dspy_security_bench.supplychain.proof import verify_report
+
+        return "dependency-impact", verify_report(payload)
     if payload.get("proof_type") == "dspy-security-bench-valueproof-observation":
         from dspy_security_bench.value.proof import verify_value_proof
 
@@ -269,7 +277,7 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
     raise ValueError(
         "unsupported evidence; use a verified AgentGraphTwin, TraceProof, AuthorityTwin, "
         "MissionPackTwin, IncidentTwin, DefenderTwin, ResilienceGraph, ScheduleProof, "
-        "CollectiveGuard, or ValueProof report"
+        "CollectiveGuard, ContainmentProof, AgentBOM ClaimImpact, or ValueProof report"
     )
 
 
@@ -286,6 +294,8 @@ def _identity(payload: Mapping[str, Any]) -> dict[str, Any]:
         "mission_sha256",
         "proposal_sha256",
         "campaign_sha256",
+        "baseline_inventory_sha256",
+        "candidate_inventory_sha256",
     )
     identity = {field: payload[field] for field in fields if field in payload}
     measurement = payload.get("measurement")

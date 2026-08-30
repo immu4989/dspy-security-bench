@@ -1,0 +1,57 @@
+name: AssuranceGraph case or profile
+description: Propose a synthetic assurance case, independent reproduction, evidence verifier, or reviewed profile improvement.
+title: "[assurance] "
+labels: ["assurancegraph"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        AssuranceGraph needs falsifiable cases, including unfavorable results—not sensitive operational data or compliance claims. Use synthetic or safely publishable evidence. Never attach credentials, raw prompts, private telemetry, exploit payloads, live targets, protected infrastructure details, or unpublished vulnerabilities.
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Contribution type
+      options:
+        - Synthetic organization or sector case
+        - Independent report reproduction
+        - Containment canary or monitor-gap case
+        - AgentBOM dependency-impact case
+        - Declarative probe manifest and fixtures
+        - Native evidence verifier
+        - Built-in profile proposal
+        - Claim predicate or status-semantics review
+        - Government or industry usability review
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision, boundary, and accountable owner
+      description: Describe the decision this informs, the exact system boundary, intended users, and the role—not a person's private details—that retains authority.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Evidence and reproduction
+      description: List evidence kinds, content digests, profile and protocol digests, commands, claim outcomes, and limitations. Link only to safely public artifacts.
+    validations:
+      required: true
+  - type: textarea
+    id: unfavorable
+    attributes:
+      label: Unfavorable and boundary cases
+      description: Explain how violated, contradicted, stale, missing, invalid, or tampered evidence is represented and tested. At least one unfavorable path is expected for protocol changes.
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Safety and claim boundary
+      options:
+        - label: This proposal contains only synthetic or safely publishable evidence and no credentials, raw prompts, private telemetry, live targets, exploit payloads, protected operational details, or unpublished vulnerabilities.
+          required: true
+        - label: A supported claim is not presented as production safety, certification, compliance, ATO, procurement approval, government endorsement, or risk acceptance.
+          required: true
+        - label: The accountable owner—not AssuranceGraph, this repository, or an AI model—retains deployment, procurement, and risk decisions.
+          required: true
