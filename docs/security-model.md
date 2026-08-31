@@ -55,6 +55,58 @@ availability scenarios. It keeps direct service coverage separate from
 dependency reach, never infers a probability or financial benefit, and cannot
 establish that the owner's planning assumptions are complete or true.
 
+EvalIntegrityProof trusts operator-supplied content-free process observations.
+It checks structural ordering, separation, monitoring, and accounting but cannot
+authenticate telemetry, reveal omitted leakage, or establish evaluation truth.
+
+AssuranceQuorum trusts a natively verified AssuranceGraph report plus an
+owner-governed mapping from Ed25519 keys to declared signers, roles, and
+organizations. DSSE verifies exact statements and key possession; it does not
+prove human identity, employment, competence, independence, key revocation, or
+decision authority. A satisfied quorum is review evidence, never approval.
+
+AssuranceLedger trusts an owner-selected log operator, witness-key map, witness
+threshold, and logged lifecycle declarations. It recomputes the full Merkle tree
+and append-only prefix, but a bundled checkpoint cannot alone prove that no
+other view was shown elsewhere. Witness signatures prove exact checkpoint
+possession, not identity, independence, event truth, continuous monitoring, or
+authority over the reviewed system. Retrospective `compromise_since` is a logged
+governance declaration, not a compromise fact discovered by the analyzer.
+AssuranceLedger Gossip reduces that blind spot only for supplied views: it
+recomputes each source before exact-prefix comparison and treats two valid
+operator-signed forks as equivocation evidence. It cannot detect a checkpoint
+that no independent party obtained and shared.
+AssuranceLedger ForkProof reduces a verified same-size conflict to its policy
+and two signed checkpoints for offline incident sharing. It proves the disclosed
+operator-key conflict and witness quorums, but omits the entries needed to say
+which root represents a truthful history and does not automate notification or
+remediation.
+AssuranceLedger ConsistencyProof verifies the complementary positive claim: a
+newer signed checkpoint preserves an older signed tree. Its minimal Merkle path
+reveals no entry content, but the result is limited to the two disclosed
+checkpoints and does not establish global dissemination or event truth.
+AssuranceLedger ObserverReceipt trusts an owner-selected observer key map and
+declared organization/channel policy. It authenticates what each key says it
+observed and when, while hashing channel locators; it cannot prove that the
+named organizations or channels are operationally independent.
+AssuranceLedger WitnessConflict attributes signatures to embedded policy keys,
+not people. A key that signs both fork views is cryptographically identifiable,
+but the analyzer cannot distinguish compromise, implementation failure,
+collusion, or other causes and performs no revocation.
+AssuranceLedger VerifierConformance trusts the native verifiers it exercises;
+v2 first requires nine clean source classes to pass native verification, then
+demonstrates rejection of nine exact mutations—not the absence of other bugs.
+Inputs and verifier code are identified by digest, and no network or system
+action is performed.
+AssuranceLedger CapabilityManifest trusts the package's compiled capability
+table and local schema directory. Exact byte digests reveal drift, but do not
+establish that a schema is secure, that another implementation is compatible,
+or that a remote service actually offers the declared behavior.
+AssuranceLedger IntegrationLock is unsigned and trusts the owner's source or
+artifact governance to establish which lock was reviewed. It permits additive
+capabilities and detects changed or missing pins; a satisfied check is not proof
+that the owner approved the lock or that unpinned behavior is safe.
+
 ## Threats addressed
 
 - narrative-only scores hiding harmful tool side effects;
@@ -82,6 +134,12 @@ establish that the owner's planning assumptions are complete or true.
 - unsafe remediations entering a resource plan, dominated portfolios presented
   as efficient, impossible owner floors silently relaxed, or a deterministic
   tie-break mislabeled as a funding recommendation.
+- holdouts revealed before result commitment, shared evaluator/workload trust
+  domains, unaccounted cases, blind monitors, and unsafe evaluation continuation;
+  and
+- one signature presented as multi-disciplinary review, role/key substitution,
+  duplicate-signer quorum inflation, outvoted evidence gaps, stale review
+  statements, or signatures replayed against a different report or policy.
 
 ## Threats not solved
 
@@ -108,6 +166,9 @@ establish that the owner's planning assumptions are complete or true.
 - omitted infrastructure dependencies, inaccurate service mappings, real-world
   availability probabilities, monetary loss, distributional impacts, supplier
   ownership, or the correctness of a ResilienceGraph planning contract.
+- reviewer identity proofing, organizational independence, competence, key
+  custody/rotation/revocation, or legal authority to approve, procure, deploy,
+  authorize operation, or accept risk.
 
 Use least privilege, protected branches, required reviews, secret scanning,
 artifact attestations, dependency review, CodeQL, Scorecard, SBOMs, reproducible

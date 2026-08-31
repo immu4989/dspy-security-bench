@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/evalintegrityproof-scenario.schema.json",
+  "title": "EvalIntegrityProof v1 scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scenario_type", "scenario_id", "title", "description", "execution", "policy", "artifacts", "run", "boundaries", "monitoring", "sources", "control_evidence", "claim_boundary", "scenario_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scenario_type": {"const": "dspy-security-bench-evalintegrityproof-scenario"},
+    "scenario_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "title": {"type": "string", "minLength": 1, "maxLength": 300},
+    "description": {"type": "string", "minLength": 1, "maxLength": 1500},
+    "execution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["review_mode", "production_access", "network_actions_performed", "credential_values_embedded", "raw_prompts_embedded", "raw_outputs_embedded"],
+      "properties": {
+        "review_mode": {"const": "offline-record-review"},
+        "production_access": {"const": false},
+        "network_actions_performed": {"const": false},
+        "credential_values_embedded": {"type": "boolean"},
+        "raw_prompts_embedded": {"type": "boolean"},
+        "raw_outputs_embedded": {"type": "boolean"}
+      }
+    },
+    "policy": {
+      "type": "object", "additionalProperties": false, "required": ["max_clock_skew_ms"],
+      "properties": {"max_clock_skew_ms": {"type": "integer", "minimum": 0, "maximum": 86400000}}
+    },
+    "artifacts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["workload_sha256", "evaluator_sha256", "environment_sha256", "case_set_commitment_sha256", "scoring_policy_sha256"],
+      "properties": {
+        "workload_sha256": {"type": "string"}, "evaluator_sha256": {"type": "string"},
+        "environment_sha256": {"type": "string"}, "case_set_commitment_sha256": {"type": "string"},
+        "scoring_policy_sha256": {"type": "string"}
+      }
+    },
+    "run": {
+      "type": "object", "additionalProperties": false,
+      "required": ["run_id", "holdout_committed_at", "started_at", "result_committed_at", "labels_revealed_at", "case_count_planned", "case_count_started", "case_count_committed", "case_count_safe_stopped"],
+      "properties": {
+        "run_id": {"type": "string"}, "holdout_committed_at": {"type": "string"}, "started_at": {"type": "string"},
+        "result_committed_at": {"type": "string"}, "labels_revealed_at": {"type": "string"},
+        "case_count_planned": {"type": "integer", "minimum": 0}, "case_count_started": {"type": "integer", "minimum": 0},
+        "case_count_committed": {"type": "integer", "minimum": 0}, "case_count_safe_stopped": {"type": "integer", "minimum": 0}
+      }
+    },
+    "boundaries": {
+      "type": "object", "additionalProperties": false,
+      "required": ["workload_failure_domain_id", "evaluator_failure_domain_id", "workload_credential_scope_id", "evaluator_credential_scope_id", "evaluator_state_readable_by_workload", "label_store_readable_before_result_commit", "network_egress_policy", "unauthorized_egress_observed", "safe_exit_available", "unsafe_continuation_count"],
+      "properties": {
+        "workload_failure_domain_id": {"type": "string"}, "evaluator_failure_domain_id": {"type": "string"},
+        "workload_credential_scope_id": {"type": "string"}, "evaluator_credential_scope_id": {"type": "string"},
+        "evaluator_state_readable_by_workload": {"type": "boolean"}, "label_store_readable_before_result_commit": {"type": "boolean"},
+        "network_egress_policy": {"enum": ["denied", "simulated", "allowed"]}, "unauthorized_egress_observed": {"type": "boolean"},
+        "safe_exit_available": {"type": "boolean"}, "unsafe_continuation_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "monitoring": {
+      "type": "object", "additionalProperties": false,
+      "required": ["independent_control", "complete", "clock_skew_ms", "canary_detector_enabled", "leakage_canary_hits"],
+      "properties": {
+        "independent_control": {"type": "boolean"}, "complete": {"type": "boolean"},
+        "clock_skew_ms": {"type": "integer", "minimum": 0}, "canary_detector_enabled": {"type": "boolean"},
+        "leakage_canary_hits": {"type": "integer", "minimum": 0}
+      }
+    },
+    "sources": {
+      "type": "array", "minItems": 1, "maxItems": 50,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["source_id", "source_class", "complete", "independent_control", "description"],
+        "properties": {
+          "source_id": {"type": "string"},
+          "source_class": {"enum": ["orchestrator", "artifact-registry", "evaluator", "network", "identity", "monitor", "time"]},
+          "complete": {"type": "boolean"}, "independent_control": {"type": "boolean"},
+          "description": {"type": "string", "minLength": 1, "maxLength": 500}
+        }
+      }
+    },
+    "control_evidence": {
+      "type": "array", "minItems": 13, "maxItems": 13,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["control_id", "source_ids"],
+        "properties": {"control_id": {"pattern": "^EI0(?:0[1-9]|1[0-3])$"}, "source_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}}}
+      }
+    },
+    "claim_boundary": {"type": "string"},
+    "scenario_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

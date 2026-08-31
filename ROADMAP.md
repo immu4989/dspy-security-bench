@@ -20,7 +20,7 @@ compliance or safety overclaims.
 - **AssuranceGraph v1** executable claim–evidence cases with native semantic
   verification, frozen stakeholder profiles, five fail-closed claim outcomes,
   digest/freshness/owner binding, strict schemas, JSON/SARIF/OSCAL/HTML output,
-  and a complete eight-artifact fictional critical-infrastructure demo.
+  and a complete nine-artifact fictional critical-infrastructure demo.
 - **CollectiveGuard v2 Evidence Plane** composing the frozen v1 analyzer with
   six declared source classes, per-event provenance, strict completeness gates,
   and a distinct `insufficient_evidence` outcome.
@@ -40,6 +40,43 @@ compliance or safety overclaims.
   monitoring, and evidence-completeness outcomes.
 - AgentBOM ClaimImpact v1 with AI-agent component and claim bindings, transitive
   invalidation, local CycloneDX/SPDX imports, and exact reevaluation plans.
+- EvalIntegrityProof v1 with content-free commit/reveal, evaluator isolation,
+  leakage monitoring, case accounting, safe-exit, schema, SARIF, and native
+  AssuranceGraph/ContinuousProof integration.
+- AssuranceQuorum v1 with policy-authorized role separation, in-toto/DSSE
+  Ed25519 review statements, distinct-organization claim quorums, non-outvotable
+  evidence gaps, strict offline recomputation, and SARIF.
+- AssuranceLedger v1 with witnessed append-only reviewer-key registration,
+  review inclusion, retirement and compromise events, Merkle checkpoints,
+  cross-organization witness thresholds, prefix continuity, strict schemas,
+  SARIF, and complete offline recomputation.
+- AssuranceLedger Gossip v1 with native per-view verification, pairwise
+  checkpoint identity and exact-prefix comparison, signed-fork evidence,
+  distinct insufficient-diversity/invalid-input outcomes, JSON, and SARIF.
+- AssuranceLedger ReReview v1 with native source verification, exact claim/role
+  impact, owner-bound historical-key policy, grouped minimal requests, preserved
+  evidence gaps, JSON/SARIF, and zero automated reviewer selection.
+- AssuranceLedger ForkProof v1 with privacy-minimized same-size checkpoint
+  conflict disclosure, standalone operator/witness signature verification,
+  strict JSON schema, SARIF, source digests, and zero embedded review content.
+- AssuranceLedger ConsistencyProof v1 with RFC 6962-style minimal Merkle paths,
+  standalone two-checkpoint signature/quorum verification, strict schema,
+  SARIF, and zero embedded log entries.
+- AssuranceLedger ObserverReceipt v1 with signed checkpoint observations,
+  distinct observer/organization/channel thresholds, hashed private channel
+  locators, bounded observation delay, strict schemas, SARIF, and zero actions.
+- AssuranceLedger WitnessConflict v1 with native ForkProof verification, exact
+  shared cosignature-key attribution, strict schema, key-level SARIF, and no
+  inferred motive or automatic revocation.
+- AssuranceLedger VerifierConformance v2 with nine deterministic rehashed
+  semantic/cryptographic mutation vectors, exact source digests, strict report
+  schema, offline recomputation, and a fail-on-missed-rejection CI mode.
+- AssuranceLedger CapabilityManifest v1 with exact byte digests for thirteen
+  shipped schemas, nine protocol/CLI contracts, declared portability and data
+  classes, deterministic offline recomputation, and zero automatic actions.
+- AssuranceLedger IntegrationLock v1 with owner-pinned schema/protocol minimums,
+  explicit contract-drift findings, exact offline recomputation, and a
+  fail-on-drift CI gate that allows additions but rejects changed requirements.
 - Seven fictional AssuranceGraph sector starters, a non-executing probe
   contract, closed federal review packs, and a non-ranking public reproduction
   exchange.

@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes twenty-nine related security surfaces:
+`dspy-security-bench` exposes thirty-one related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -86,6 +86,28 @@ v0.1 research choices are labeled separately from the current product surface.
 29. **Assurance adoption layer** — provides fictional sector boundaries,
     non-executing probe manifests, closed federal review packs, and a
     non-ranking public reproduction exchange.
+30. **EvalIntegrityProof** — recomputes content-free evidence for holdout
+    commit/reveal ordering, artifact identity, evaluator/credential/failure-
+    domain separation, egress, case closure, leakage monitoring, clock
+    integrity, and safe exit without running or inspecting an evaluation.
+31. **AssuranceQuorum** — binds role-scoped in-toto/DSSE review statements to
+    one AssuranceGraph report and evaluates policy-authorized role, signer, and
+    distinct-organization quorums while preserving evidence-gap vetoes.
+32. **AssuranceLedger** — binds AssuranceQuorum reviews to prior key
+    registrations, append-only Merkle checkpoints, operator and independent
+    witness signatures, explicit retirement/compromise events, and offline
+    cross-view gossip that surfaces operator-signed forks. ForkProof reduces a
+    same-size conflict to two independently verifiable checkpoints with no
+    review content. ConsistencyProof proves legitimate append-only growth with
+    a compact Merkle path and no entries. ObserverReceipt binds checkpoint
+    exchange to distinct declared organizations and hashed channels.
+    WitnessConflict attributes double-signing to exact cosignature keys.
+    ReReview maps trust changes back to the minimal affected claim/role set.
+    VerifierConformance exercises all nine verifier classes with rehashed mutations.
+    CapabilityManifest byte-binds every shipped schema to its protocol,
+    producer/verifier CLI, portability boundary, and disclosed data classes.
+    IntegrationLock lets owners pin that contract and obtain recomputable,
+    fail-closed drift evidence when a candidate changes any requirement.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer
@@ -121,6 +143,9 @@ dspy_security_bench/
 │   ├── federal.py              # closed non-certifying assessor review inputs
 │   └── exchange.py             # strict non-ranking public metadata registry
 ├── containment/                # harmless canary control evidence + SARIF
+├── evalguard/                  # content-free evaluation-integrity evidence + SARIF
+├── quorum/                     # role-separated in-toto/DSSE review quorums
+├── ledger/                     # witnessed lifecycle + gossip + compact fork proof
 ├── supplychain/                # AgentBOM inventory + dependency claim impact
 ├── probes/                     # data-only non-executing contribution contract
 ├── continuous/                 # baselines, drift, observe-only controller/timeline

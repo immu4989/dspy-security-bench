@@ -33,7 +33,7 @@ def _entry():
         "disclosure": "synthetic",
         "status": "active",
         "claim_outcomes": {
-            "supported": 6,
+            "supported": 7,
             "violated": 0,
             "contradicted": 0,
             "stale_evidence": 0,
@@ -46,6 +46,7 @@ def _entry():
             "schedule",
             "verified-defense",
             "containment",
+            "evaluation-integrity",
             "dependency-impact",
         ],
         "independent_reproductions": [

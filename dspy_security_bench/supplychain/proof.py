@@ -251,6 +251,15 @@ def built_in_inventory(revision: str = "baseline") -> dict[str, Any]:
             ],
         },
         {
+            "claim_id": "evaluation-process-integrity",
+            "evidence_id": "evaluation-integrity-evidence",
+            "component_ids": [
+                "evaluation-harness",
+                "containment-monitor",
+                "agent-container",
+            ],
+        },
+        {
             "claim_id": "resilience-decision-space",
             "evidence_id": "defense-portfolio-evidence",
             "component_ids": ["evaluation-harness", "agent-container"],
@@ -274,6 +283,7 @@ def built_in_inventory(revision: str = "baseline") -> dict[str, Any]:
                 "bounded-schedule-safety",
                 "verified-remediation",
                 "runtime-containment",
+                "evaluation-process-integrity",
                 "resilience-decision-space",
             ],
             "claim_bindings": bindings,

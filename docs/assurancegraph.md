@@ -47,6 +47,7 @@ artifacts/assurancegraph/
     ├── schedule.json
     ├── verified-defense.json
     ├── defense-portfolio.json
+    ├── evaluation-integrity.json
     ├── containment.json
     └── dependency-impact.json
 ```
@@ -145,9 +146,9 @@ inside the declared boundary.
 
 | Profile | Required evidence |
 |---|---|
-| `enterprise-agent` | AuthorityTwin, TraceProof, DefenderTwin, ContainmentProof, AgentBOM ClaimImpact |
-| `frontier-lab` | AuthorityTwin, TraceProof, CollectiveGuard v2, ScheduleProof, DefenderTwin, ContainmentProof, AgentBOM ClaimImpact |
-| `federal-high-impact` | AuthorityTwin, TraceProof, CollectiveGuard v2, ScheduleProof, DefenderTwin, ContainmentProof, AgentBOM ClaimImpact |
+| `enterprise-agent` | AuthorityTwin, TraceProof, DefenderTwin, EvalIntegrityProof, ContainmentProof, AgentBOM ClaimImpact |
+| `frontier-lab` | AuthorityTwin, TraceProof, CollectiveGuard v2, ScheduleProof, DefenderTwin, EvalIntegrityProof, ContainmentProof, AgentBOM ClaimImpact |
+| `federal-high-impact` | AuthorityTwin, TraceProof, CollectiveGuard v2, ScheduleProof, DefenderTwin, EvalIntegrityProof, ContainmentProof, AgentBOM ClaimImpact |
 | `critical-infrastructure` | All above plus ResilienceGraph |
 
 The similarly shaped frontier and federal profiles are intentionally separate:
@@ -170,6 +171,7 @@ AssuranceGraph currently accepts these verified report kinds:
 - `schedule` — ScheduleProof;
 - `verified-defense` — DefenderTwin; and
 - `defense-portfolio` — ResilienceGraph;
+- `evaluation-integrity` — EvalIntegrityProof evaluation-process integrity;
 - `containment` — ContainmentProof harmless canary controls; and
 - `dependency-impact` — AgentBOM dependency-to-claim impact analysis.
 
@@ -217,6 +219,7 @@ AssuranceGraph does not establish:
 - that supported claims justify deployment; or
 - that missing evidence proves a system is unsafe.
 
-ContainmentProof and AgentBOM ClaimImpact now add harmless canary evidence and
-exact dependency-to-claim change analysis without exposing live targets,
-loading third-party code, or taking operational action.
+EvalIntegrityProof, ContainmentProof, and AgentBOM ClaimImpact now add
+content-free evaluation-process integrity, harmless canary evidence, and exact
+dependency-to-claim change analysis without exposing live targets, loading
+third-party code, or taking operational action.

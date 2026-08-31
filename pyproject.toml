@@ -75,6 +75,21 @@ keywords = [
     "agent-bom",
     "software-supply-chain-security",
     "federal-assessment",
+    "evaluation-integrity",
+    "benchmark-integrity",
+    "holdout-leakage",
+    "commit-reveal",
+    "in-toto",
+    "dsse",
+    "multi-party-attestation",
+    "separation-of-duties",
+    "transparency-log",
+    "merkle-tree",
+    "key-revocation",
+    "checkpoint-gossip",
+    "split-view-detection",
+    "continuous-review",
+    "review-impact-analysis",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -170,6 +185,16 @@ DefenderTwin = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/v
 ResilienceGraph = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/resiliencegraph.md"
 AssuranceGraph = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurancegraph.md"
 ContainmentProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurance-control-plane.md"
+EvalIntegrityProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/evalintegrityproof.md"
+AssuranceQuorum = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurancequorum.md"
+AssuranceLedger = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md"
+"AssuranceLedger ForkProof" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#disclose-the-conflict-without-disclosing-the-review-history"
+"AssuranceLedger ConsistencyProof" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#prove-legitimate-growth-without-sharing-log-entries"
+"AssuranceLedger ObserverReceipt" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#bind-each-view-to-an-independent-observer-receipt"
+"AssuranceLedger WitnessConflict" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#attribute-witness-keys-that-signed-both-fork-views"
+"AssuranceLedger VerifierConformance" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#prove-your-verifier-rejects-rehashed-tampering"
+"AssuranceLedger CapabilityManifest" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#discover-the-exact-integration-contract"
+"AssuranceLedger IntegrationLock" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#pin-an-owner-reviewed-compatibility-floor"
 AgentBOM = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurance-control-plane.md"
 "Assurance Reproduction Exchange" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/assurance"
 "Verified Cyber Defense Commons" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/defense"

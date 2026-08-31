@@ -67,7 +67,7 @@ def test_complete_critical_infrastructure_case_supports_all_claims(tmp_path):
 
     assert report["summary"]["status"] == "profile_evidence_supported"
     assert report["summary"]["claim_status_counts"] == {
-        "supported": 8,
+        "supported": 9,
         "violated": 0,
         "contradicted": 0,
         "stale_evidence": 0,

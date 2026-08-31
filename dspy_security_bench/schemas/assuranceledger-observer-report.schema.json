@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-observer-report.schema.json",
+  "title": "AssuranceLedger ObserverReceipt v1 report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "observer_policy", "ledger_policy", "receipts", "source_errors", "receipt_results", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger ObserverReceipt / Independent checkpoint observation evidence"},
+    "protocol_version": {"const": "assuranceledger-observer-receipt-v1"},
+    "analyzer": {"const": "deterministic-observer-independence-analyzer-v1"},
+    "observer_policy": {"$ref": "assuranceledger-observer-policy.schema.json"},
+    "ledger_policy": {"$ref": "assuranceledger-policy.schema.json"},
+    "receipts": {"type": "array", "minItems": 2, "maxItems": 50, "items": {"$ref": "#/$defs/receipt"}},
+    "source_errors": {"type": "array", "items": {"type": "string"}},
+    "receipt_results": {"type": "array", "minItems": 2, "maxItems": 50, "items": {"$ref": "#/$defs/result"}},
+    "summary": {"$ref": "#/$defs/summary"},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "signature": {"type": "object", "additionalProperties": false, "required": ["keyid", "signer_id", "signature_base64"], "properties": {"keyid": {"$ref": "#/$defs/digest"}, "signer_id": {"type": "string", "minLength": 1}, "signature_base64": {"type": "string", "minLength": 1}}},
+    "statement": {"type": "object", "additionalProperties": false, "required": ["protocol_version", "observer_policy_sha256", "ledger_policy_sha256", "observer_id", "observer_organization_id", "channel_class", "channel_locator_sha256", "observed_at", "source_ledger_report_sha256", "signed_checkpoint_sha256"], "properties": {"protocol_version": {"const": "assuranceledger-observer-receipt-v1"}, "observer_policy_sha256": {"$ref": "#/$defs/digest"}, "ledger_policy_sha256": {"$ref": "#/$defs/digest"}, "observer_id": {"type": "string", "minLength": 1}, "observer_organization_id": {"type": "string", "minLength": 1}, "channel_class": {"enum": ["offline-transfer", "separately-administered-api", "transparency-distributor", "witness-feed"]}, "channel_locator_sha256": {"$ref": "#/$defs/digest"}, "observed_at": {"type": "integer", "minimum": 0}, "source_ledger_report_sha256": {"$ref": "#/$defs/digest"}, "signed_checkpoint_sha256": {"$ref": "#/$defs/digest"}}},
+    "receipt": {"type": "object", "additionalProperties": false, "required": ["statement", "signed_checkpoint", "observer_signature"], "properties": {"statement": {"$ref": "#/$defs/statement"}, "signed_checkpoint": {"$ref": "assuranceledger-report.schema.json#/$defs/signedCheckpoint"}, "observer_signature": {"$ref": "#/$defs/signature"}}},
+    "result": {"type": "object", "additionalProperties": false, "required": ["receipt_index", "observer_id", "observer_organization_id", "channel_class", "channel_locator_sha256", "tree_size", "root_sha256", "status", "errors"], "properties": {"receipt_index": {"type": "integer", "minimum": 0}, "observer_id": {"type": ["string", "null"]}, "observer_organization_id": {"type": ["string", "null"]}, "channel_class": {"type": ["string", "null"]}, "channel_locator_sha256": {"type": ["string", "null"]}, "tree_size": {"type": ["integer", "null"]}, "root_sha256": {"type": ["string", "null"]}, "status": {"enum": ["valid", "invalid"]}, "errors": {"type": "array", "items": {"type": "string"}}}},
+    "summary": {"type": "object", "additionalProperties": false, "required": ["status", "submitted_receipts", "valid_receipts", "distinct_observers", "distinct_organizations", "distinct_channels", "distinct_checkpoints", "same_size_fork_pairs", "embedded_log_entries", "automatic_actions"], "properties": {"status": {"enum": ["independently_observed_equivocation", "checkpoint_corroborated", "independent_checkpoint_observations", "insufficient_observer_independence", "invalid_observation_evidence"]}, "submitted_receipts": {"type": "integer", "minimum": 2}, "valid_receipts": {"type": "integer", "minimum": 0}, "distinct_observers": {"type": "integer", "minimum": 0}, "distinct_organizations": {"type": "integer", "minimum": 0}, "distinct_channels": {"type": "integer", "minimum": 0}, "distinct_checkpoints": {"type": "integer", "minimum": 0}, "same_size_fork_pairs": {"type": "integer", "minimum": 0}, "embedded_log_entries": {"const": 0}, "automatic_actions": {"const": 0}}}
+  }
+}

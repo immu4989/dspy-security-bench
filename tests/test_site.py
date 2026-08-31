@@ -193,7 +193,7 @@ def test_site_presents_assurancegraph_as_a_non_certifying_evidence_compiler():
     html = (SITE / "index.html").read_text()
     for value in (
         'id="assurancegraph"',
-        "Eight proofs.",
+        "Nine proofs.",
         "ASSURANCEGRAPH::CLAIM-EVIDENCE::V1",
         "NATIVE EVIDENCE VERIFIERS",
         "EXECUTABLE CLAIM GRAPH",
@@ -208,7 +208,7 @@ def test_site_presents_assurancegraph_as_a_non_certifying_evidence_compiler():
     assert commons == {
         "protocolVersion": "assurancegraph-v1",
         "profileCount": 4,
-        "evidenceKindCount": 8,
+        "evidenceKindCount": 9,
         "sectorStarterCount": 7,
         "federalReviewPackFileCount": 8,
         "claimStatuses": [
@@ -218,6 +218,139 @@ def test_site_presents_assurancegraph_as_a_non_certifying_evidence_compiler():
             "stale_evidence",
             "missing_evidence",
         ],
+        "automaticDeploymentActions": 0,
+    }
+
+
+def test_site_presents_evalintegrityproof_as_content_free_process_evidence():
+    html = (SITE / "index.html").read_text()
+    for value in (
+        'id="evalintegrity"',
+        "First prove the test.",
+        "EVALINTEGRITYPROOF::V1 / 13 CONTROLS / ZERO ACTIONS",
+        "COMMIT / RUN / REVEAL ORDER",
+        "INDEPENDENT MONITOR",
+        "13 / 13 EVIDENCED",
+        "INTEGRITY VIOLATED",
+        "NO PROMPTS",
+        "dspy-security-bench evalguard demo --out-dir artifacts/eval-integrity",
+    ):
+        assert value in html
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#eval-integrity-copy"' in script
+    commons = build_payload()["missionAssuranceCommons"]["evalIntegrityProof"]
+    assert commons == {
+        "protocolVersion": "evalintegrityproof-v1",
+        "controlCount": 13,
+        "rawEvaluationContentAccepted": False,
+        "automaticActions": 0,
+    }
+
+
+def test_site_presents_assurancequorum_as_role_separated_review_evidence():
+    html = (SITE / "index.html").read_text()
+    for value in (
+        'id="assurancequorum"',
+        "Trust needs witnesses.",
+        "ASSURANCEQUORUM::IN-TOTO::DSSE::V1",
+        "AUTHORIZED REVIEW FUNCTIONS",
+        "5 ORGANIZATIONS",
+        "CLAIM SEPARATION POLICY",
+        "EVIDENCE GAP",
+        "Additional “sufficient” statements cannot erase",
+        "SIGNATURE ≠ AUTHORITY",
+        "dspy-security-bench quorum demo --out-dir artifacts/assurance-quorum",
+    ):
+        assert value in html
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#quorum-copy"' in script
+    commons = build_payload()["missionAssuranceCommons"]["assuranceQuorum"]
+    assert commons == {
+        "protocolVersion": "assurancequorum-v1",
+        "statementType": "https://in-toto.io/Statement/v1",
+        "envelopeType": "DSSE",
+        "referenceReviewerOrganizations": 5,
+        "evidenceGapCanBeOutvoted": False,
+        "automaticDeploymentActions": 0,
+    }
+
+
+def test_site_presents_assuranceledger_as_witnessed_key_lifecycle_evidence():
+    html = (SITE / "index.html").read_text()
+    for value in (
+        'id="assuranceledger"',
+        "Trust can expire.",
+        "ASSURANCELEDGER::MERKLE+WITNESS::V1",
+        "APPEND-ONLY PREFIX VERIFIED",
+        "COMPLETE LOG / CHECKPOINT 01",
+        "2 / 2 WITNESSES",
+        "COMPROMISE SINCE",
+        "INVALIDATES 1 REVIEW",
+        "OBSERVER CHANNEL A",
+        "EQUIVOCATION EVIDENCED",
+        "2 SIGNED CHECKPOINTS",
+        "OFFLINE FORK PROOF",
+        "0 LOG ENTRIES · 0 REVIEW ENVELOPES",
+        "4 MERKLE NODES",
+        "APPEND-ONLY EXTENSION PROVED",
+        "0 LOG ENTRIES DISCLOSED",
+        "OBSERVER RECEIPT A",
+        "2 ORGS · 2 CHANNELS",
+        "INDEPENDENTLY OBSERVED",
+        "W1 SIGNED BOTH",
+        "2 KEYS · 2 ORGANIZATIONS ATTRIBUTED",
+        "0 AUTO-REVOCATIONS",
+        "9 / 9 REHASHED MUTATIONS REJECTED",
+        "CLEAN SOURCES NATIVE · OFFLINE",
+        "OWNER-PINNED PARTNER CONTRACT",
+        "9 OFFLINE VERIFIERS",
+        "13 SCHEMA DIGESTS",
+        "4 STANDALONE",
+        "0 DRIFT · 0 ACTIONS",
+        "8 OF 9 REOPENED",
+        "0 PEOPLE SELECTED · 0 ACTIONS",
+        "WITNESS ≠ AUTHORITY",
+        "dspy-security-bench ledger demo --out-dir artifacts/assurance-ledger",
+    ):
+        assert value in html
+    script = (SITE / "app.js").read_text()
+    assert 'bindCommandCopy("#ledger-copy"' in script
+    commons = build_payload()["missionAssuranceCommons"]["assuranceLedger"]
+    assert commons == {
+        "protocolVersion": "assuranceledger-v1",
+        "merkleConstruction": "RFC6962-style-domain-separated",
+        "referenceWitnessOrganizations": 2,
+        "retirementDistinctFromCompromise": True,
+        "globalConsistencyClaimed": False,
+        "gossipProtocolVersion": "assuranceledger-gossip-v1",
+        "forkEvidenceRequiresValidViews": True,
+        "forkProofProtocolVersion": "assuranceledger-fork-proof-v1",
+        "forkProofEmbeddedLogEntries": 0,
+        "forkProofOperatorSignatures": 2,
+        "consistencyProofProtocolVersion": "assuranceledger-consistency-proof-v1",
+        "consistencyProofEmbeddedLogEntries": 0,
+        "referenceConsistencyPathNodes": 4,
+        "observerReceiptProtocolVersion": "assuranceledger-observer-receipt-v1",
+        "referenceObserverOrganizations": 2,
+        "referenceObserverChannels": 2,
+        "rawChannelLocatorsDisclosed": False,
+        "witnessConflictProtocolVersion": "assuranceledger-witness-conflict-v1",
+        "referenceDoubleSigningWitnessKeys": 2,
+        "automaticWitnessRevocations": 0,
+        "conformanceProtocolVersion": "assuranceledger-verifier-conformance-v2",
+        "referenceConformanceCases": 9,
+        "referenceUnexpectedAcceptances": 0,
+        "conformanceCleanSourcesNativelyVerified": True,
+        "capabilityManifestProtocolVersion": "assuranceledger-capability-manifest-v1",
+        "capabilityProtocolCount": 9,
+        "capabilitySchemaCount": 13,
+        "standaloneVerifierCount": 4,
+        "integrationLockProtocolVersion": "assuranceledger-integration-lock-v1",
+        "referenceCapabilityDriftFindings": 0,
+        "rereviewProtocolVersion": "assuranceledger-rereview-v1",
+        "referenceInvalidatedReviews": 1,
+        "referenceClaimsRequiringRereview": 8,
+        "replacementReviewersSelected": 0,
         "automaticDeploymentActions": 0,
     }
 

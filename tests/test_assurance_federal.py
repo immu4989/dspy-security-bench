@@ -45,7 +45,7 @@ def test_exported_review_pack_is_closed_recomputable_and_non_certifying(tmp_path
     assert json.loads((pack / "poam-input.json").read_text())["open_item_count"] == 0
     index = json.loads((pack / "evidence-index.json").read_text())
     assert index["payloads_embedded"] is False
-    assert len(index["evidence"]) == 8
+    assert len(index["evidence"]) == 9
     schema = json.loads(
         (
             ROOT / "dspy_security_bench/schemas/assurance-review-pack-manifest.schema.json"

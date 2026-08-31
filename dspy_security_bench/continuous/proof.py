@@ -266,6 +266,10 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         from dspy_security_bench.containment.proof import verify_report
 
         return "containment", verify_report(payload)
+    if report_type == "EvalIntegrityProof / Evaluation-process integrity evidence":
+        from dspy_security_bench.evalguard.proof import verify_report
+
+        return "evaluation-integrity", verify_report(payload)
     if report_type == "AgentBOM / Dependency-to-assurance claim impact":
         from dspy_security_bench.supplychain.proof import verify_report
 
@@ -277,7 +281,8 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
     raise ValueError(
         "unsupported evidence; use a verified AgentGraphTwin, TraceProof, AuthorityTwin, "
         "MissionPackTwin, IncidentTwin, DefenderTwin, ResilienceGraph, ScheduleProof, "
-        "CollectiveGuard, ContainmentProof, AgentBOM ClaimImpact, or ValueProof report"
+        "CollectiveGuard, ContainmentProof, EvalIntegrityProof, AgentBOM ClaimImpact, or "
+        "ValueProof report"
     )
 
 

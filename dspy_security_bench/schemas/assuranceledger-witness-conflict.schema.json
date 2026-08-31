@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-witness-conflict.schema.json",
+  "title": "AssuranceLedger WitnessConflict v1 report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "fork_proof", "witness_results", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger WitnessConflict / Fork cosignature attribution"},
+    "protocol_version": {"const": "assuranceledger-witness-conflict-v1"},
+    "analyzer": {"const": "deterministic-fork-cosignature-intersection-v1"},
+    "fork_proof": {"$ref": "assuranceledger-fork-proof.schema.json"},
+    "witness_results": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["witness_id", "organization_id", "public_key_sha256", "signed_left_checkpoint", "signed_right_checkpoint", "status"],
+        "properties": {
+          "witness_id": {"type": "string", "minLength": 1},
+          "organization_id": {"type": "string", "minLength": 1},
+          "public_key_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "signed_left_checkpoint": {"type": "boolean"},
+          "signed_right_checkpoint": {"type": "boolean"},
+          "status": {"enum": ["signed_both_conflicting_checkpoints", "signed_one_conflicting_checkpoint"]}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "witnesses_on_left", "witnesses_on_right", "shared_witness_keys", "shared_witness_organizations", "automatic_notifications", "automatic_revocations", "automatic_actions"],
+      "properties": {
+        "status": {"enum": ["operator_and_witness_conflict_evidenced", "operator_conflict_without_shared_witness"]},
+        "witnesses_on_left": {"type": "integer", "minimum": 0},
+        "witnesses_on_right": {"type": "integer", "minimum": 0},
+        "shared_witness_keys": {"type": "integer", "minimum": 0},
+        "shared_witness_organizations": {"type": "integer", "minimum": 0},
+        "automatic_notifications": {"const": 0},
+        "automatic_revocations": {"const": 0},
+        "automatic_actions": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

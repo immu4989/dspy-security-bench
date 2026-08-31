@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-consistency-proof.schema.json",
+  "title": "AssuranceLedger ConsistencyProof v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "verifier", "source", "policy", "older_checkpoint", "newer_checkpoint", "consistency", "finding", "privacy", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger ConsistencyProof / Compact append-only evidence"},
+    "protocol_version": {"const": "assuranceledger-consistency-proof-v1"},
+    "verifier": {"const": "rfc6962-style-minimal-consistency-verifier-v1"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["older_ledger_report_sha256", "newer_ledger_report_sha256"],
+      "properties": {
+        "older_ledger_report_sha256": {"$ref": "#/$defs/digest"},
+        "newer_ledger_report_sha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "policy": {"$ref": "assuranceledger-policy.schema.json"},
+    "older_checkpoint": {"$ref": "assuranceledger-report.schema.json#/$defs/signedCheckpoint"},
+    "newer_checkpoint": {"$ref": "assuranceledger-report.schema.json#/$defs/signedCheckpoint"},
+    "consistency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hash_algorithm", "leaf_domain_prefix_hex", "node_domain_prefix_hex", "older_tree_size", "newer_tree_size", "path_sha256"],
+      "properties": {
+        "hash_algorithm": {"const": "sha256"},
+        "leaf_domain_prefix_hex": {"const": "00"},
+        "node_domain_prefix_hex": {"const": "01"},
+        "older_tree_size": {"type": "integer", "minimum": 1},
+        "newer_tree_size": {"type": "integer", "minimum": 2},
+        "path_sha256": {"type": "array", "minItems": 1, "maxItems": 65, "items": {"$ref": "#/$defs/digest"}}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "log_origin", "older_root_sha256", "newer_root_sha256", "path_node_count", "valid_operator_signatures", "valid_witness_quorums"],
+      "properties": {
+        "status": {"const": "append_only_extension_proved"},
+        "log_origin": {"type": "string", "minLength": 1},
+        "older_root_sha256": {"$ref": "#/$defs/digest"},
+        "newer_root_sha256": {"$ref": "#/$defs/digest"},
+        "path_node_count": {"type": "integer", "minimum": 1, "maximum": 65},
+        "valid_operator_signatures": {"const": 2},
+        "valid_witness_quorums": {"const": 2}
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["log_entries_embedded", "quorum_reports_embedded", "review_envelopes_embedded", "reviewer_key_registrations_embedded", "automatic_actions"],
+      "properties": {
+        "log_entries_embedded": {"const": 0},
+        "quorum_reports_embedded": {"const": 0},
+        "review_envelopes_embedded": {"const": 0},
+        "reviewer_key_registrations_embedded": {"const": 0},
+        "automatic_actions": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

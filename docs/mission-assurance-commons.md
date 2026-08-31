@@ -245,17 +245,20 @@ owners, boundary, and evaluation time. It is an engineering review surface—not
 certification, ATO, deployment approval, or risk acceptance. Read the
 [AssuranceGraph protocol](assurancegraph.md).
 
-### 13. Prove runtime controls and dependency currency
+### 13. Prove evaluation integrity, runtime controls, and dependency currency
 
 ```bash
+dspy-security-bench evalguard demo --out-dir artifacts/eval-integrity
 dspy-security-bench contain demo --out-dir artifacts/containmentproof
 dspy-security-bench bom demo --out-dir artifacts/agentbom
 dspy-security-bench assure init --sector water-operations \
   --case-id water-agent-pilot --out assurance-case.json
 ```
 
-ContainmentProof keeps control violations, monitor failures, and incomplete
-evidence separate across eight harmless canaries. AgentBOM ClaimImpact maps a
+EvalIntegrityProof verifies content-free holdout, evaluator, monitor,
+commit/reveal, accounting, and safe-exit evidence. ContainmentProof keeps
+control violations, monitor failures, and incomplete evidence separate across
+eight harmless canaries. AgentBOM ClaimImpact maps a
 changed dependency through the exact claims that need reevaluation. The
 declarative probe contract cannot load contributor code. Verified cases can be
 exported as a closed federal review pack or indexed in the non-ranking public
@@ -273,8 +276,10 @@ The next measurable community targets are:
    reproduced frontier counts;
 5. three organization-reviewed AssuranceGraph cases built only from synthetic
    or safely publishable evidence, including at least one unfavorable outcome;
-6. two independent reproductions; and
-7. one published deployment or research report describing limitations.
+6. three independently reproduced EvalIntegrityProof records, including one
+   monitor failure or integrity violation;
+7. two independent reproductions; and
+8. one published deployment or research report describing limitations.
 
 These are targets, not current claims. Reference fixtures and maintainer-created
 synthetic examples do not count as independent evidence.

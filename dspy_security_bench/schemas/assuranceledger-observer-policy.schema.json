@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-observer-policy.schema.json",
+  "title": "AssuranceLedger ObserverReceipt v1 policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_type", "exchange_id", "observers", "minimum_observers", "minimum_distinct_organizations", "minimum_distinct_channels", "maximum_observation_delay_seconds", "allowed_channel_classes", "claim_boundary", "policy_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "policy_type": {"const": "dspy-security-bench-assurance-ledger-observer-policy"},
+    "exchange_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "observers": {"type": "array", "minItems": 2, "maxItems": 50, "items": {"$ref": "#/$defs/key"}},
+    "minimum_observers": {"type": "integer", "minimum": 2, "maximum": 50},
+    "minimum_distinct_organizations": {"type": "integer", "minimum": 2, "maximum": 50},
+    "minimum_distinct_channels": {"type": "integer", "minimum": 2, "maximum": 4},
+    "maximum_observation_delay_seconds": {"type": "integer", "minimum": 1},
+    "allowed_channel_classes": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"enum": ["offline-transfer", "separately-administered-api", "transparency-distributor", "witness-feed"]}},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "policy_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entity_id", "organization_id", "public_key_spki_base64", "public_key_sha256"],
+      "properties": {
+        "entity_id": {"type": "string", "minLength": 1},
+        "organization_id": {"type": "string", "minLength": 1},
+        "public_key_spki_base64": {"type": "string", "minLength": 1},
+        "public_key_sha256": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

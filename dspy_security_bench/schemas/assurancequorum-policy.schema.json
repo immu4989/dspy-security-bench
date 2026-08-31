@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assurancequorum-policy.schema.json",
+  "title": "AssuranceQuorum v1 policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_type", "policy_id", "title", "subject", "review_window", "reviewers", "claim_requirements", "constraints", "claim_boundary", "policy_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "policy_type": {"const": "dspy-security-bench-assurance-quorum-policy"},
+    "policy_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 300},
+    "subject": {
+      "type": "object", "additionalProperties": false,
+      "required": ["report_sha256", "case_sha256", "case_id", "profile_id"],
+      "properties": {
+        "report_sha256": {"$ref": "#/$defs/digest"}, "case_sha256": {"$ref": "#/$defs/digest"},
+        "case_id": {"type": "string"}, "profile_id": {"type": "string"}
+      }
+    },
+    "review_window": {
+      "type": "object", "additionalProperties": false, "required": ["not_before", "not_after"],
+      "properties": {"not_before": {"type": "integer", "minimum": 0}, "not_after": {"type": "integer", "minimum": 0}}
+    },
+    "reviewers": {
+      "type": "array", "minItems": 2, "maxItems": 50,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["signer_id", "role", "organization_id", "public_key_spki_base64", "public_key_sha256"],
+        "properties": {
+          "signer_id": {"type": "string"},
+          "role": {"enum": ["system-owner", "evaluation-owner", "security-reviewer", "privacy-reviewer", "mission-owner", "independent-reviewer", "procurement-reviewer"]},
+          "organization_id": {"type": "string"}, "public_key_spki_base64": {"type": "string", "minLength": 1},
+          "public_key_sha256": {"$ref": "#/$defs/digest"}
+        }
+      }
+    },
+    "claim_requirements": {
+      "type": "array", "minItems": 1, "maxItems": 100,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["claim_id", "required_roles", "minimum_supports", "minimum_distinct_organizations"],
+        "properties": {
+          "claim_id": {"type": "string"},
+          "required_roles": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["system-owner", "evaluation-owner", "security-reviewer", "privacy-reviewer", "mission-owner", "independent-reviewer", "procurement-reviewer"]}},
+          "minimum_supports": {"type": "integer", "minimum": 1},
+          "minimum_distinct_organizations": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "constraints": {
+      "const": {
+        "signature_algorithm": "Ed25519",
+        "statement_type": "https://in-toto.io/Statement/v1",
+        "predicate_type": "https://immu4989.github.io/dspy-security-bench/predicates/assurance-review/v1",
+        "evidence_gap_veto": true,
+        "unique_key_per_signer": true
+      }
+    },
+    "claim_boundary": {"type": "string"},
+    "policy_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

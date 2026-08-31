@@ -45,7 +45,7 @@
         },
         "evidence_kinds": {
           "type": "array", "minItems": 1, "uniqueItems": true,
-          "items": {"enum": ["authority", "collective-v2", "containment", "defense-portfolio", "dependency-impact", "schedule", "trace", "verified-defense"]}
+          "items": {"enum": ["authority", "collective-v2", "containment", "defense-portfolio", "dependency-impact", "evaluation-integrity", "schedule", "trace", "verified-defense"]}
         },
         "independent_reproductions": {
           "type": "array",

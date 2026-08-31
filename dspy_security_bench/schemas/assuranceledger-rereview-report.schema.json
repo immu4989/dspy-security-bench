@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-rereview-report.schema.json",
+  "title": "AssuranceLedger ReReview v1 report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "historical_policy", "ledger_report", "source_errors", "review_records", "claim_results", "rereview_requests", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger ReReview / Minimal claim re-review plan"},
+    "protocol_version": {"const": "assuranceledger-rereview-v1"},
+    "analyzer": {"const": "deterministic-minimal-claim-rereview-planner-v1"},
+    "historical_policy": {"enum": ["require-current-key", "allow-until-review-expiry"]},
+    "ledger_report": {"$ref": "assuranceledger-report.schema.json"},
+    "source_errors": {"$ref": "#/$defs/errors"},
+    "review_records": {"type": "array", "items": {"type": "object"}},
+    "claim_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim_id", "status", "required_roles", "current_roles", "historical_roles", "invalidated_roles", "incomplete_roles", "gap_roles", "missing_roles"],
+        "properties": {
+          "claim_id": {"$ref": "#/$defs/id"},
+          "status": {"enum": ["review_current", "renewal_due", "rereview_required", "unresolved_evidence_gap"]},
+          "required_roles": {"$ref": "#/$defs/roles"},
+          "current_roles": {"$ref": "#/$defs/roles"},
+          "historical_roles": {"$ref": "#/$defs/roles"},
+          "invalidated_roles": {"$ref": "#/$defs/roles"},
+          "incomplete_roles": {"$ref": "#/$defs/roles"},
+          "gap_roles": {"$ref": "#/$defs/roles"},
+          "missing_roles": {"$ref": "#/$defs/roles"}
+        }
+      }
+    },
+    "rereview_requests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "reason", "prior_signer_id", "claim_ids", "replacement_selected"],
+        "properties": {
+          "role": {"$ref": "#/$defs/id"},
+          "reason": {"enum": ["compromise-invalidated", "trust-evidence-incomplete", "key-retired", "missing-required-role"]},
+          "prior_signer_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/id"}]},
+          "claim_ids": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/id"}},
+          "replacement_selected": {"const": false}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "claim_count", "claim_status_counts", "rereview_request_count", "claims_requiring_rereview", "replacement_reviewers_selected", "automatic_deployment_actions", "automatic_risk_acceptances", "automatic_authorizations_to_operate"],
+      "properties": {
+        "status": {"enum": ["no_rereview_indicated", "renewal_due", "rereview_required", "evidence_gap_unresolved", "invalid_source_evidence"]},
+        "claim_count": {"type": "integer", "minimum": 0},
+        "claim_status_counts": {"type": "object"},
+        "rereview_request_count": {"type": "integer", "minimum": 0},
+        "claims_requiring_rereview": {"type": "integer", "minimum": 0},
+        "replacement_reviewers_selected": {"const": 0},
+        "automatic_deployment_actions": {"const": 0},
+        "automatic_risk_acceptances": {"const": 0},
+        "automatic_authorizations_to_operate": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "roles": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "errors": {"type": "array", "items": {"type": "string"}}
+  }
+}

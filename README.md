@@ -12,7 +12,12 @@ paths, continuous evidence, signed data-only mission protocols, measured
 mission economics, bounded authorization-race checking, autonomous-collective
 containment evidence, verified cyber-defense remediation, exact cross-sector
 resilience portfolios, executable claim–evidence assurance cases, and reviewable
-OSCAL assessment inputs.
+OSCAL assessment inputs—now including content-free proof that the evaluation
+process itself preserved holdout, evaluator, monitoring, and safe-exit boundaries.
+Role-separated in-toto/DSSE review statements then make multi-party evidence
+governance inspectable without turning signatures into deployment approvals.
+Witnessed append-only checkpoints make reviewer-key registration, retirement,
+and retrospective compromise visible across trust domains.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -20,6 +25,7 @@ OSCAL assessment inputs.
 [![dspy 3.3.0b1+](https://img.shields.io/badge/dspy-%E2%89%A53.3.0b1-FF6F61.svg)](https://github.com/stanfordnlp/dspy)
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
+[![AssuranceLedger CI](https://github.com/immu4989/dspy-security-bench/actions/workflows/assuranceledger.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/assuranceledger.yml)
 [![ProofRun](https://img.shields.io/badge/ProofRun-attested%20evidence-8F78FF)](docs/proofrun.md)
 [![TraceProof](https://img.shields.io/badge/TraceProof-local%20OTLP%20evidence-5EEAD4)](docs/traceproof.md)
 [![ValueProof](https://img.shields.io/badge/ValueProof-observed%20mission%20economics-FBBF24)](docs/valueproof.md)
@@ -31,6 +37,9 @@ OSCAL assessment inputs.
 [![DefenderTwin](https://img.shields.io/badge/DefenderTwin-verified%20cyber%20remediation-6DF2B5)](docs/verified-cyber-defense-commons.md)
 [![ResilienceGraph](https://img.shields.io/badge/ResilienceGraph-exact%20defense%20frontiers-F7C873)](docs/resiliencegraph.md)
 [![AssuranceGraph](https://img.shields.io/badge/AssuranceGraph-executable%20evidence%20cases-60F5DE)](docs/assurancegraph.md)
+[![EvalIntegrityProof](https://img.shields.io/badge/EvalIntegrityProof-prove%20the%20evaluation-FF7CE5)](docs/evalintegrityproof.md)
+[![AssuranceQuorum](https://img.shields.io/badge/AssuranceQuorum-role--separated%20DSSE%20review-7FE7FF)](docs/assurancequorum.md)
+[![AssuranceLedger](https://img.shields.io/badge/AssuranceLedger-witnessed%20key%20lifecycle-F6C667)](docs/assuranceledger.md)
 [![ContainmentProof](https://img.shields.io/badge/ContainmentProof-canary%20control%20evidence-7DFFB2)](docs/assurance-control-plane.md)
 [![AgentBOM](https://img.shields.io/badge/AgentBOM-dependency%E2%86%92claim%20impact-FFCA70)](docs/assurance-control-plane.md)
 [![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
@@ -56,11 +65,12 @@ OSCAL assessment inputs.
 
 ## On main: AssuranceGraph — from scattered reports to one reviewable decision case
 
-**An organization should not have to manually reconcile eight security tools to
+**An organization should not have to manually reconcile nine security tools to
 learn which deployment claims are actually supported.** AssuranceGraph composes
 AuthorityTwin, TraceProof, CollectiveGuard v2, ScheduleProof, DefenderTwin, and
-ResilienceGraph evidence with ContainmentProof runtime controls and AgentBOM
-dependency-impact evidence into a content-addressed claim graph.
+ResilienceGraph evidence with EvalIntegrityProof evaluation-process integrity,
+ContainmentProof runtime controls, and AgentBOM dependency-impact evidence into
+a content-addressed claim graph.
 
 Every source artifact is recomputed by its native verifier before frozen profile
 predicates are applied. Claims remain explicitly `supported`, `violated`,
@@ -92,6 +102,157 @@ A supported profile is evidence about a declared boundary—not proof of
 system-wide safety or an authorization to operate.
 
 [Build an executable assurance case →](docs/assurancegraph.md)
+
+---
+
+## On main: EvalIntegrityProof — prove the test before trusting the score
+
+**A signed benchmark result can still come from an evaluation whose holdout
+leaked, evaluator shared a failure domain, monitor went blind, or case counts did
+not close.** EvalIntegrityProof turns those process-integrity questions into 13
+frozen, content-free controls with commit-before-reveal ordering and exact
+offline recomputation.
+
+```bash
+# Four fictional outcomes; no model, prompt, output, key, network, or live target.
+dspy-security-bench evalguard demo --out-dir artifacts/eval-integrity
+
+# Build and gate an organization-owned structural record.
+dspy-security-bench evalguard init --out evaluation-integrity.json
+dspy-security-bench evalguard run evaluation-integrity.json \
+  --json-out evaluation-integrity.report.json \
+  --sarif-out evaluation-integrity.sarif --fail-on-review
+```
+
+`integrity_violated`, `monitor_failed`, and `incomplete_evidence` remain separate.
+The protocol binds artifact digests, a holdout commitment, result/label ordering,
+failure domains, credential scopes, evaluator data isolation, egress, complete
+case accounting, active leakage canaries, clock tolerance, and a safe exit. It
+does not inspect evaluation content or certify a model.
+
+[Prove an evaluation process →](docs/evalintegrityproof.md)
+
+---
+
+## On main: AssuranceQuorum — no single signature can manufacture trust
+
+**One signature can prove key possession; it cannot prove that security,
+evaluation, privacy, mission, and independent reviewers all examined the right
+evidence.** AssuranceQuorum gives each authorized function a scoped in-toto
+Statement v1 inside a DSSE envelope, bound to the exact AssuranceGraph report
+and a content-addressed separation-of-duty policy.
+
+```bash
+# Complete fictional six-role workflow; private demo keys are discarded.
+dspy-security-bench quorum demo --out-dir artifacts/assurance-quorum
+
+# Recompute the policy, source evidence case, signatures, assignments, and quorum.
+dspy-security-bench quorum verify \
+  artifacts/assurance-quorum/quorum-satisfied.report.json \
+  --evidence-root artifacts/assurance-quorum
+```
+
+Every claim can require specific roles, unique authorized keys, minimum signer
+counts, and distinct declared organizations. A valid `evidence-gap` statement is
+preserved as a veto; extra favorable signatures cannot erase it. Missing quorum,
+invalid review evidence, and an explicit gap remain different outcomes. Even a
+satisfied quorum performs zero deployment actions, ATOs, procurement decisions,
+or risk acceptances.
+
+[Build a role-separated assurance review →](docs/assurancequorum.md)
+
+---
+
+## On main: AssuranceLedger — trust can expire, and logs need witnesses
+
+**A valid signature does not tell you whether its key was registered before the
+review, retired later, or retrospectively compromised.** AssuranceLedger binds
+AssuranceQuorum reviews to an RFC 6962-style append-only Merkle log, an
+operator-signed checkpoint, and an owner-selected threshold of witnesses from
+distinct declared organizations.
+
+```bash
+# Current-trust and retrospective-compromise fixtures; demo keys are discarded.
+dspy-security-bench ledger demo --out-dir artifacts/assurance-ledger
+
+# Recompute the source quorum, full tree, prefix continuity, signatures,
+# witness threshold, registrations, review inclusion, and revocations offline.
+dspy-security-bench ledger verify \
+  artifacts/assurance-ledger/current-trust.report.json \
+  --evidence-root artifacts/assurance-ledger/quorum
+```
+
+`reviewer_trust_current`, `reviewer_trust_historical`,
+`reviewer_trust_invalidated`, `trust_evidence_incomplete`, and
+`invalid_ledger_evidence` remain distinct. A logged compromise can invalidate a
+historical review without deleting it; ordinary retirement preserves historical
+validity. Witness signatures evidence the checkpoint they saw, not identity,
+global consistency, deployment approval, or an ATO.
+
+Exchange independently obtained reports with `ledger compare`. Valid
+operator-signed checkpoints that fork become `equivocation_evidenced`; invalid
+input cannot masquerade as split-view proof, and repeated copies of one
+checkpoint remain `insufficient_view_diversity` rather than “consistent.”
+`ledger plan-rereview` maps an invalidated, incomplete, or owner-disallowed
+historical review to the exact affected claims and required roles. It groups the
+minimal request but selects zero replacement people and takes zero system
+actions.
+
+When gossip finds a same-size fork, `ledger export-fork-proof` produces a
+standalone incident artifact containing only the policy, two signed
+checkpoints, and source digests. Its offline verifier proves the operator signed
+different roots at one tree size and verifies both witness quorums—while
+embedding zero log entries, reviewer registrations, review envelopes, or
+AssuranceQuorum reports.
+
+For legitimate growth, `ledger export-consistency-proof` emits the complementary
+portable artifact: two signed checkpoints plus the unique minimal RFC
+6962-style consistency path. A recipient can prove the newer tree preserves the
+older tree without receiving a single underlying log entry.
+
+`ledger observe` closes the source-provenance gap with signed ObserverReceipts.
+`ledger compare-receipts` enforces distinct declared observers, organizations,
+and hashed delivery channels before calling a same-size fork independently
+observed. Raw channel locators and log contents are never embedded.
+
+`ledger analyze-witness-conflict` then intersects the verified cosignatures on
+both fork views, attributing double-signing to exact witness keys and declared
+organizations without inferring motive or automatically revoking anything.
+
+Downstream implementers can run `ledger conformance` against a complete demo or
+integration artifact directory. The original seven rehashed adversarial vectors
+must be rejected across the ledger, gossip, re-review, fork, consistency, observation,
+and witness-attribution verifiers. V2 adds rehashed capability-contract and
+integration-lock checks for nine total; the result itself is exactly recomputable,
+and optional SARIF exposes every missed rejection to code scanning.
+
+`ledger capabilities --out capability-manifest.json` gives agencies, vendors,
+and independent implementations one deterministic compatibility input instead
+of requiring them to infer support from prose. It binds nine protocol IDs to
+thirteen exact schema-byte digests, producer/verifier commands, standalone and
+evidence-root requirements, disclosed data classes, offline operation, and zero
+automatic actions. `ledger verify-capabilities` detects both rehashed field
+tampering and local schema drift.
+
+`ledger lock-capabilities` turns an owner-reviewed manifest into an exact
+IntegrationLock. `ledger check-capability-lock --fail-on-drift` then allows new
+capabilities but fails when an upgrade removes or changes a pinned schema,
+protocol, verifier, portability promise, data class, or action boundary. Its
+optional SARIF output gives CI systems stable per-drift rule identifiers.
+
+```bash
+# Emit → owner-review and pin → enforce on the candidate upgrade.
+dspy-security-bench ledger capabilities --out capability-manifest.json
+dspy-security-bench ledger lock-capabilities capability-manifest.json \
+  --out integration-lock.json
+dspy-security-bench ledger check-capability-lock \
+  integration-lock.json capability-manifest.json \
+  --out integration-lock-check.json \
+  --sarif-out integration-lock-check.sarif \
+  --fail-on-drift
+```
+
+[Build witnessed reviewer trust evidence →](docs/assuranceledger.md)
 
 ---
 
@@ -1635,7 +1796,19 @@ v0.1 scope choices:
 | v0.19 — CollectiveGuard content-free collective containment, response-window proof, and SARIF export | **shipped** |
 | Verified Cyber Defense Commons — DefenderTwin, five sector missions, Trusted Defender Gate, adapter conformance, SARIF/OSCAL, and privacy-bounded evidence exchange | **shipped on main** |
 | ResilienceGraph — exact evidence-bound remediation portfolios, stressed dependency reach, resource/community floors, full Pareto frontier, CSV, and ContinuousProof | **shipped on main** |
-| AssuranceGraph — eight native evidence kinds, executable claims, sector starters, JSON/SARIF/OSCAL/HTML, and closed federal review packs | **shipped on main** |
+| AssuranceGraph — nine native evidence kinds, executable claims, sector starters, JSON/SARIF/OSCAL/HTML, and closed federal review packs | **shipped on main** |
+| EvalIntegrityProof — content-free holdout, evaluator, monitor, commit/reveal, accounting, and safe-exit integrity evidence | **shipped on main** |
+| AssuranceQuorum — policy-authorized role-separated in-toto/DSSE evidence reviews with non-outvotable gaps | **shipped on main** |
+| AssuranceLedger — witnessed append-only reviewer-key lifecycle, review inclusion, retirement, and compromise invalidation | **shipped on main** |
+| AssuranceLedger Gossip — native cross-view recomputation with exact-prefix checks and cryptographic equivocation evidence | **shipped on main** |
+| AssuranceLedger ForkProof — privacy-minimized, offline-verifiable same-size log-misbehavior evidence | **shipped on main** |
+| AssuranceLedger ConsistencyProof — compact, entry-free proof that a newer signed checkpoint preserves the older tree | **shipped on main** |
+| AssuranceLedger ObserverReceipt — signed cross-organization/channel checkpoint provenance with privacy-bounded locators | **shipped on main** |
+| AssuranceLedger WitnessConflict — exact witness-key attribution for cosigning both sides of a proven fork | **shipped on main** |
+| AssuranceLedger VerifierConformance v2 — nine rehashed adversarial vectors for downstream verifier implementations | **shipped on main** |
+| AssuranceLedger CapabilityManifest — nine offline protocol contracts bound to thirteen exact schema digests | **shipped on main** |
+| AssuranceLedger IntegrationLock — owner-pinned compatibility floors, drift SARIF, and fail-on-drift CI | **shipped on main** |
+| AssuranceLedger ReReview — minimal claim/role re-review planning after retirement, compromise, or incomplete trust evidence | **shipped on main** |
 | Assurance Control Plane — ContainmentProof, AgentBOM ClaimImpact, non-executing probe contract, and non-ranking public exchange | **shipped on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |

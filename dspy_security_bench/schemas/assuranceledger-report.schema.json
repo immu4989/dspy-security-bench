@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-report.schema.json",
+  "title": "AssuranceLedger v1 report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "evaluation_time", "policy", "quorum_report", "entries", "checkpoint", "previous_checkpoint", "source_errors", "checkpoint_errors", "review_results", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger / Witnessed reviewer trust evidence"},
+    "protocol_version": {"const": "assuranceledger-v1"},
+    "analyzer": {"const": "deterministic-witnessed-reviewer-trust-analyzer-v1"},
+    "evaluation_time": {"type": "integer", "minimum": 0},
+    "policy": {"$ref": "assuranceledger-policy.schema.json"},
+    "quorum_report": {"$ref": "assurancequorum-report.schema.json"},
+    "entries": {"type": "array", "minItems": 1, "maxItems": 10000, "items": {"$ref": "#/$defs/event"}},
+    "checkpoint": {"$ref": "#/$defs/signedCheckpoint"},
+    "previous_checkpoint": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/signedCheckpoint"}]},
+    "source_errors": {"$ref": "#/$defs/errors"},
+    "checkpoint_errors": {"$ref": "#/$defs/errors"},
+    "review_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["envelope_sha256", "signer_id", "public_key_sha256", "status", "registration_event_sha256", "review_event_sha256", "revocation_event_sha256s", "inclusion_proof_sha256", "errors"],
+        "properties": {
+          "envelope_sha256": {"$ref": "#/$defs/digest"},
+          "signer_id": {"type": ["string", "null"]},
+          "public_key_sha256": {"type": ["string", "null"]},
+          "status": {"enum": ["reviewer_trust_current", "reviewer_trust_historical", "reviewer_trust_invalidated", "trust_evidence_incomplete"]},
+          "registration_event_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]},
+          "review_event_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]},
+          "revocation_event_sha256s": {"type": "array", "items": {"$ref": "#/$defs/digest"}},
+          "inclusion_proof_sha256": {"type": "array", "items": {"$ref": "#/$defs/digest"}},
+          "errors": {"$ref": "#/$defs/errors"}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "tree_size", "review_count", "current_reviews", "historical_reviews", "invalidated_reviews", "incomplete_reviews", "witness_count", "distinct_witness_organizations", "automatic_deployment_actions", "automatic_risk_acceptances", "automatic_authorizations_to_operate"],
+      "properties": {
+        "status": {"enum": ["reviewer_trust_current", "reviewer_trust_historical", "reviewer_trust_invalidated", "trust_evidence_incomplete", "invalid_ledger_evidence"]},
+        "tree_size": {"type": "integer", "minimum": 1},
+        "review_count": {"type": "integer", "minimum": 1},
+        "current_reviews": {"type": "integer", "minimum": 0},
+        "historical_reviews": {"type": "integer", "minimum": 0},
+        "invalidated_reviews": {"type": "integer", "minimum": 0},
+        "incomplete_reviews": {"type": "integer", "minimum": 0},
+        "witness_count": {"type": "integer", "minimum": 0},
+        "distinct_witness_organizations": {"type": "integer", "minimum": 0},
+        "automatic_deployment_actions": {"const": 0},
+        "automatic_risk_acceptances": {"const": 0},
+        "automatic_authorizations_to_operate": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "errors": {"type": "array", "items": {"type": "string"}},
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "event_type", "integrated_at", "body", "event_sha256"],
+      "properties": {
+        "sequence": {"type": "integer", "minimum": 0},
+        "event_type": {"enum": ["reviewer-key-registration", "review-envelope", "reviewer-key-revocation"]},
+        "integrated_at": {"type": "integer", "minimum": 0},
+        "body": {"type": "object"},
+        "event_sha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["keyid", "signer_id", "signature_base64"],
+      "properties": {
+        "keyid": {"$ref": "#/$defs/digest"},
+        "signer_id": {"type": "string", "minLength": 1},
+        "signature_base64": {"type": "string", "minLength": 1}
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "log_origin", "policy_sha256", "tree_size", "root_sha256", "issued_at", "previous_tree_size", "previous_root_sha256"],
+      "properties": {
+        "protocol_version": {"const": "assuranceledger-v1"},
+        "log_origin": {"type": "string", "minLength": 1},
+        "policy_sha256": {"$ref": "#/$defs/digest"},
+        "tree_size": {"type": "integer", "minimum": 1},
+        "root_sha256": {"$ref": "#/$defs/digest"},
+        "issued_at": {"type": "integer", "minimum": 0},
+        "previous_tree_size": {"type": "integer", "minimum": 0},
+        "previous_root_sha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "signedCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkpoint", "operator_signature", "witness_signatures"],
+      "properties": {
+        "checkpoint": {"$ref": "#/$defs/checkpoint"},
+        "operator_signature": {"$ref": "#/$defs/signature"},
+        "witness_signatures": {"type": "array", "maxItems": 25, "items": {"$ref": "#/$defs/signature"}}
+      }
+    }
+  }
+}

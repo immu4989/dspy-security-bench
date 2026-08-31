@@ -58,3 +58,26 @@ exposure but does not prove that upstream instrumentation, custom policy code,
 Collector processors, or operator-selected files contain no sensitive data.
 Run `dspy-security-bench trace challenge`, inspect the sanitized evidence, and
 submit only the generated community bundle—not raw OTLP—to public registries.
+
+## AssuranceLedger data handling
+
+Full AssuranceLedger, Gossip, ReReview, and conformance inputs can contain
+reviewer identifiers, declared organizations, review-envelope digests, key
+lifecycle events, and complete embedded source reports. Treat them according to
+the sensitivity of the underlying review process. Do not place classified
+information, CUI, personal data, credentials, private incident details, or
+production log contents into the public demo, an issue, a pull request, or a
+public evidence registry.
+
+ForkProof and ConsistencyProof deliberately omit log and review entries, but
+retain public keys, signed checkpoints, log origin, policy identifiers, and
+source digests. ObserverReceipt hashes the channel locator but retains observer
+and declared organization identifiers. WitnessConflict retains the witness keys
+and organizations attributed to both views. These are minimized artifacts, not
+anonymous artifacts; review them before distribution.
+
+CapabilityManifest and IntegrationLock expose schema/protocol identities and
+digests rather than review content. Their integrity hashes are not signatures.
+Protect an owner-approved lock through the organization's existing signed
+release, configuration-management, or artifact-governance controls. The tools
+never notify, revoke, roll back, deploy, authorize, or accept risk automatically.

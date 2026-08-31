@@ -37,6 +37,7 @@ EVIDENCE_KINDS = (
     "containment",
     "defense-portfolio",
     "dependency-impact",
+    "evaluation-integrity",
     "schedule",
     "trace",
     "verified-defense",

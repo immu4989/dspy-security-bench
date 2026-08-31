@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="Compile verified AI-agent authority, containment, dependency, remediation, and resilience evidence into executable assurance cases.">
+  <meta name="description" content="Verify AI-agent evaluation integrity, role-separated DSSE reviews, and witnessed reviewer-key lifecycle over executable assurance cases.">
   <meta property="og:title" content="DSPy Security Bench — Mission Assurance Commons">
-  <meta property="og:description" content="AssuranceGraph combines eight verified evidence kinds with containment canaries and dependency-aware claim reevaluation.">
+  <meta property="og:description" content="Nine verified evidence kinds, role-separated DSSE review quorums, and witnessed append-only reviewer-key lifecycle.">
   <meta property="og:image" content="assets/mission-assurance-commons-v015.png">
   <meta name="twitter:card" content="summary_large_image">
   <title>DSPy Security Bench — Measure before you trust</title>
@@ -28,16 +28,13 @@
       </a>
       <div class="nav-links" id="nav-links">
         <a href="#assurancegraph">AssuranceGraph</a>
+        <a href="#evalintegrity">Eval Integrity</a>
+        <a href="#assurancequorum">Quorum</a>
+        <a href="#assuranceledger">Ledger</a>
         <a href="#control-plane">Control Plane</a>
         <a href="#verified-defense">DefenderTwin</a>
         <a href="#resiliencegraph">ResilienceGraph</a>
-        <a href="#collectiveguard">Evidence Plane</a>
-        <a href="#traceproof">TraceProof</a>
-        <a href="#causalproof">CausalProof</a>
-        <a href="#scheduleproof">ScheduleProof</a>
-        <a href="#commons">Commons</a>
         <a href="#leaderboard">Leaderboard</a>
-        <a href="#connect">Connect</a>
         <a class="nav-cta" href="https://github.com/immu4989/dspy-security-bench">View on GitHub <span aria-hidden="true">↗</span></a>
       </div>
       <button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="nav-links">Menu</button>
@@ -51,7 +48,7 @@
       <div class="hero-content reveal">
         <div class="eyebrow"><span class="pulse"></span> Mission Assurance Commons · open evidence</div>
         <h1>Make agent trust<br><em>inspectable.</em></h1>
-        <p class="hero-copy">Compile authority, observability, containment, scheduling, dependency, remediation, and resilience evidence into one executable assurance case—without hiding contradictions or automating the accountable decision.</p>
+        <p class="hero-copy">Compile evaluation integrity, authority, containment, remediation, and resilience evidence into one executable assurance case, then require role-separated review—without hiding contradictions or automating the accountable decision.</p>
         <div class="hero-actions">
           <a class="button primary" href="#commons">Enter the commons <span aria-hidden="true">↓</span></a>
           <a class="button secondary" href="https://github.com/immu4989/dspy-security-bench">Run it locally <span aria-hidden="true">→</span></a>
@@ -78,7 +75,7 @@
       <div class="assurance-heading reveal">
         <div>
           <span class="section-kicker">AssuranceGraph · executable claim–evidence cases</span>
-          <h2 id="assurance-title">Eight proofs.<br><em>One honest decision surface.</em></h2>
+          <h2 id="assurance-title">Nine proofs.<br><em>One honest decision surface.</em></h2>
         </div>
         <p>Every artifact recomputes through its native verifier before it can support a claim. Missing, stale, violated, and contradictory evidence stays visible. No universal safety score. No automatic approval.</p>
       </div>
@@ -91,14 +88,15 @@
         </header>
 
         <div class="assurance-stage">
-          <div class="assurance-evidence" aria-label="Eight natively verified evidence artifacts feed the assurance graph">
-            <header><span>NATIVE EVIDENCE VERIFIERS</span><b>8 / 8 CURRENT</b></header>
+          <div class="assurance-evidence" aria-label="Nine natively verified evidence artifacts feed the assurance graph">
+            <header><span>NATIVE EVIDENCE VERIFIERS</span><b>9 / 9 CURRENT</b></header>
             <article><i>AT</i><div><strong>AuthorityTwin</strong><small>identity · scope · effects</small></div><b>VERIFIED</b></article>
             <article><i>TP</i><div><strong>TraceProof</strong><small>authorization · receipts</small></div><b>VERIFIED</b></article>
             <article><i>CG</i><div><strong>CollectiveGuard v2</strong><small>containment · provenance</small></div><b>VERIFIED</b></article>
             <article><i>SP</i><div><strong>ScheduleProof</strong><small>revocation · interleavings</small></div><b>VERIFIED</b></article>
             <article><i>DT</i><div><strong>DefenderTwin</strong><small>remediation · continuity</small></div><b>VERIFIED</b></article>
             <article><i>RG</i><div><strong>ResilienceGraph</strong><small>exact portfolio frontier</small></div><b>VERIFIED</b></article>
+            <article><i>EI</i><div><strong>EvalIntegrityProof</strong><small>holdout · evaluator · monitor</small></div><b>VERIFIED</b></article>
             <article><i>CP</i><div><strong>ContainmentProof</strong><small>canary control evidence</small></div><b>VERIFIED</b></article>
             <article><i>AB</i><div><strong>AgentBOM</strong><small>dependency claim impact</small></div><b>VERIFIED</b></article>
           </div>
@@ -114,16 +112,17 @@
             <div class="assurance-lock lock-digest"><span>DIGESTS</span><b>PINNED</b></div>
           </div>
 
-          <div class="assurance-claims" aria-label="Eight claims are separately evaluated rather than blended into a score">
-            <header><span>EXECUTABLE CLAIM GRAPH</span><b>8 / 8 SUPPORTED</b></header>
+          <div class="assurance-claims" aria-label="Nine claims are separately evaluated rather than blended into a score">
+            <header><span>EXECUTABLE CLAIM GRAPH</span><b>9 / 9 SUPPORTED</b></header>
             <article><span>01</span><div><strong>bounded authority</strong><small>no false allow or unsafe effect</small></div><b>SUPPORTED</b></article>
             <article><span>02</span><div><strong>observable effects</strong><small>current privacy-bounded trace</small></div><b>SUPPORTED</b></article>
             <article><span>03</span><div><strong>collective containment</strong><small>complete direct provenance</small></div><b>SUPPORTED</b></article>
             <article><span>04</span><div><strong>schedule safety</strong><small>complete bounded exploration</small></div><b>SUPPORTED</b></article>
             <article><span>05</span><div><strong>verified remediation</strong><small>paths closed · mission stable</small></div><b>SUPPORTED</b></article>
             <article><span>06</span><div><strong>resilience space</strong><small>robust feasible option exists</small></div><b>SUPPORTED</b></article>
-            <article><span>07</span><div><strong>runtime containment</strong><small>eight canary controls hold</small></div><b>SUPPORTED</b></article>
-            <article><span>08</span><div><strong>dependency boundary</strong><small>no claim-impacting drift</small></div><b>SUPPORTED</b></article>
+            <article><span>07</span><div><strong>evaluation integrity</strong><small>commit precedes label reveal</small></div><b>SUPPORTED</b></article>
+            <article><span>08</span><div><strong>runtime containment</strong><small>eight canary controls hold</small></div><b>SUPPORTED</b></article>
+            <article><span>09</span><div><strong>dependency boundary</strong><small>no claim-impacting drift</small></div><b>SUPPORTED</b></article>
           </div>
         </div>
 
@@ -154,6 +153,206 @@
         <article><span>03 / EXPIRE</span><strong>Freshness is part of the claim</strong><p>Owner-declared observation times and age limits are bound into the exact case.</p></article>
         <article><span>04 / DECIDE</span><strong>Humans retain authority</strong><p>Profile support informs review; it never becomes certification, ATO, or risk acceptance.</p></article>
       </div>
+    </section>
+
+    <section class="section eval-integrity-section" id="evalintegrity" aria-labelledby="eval-integrity-title">
+      <div class="eval-integrity-grid" aria-hidden="true"></div>
+      <div class="eval-integrity-glow" aria-hidden="true"></div>
+      <div class="eval-integrity-heading reveal">
+        <div>
+          <span class="section-kicker">EvalIntegrityProof · evaluation evidence before model claims</span>
+          <h2 id="eval-integrity-title">Trust the result?<br><em>First prove the test.</em></h2>
+        </div>
+        <p>A signed score can still come from a compromised procedure. Thirteen content-free controls preserve holdout secrecy, evaluator independence, complete accounting, active monitoring, and safe exit—without reading a prompt or output.</p>
+      </div>
+
+      <div class="eval-integrity-console reveal">
+        <header class="eval-integrity-topbar">
+          <span><i></i> EVALUATION SEALED</span>
+          <code>EVALINTEGRITYPROOF::V1 / 13 CONTROLS / ZERO ACTIONS</code>
+          <b>INTEGRITY_EVIDENCED</b>
+        </header>
+
+        <div class="eval-integrity-body">
+          <div class="eval-integrity-timeline" aria-label="Commit before reveal timeline">
+            <header><span>COMMIT / RUN / REVEAL ORDER</span><b>ORDER VERIFIED</b></header>
+            <div class="eval-time-line"><i></i><i></i><i></i><i></i><span></span></div>
+            <ol>
+              <li><small>18:00Z</small><strong>HOLDOUT COMMIT</strong><code>sha256:7d84…</code></li>
+              <li><small>18:05Z</small><strong>RUN START</strong><code>100 cases</code></li>
+              <li><small>18:20Z</small><strong>RESULT COMMIT</strong><code>98 + 2 safe-stop</code></li>
+              <li><small>18:21Z</small><strong>LABEL REVEAL</strong><code>after commit ✓</code></li>
+            </ol>
+          </div>
+
+          <div class="eval-integrity-boundary" aria-label="Separated evaluator and workload boundaries">
+            <header><span>ISOLATION PLANE</span><b>NO SHARED TRUST</b></header>
+            <div class="eval-zone workload-zone"><small>WORKLOAD ZONE</small><strong>AGENT</strong><span>scope: workload</span></div>
+            <div class="eval-airgap"><span>EGRESS<br><b>DENIED</b></span><i></i><span>LABELS<br><b>SEALED</b></span></div>
+            <div class="eval-zone evaluator-zone"><small>EVALUATOR ZONE</small><strong>JUDGE</strong><span>scope: evaluator</span></div>
+            <div class="eval-monitor"><i></i><span>INDEPENDENT MONITOR</span><b>COMPLETE · 50 ms SKEW</b></div>
+          </div>
+
+          <div class="eval-integrity-controls" aria-label="Thirteen evaluation integrity controls">
+            <header><span>FROZEN CONTROL MATRIX</span><b>13 / 13 EVIDENCED</b></header>
+            <div class="eval-control-matrix">
+              <article><i></i><strong>EI001</strong><span>artifacts pinned</span></article>
+              <article><i></i><strong>EI002</strong><span>holdout precommit</span></article>
+              <article><i></i><strong>EI003</strong><span>commit before reveal</span></article>
+              <article><i></i><strong>EI004</strong><span>failure domains split</span></article>
+              <article><i></i><strong>EI005</strong><span>evaluator isolated</span></article>
+              <article><i></i><strong>EI006</strong><span>credential scopes split</span></article>
+              <article><i></i><strong>EI007</strong><span>egress bounded</span></article>
+              <article><i></i><strong>EI008</strong><span>cases accounted</span></article>
+              <article><i></i><strong>EI009</strong><span>canary clean</span></article>
+              <article><i></i><strong>EI010</strong><span>monitor independent</span></article>
+              <article><i></i><strong>EI011</strong><span>safe exit</span></article>
+              <article><i></i><strong>EI012</strong><span>content minimized</span></article>
+              <article><i></i><strong>EI013</strong><span>clock bounded</span></article>
+            </div>
+          </div>
+        </div>
+
+        <div class="eval-integrity-outcomes" aria-label="Distinct evaluation integrity outcomes">
+          <article class="eval-good"><i></i><strong>INTEGRITY EVIDENCED</strong><span>all controls and sources complete</span></article>
+          <article class="eval-bad"><i></i><strong>INTEGRITY VIOLATED</strong><span>an observation contradicts a control</span></article>
+          <article class="eval-warn"><i></i><strong>MONITOR FAILED</strong><span>detection or clock evidence failed</span></article>
+          <article class="eval-missing"><i></i><strong>INCOMPLETE EVIDENCE</strong><span>source coverage cannot support a claim</span></article>
+        </div>
+
+        <footer class="eval-integrity-footer">
+          <div><span>$</span><code>dspy-security-bench evalguard demo --out-dir artifacts/eval-integrity</code></div>
+          <button id="eval-integrity-copy" type="button">Copy command</button>
+          <a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/evalintegrityproof.md">Open the protocol <span aria-hidden="true">→</span></a>
+        </footer>
+      </div>
+
+      <div class="eval-integrity-nonclaims reveal">
+        <span>CONTENT-FREE BY CONTRACT</span><b>NO PROMPTS</b><b>NO OUTPUTS</b><b>NO LABELS</b><b>NO CREDENTIAL VALUES</b><b>NO MODEL CALL</b><b>NO DEPLOYMENT AUTHORITY</b>
+      </div>
+    </section>
+
+    <section class="section quorum-section" id="assurancequorum" aria-labelledby="quorum-title">
+      <div class="quorum-grid" aria-hidden="true"></div><div class="quorum-glow" aria-hidden="true"></div>
+      <div class="quorum-heading reveal">
+        <div><span class="section-kicker">AssuranceQuorum · role-separated in-toto / DSSE review</span><h2 id="quorum-title">Trust needs witnesses.<br><em>Not one signature.</em></h2></div>
+        <p>Every claim names the functions that must review its evidence. Exact keys, roles, organizations, assignments, and review windows are policy-bound. A valid evidence gap cannot be erased by adding favorable signatures.</p>
+      </div>
+      <div class="quorum-console reveal">
+        <header class="quorum-topbar"><span><i></i> POLICY + SUBJECT LOCKED</span><code>ASSURANCEQUORUM::IN-TOTO::DSSE::V1</code><b>5 / 5 SIGNATURES VALID</b></header>
+        <div class="quorum-body">
+          <div class="quorum-witness-plane" aria-label="Five role-separated reviewers sign one exact assurance report">
+            <header><span>AUTHORIZED REVIEW FUNCTIONS</span><b>5 ORGANIZATIONS</b></header>
+            <div class="quorum-witness q-eval"><i>EV</i><div><strong>evaluation owner</strong><small>fictional organization 2</small></div><b>Ed25519 ✓</b></div>
+            <div class="quorum-witness q-security"><i>SE</i><div><strong>security reviewer</strong><small>fictional organization 3</small></div><b>Ed25519 ✓</b></div>
+            <div class="quorum-witness q-privacy"><i>PR</i><div><strong>privacy reviewer</strong><small>fictional organization 4</small></div><b>Ed25519 ✓</b></div>
+            <div class="quorum-witness q-mission"><i>MI</i><div><strong>mission owner</strong><small>fictional organization 5</small></div><b>Ed25519 ✓</b></div>
+            <div class="quorum-witness q-independent"><i>IN</i><div><strong>independent reviewer</strong><small>fictional organization 6</small></div><b>Ed25519 ✓</b></div>
+            <div class="quorum-subject"><small>IMMUTABLE SUBJECT</small><strong>AG</strong><span>report sha256: 8a71…c90e</span><em>policy sha256: 04bf…7791</em></div>
+            <svg class="quorum-links" viewBox="0 0 600 470" preserveAspectRatio="none" aria-hidden="true"><path d="M150 75 L300 235 L450 75 M120 230 L300 235 L480 230 M165 400 L300 235"/><circle cx="300" cy="235" r="5"/></svg>
+          </div>
+          <div class="quorum-claim-plane" aria-label="Nine claims each require assigned review roles and distinct organizations">
+            <header><span>CLAIM SEPARATION POLICY</span><b>9 / 9 QUORUM</b></header>
+            <article><span>01</span><div><strong>bounded authority</strong><small>security + independent</small></div><b>2 ORGS ✓</b></article>
+            <article><span>02</span><div><strong>observable effects</strong><small>privacy + security</small></div><b>2 ORGS ✓</b></article>
+            <article><span>03</span><div><strong>collective containment</strong><small>security + independent</small></div><b>2 ORGS ✓</b></article>
+            <article><span>04</span><div><strong>schedule safety</strong><small>security + independent</small></div><b>2 ORGS ✓</b></article>
+            <article><span>05</span><div><strong>verified remediation</strong><small>mission + independent</small></div><b>2 ORGS ✓</b></article>
+            <article><span>06</span><div><strong>resilience decision space</strong><small>mission + independent</small></div><b>2 ORGS ✓</b></article>
+            <article><span>07</span><div><strong>evaluation integrity</strong><small>evaluation + independent</small></div><b>2 ORGS ✓</b></article>
+            <article><span>08</span><div><strong>runtime containment</strong><small>security + independent</small></div><b>2 ORGS ✓</b></article>
+            <article><span>09</span><div><strong>dependency boundary</strong><small>security + independent</small></div><b>2 ORGS ✓</b></article>
+          </div>
+        </div>
+        <div class="quorum-veto-rail"><div><i></i><span>INDEPENDENT REVIEWER</span><strong>EVIDENCE GAP</strong><code>insufficient-source-independence</code></div><em>VETO</em><p>Additional “sufficient” statements cannot erase a valid assigned gap.</p></div>
+        <div class="quorum-outcomes" aria-label="Four distinct AssuranceQuorum outcomes">
+          <article class="q-ok"><i></i><strong>QUORUM SATISFIED</strong><span>roles · signers · organizations complete</span></article>
+          <article class="q-gap"><i></i><strong>REVIEW GAP RECORDED</strong><span>valid assigned gap preserved</span></article>
+          <article class="q-wait"><i></i><strong>QUORUM INCOMPLETE</strong><span>required witness is missing</span></article>
+          <article class="q-invalid"><i></i><strong>INVALID EVIDENCE</strong><span>signature · subject · freshness failed</span></article>
+        </div>
+        <footer class="quorum-footer"><div><span>$</span><code>dspy-security-bench quorum demo --out-dir artifacts/assurance-quorum</code></div><button id="quorum-copy" type="button">Copy command</button><a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurancequorum.md">Open the protocol <span aria-hidden="true">→</span></a></footer>
+      </div>
+      <div class="quorum-nonclaims reveal"><span>SIGNATURE ≠ AUTHORITY</span><b>0 DEPLOYMENTS</b><b>0 ATOs</b><b>0 RISK ACCEPTANCES</b><b>0 PROCUREMENT DECISIONS</b></div>
+    </section>
+
+    <section class="section ledger-section" id="assuranceledger" aria-labelledby="ledger-title">
+      <div class="ledger-grid" aria-hidden="true"></div><div class="ledger-glow" aria-hidden="true"></div>
+      <div class="ledger-heading reveal">
+        <div><span class="section-kicker">AssuranceLedger · witnessed reviewer-key lifecycle</span><h2 id="ledger-title">Trust can expire.<br><em>History should not.</em></h2></div>
+        <p>Registration, review inclusion, retirement, and compromise become one append-only evidence history. Operator and cross-organization witness signatures bind the exact Merkle checkpoint—without turning the log into an approval authority.</p>
+      </div>
+      <div class="ledger-console reveal">
+        <header class="ledger-topbar"><span><i></i> APPEND-ONLY PREFIX VERIFIED</span><code>ASSURANCELEDGER::MERKLE+WITNESS::V1</code><b>2 / 2 WITNESSES</b></header>
+        <div class="ledger-stage">
+          <section class="ledger-tree" aria-label="Reviewer registrations and exact DSSE review envelopes form a domain-separated Merkle tree">
+            <header><span>COMPLETE LOG / CHECKPOINT 01</span><b>11 EVENTS</b></header>
+            <div class="merkle-canopy" aria-hidden="true">
+              <div class="merkle-root"><small>ROOT</small><strong>9F7A…41C2</strong><span>SHA-256</span></div>
+              <i class="branch branch-a"></i><i class="branch branch-b"></i>
+              <div class="merkle-node node-a"><small>NODE</small><b>0x01</b></div><div class="merkle-node node-b"><small>NODE</small><b>0x01</b></div>
+              <i class="twig twig-a"></i><i class="twig twig-b"></i><i class="twig twig-c"></i><i class="twig twig-d"></i>
+              <div class="merkle-leaf leaf-a"><i>RG</i><span>key registration</span><b>0x00</b></div>
+              <div class="merkle-leaf leaf-b"><i>RV</i><span>DSSE review</span><b>0x00</b></div>
+              <div class="merkle-leaf leaf-c"><i>RG</i><span>key registration</span><b>0x00</b></div>
+              <div class="merkle-leaf leaf-d"><i>RV</i><span>DSSE review</span><b>0x00</b></div>
+            </div>
+            <footer><span>FULL TREE RECOMPUTED</span><b>INCLUSION PATHS: 5 / 5</b></footer>
+          </section>
+          <section class="ledger-trust" aria-label="One log operator and two separately governed witnesses sign the same checkpoint">
+            <header><span>CHECKPOINT TRUST DOMAINS</span><b>FRESH · LINKED</b></header>
+            <div class="checkpoint-card"><small>OPERATOR-SIGNED CHECKPOINT</small><strong>tree_size <em>11</em></strong><span>previous 0 · root e3b0…b855</span><code>fictional-agency.example/ai-assurance</code></div>
+            <div class="witness-bridge" aria-hidden="true"><i></i><i></i><span>EXACT CHECKPOINT BYTES</span></div>
+            <div class="ledger-witnesses">
+              <article><i>W1</i><div><strong>independent lab</strong><small>organization 1</small></div><b>SIGNED ✓</b></article>
+              <article><i>W2</i><div><strong>civil observer</strong><small>organization 2</small></div><b>SIGNED ✓</b></article>
+            </div>
+            <div class="ledger-policy"><span>POLICY</span><b>2 witnesses · 2 organizations</b><em>Ed25519</em></div>
+          </section>
+        </div>
+        <div class="ledger-timeline" aria-label="A later checkpoint preserves history while recording retrospective compromise">
+          <div class="timeline-old"><i></i><span>CHECKPOINT 01</span><strong>CURRENT</strong><code>11 events</code></div>
+          <div class="timeline-link"><i></i><span>APPEND-ONLY PREFIX</span></div>
+          <div class="timeline-event"><i></i><span>EVENT 12</span><strong>COMPROMISE SINCE</strong><code>before review issuance</code></div>
+          <div class="timeline-new"><i></i><span>CHECKPOINT 02</span><strong>INVALIDATES 1 REVIEW</strong><code>history retained</code></div>
+        </div>
+        <div class="ledger-gossip" aria-label="Independently exchanged signed checkpoints reveal a same-size split view">
+          <div><small>OBSERVER CHANNEL A</small><strong>SIZE 11</strong><code>root 9f7a…41c2</code></div>
+          <span><i></i><b>COMPARE SIGNED VIEWS</b><i></i></span>
+          <div><small>OBSERVER CHANNEL B</small><strong>SIZE 11</strong><code>root 20d4…8ea1</code></div>
+          <em>EQUIVOCATION EVIDENCED</em>
+        </div>
+        <div class="ledger-observers" aria-label="Two signed observer receipts bind the fork to different declared organizations and hashed channels">
+          <div><span>OBSERVER RECEIPT A</span><strong>STATE UNIVERSITY</strong><small>offline transfer · locator hashed</small></div><i>ED25519 ✓</i><b>2 ORGS · 2 CHANNELS</b><i>ED25519 ✓</i><div><span>OBSERVER RECEIPT B</span><strong>INDUSTRY ISAC</strong><small>distributor · locator hashed</small></div><em>INDEPENDENTLY OBSERVED</em>
+        </div>
+        <div class="ledger-witness-conflict" aria-label="Both witness keys cosigned both conflicting checkpoints">
+          <span>WITNESS CONFLICT</span><strong>W1 SIGNED BOTH</strong><i>+</i><strong>W2 SIGNED BOTH</strong><em>2 KEYS · 2 ORGANIZATIONS ATTRIBUTED</em><small>0 AUTO-REVOCATIONS</small>
+        </div>
+        <div class="ledger-conformance" aria-label="Nine rehashed adversarial mutations are rejected by their intended native verifiers">
+          <span>VERIFIER CONFORMANCE V2</span><strong>9 / 9 REHASHED MUTATIONS REJECTED</strong><em>LEDGER · GOSSIP · REREVIEW · FORK · CONSISTENCY · RECEIPT · WITNESS · CAPABILITY · LOCK</em><small>CLEAN SOURCES NATIVE · OFFLINE</small>
+        </div>
+        <div class="ledger-capabilities" aria-label="A deterministic owner-pinned partner contract binds nine offline protocol verifiers to thirteen exact schema digests">
+          <span>OWNER-PINNED PARTNER CONTRACT</span><strong>9 OFFLINE VERIFIERS</strong><b>13 SCHEMA DIGESTS</b><em>4 STANDALONE</em><small>0 DRIFT · 0 ACTIONS</small>
+        </div>
+        <div class="ledger-fork-proof" aria-label="A privacy-minimized fork proof retains two signed checkpoints and no review history">
+          <span>FULL VERIFIED VIEWS</span><i>→</i><strong>2 SIGNED CHECKPOINTS</strong><b>+</b><strong>2 WITNESS QUORUMS</strong><i>→</i><em>OFFLINE FORK PROOF</em><small>0 LOG ENTRIES · 0 REVIEW ENVELOPES</small>
+        </div>
+        <div class="ledger-consistency-proof" aria-label="A compact Merkle path proves append-only growth without revealing log entries">
+          <span>CHECKPOINT 11</span><i>→</i><strong>4 MERKLE NODES</strong><i>→</i><span>CHECKPOINT 12</span><em>APPEND-ONLY EXTENSION PROVED</em><small>0 LOG ENTRIES DISCLOSED</small>
+        </div>
+        <div class="ledger-rereview" aria-label="One invalidated reviewer maps to the exact minimal claim re-review set">
+          <span>TRUST INCIDENT</span><strong>1 REVIEW INVALIDATED</strong><i>→</i><span>CLAIM IMPACT</span><strong>8 OF 9 REOPENED</strong><i>→</i><span>MINIMAL REQUEST</span><strong>1 REQUIRED ROLE</strong><em>0 PEOPLE SELECTED · 0 ACTIONS</em>
+        </div>
+        <div class="ledger-outcomes" aria-label="Five distinct AssuranceLedger outcomes">
+          <article class="al-current"><i></i><strong>TRUST CURRENT</strong><span>registered · included · active</span></article>
+          <article class="al-history"><i></i><strong>HISTORICAL</strong><span>retired after valid review</span></article>
+          <article class="al-revoked"><i></i><strong>INVALIDATED</strong><span>compromise reaches signing</span></article>
+          <article class="al-missing"><i></i><strong>INCOMPLETE</strong><span>lifecycle evidence absent</span></article>
+          <article class="al-invalid"><i></i><strong>INVALID LEDGER</strong><span>tree · signature · witness failed</span></article>
+        </div>
+        <footer class="ledger-footer"><div><span>$</span><code>dspy-security-bench ledger demo --out-dir artifacts/assurance-ledger</code></div><button id="ledger-copy" type="button">Copy command</button><a href="https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md">Open the protocol <span aria-hidden="true">→</span></a></footer>
+      </div>
+      <div class="ledger-nonclaims reveal"><span>WITNESS ≠ AUTHORITY</span><b>0 DEPLOYMENTS</b><b>0 ATOs</b><b>0 GLOBAL-CONSISTENCY CLAIMS</b><b>0 RISK ACCEPTANCES</b></div>
     </section>
 
     <section class="section control-plane-section" id="control-plane" aria-labelledby="control-plane-title">

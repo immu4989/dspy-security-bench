@@ -2,6 +2,9 @@
 
 Subcommands:
   assure      Compile verified evidence into an executable agent assurance case.
+  evalguard   Verify holdout, evaluator, monitor, and commit/reveal integrity evidence.
+  quorum      Create role-separated DSSE-signed AssuranceGraph review evidence.
+  ledger      Verify witnessed append-only reviewer-key lifecycle evidence.
   contain     Analyze harmless canary containment and response evidence.
   bom         Map agent dependencies to assurance reevaluation requirements.
   probe       Validate data-only assurance probe contributions without loading code.
@@ -83,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__)
         print(
             "Usage: dspy-security-bench "
-            "<init|integrate|doctor|assure|contain|bom|probe|scan|impact|incident|pack|authority|inventory|graph|collective|defend|portfolio|causal|schedule|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
+            "<init|integrate|doctor|assure|evalguard|quorum|ledger|contain|bom|probe|scan|impact|incident|pack|authority|inventory|graph|collective|defend|portfolio|causal|schedule|watch|acquisition|trace|value|policy|proofrun|federal|synthesize|validate> [args...]"
         )
         return 0
 
@@ -102,6 +105,18 @@ def main(argv: list[str] | None = None) -> int:
         from dspy_security_bench.assurance.cli import main as assure_main
 
         return assure_main(rest)
+    if sub == "evalguard":
+        from dspy_security_bench.evalguard.cli import main as evalguard_main
+
+        return evalguard_main(rest)
+    if sub == "quorum":
+        from dspy_security_bench.quorum.cli import main as quorum_main
+
+        return quorum_main(rest)
+    if sub == "ledger":
+        from dspy_security_bench.ledger.cli import main as ledger_main
+
+        return ledger_main(rest)
     if sub == "contain":
         from dspy_security_bench.containment.cli import main as contain_main
 
@@ -203,7 +218,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         f"unknown subcommand {sub!r}. Use: "
-        "init | integrate | doctor | assure | contain | bom | probe | scan | impact | incident | pack | authority | inventory | graph | collective | defend | portfolio | causal | schedule | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
+        "init | integrate | doctor | assure | evalguard | quorum | ledger | contain | bom | probe | scan | impact | incident | pack | authority | inventory | graph | collective | defend | portfolio | causal | schedule | watch | acquisition | trace | value | policy | proofrun | federal | synthesize | validate",
         file=sys.stderr,
     )
     return 2

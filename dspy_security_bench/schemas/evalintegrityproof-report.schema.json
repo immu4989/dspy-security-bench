@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/evalintegrityproof-report.schema.json",
+  "title": "EvalIntegrityProof v1 report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "protocol_sha256", "analyzer", "scenario_sha256", "scenario", "summary", "control_results", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "EvalIntegrityProof / Evaluation-process integrity evidence"},
+    "protocol_version": {"const": "evalintegrityproof-v1"},
+    "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "analyzer": {"const": "deterministic-evaluation-integrity-analyzer-v1"},
+    "scenario_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scenario": {"$ref": "evalintegrityproof-scenario.schema.json"},
+    "summary": {
+      "type": "object",
+      "required": ["status", "control_count", "control_status_counts", "holdout_precommitted", "result_committed_before_label_reveal", "failure_domains_separate", "evaluator_data_isolated", "credential_scopes_separate", "network_boundary_observed", "all_cases_accounted_for", "leakage_canary_hits", "monitor_independent_and_complete", "safe_exit_observed", "content_free_record", "automatic_actions"],
+      "properties": {
+        "status": {"enum": ["integrity_evidenced", "integrity_violated", "monitor_failed", "incomplete_evidence"]},
+        "control_count": {"const": 13}, "control_status_counts": {"type": "object"},
+        "holdout_precommitted": {"type": "boolean"}, "result_committed_before_label_reveal": {"type": "boolean"},
+        "failure_domains_separate": {"type": "boolean"}, "evaluator_data_isolated": {"type": "boolean"},
+        "credential_scopes_separate": {"type": "boolean"}, "network_boundary_observed": {"type": "boolean"},
+        "all_cases_accounted_for": {"type": "boolean"}, "leakage_canary_hits": {"type": "integer"},
+        "monitor_independent_and_complete": {"type": "boolean"}, "safe_exit_observed": {"type": "boolean"},
+        "content_free_record": {"type": "boolean"}, "automatic_actions": {"const": 0}
+      },
+      "additionalProperties": false
+    },
+    "control_results": {
+      "type": "array", "minItems": 13, "maxItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["control_id", "title", "category", "status", "condition_met", "evidence_complete", "independent_source_present", "source_ids", "evidence_paths", "finding"],
+        "properties": {
+          "control_id": {"type": "string"}, "title": {"type": "string"}, "category": {"type": "string"},
+          "status": {"enum": ["evidenced", "violation_observed", "monitor_failed", "incomplete_evidence"]},
+          "condition_met": {"type": "boolean"}, "evidence_complete": {"type": "boolean"},
+          "independent_source_present": {"type": "boolean"}, "source_ids": {"type": "array", "items": {"type": "string"}},
+          "evidence_paths": {"type": "array", "items": {"type": "string"}}, "finding": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "claim_boundary": {"type": "string"},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

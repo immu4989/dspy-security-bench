@@ -52,8 +52,10 @@ and [government contract quality assurance](https://www.acquisition.gov/far/part
    keeping an evaluation set unavailable to the vendor.
 8. Run ControlTwin/RepeatControlTwin to show that the proposed policy changes
    functional outcomes without destroying clean utility.
-9. Retain every raw trial and runtime error.
-10. Verify the bundle in a clean offline environment.
+9. Run EvalIntegrityProof to preserve holdout commit/reveal ordering, evaluator
+   separation, complete case accounting, monitoring, and safe-exit evidence.
+10. Retain every raw trial and runtime error.
+11. Verify the bundle in a clean offline environment.
 
 Author representative scenarios through a versioned, data-only MissionPack.
 Never commit operational details, CUI, personal data, credentials, or live
@@ -66,6 +68,32 @@ system owner, AI governance lead, security assessor, privacy/civil-rights and
 accessibility reviewers, acquisition team, legal counsel, and authorizing
 official as applicable. Each discipline contributes evidence FederalProof does
 not generate.
+
+Where role-separated evidence review is useful, bind the completed
+AssuranceGraph report to an organization-owned AssuranceQuorum policy. Require
+the applicable security, evaluation, privacy, mission, and independent-review
+functions, preserve `evidence-gap` statements, and keep the quorum result
+separate from the authorizing official's decision. A satisfied quorum is not an
+ATO, control determination, procurement approval, or risk acceptance.
+
+Where reviewer-key lifecycle and log equivocation are material, place the
+Quorum reviews in an organization-owned AssuranceLedger. Use separately
+governed operator and witness keys, exchange checkpoint roots across independent
+channels, preserve retirement and compromise declarations, and require new
+review when trust is historical or invalidated. A witnessed checkpoint is
+audit evidence—not identity proof, a control determination, or an ATO.
+Use `ledger plan-rereview` to produce a technical claim/role worklist after a
+reviewer-key event. Accountable officials still decide whether historical trust
+is acceptable, who may perform replacement review, how an evidence gap is
+resolved, and whether any operational response is required.
+
+Before accepting a package, fork, or technology-partner upgrade, emit and
+verify `ledger capabilities`, then place an owner-reviewed `ledger
+lock-capabilities` artifact under the agency's normal configuration-control
+process. Run `ledger check-capability-lock --fail-on-drift` in CI and retain its
+JSON/SARIF evidence. The lock may establish an exact technical compatibility
+floor; because it is unsigned, it does not establish who approved that floor and
+does not replace configuration control, supply-chain review, or authorization.
 
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every

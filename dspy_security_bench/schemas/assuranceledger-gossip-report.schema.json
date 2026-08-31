@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-gossip-report.schema.json",
+  "title": "AssuranceLedger Gossip v1 report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "views", "view_results", "comparisons", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger Gossip / Cross-view consistency evidence"},
+    "protocol_version": {"const": "assuranceledger-gossip-v1"},
+    "analyzer": {"const": "deterministic-cross-view-prefix-analyzer-v1"},
+    "views": {"type": "array", "minItems": 2, "maxItems": 50, "items": {"$ref": "assuranceledger-report.schema.json"}},
+    "view_results": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["view_index", "report_sha256", "status", "log_origin", "policy_sha256", "tree_size", "root_sha256", "checkpoint_sha256", "errors"],
+        "properties": {
+          "view_index": {"type": "integer", "minimum": 0},
+          "report_sha256": {"type": ["string", "null"]},
+          "status": {"enum": ["valid", "invalid"]},
+          "log_origin": {"type": ["string", "null"]},
+          "policy_sha256": {"type": ["string", "null"]},
+          "tree_size": {"type": ["integer", "null"]},
+          "root_sha256": {"type": ["string", "null"]},
+          "checkpoint_sha256": {"type": "string"},
+          "errors": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "comparisons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["left_view_index", "right_view_index", "smaller_view_index", "larger_view_index", "status", "same_log_identity", "prefix_matches", "prefix_root_matches", "reason"],
+        "properties": {
+          "left_view_index": {"type": "integer", "minimum": 0},
+          "right_view_index": {"type": "integer", "minimum": 0},
+          "smaller_view_index": {"type": "integer", "minimum": 0},
+          "larger_view_index": {"type": "integer", "minimum": 0},
+          "status": {"enum": ["consistent_prefix", "equivocation_evidenced", "incomparable_identity"]},
+          "same_log_identity": {"type": "boolean"},
+          "prefix_matches": {"type": "boolean"},
+          "prefix_root_matches": {"type": "boolean"},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "submitted_views", "valid_views", "invalid_views", "distinct_checkpoints", "pair_comparisons", "equivocation_pairs", "automatic_deployment_actions", "automatic_risk_acceptances", "automatic_authorizations_to_operate"],
+      "properties": {
+        "status": {"enum": ["views_consistent", "equivocation_evidenced", "insufficient_view_diversity", "invalid_view_evidence"]},
+        "submitted_views": {"type": "integer", "minimum": 2},
+        "valid_views": {"type": "integer", "minimum": 0},
+        "invalid_views": {"type": "integer", "minimum": 0},
+        "distinct_checkpoints": {"type": "integer", "minimum": 0},
+        "pair_comparisons": {"type": "integer", "minimum": 0},
+        "equivocation_pairs": {"type": "integer", "minimum": 0},
+        "automatic_deployment_actions": {"const": 0},
+        "automatic_risk_acceptances": {"const": 0},
+        "automatic_authorizations_to_operate": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

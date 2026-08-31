@@ -10,6 +10,100 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AssuranceLedger**, a witnessed append-only reviewer-key lifecycle for
+  AssuranceQuorum. It recomputes an RFC 6962-style domain-separated Merkle tree,
+  prior-checkpoint prefix continuity, operator and cross-organization witness
+  signatures, exact review inclusion, registration-before-review validity,
+  retirement, and retrospective compromise invalidation. Five non-blended
+  outcomes, strict schemas, SARIF, complete offline verification, and fictional
+  current/compromised demos are included without claiming CT/Rekor/C2SP wire
+  compatibility, global consistency, deployment authority, or ATO status.
+- **AssuranceLedger Gossip**, an offline cross-view verifier that natively
+  recomputes every supplied ledger before comparing operator-signed checkpoints
+  and complete event prefixes. Consistent extension, same-size/different-root
+  equivocation, insufficient checkpoint diversity, and invalid evidence remain
+  distinct; JSON/SARIF, semantic recomputation, and a fictional signed fork are
+  included without claiming consistency beyond supplied views.
+- **AssuranceLedger ReReview**, a deterministic minimal re-review planner that
+  natively verifies ledger evidence, maps invalidated/incomplete/historical
+  reviewer trust to exact AssuranceQuorum claims and required roles, preserves
+  evidence gaps, and binds the owner's historical-key policy. JSON/SARIF,
+  semantic recomputation, routine-retirement and compromise fixtures, and zero
+  automatic person selection or deployment action are included.
+- **AssuranceLedger ForkProof**, a privacy-minimized incident disclosure
+  artifact containing one ledger policy, two signed same-size checkpoints, and
+  source digests—but no log entries, reviewer registrations, review envelopes,
+  or quorum reports. Its standalone verifier checks both operator signatures,
+  both witness quorums, exact identity/size equality, different roots, strict
+  schema, and semantic report integrity; CLI and SARIF exports take no action.
+- **AssuranceLedger ConsistencyProof**, a compact RFC 6962-style append-only
+  proof between two natively verified ledger reports. The portable artifact
+  contains two signed checkpoints and the unique minimal Merkle path but zero
+  log or review entries; standalone verification checks both operator
+  signatures, both witness quorums, both reconstructed roots, strict schema,
+  and semantic integrity. Exhaustive small-tree shape tests cover every size
+  pair through 65 leaves, including non-power-of-two trees.
+- **AssuranceLedger ObserverReceipt**, signed cross-source checkpoint
+  provenance with policy thresholds for distinct observers, declared
+  organizations, and delivery channels. Receipts bind exact operator/witness
+  checkpoints, source-report digests, observation time, and a hash of the
+  private channel locator; raw locators and ledger entries remain undisclosed.
+  Invalid, insufficient-independence, corroborated, distinct-view, and
+  independently observed equivocation outcomes stay separate with CLI, strict
+  schemas, semantic recomputation, SARIF, and zero automatic action.
+- **AssuranceLedger WitnessConflict**, deterministic cosignature intersection
+  over a natively verified ForkProof. It attributes signing both conflicting
+  checkpoints to exact policy witness keys and declared organizations, while
+  keeping operator-only and shared-witness conflicts distinct. Strict schema,
+  semantic recomputation, key-level SARIF, and zero notifications or revocations
+  are included without inferring motive, compromise cause, or legal identity.
+- **AssuranceLedger VerifierConformance v2**, an executable nine-case adversarial
+  mutation matrix for downstream adopters. Rehashed signature, Merkle-path,
+  observer-receipt, witness-attribution, re-review, gossip, and ledger mutations
+  must trigger their intended native verifier rejection. Reports bind exact
+  source artifact digests and recompute from the same local inputs. V2 adds
+  CapabilityManifest and IntegrationLockCheck semantic mutations to the seven
+  cryptographic/lifecycle surfaces. Every clean source is natively verified
+  before mutation so an already-invalid fixture cannot pass the matrix. Source
+  files are regular-file and 100 MB bounded before JSON reading; the finite
+  matrix is explicitly not certification, fuzzing, or a security proof. Stable
+  SARIF rule `ALC001` exposes any missed rejection to CI without taking action.
+- **AssuranceLedger CapabilityManifest**, a deterministic partner-integration
+  contract covering all nine ledger protocols and thirteen strict JSON Schemas.
+  Exact schema-byte digests, protocol/report identifiers, producer and verifier
+  commands, standalone/evidence-root requirements, disclosed data classes,
+  offline operation, and the zero-action boundary recompute locally. CLI,
+  strict schema, demo artifact, schema-drift tests, and rehashed-tampering tests
+  are included without claiming remote discovery or interoperability
+  certification.
+- **AssuranceLedger IntegrationLock**, an owner-pinned minimum compatibility
+  baseline over exact schema digests, protocol/report identities, verifier
+  commands, standalone/evidence-root boundaries, disclosed data classes,
+  network requirements, and automatic-action counts. Its offline checker emits
+  strict, exactly recomputable JSON/SARIF drift evidence and a CI failure mode; additional
+  capabilities remain allowed, while missing or changed pins fail visibly. The
+  unsigned lock explicitly depends on owner-controlled artifact governance.
+  Structurally malformed, duplicate, unknown-field, bad-digest, and null-container
+  locks produce schema-valid `invalid-lock` evidence instead of exceptions;
+  vendor schema inputs are regular-file and 2 MB bounded before reading.
+- A dedicated least-privilege AssuranceLedger pull-request workflow regenerates
+  the complete fictional history, recomputes CapabilityManifest,
+  IntegrationLockCheck, and VerifierConformance v2, runs the focused trust and
+  tamper suite from the lockfile, and preserves JSON/SARIF review artifacts.
+- **AssuranceQuorum**, a role-separated review protocol using Ed25519-signed
+  in-toto Statement v1 predicates inside DSSE envelopes. Content-addressed
+  policies authorize exact keys, roles, organizations, claims, and review
+  windows; per-claim role/signer/organization quorums fail closed; valid
+  evidence-gap statements cannot be outvoted; JSON/SARIF, semantic
+  recomputation, two engineering presets, and fictional satisfied/gap demos are
+  included without creating deployment or risk-acceptance authority.
+- **EvalIntegrityProof**, a content-free evaluation-process integrity protocol
+  with 13 frozen controls covering artifact identity, holdout precommitment,
+  result-before-label reveal, evaluator/failure-domain/credential separation,
+  egress, complete case accounting, leakage canaries, independent monitoring,
+  safe exit, content minimization, and clock integrity. Four non-blended
+  outcomes, strict schemas, SARIF, semantic offline recomputation, CLI demos,
+  ContinuousProof ingestion, and a native AssuranceGraph claim are included.
 - **AssuranceGraph**, a deterministic executable claim–evidence graph that
   natively recomputes AuthorityTwin, TraceProof, CollectiveGuard v2,
   ScheduleProof, DefenderTwin, ResilienceGraph, ContainmentProof, and AgentBOM
@@ -22,7 +116,7 @@ several of them changed published numbers.
   report recomputation, and zero automatic deployment or risk-acceptance action.
 - AssuranceGraph JSON, SARIF 2.1.0, informative OSCAL 1.2.2, and polished
   standalone HTML outputs, a native-verification `assure digest` helper, and a
-  complete eight-artifact fictional demo.
+  complete nine-artifact fictional demo.
 - **ContainmentProof**, an eight-canary structural control protocol for workload
   isolation, network egress, cross-run communication, harmless credential
   honeytokens, evaluator integrity, impossible-task safe stop, human pause, and

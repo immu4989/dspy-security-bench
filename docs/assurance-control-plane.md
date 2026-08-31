@@ -102,10 +102,10 @@ bindings, and completeness before decision use. Import is not attestation.
 
 ## AssuranceGraph integration
 
-Critical-infrastructure cases now evaluate eight independent claims from eight
-natively verified evidence kinds. Runtime containment and dependency currency
-are not blended into a universal score. They can independently be supported,
-violated, contradicted, stale, or missing.
+Critical-infrastructure cases now evaluate nine independent claims from nine
+natively verified evidence kinds. Evaluation-process integrity, runtime
+containment, and dependency currency are not blended into a universal score.
+They can independently be supported, violated, contradicted, stale, or missing.
 
 Seven fictional sector starters make the boundary concrete without claiming
 sector approval:

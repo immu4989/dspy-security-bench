@@ -294,6 +294,12 @@ def _demo_evidence() -> dict[str, dict[str, Any]]:
         built_in_mission,
         built_in_proposal,
     )
+    from dspy_security_bench.evalguard.proof import (
+        analyze_scenario as analyze_eval_integrity,
+    )
+    from dspy_security_bench.evalguard.proof import (
+        built_in_scenario as built_in_eval_integrity,
+    )
     from dspy_security_bench.portfolio.proof import analyze_campaign, built_in_campaign
     from dspy_security_bench.schedule.proof import analyze_scenario, built_in_scenario
     from dspy_security_bench.supplychain.proof import analyze_change, built_in_inventory
@@ -310,6 +316,7 @@ def _demo_evidence() -> dict[str, dict[str, Any]]:
     defense = analyze_remediation(mission, built_in_proposal(mission))
     portfolio = analyze_campaign(built_in_campaign())
     containment = analyze_containment(built_in_containment("hardened-reference"))
+    evaluation_integrity = analyze_eval_integrity(built_in_eval_integrity("integrity-reference"))
     inventory = built_in_inventory("baseline")
     dependency_impact = analyze_change(
         inventory,
@@ -324,6 +331,7 @@ def _demo_evidence() -> dict[str, dict[str, Any]]:
         "verified-defense": defense,
         "defense-portfolio": portfolio,
         "containment": containment,
+        "evaluation-integrity": evaluation_integrity,
         "dependency-impact": dependency_impact,
     }
 

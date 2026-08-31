@@ -321,6 +321,7 @@ declared boundary element changes, including:
 - system mission, user population, data class, external effect, environment, owner, or evidence-retention rule;
 - a ContainmentProof violation or monitor failure;
 - an AgentBOM dependency-impact report requiring claim reevaluation; or
+- an EvalIntegrityProof violation, monitor failure, or incomplete record; or
 - stale, missing, contradictory, invalid, or superseded evidence.
 
 No trigger in this file automatically stops, restarts, deploys, approves, rejects,

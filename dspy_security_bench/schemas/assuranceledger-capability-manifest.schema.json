@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-capability-manifest.schema.json",
+  "title": "AssuranceLedger CapabilityManifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "schema_dialect", "schema_catalog", "protocols", "summary", "claim_boundary", "limitations", "manifest_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger CapabilityManifest / Deterministic integration contract"},
+    "protocol_version": {"const": "assuranceledger-capability-manifest-v1"},
+    "schema_dialect": {"const": "https://json-schema.org/draft/2020-12/schema"},
+    "schema_catalog": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["filename", "schema_id", "sha256"],
+        "properties": {
+          "filename": {"type": "string", "pattern": "^assuranceledger-[a-z0-9-]+\\.schema\\.json$"},
+          "schema_id": {"type": "string", "format": "uri"},
+          "sha256": {"$ref": "#/$defs/digest"}
+        }
+      }
+    },
+    "protocols": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["protocol_id", "report_type", "artifact_schemas", "producer_commands", "verifier_command", "standalone_verification", "evidence_root_required", "network_required", "automatic_actions", "embedded_data_classes"],
+        "properties": {
+          "protocol_id": {"type": "string", "pattern": "^assuranceledger-[a-z0-9-]+-v[1-9][0-9]*$|^assuranceledger-v[1-9][0-9]*$"},
+          "report_type": {"type": "string", "minLength": 1},
+          "artifact_schemas": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+          "producer_commands": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^ledger "}},
+          "verifier_command": {"type": "string", "pattern": "^ledger verify"},
+          "standalone_verification": {"type": "boolean"},
+          "evidence_root_required": {"type": "boolean"},
+          "network_required": {"const": false},
+          "automatic_actions": {"const": 0},
+          "embedded_data_classes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_count", "schema_count", "offline_verifier_count", "standalone_verifier_count", "automatic_actions"],
+      "properties": {
+        "protocol_count": {"const": 9},
+        "schema_count": {"const": 13},
+        "offline_verifier_count": {"const": 9},
+        "standalone_verifier_count": {"const": 4},
+        "automatic_actions": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "manifest_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-fork-proof.schema.json",
+  "title": "AssuranceLedger ForkProof v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "verifier", "source", "policy", "checkpoints", "finding", "privacy", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger ForkProof / Privacy-minimized operator misbehavior evidence"},
+    "protocol_version": {"const": "assuranceledger-fork-proof-v1"},
+    "verifier": {"const": "deterministic-same-size-checkpoint-conflict-verifier-v1"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gossip_report_sha256", "left_ledger_report_sha256", "right_ledger_report_sha256"],
+      "properties": {
+        "gossip_report_sha256": {"$ref": "#/$defs/digest"},
+        "left_ledger_report_sha256": {"$ref": "#/$defs/digest"},
+        "right_ledger_report_sha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "policy": {"$ref": "assuranceledger-policy.schema.json"},
+    "checkpoints": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["observer_label", "signed_checkpoint"],
+        "properties": {
+          "observer_label": {"type": "string", "minLength": 1, "maxLength": 100},
+          "signed_checkpoint": {"$ref": "assuranceledger-report.schema.json#/$defs/signedCheckpoint"}
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "log_origin", "tree_size", "left_root_sha256", "right_root_sha256", "operator_key_sha256", "valid_operator_signatures", "valid_witness_quorums"],
+      "properties": {
+        "status": {"const": "operator_equivocation_proved"},
+        "log_origin": {"type": "string", "minLength": 1},
+        "tree_size": {"type": "integer", "minimum": 1},
+        "left_root_sha256": {"$ref": "#/$defs/digest"},
+        "right_root_sha256": {"$ref": "#/$defs/digest"},
+        "operator_key_sha256": {"$ref": "#/$defs/digest"},
+        "valid_operator_signatures": {"const": 2},
+        "valid_witness_quorums": {"const": 2}
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["log_entries_embedded", "quorum_reports_embedded", "review_envelopes_embedded", "reviewer_key_registrations_embedded", "source_report_digests_disclosed", "automatic_actions"],
+      "properties": {
+        "log_entries_embedded": {"const": 0},
+        "quorum_reports_embedded": {"const": 0},
+        "review_envelopes_embedded": {"const": 0},
+        "reviewer_key_registrations_embedded": {"const": 0},
+        "source_report_digests_disclosed": {"const": 2},
+        "automatic_actions": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

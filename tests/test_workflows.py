@@ -41,6 +41,21 @@ def test_uv_bootstrap_version_is_explicit():
     assert 'version: "0.12.3"' in workflow
 
 
+def test_assuranceledger_ci_recomputes_partner_contracts_offline():
+    path = WORKFLOWS / "assuranceledger.yml"
+    workflow = path.read_text()
+    parsed = yaml.safe_load(workflow)
+    assert parsed["permissions"] == {"contents": "read"}
+    assert "uv sync --locked --extra dev --python 3.12" in workflow
+    assert "dspy-security-bench ledger demo" in workflow
+    assert "ledger verify-capabilities" in workflow
+    assert "ledger verify-capability-lock" in workflow
+    assert "ledger verify-conformance" in workflow
+    assert "tests/test_assuranceledger_conformance.py" in workflow
+    assert "artifacts/assuranceledger" in workflow
+    assert "persist-credentials: false" in workflow
+
+
 def test_ci_installs_from_lockfile_without_resolving_during_checks():
     workflow = (WORKFLOWS / "test.yml").read_text()
     assert "uv sync --locked --extra dev" in workflow
