@@ -68,6 +68,21 @@ from dspy_security_bench.ledger.rereview import (
 )
 from dspy_security_bench.ledger.rereview_sarif import report_to_sarif as rereview_to_sarif
 from dspy_security_bench.ledger.sarif import report_to_sarif
+from dspy_security_bench.ledger.trust_root import (
+    ROLE_NAMES,
+    TRUSTED_STATUSES,
+    build_trust_root,
+    embedded_trust_key_descriptor,
+    evaluate_trust_root,
+    policy_descriptor,
+    sign_trust_root,
+    trust_key_descriptor,
+    validate_trust_root,
+    verify_trust_root_report,
+)
+from dspy_security_bench.ledger.trust_root_sarif import (
+    report_to_sarif as trust_root_to_sarif,
+)
 from dspy_security_bench.ledger.witness_conflict import (
     analyze_witness_conflict,
     verify_witness_conflict_report,
@@ -224,6 +239,42 @@ def main(argv: list[str] | None = None) -> int:
     verify_lock.add_argument("lock")
     verify_lock.add_argument("manifest")
     verify_lock.add_argument("--schema-root")
+    describe_trust_key = commands.add_parser(
+        "describe-trust-key",
+        help="describe a supported PEM public key for an AssuranceTrustRoot",
+    )
+    describe_trust_key.add_argument("public_key")
+    describe_trust_key.add_argument("--entity-id", required=True)
+    describe_trust_key.add_argument("--organization-id", required=True)
+    describe_trust_key.add_argument("--out", required=True)
+    create_trust_root = commands.add_parser(
+        "create-trust-root",
+        help="build and threshold-sign an algorithm-explicit assurance trust root",
+    )
+    create_trust_root.add_argument("spec")
+    create_trust_root.add_argument("--private-key", action="append", required=True)
+    create_trust_root.add_argument("--previous-root")
+    create_trust_root.add_argument("--previous-private-key", action="append", default=[])
+    create_trust_root.add_argument("--out", required=True)
+    evaluate_trust_root_parser = commands.add_parser(
+        "evaluate-trust-root",
+        help="verify pinned bootstrap or dual-threshold trust-root continuity",
+    )
+    evaluate_trust_root_parser.add_argument("candidate_root")
+    anchor = evaluate_trust_root_parser.add_mutually_exclusive_group()
+    anchor.add_argument("--trusted-root")
+    anchor.add_argument("--expected-root-sha256")
+    evaluate_trust_root_parser.add_argument("--expected-domain")
+    evaluate_trust_root_parser.add_argument("--minimum-version", type=int)
+    evaluate_trust_root_parser.add_argument("--evaluation-time", type=int, required=True)
+    evaluate_trust_root_parser.add_argument("--policy", action="append", default=[])
+    evaluate_trust_root_parser.add_argument("--out", required=True)
+    evaluate_trust_root_parser.add_argument("--sarif-out")
+    evaluate_trust_root_parser.add_argument("--fail-on-trust", action="store_true")
+    verify_trust_root_parser = commands.add_parser(
+        "verify-trust-root", help="recompute a saved AssuranceTrustRoot report offline"
+    )
+    verify_trust_root_parser.add_argument("report")
     plan = commands.add_parser("plan-rereview", help="compute the minimal claim/role re-review set")
     plan.add_argument("ledger_report")
     plan.add_argument("--evidence-root", required=True)
@@ -428,6 +479,65 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("; ".join(errors))
             print(f"[ledger] verified integration-lock check {args.report}")
             return 0
+        if args.command == "describe-trust-key":
+            descriptor = trust_key_descriptor(
+                args.public_key,
+                entity_id=args.entity_id,
+                organization_id=args.organization_id,
+            )
+            _write_json(Path(args.out), descriptor)
+            print(
+                f"[ledger] described {descriptor['signature_scheme']} trust key: wrote {args.out}"
+            )
+            return 0
+        if args.command == "create-trust-root":
+            spec = _read_json(Path(args.spec))
+            previous = (
+                _read_json(Path(args.previous_root)) if args.previous_root is not None else None
+            )
+            root = _root_from_spec(spec, previous)
+            for private_key in args.private_key:
+                root = sign_trust_root(root, private_key)
+            for private_key in args.previous_private_key:
+                if previous is None:
+                    raise ValueError("--previous-private-key requires --previous-root")
+                root = sign_trust_root(root, private_key, signing_root=previous)
+            if errors := validate_trust_root(root):
+                raise ValueError("created trust root is incomplete: " + "; ".join(errors))
+            _write_json(Path(args.out), root)
+            print(
+                f"[ledger] signed trust root v{root['version']} ({root['root_sha256']}): "
+                f"wrote {args.out}"
+            )
+            return 0
+        if args.command == "evaluate-trust-root":
+            candidate = _read_json(Path(args.candidate_root))
+            trusted = (
+                _read_json(Path(args.trusted_root)) if args.trusted_root is not None else None
+            )
+            policies = [_read_json(Path(item)) for item in args.policy]
+            report = evaluate_trust_root(
+                candidate,
+                evaluation_time=args.evaluation_time,
+                trusted_root=trusted,
+                expected_root_sha256=args.expected_root_sha256,
+                expected_trust_domain=args.expected_domain,
+                minimum_version=args.minimum_version,
+                policies=policies,
+            )
+            _write_json(Path(args.out), report)
+            if args.sarif_out:
+                _write_json(Path(args.sarif_out), trust_root_to_sarif(report))
+            print(f"[ledger] {report['summary']['status']}: wrote {args.out}")
+            return int(
+                args.fail_on_trust and report["summary"]["status"] not in TRUSTED_STATUSES
+            )
+        if args.command == "verify-trust-root":
+            report = _read_json(Path(args.report))
+            if errors := verify_trust_root_report(report):
+                raise ValueError("; ".join(errors))
+            print(f"[ledger] verified trust-root report {args.report}")
+            return 0
         if args.command == "plan-rereview":
             ledger_report = _read_json(Path(args.ledger_report))
             report = plan_rereview(
@@ -473,6 +583,9 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             ("fictional-witness-two", "fictional-civil-society-observer"),
             ("fictional-observer-one", "fictional-state-university"),
             ("fictional-observer-two", "fictional-industry-isac"),
+            ("fictional-root-one", "fictional-public-interest-root"),
+            ("fictional-root-two", "fictional-research-root"),
+            ("fictional-root-three", "fictional-industry-root"),
         )
         for entity_id, organization_id in identities:
             private = key_root / f"{entity_id}.private.pem"
@@ -698,6 +811,72 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             evidence_root=quorum_root,
         )
         rereview = plan_rereview(invalidated, evidence_root=quorum_root)
+        trust_descriptors = {
+            name: embedded_trust_key_descriptor(descriptor)
+            for name, descriptor in descriptors.items()
+        }
+        for reviewer in quorum_report["policy"]["reviewers"]:
+            converted = embedded_trust_key_descriptor(reviewer, entity_field="signer_id")
+            trust_descriptors[converted["entity_id"]] = converted
+        root_one = "fictional-root-one"
+        root_two = "fictional-root-two"
+        root_three = "fictional-root-three"
+        trust_roles_v1 = _demo_trust_roles(
+            trust_descriptors,
+            root_ids=(root_one, root_two),
+            operator_id=operator_id,
+            witness_ids=witness_ids,
+            observer_ids=observer_ids,
+            reviewer_ids=tuple(
+                reviewer["signer_id"] for reviewer in quorum_report["policy"]["reviewers"]
+            ),
+        )
+        authorized_policies = [
+            policy_descriptor(item)
+            for item in (policy, observer_policy, quorum_report["policy"])
+        ]
+        root_v1 = build_trust_root(
+            list(trust_descriptors.values()),
+            trust_roles_v1,
+            authorized_policies,
+            trust_domain="fictional-national-ai-assurance-exchange",
+            version=1,
+            issued_at=1_788_048_000,
+            expires_at=1_819_584_000,
+        )
+        for signer in (root_one, root_two):
+            root_v1 = sign_trust_root(root_v1, key_paths[signer])
+        trust_roles_v2 = _demo_trust_roles(
+            trust_descriptors,
+            root_ids=(root_one, root_three),
+            operator_id=operator_id,
+            witness_ids=witness_ids,
+            observer_ids=observer_ids,
+            reviewer_ids=tuple(
+                reviewer["signer_id"] for reviewer in quorum_report["policy"]["reviewers"]
+            ),
+        )
+        root_v2 = build_trust_root(
+            list(trust_descriptors.values()),
+            trust_roles_v2,
+            authorized_policies,
+            trust_domain="fictional-national-ai-assurance-exchange",
+            version=2,
+            issued_at=1_788_134_400,
+            expires_at=1_819_670_400,
+            previous_root_sha256=root_v1["root_sha256"],
+        )
+        for signer in (root_one, root_three):
+            root_v2 = sign_trust_root(root_v2, key_paths[signer])
+        for signer in (root_one, root_two):
+            root_v2 = sign_trust_root(root_v2, key_paths[signer], signing_root=root_v1)
+        trust_root_report = evaluate_trust_root(
+            root_v2,
+            trusted_root=root_v1,
+            evaluation_time=1_788_220_800,
+            expected_trust_domain="fictional-national-ai-assurance-exchange",
+            policies=[policy, observer_policy, quorum_report["policy"]],
+        )
         capability_manifest = build_capability_manifest()
         integration_lock = build_integration_lock(capability_manifest)
         integration_lock_check = check_integration_lock(integration_lock, capability_manifest)
@@ -710,6 +889,7 @@ def _demo(out_dir: Path, *, force: bool) -> None:
                 "consistency_proof": consistency_proof,
                 "observer": observer_report,
                 "witness_conflict": witness_conflict,
+                "trust_root": trust_root_report,
                 "capability_manifest": capability_manifest,
                 "integration_lock": integration_lock,
                 "integration_lock_check": integration_lock_check,
@@ -744,6 +924,10 @@ def _demo(out_dir: Path, *, force: bool) -> None:
     _write_json(out_dir / "observer-comparison.sarif", observation_to_sarif(observer_report))
     _write_json(out_dir / "rereview-plan.report.json", rereview)
     _write_json(out_dir / "rereview-plan.sarif", rereview_to_sarif(rereview))
+    _write_json(out_dir / "trust-root-v1.json", root_v1)
+    _write_json(out_dir / "trust-root-v2.json", root_v2)
+    _write_json(out_dir / "trust-root.report.json", trust_root_report)
+    _write_json(out_dir / "trust-root.sarif", trust_root_to_sarif(trust_root_report))
     _write_json(out_dir / "verifier-conformance.report.json", conformance_report)
     _write_json(
         out_dir / "verifier-conformance.sarif",
@@ -767,6 +951,63 @@ def _bundle(report: dict[str, Any]) -> dict[str, Any]:
         field: report[field]
         for field in ("policy", "quorum_report", "entries", "checkpoint", "previous_checkpoint")
     }
+
+
+def _demo_trust_roles(
+    descriptors: dict[str, dict[str, str]],
+    *,
+    root_ids: tuple[str, ...],
+    operator_id: str,
+    witness_ids: tuple[str, ...],
+    observer_ids: tuple[str, ...],
+    reviewer_ids: tuple[str, ...],
+) -> dict[str, dict[str, Any]]:
+    assignments = {
+        "root": root_ids,
+        "ledger-operator": (operator_id,),
+        "ledger-witness": witness_ids,
+        "ledger-observer": observer_ids,
+        "quorum-reviewer": reviewer_ids,
+    }
+    roles = {}
+    for role in ROLE_NAMES:
+        ids = assignments[role]
+        roles[role] = {
+            "keyids": sorted(descriptors[item]["keyid"] for item in ids),
+            "signature_threshold": len(ids) if role == "root" else 1,
+            "minimum_distinct_organizations": len(ids) if role == "root" else 1,
+        }
+    return roles
+
+
+def _root_from_spec(
+    spec: dict[str, Any], previous_root: dict[str, Any] | None
+) -> dict[str, Any]:
+    expected = {
+        "trust_domain",
+        "version",
+        "issued_at",
+        "expires_at",
+        "keys",
+        "roles",
+        "authorized_policies",
+    }
+    if set(spec) != expected:
+        missing = sorted(expected - set(spec))
+        extra = sorted(set(spec) - expected)
+        raise ValueError(f"trust-root spec fields mismatch: missing={missing}, unexpected={extra}")
+    return build_trust_root(
+        spec["keys"],
+        spec["roles"],
+        spec["authorized_policies"],
+        trust_domain=spec["trust_domain"],
+        version=spec["version"],
+        issued_at=spec["issued_at"],
+        expires_at=spec["expires_at"],
+        previous_root_sha256=(
+            previous_root["root_sha256"] if previous_root is not None else None
+        ),
+    )
 
 
 def _read_json(path: Path) -> dict[str, Any]:

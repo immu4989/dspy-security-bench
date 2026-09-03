@@ -88,6 +88,8 @@ keywords = [
     "key-revocation",
     "checkpoint-gossip",
     "split-view-detection",
+    "trust-root-rotation",
+    "crypto-agility",
     "continuous-review",
     "review-impact-analysis",
 ]
@@ -188,6 +190,7 @@ ContainmentProof = "https://github.com/immu4989/dspy-security-bench/blob/main/do
 EvalIntegrityProof = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/evalintegrityproof.md"
 AssuranceQuorum = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurancequorum.md"
 AssuranceLedger = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md"
+AssuranceTrustRoot = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurancetrustroot.md"
 "AssuranceLedger ForkProof" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#disclose-the-conflict-without-disclosing-the-review-history"
 "AssuranceLedger ConsistencyProof" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#prove-legitimate-growth-without-sharing-log-entries"
 "AssuranceLedger ObserverReceipt" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#bind-each-view-to-an-independent-observer-receipt"

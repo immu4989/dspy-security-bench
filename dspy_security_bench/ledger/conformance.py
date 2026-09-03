@@ -13,12 +13,13 @@ from dspy_security_bench.ledger.misbehavior import verify_fork_proof
 from dspy_security_bench.ledger.observation import verify_observer_report
 from dspy_security_bench.ledger.proof import verify_ledger_report
 from dspy_security_bench.ledger.rereview import verify_rereview_report
+from dspy_security_bench.ledger.trust_root import verify_trust_root_report
 from dspy_security_bench.ledger.witness_conflict import verify_witness_conflict_report
 from dspy_security_bench.mission.loader import canonical_sha256
 
 REPORT_TYPE = "AssuranceLedger VerifierConformance / Adversarial mutation matrix"
-PROTOCOL_VERSION = "assuranceledger-verifier-conformance-v2"
-RUNNER = "deterministic-rehashed-semantic-mutation-runner-v2"
+PROTOCOL_VERSION = "assuranceledger-verifier-conformance-v3"
+RUNNER = "deterministic-rehashed-semantic-mutation-runner-v3"
 MAX_ARTIFACT_BYTES = 100_000_000
 ARTIFACT_FILES = {
     "ledger": "current-trust.report.json",
@@ -28,12 +29,13 @@ ARTIFACT_FILES = {
     "consistency_proof": "consistency-proof.report.json",
     "observer": "observer-comparison.report.json",
     "witness_conflict": "witness-conflict.report.json",
+    "trust_root": "trust-root.report.json",
     "capability_manifest": "capability-manifest.json",
     "integration_lock": "integration-lock.json",
     "integration_lock_check": "integration-lock-check.report.json",
 }
 CLAIM_BOUNDARY = (
-    "AssuranceLedger VerifierConformance applies nine deterministic, rehashed adversarial "
+    "AssuranceLedger VerifierConformance applies ten deterministic, rehashed adversarial "
     "mutations to valid local reference artifacts and confirms each native verifier rejects "
     "the intended semantic or cryptographic violation. Passing demonstrates behavior for these "
     "exact vectors only; it is not a security proof, implementation certification, fuzzing "
@@ -89,6 +91,7 @@ def run_conformance(
         "consistency_proof": verify_consistency_proof,
         "observer": verify_observer_report,
         "witness_conflict": verify_witness_conflict_report,
+        "trust_root": verify_trust_root_report,
         "capability_manifest": lambda value: verify_capability_manifest(value, schema_root),
         "integration_lock_check": lambda value: verify_integration_lock_check(
             value,
@@ -132,6 +135,14 @@ def run_conformance(
             _mutate_witness_summary,
             verify_witness_conflict_report,
             "WitnessConflict report does not recompute exactly",
+        ),
+        _case(
+            "trust-root-threshold-signature-recompute",
+            "trust_root",
+            artifacts["trust_root"],
+            _mutate_trust_root_signature,
+            verify_trust_root_report,
+            "AssuranceTrustRoot report does not recompute exactly",
         ),
         _case(
             "rereview-impact-semantic-recompute",
@@ -281,6 +292,13 @@ def _mutate_observer_signature(payload: dict[str, Any]) -> None:
 
 def _mutate_witness_summary(payload: dict[str, Any]) -> None:
     payload["summary"]["shared_witness_keys"] = 0
+
+
+def _mutate_trust_root_signature(payload: dict[str, Any]) -> None:
+    root = payload["candidate_root"]
+    root["signatures"][0]["signature_base64"] = "aW52YWxpZA=="
+    root.pop("root_sha256")
+    root["root_sha256"] = canonical_sha256(root)
 
 
 def _mutate_rereview_summary(payload: dict[str, Any]) -> None:

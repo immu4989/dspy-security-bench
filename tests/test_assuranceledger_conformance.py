@@ -22,12 +22,12 @@ def _demo(tmp_path: Path) -> dict:
     return json.loads((tmp_path / "verifier-conformance.report.json").read_text())
 
 
-def test_all_nine_rehashed_adversarial_vectors_are_rejected(tmp_path):
+def test_all_ten_rehashed_adversarial_vectors_are_rejected(tmp_path):
     report = _demo(tmp_path)
     assert report["summary"] == {
         "automatic_actions": 0,
-        "case_count": 9,
-        "expected_rejections_observed": 9,
+        "case_count": 10,
+        "expected_rejections_observed": 10,
         "status": "conformance_passed",
         "unexpected_acceptances": 0,
     }
@@ -39,6 +39,7 @@ def test_all_nine_rehashed_adversarial_vectors_are_rejected(tmp_path):
         "consistency_proof",
         "observer",
         "witness_conflict",
+        "trust_root",
         "capability_manifest",
         "integration_lock_check",
     }
@@ -144,7 +145,7 @@ def test_sarif_surfaces_an_unexpected_acceptance_without_action(tmp_path):
     failed = deepcopy(report)
     failed["cases"][0]["status"] = "unexpected_acceptance"
     failed["summary"]["status"] = "conformance_failed"
-    failed["summary"]["expected_rejections_observed"] = 8
+    failed["summary"]["expected_rejections_observed"] = 9
     failed["summary"]["unexpected_acceptances"] = 1
     failed.pop("report_sha256")
     failed["report_sha256"] = canonical_sha256(failed)

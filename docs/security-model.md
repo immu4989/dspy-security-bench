@@ -94,8 +94,8 @@ not people. A key that signs both fork views is cryptographically identifiable,
 but the analyzer cannot distinguish compromise, implementation failure,
 collusion, or other causes and performs no revocation.
 AssuranceLedger VerifierConformance trusts the native verifiers it exercises;
-v2 first requires nine clean source classes to pass native verification, then
-demonstrates rejection of nine exact mutations—not the absence of other bugs.
+v3 first requires ten clean source classes to pass native verification, then
+demonstrates rejection of ten exact mutations—not the absence of other bugs.
 Inputs and verifier code are identified by digest, and no network or system
 action is performed.
 AssuranceLedger CapabilityManifest trusts the package's compiled capability
@@ -106,6 +106,13 @@ AssuranceLedger IntegrationLock is unsigned and trusts the owner's source or
 artifact governance to establish which lock was reviewed. It permits additive
 capabilities and detects changed or missing pins; a satisfied check is not proof
 that the owner approved the lock or that unpinned behavior is safe.
+AssuranceTrustRoot replaces that implicit runtime trust assumption only when a
+caller independently pins the first exact root digest or supplies a previously
+trusted root. Dual old/new thresholds, exact successor versions, predecessor
+digests, and expiration make unauthorized replacement, rollback, version gaps,
+and possible freeze visible. They do not prove private-key custody, real
+organizational independence, policy quality, post-quantum protection, or that a
+newer root was not withheld before the current one expired.
 
 ## Threats addressed
 
@@ -140,6 +147,9 @@ that the owner approved the lock or that unpinned behavior is safe.
 - one signature presented as multi-disciplinary review, role/key substitution,
   duplicate-signer quorum inflation, outvoted evidence gaps, stale review
   statements, or signatures replayed against a different report or policy.
+- self-signed replacement trust roots, single-sided key rotation, root rollback,
+  skipped rotation history, expired trust, undeclared algorithm changes, and
+  same-name/different-byte assurance policies presented as authorized.
 
 ## Threats not solved
 

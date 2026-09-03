@@ -81,3 +81,14 @@ digests rather than review content. Their integrity hashes are not signatures.
 Protect an owner-approved lock through the organization's existing signed
 release, configuration-management, or artifact-governance controls. The tools
 never notify, revoke, roll back, deploy, authorize, or accept risk automatically.
+
+AssuranceTrustRoot artifacts intentionally disclose public keys, algorithm
+identifiers, declared entity and organization labels, role thresholds, exact
+authorized policy digests, version history, expiration, and signatures. They do
+not contain private keys, but that metadata can still reveal governance
+relationships. Review it before external distribution. Keep every signing key
+in organization-approved custody; pass only local key paths to
+`create-trust-root`, never key contents. A `trusted_*` result proves continuity
+from the caller-selected anchor, not that key storage, identity proofing,
+organizational independence, algorithms, or policies meet a deployment's
+security or compliance requirements.

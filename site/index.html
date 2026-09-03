@@ -328,11 +328,19 @@
         <div class="ledger-witness-conflict" aria-label="Both witness keys cosigned both conflicting checkpoints">
           <span>WITNESS CONFLICT</span><strong>W1 SIGNED BOTH</strong><i>+</i><strong>W2 SIGNED BOTH</strong><em>2 KEYS · 2 ORGANIZATIONS ATTRIBUTED</em><small>0 AUTO-REVOCATIONS</small>
         </div>
-        <div class="ledger-conformance" aria-label="Nine rehashed adversarial mutations are rejected by their intended native verifiers">
-          <span>VERIFIER CONFORMANCE V2</span><strong>9 / 9 REHASHED MUTATIONS REJECTED</strong><em>LEDGER · GOSSIP · REREVIEW · FORK · CONSISTENCY · RECEIPT · WITNESS · CAPABILITY · LOCK</em><small>CLEAN SOURCES NATIVE · OFFLINE</small>
+        <div class="ledger-root-rotation" aria-label="An independently pinned root rotates only after old and new two-organization thresholds sign the same exact successor">
+          <div class="root-anchor"><span>PINNED BOOTSTRAP</span><strong>ROOT V1</strong><small>sha256 · out-of-band</small></div>
+          <i aria-hidden="true"><b></b></i>
+          <div class="root-threshold old"><span>PREDECESSOR AUTHORITY</span><strong>OLD 2/2</strong><small>2 organizations</small></div>
+          <em>EXACT V1 → V2</em>
+          <div class="root-threshold new"><span>CANDIDATE AUTHORITY</span><strong>NEW 2/2</strong><small>2 organizations</small></div>
+          <b class="root-verdict">DUAL THRESHOLD VERIFIED<small>policy digests exact · unexpired</small></b>
         </div>
-        <div class="ledger-capabilities" aria-label="A deterministic owner-pinned partner contract binds nine offline protocol verifiers to thirteen exact schema digests">
-          <span>OWNER-PINNED PARTNER CONTRACT</span><strong>9 OFFLINE VERIFIERS</strong><b>13 SCHEMA DIGESTS</b><em>4 STANDALONE</em><small>0 DRIFT · 0 ACTIONS</small>
+        <div class="ledger-conformance" aria-label="Ten rehashed adversarial mutations are rejected by their intended native verifiers">
+          <span>VERIFIER CONFORMANCE V3</span><strong>10 / 10 REHASHED MUTATIONS REJECTED</strong><em>LEDGER · GOSSIP · REREVIEW · FORK · CONSISTENCY · RECEIPT · WITNESS · ROOT · CAPABILITY · LOCK</em><small>CLEAN SOURCES NATIVE · OFFLINE</small>
+        </div>
+        <div class="ledger-capabilities" aria-label="A deterministic owner-pinned partner contract binds ten offline protocol verifiers to fifteen exact schema digests">
+          <span>OWNER-PINNED PARTNER CONTRACT</span><strong>10 OFFLINE VERIFIERS</strong><b>15 SCHEMA DIGESTS</b><em>5 STANDALONE</em><small>0 DRIFT · 0 ACTIONS</small>
         </div>
         <div class="ledger-fork-proof" aria-label="A privacy-minimized fork proof retains two signed checkpoints and no review history">
           <span>FULL VERIFIED VIEWS</span><i>→</i><strong>2 SIGNED CHECKPOINTS</strong><b>+</b><strong>2 WITNESS QUORUMS</strong><i>→</i><em>OFFLINE FORK PROOF</em><small>0 LOG ENTRIES · 0 REVIEW ENVELOPES</small>

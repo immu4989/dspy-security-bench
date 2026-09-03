@@ -44,6 +44,16 @@ from dspy_security_bench.ledger.proof import (
     verify_ledger_report,
 )
 from dspy_security_bench.ledger.rereview import plan_rereview, verify_rereview_report
+from dspy_security_bench.ledger.trust_root import (
+    build_trust_root,
+    embedded_trust_key_descriptor,
+    evaluate_trust_root,
+    policy_descriptor,
+    sign_trust_root,
+    trust_key_descriptor,
+    validate_trust_root,
+    verify_trust_root_report,
+)
 from dspy_security_bench.ledger.witness_conflict import (
     analyze_witness_conflict,
     verify_witness_conflict_report,
@@ -87,4 +97,12 @@ __all__ = [
     "build_integration_lock",
     "check_integration_lock",
     "verify_integration_lock_check",
+    "build_trust_root",
+    "embedded_trust_key_descriptor",
+    "evaluate_trust_root",
+    "policy_descriptor",
+    "sign_trust_root",
+    "trust_key_descriptor",
+    "validate_trust_root",
+    "verify_trust_root_report",
 ]

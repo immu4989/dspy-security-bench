@@ -368,7 +368,7 @@ inferring motive or compromise cause, or automatically notifying or revoking.
 
 The growing portable surface then created an adoption risk: downstream
 implementations could validate the outer hash while failing to recompute deeper
-semantics. AssuranceLedger VerifierConformance applies nine deterministic
+semantics. AssuranceLedger VerifierConformance v3 applies ten deterministic
 mutations, rehashes every mutated report, and requires a specific rejection from
 the ledger, gossip, re-review, ForkProof, ConsistencyProof, ObserverReceipt, and
 WitnessConflict, CapabilityManifest, and IntegrationLockCheck verifiers. The
@@ -376,8 +376,8 @@ matrix binds its source digests and can be rerun
 offline. Its scope is deliberately finite and is not described as fuzzing,
 certification, or proof of verifier security.
 
-V2 also converts clean-fixture validity from prose into an experimental
-invariant. All nine source artifact classes pass their native verifier before
+V2 converted clean-fixture validity from prose into an experimental
+invariant. V3 requires all ten source artifact classes to pass their native verifier before
 mutation; one invalid source aborts the run. This prevents an unrelated existing
 failure from being miscounted as evidence that a deliberate mutation was caught.
 
@@ -386,8 +386,8 @@ partner code could support the right report names but validate them against an
 old or locally modified schema. JSON Schema Draft 2020-12 gives schemas stable
 `$id` identifiers and an explicit dialect, but neither identifies the exact
 bytes shipped by one implementation. AssuranceLedger CapabilityManifest adds a
-deterministic catalog of all eleven local schema IDs and file digests, then maps
-eight protocol versions to their production and verification commands,
+deterministic catalog of all fifteen local schema IDs and file digests, then maps
+ten protocol versions to their production and verification commands,
 standalone/evidence-root requirements, disclosed data classes, offline boundary,
 and zero automatic actions. Reverification recomputes both the capability table
 and every schema digest, so a replacement outer hash cannot hide semantic or
@@ -407,3 +407,45 @@ classes, and action count for each required protocol. Candidate checks allow
 additions but report missing or changed pins and recompute from the exact lock,
 manifest, and local schemas. The unsigned lock is explicitly not approval
 evidence; owner-controlled source or artifact governance remains the trust root.
+
+## September 3 follow-on: AssuranceTrustRoot continuity and algorithm migration
+
+IntegrationLock made the remaining circular assumption visible: source control
+was called the trust root, but the ledger family had no portable way to express
+which root keys and exact policies a verifier should accept, when that trust
+expires, or how a new key set becomes authoritative. A replacement JSON file
+could be perfectly self-signed by replacement keys and still provide no
+continuity from a verifier's previously accepted state.
+
+The follow-on review used The Update Framework's root-update workflow, which
+requires every intermediate root and signatures satisfying both the previously
+trusted and candidate root thresholds. It also used the June 2026 update to
+[NIST CSWP 39, Considerations for Achieving Crypto Agility](https://doi.org/10.6028/NIST.CSWP.39-upd1),
+which emphasizes explicit algorithm identifiers, planned transitions, and
+integrity protection for algorithm change. The finalized [SCITT architecture,
+RFC 9943](https://www.rfc-editor.org/rfc/rfc9943.html), separately reinforces
+that trust anchors and registration policy are explicit inputs to transparent
+signed-statement systems.
+
+AssuranceTrustRoot integrates those design properties into an AssuranceLedger-
+specific, offline format. The first root remains untrusted unless the caller
+supplies its exact digest through an independent channel. A successor must be
+exactly version `N+1`, name the full digest of root `N`, remain unexpired, and
+satisfy both old and new key and distinct-organization thresholds over the same
+canonical payload. The signed root authorizes exact AssuranceLedger,
+ObserverReceipt, and AssuranceQuorum policy digests and identifies Ed25519,
+ECDSA P-256/SHA-256, or RSA-PSS/SHA-256 keys. The report distinguishes invalid
+evidence, untrusted bootstrap, expiration, rollback, skipped versions,
+continuity failure, unauthorized policy, trusted bootstrap, and trusted
+rotation rather than blending them into one boolean.
+
+This work does not claim that threshold signatures, trust roots, expiration,
+key rotation, or algorithm identifiers are individually novel. Its contribution
+is a strict, semantically recomputable bridge between those controls and the
+repo's AI-assurance evidence policies, including exact policy authorization and
+old/new organization thresholds. It is not TUF or SCITT compatible, does not
+provide post-quantum signatures, cannot prove private-key custody or real
+organizational independence, and takes no operational action. The v3
+conformance matrix adds a rehashed TrustRoot signature mutation so downstream
+implementations must exercise the deeper cryptographic verifier rather than
+accepting a replacement outer digest.

@@ -26,6 +26,8 @@ from dspy_security_bench.ledger.proof import PROTOCOL_VERSION as LEDGER_VERSION
 from dspy_security_bench.ledger.proof import REPORT_TYPE as LEDGER_REPORT
 from dspy_security_bench.ledger.rereview import PROTOCOL_VERSION as REREVIEW_VERSION
 from dspy_security_bench.ledger.rereview import REPORT_TYPE as REREVIEW_REPORT
+from dspy_security_bench.ledger.trust_root import PROTOCOL_VERSION as TRUST_ROOT_VERSION
+from dspy_security_bench.ledger.trust_root import REPORT_TYPE as TRUST_ROOT_REPORT
 from dspy_security_bench.ledger.witness_conflict import (
     PROTOCOL_VERSION as WITNESS_CONFLICT_VERSION,
 )
@@ -52,6 +54,8 @@ SCHEMA_FILES = (
     "assuranceledger-policy.schema.json",
     "assuranceledger-report.schema.json",
     "assuranceledger-rereview-report.schema.json",
+    "assuranceledger-trust-root-report.schema.json",
+    "assuranceledger-trust-root.schema.json",
     "assuranceledger-witness-conflict.schema.json",
 )
 CLAIM_BOUNDARY = (
@@ -268,6 +272,28 @@ def _protocols() -> tuple[dict[str, Any], ...]:
                 "witness key identifiers",
                 "declared organization identifiers",
                 "compact fork proof",
+            ],
+        },
+        {
+            **common,
+            "protocol_id": TRUST_ROOT_VERSION,
+            "report_type": TRUST_ROOT_REPORT,
+            "artifact_schemas": [
+                "assuranceledger-trust-root.schema.json",
+                "assuranceledger-trust-root-report.schema.json",
+            ],
+            "producer_commands": [
+                "ledger create-trust-root",
+                "ledger evaluate-trust-root",
+            ],
+            "verifier_command": "ledger verify-trust-root",
+            "standalone_verification": True,
+            "evidence_root_required": False,
+            "embedded_data_classes": [
+                "public trust keys and signature algorithms",
+                "declared organizations and role thresholds",
+                "authorized assurance-policy digests",
+                "current and predecessor root signatures",
             ],
         },
         {

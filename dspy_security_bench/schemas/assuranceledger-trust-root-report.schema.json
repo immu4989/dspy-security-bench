@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-trust-root-report.schema.json",
+  "title": "AssuranceLedger AssuranceTrustRoot v1 verification report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "evaluation_time", "anchor", "candidate_root", "trusted_root", "policy_inputs", "source_errors", "trust_errors", "policy_results", "algorithm_transition", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger TrustRoot / Threshold trust-anchor continuity evidence"},
+    "protocol_version": {"const": "assuranceledger-trust-root-v1"},
+    "analyzer": {"const": "deterministic-threshold-trust-root-analyzer-v1"},
+    "evaluation_time": {"type": "integer", "minimum": 0},
+    "anchor": {"$ref": "#/$defs/anchor"},
+    "candidate_root": {"$ref": "assuranceledger-trust-root.schema.json"},
+    "trusted_root": {"oneOf": [{"$ref": "assuranceledger-trust-root.schema.json"}, {"type": "null"}]},
+    "policy_inputs": {"type": "array", "maxItems": 100, "items": {"type": "object"}},
+    "source_errors": {"type": "array", "maxItems": 500, "items": {"type": "string"}},
+    "trust_errors": {"type": "array", "maxItems": 500, "items": {"type": "string"}},
+    "policy_results": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/policyResult"}},
+    "algorithm_transition": {"$ref": "#/$defs/algorithmTransition"},
+    "summary": {"$ref": "#/$defs/summary"},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullableDigest": {"oneOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
+    "nullableInteger": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]},
+    "scheme": {"enum": ["ecdsa-sha2-nistp256", "ed25519", "rsassa-pss-sha256"]},
+    "schemeArray": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/scheme"}},
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "expected_root_sha256", "expected_trust_domain", "minimum_version"],
+      "properties": {
+        "mode": {"enum": ["none", "pinned-root-digest", "trusted-root"]},
+        "expected_root_sha256": {"$ref": "#/$defs/nullableDigest"},
+        "expected_trust_domain": {"oneOf": [{"type": "string", "minLength": 1, "maxLength": 300}, {"type": "null"}]},
+        "minimum_version": {"$ref": "#/$defs/nullableInteger"}
+      }
+    },
+    "policyResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_index", "policy_type", "policy_sha256", "status", "errors"],
+      "properties": {
+        "policy_index": {"type": "integer", "minimum": 0},
+        "policy_type": {"oneOf": [{"type": "string"}, {"type": "null"}]},
+        "policy_sha256": {"oneOf": [{"type": "string"}, {"type": "null"}]},
+        "status": {"enum": ["authorized", "invalid_policy", "unauthorized_policy"]},
+        "errors": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "algorithmTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["previous_schemes", "candidate_schemes", "added_schemes", "removed_schemes"],
+      "properties": {
+        "previous_schemes": {"$ref": "#/$defs/schemeArray"},
+        "candidate_schemes": {"$ref": "#/$defs/schemeArray"},
+        "added_schemes": {"$ref": "#/$defs/schemeArray"},
+        "removed_schemes": {"$ref": "#/$defs/schemeArray"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "continuity_mode", "candidate_version", "previous_version", "current_valid_root_signatures", "current_distinct_root_organizations", "previous_valid_root_signatures", "previous_distinct_root_organizations", "authorized_policies", "unauthorized_policies", "automatic_actions"],
+      "properties": {
+        "status": {"enum": ["trusted_bootstrap", "trusted_rotation", "untrusted_bootstrap", "invalid_trust_evidence", "expired_trust_root", "rollback_detected", "version_gap_detected", "trust_discontinuity", "policy_not_authorized"]},
+        "continuity_mode": {"enum": ["bootstrap", "rotation"]},
+        "candidate_version": {"$ref": "#/$defs/nullableInteger"},
+        "previous_version": {"$ref": "#/$defs/nullableInteger"},
+        "current_valid_root_signatures": {"type": "integer", "minimum": 0, "maximum": 100},
+        "current_distinct_root_organizations": {"type": "integer", "minimum": 0, "maximum": 100},
+        "previous_valid_root_signatures": {"type": "integer", "minimum": 0, "maximum": 100},
+        "previous_distinct_root_organizations": {"type": "integer", "minimum": 0, "maximum": 100},
+        "authorized_policies": {"type": "integer", "minimum": 0, "maximum": 100},
+        "unauthorized_policies": {"type": "integer", "minimum": 0, "maximum": 100},
+        "automatic_actions": {"const": 0}
+      }
+    }
+  }
+}

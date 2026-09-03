@@ -10,6 +10,17 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AssuranceTrustRoot**, a standalone trust-anchor continuity protocol for the
+  AssuranceLedger family. It requires an independently pinned first-root
+  digest or a previously trusted root, exact one-version advancement, full
+  predecessor binding, current- and previous-root signature thresholds,
+  distinct declared organizations, expiration, and authorization of exact
+  Ledger/Observer/Quorum policy digests. Algorithm-explicit Ed25519, ECDSA
+  P-256/SHA-256, and RSA-PSS/SHA-256 keys enable verified classical migrations;
+  strict root/report schemas, CLI authoring and verification, SARIF, a fictional
+  two-root demo, and offline semantic recomputation are included. The protocol
+  is TUF-inspired but does not claim TUF/SCITT/PKI compatibility, post-quantum
+  protection, key-custody assurance, government approval, or automatic action.
 - **AssuranceLedger**, a witnessed append-only reviewer-key lifecycle for
   AssuranceQuorum. It recomputes an RFC 6962-style domain-separated Merkle tree,
   prior-checkpoint prefix continuity, operator and cross-organization witness
@@ -57,19 +68,20 @@ several of them changed published numbers.
   keeping operator-only and shared-witness conflicts distinct. Strict schema,
   semantic recomputation, key-level SARIF, and zero notifications or revocations
   are included without inferring motive, compromise cause, or legal identity.
-- **AssuranceLedger VerifierConformance v2**, an executable nine-case adversarial
+- **AssuranceLedger VerifierConformance v3**, an executable ten-case adversarial
   mutation matrix for downstream adopters. Rehashed signature, Merkle-path,
   observer-receipt, witness-attribution, re-review, gossip, and ledger mutations
   must trigger their intended native verifier rejection. Reports bind exact
-  source artifact digests and recompute from the same local inputs. V2 adds
+  source artifact digests and recompute from the same local inputs. V2 added
   CapabilityManifest and IntegrationLockCheck semantic mutations to the seven
-  cryptographic/lifecycle surfaces. Every clean source is natively verified
+  cryptographic/lifecycle surfaces; v3 adds TrustRoot threshold-signature
+  recomputation. Every clean source is natively verified
   before mutation so an already-invalid fixture cannot pass the matrix. Source
   files are regular-file and 100 MB bounded before JSON reading; the finite
   matrix is explicitly not certification, fuzzing, or a security proof. Stable
   SARIF rule `ALC001` exposes any missed rejection to CI without taking action.
 - **AssuranceLedger CapabilityManifest**, a deterministic partner-integration
-  contract covering all nine ledger protocols and thirteen strict JSON Schemas.
+  contract covering all ten ledger protocols and fifteen strict JSON Schemas.
   Exact schema-byte digests, protocol/report identifiers, producer and verifier
   commands, standalone/evidence-root requirements, disclosed data classes,
   offline operation, and the zero-action boundary recompute locally. CLI,
@@ -88,7 +100,7 @@ several of them changed published numbers.
   vendor schema inputs are regular-file and 2 MB bounded before reading.
 - A dedicated least-privilege AssuranceLedger pull-request workflow regenerates
   the complete fictional history, recomputes CapabilityManifest,
-  IntegrationLockCheck, and VerifierConformance v2, runs the focused trust and
+  IntegrationLockCheck, AssuranceTrustRoot, and VerifierConformance v3, runs the focused trust and
   tamper suite from the lockfile, and preserves JSON/SARIF review artifacts.
 - **AssuranceQuorum**, a role-separated review protocol using Ed25519-signed
   in-toto Statement v1 predicates inside DSSE envelopes. Content-addressed

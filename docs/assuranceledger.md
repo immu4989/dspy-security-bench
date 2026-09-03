@@ -51,11 +51,13 @@ same-size conflict with no embedded ledger entries or review content.
 
 The same command now produces the complete partner-verification surface:
 
-- `capability-manifest.json` — nine offline protocol contracts and thirteen
+- `capability-manifest.json` — ten offline protocol contracts and fifteen
   exact schema digests;
+- `trust-root-v1.json`, `trust-root-v2.json`, and `trust-root.report.json` — a
+  pinned predecessor plus dual-threshold fictional root rotation;
 - `integration-lock.json` and `integration-lock-check.report.json` — the
   owner-pin fixture and zero-drift reference result;
-- `verifier-conformance.report.json` — nine clean-source-validated, rehashed
+- `verifier-conformance.report.json` — ten clean-source-validated, rehashed
   adversarial rejection cases; and
 - SARIF companions for ledger outcomes, gossip, compact proofs, observation,
   witness attribution, re-review, conformance, and integration drift.
@@ -102,6 +104,42 @@ root discipline used by [Sigstore](https://docs.sigstore.dev/about/bundle/) and
 This implementation is intentionally a small, self-contained assurance
 protocol. It is **not** a Certificate Transparency, Rekor, C2SP signed-note,
 C2SP witness, or TUF wire-format implementation.
+
+## Establish and rotate the authority behind the policy
+
+Witnessed checkpoints still need a trusted answer to “which operator, witness,
+observer, reviewer, and policy keys are authoritative?” AssuranceTrustRoot adds
+that missing layer:
+
+```bash
+# Recompute the fictional v1 → v2 rotation embedded by `ledger demo`.
+dspy-security-bench ledger verify-trust-root \
+  artifacts/assurance-ledger/trust-root.report.json
+
+# Evaluate an organization-owned exact successor against persisted trusted state.
+dspy-security-bench ledger evaluate-trust-root root-v2.json \
+  --trusted-root root-v1.json \
+  --expected-domain agency-ai-assurance \
+  --minimum-version 2 \
+  --evaluation-time 1788134500 \
+  --policy ledger-policy.json \
+  --out root-rotation.report.json \
+  --sarif-out root-rotation.sarif \
+  --fail-on-trust
+```
+
+A first root is trusted only against an independently supplied exact digest.
+Each successor must be the next version, bind the complete predecessor root,
+and carry enough valid signatures and declared organizations under **both** the
+old and new root roles. Exact policy digests prevent a friendly name from
+quietly authorizing changed bytes. Expiration exposes a possible freeze or
+missed rotation without pretending to know the cause.
+
+The root format explicitly supports Ed25519, ECDSA P-256/SHA-256, and RSA-PSS/
+SHA-256 so an owner can perform a verified classical-algorithm migration. It
+does not claim post-quantum protection, FIPS validation, secure private-key
+custody, or TUF compatibility. See the complete [AssuranceTrustRoot operator
+guide](assurancetrustroot.md).
 
 ## Outcomes with non-overlapping meanings
 
@@ -240,14 +278,14 @@ dspy-security-bench ledger verify-conformance \
 ```
 
 The runner changes a security-relevant field, recomputes the outer report hash,
-and requires the intended deeper verifier rejection for nine surfaces:
+and requires the intended deeper verifier rejection for ten surfaces:
 checkpoint signature binding, gossip outcome, re-review impact, ForkProof root,
 ConsistencyProof path, ObserverReceipt signature, and witness-conflict
-attribution, plus CapabilityManifest contract drift and IntegrationLockCheck
-outcome drift. The report binds every source artifact digest and recomputes exactly
-from the same inputs.
+attribution, plus TrustRoot threshold signatures, CapabilityManifest contract
+drift, and IntegrationLockCheck outcome drift. The report binds every source
+artifact digest and recomputes exactly from the same inputs.
 
-Before applying any mutation, v2 runs all nine clean artifacts through their
+Before applying any mutation, v3 runs all ten clean artifacts through their
 native verifiers. One already-invalid source aborts the matrix and cannot be
 counted as an expected adversarial rejection. This makes “clean source” an
 enforced experimental precondition rather than a caller assertion.
@@ -282,7 +320,7 @@ dspy-security-bench ledger verify-capabilities \
   --schema-root dspy_security_bench/schemas
 ```
 
-The manifest covers nine protocol surfaces and all thirteen AssuranceLedger
+The manifest covers ten protocol surfaces and all fifteen AssuranceLedger
 Draft 2020-12 schemas. Each schema record binds its stable `$id` and exact file
 bytes with SHA-256. Each protocol record exposes its report type, producer and
 verifier commands, whether verification is standalone, whether an evidence root

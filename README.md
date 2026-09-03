@@ -17,7 +17,9 @@ process itself preserved holdout, evaluator, monitoring, and safe-exit boundarie
 Role-separated in-toto/DSSE review statements then make multi-party evidence
 governance inspectable without turning signatures into deployment approvals.
 Witnessed append-only checkpoints make reviewer-key registration, retirement,
-and retrospective compromise visible across trust domains.
+and retrospective compromise visible across trust domains. AssuranceTrustRoot
+then makes bootstrap, policy authority, algorithm choice, expiration, and
+dual-threshold rotation independently verifiable.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -40,6 +42,7 @@ and retrospective compromise visible across trust domains.
 [![EvalIntegrityProof](https://img.shields.io/badge/EvalIntegrityProof-prove%20the%20evaluation-FF7CE5)](docs/evalintegrityproof.md)
 [![AssuranceQuorum](https://img.shields.io/badge/AssuranceQuorum-role--separated%20DSSE%20review-7FE7FF)](docs/assurancequorum.md)
 [![AssuranceLedger](https://img.shields.io/badge/AssuranceLedger-witnessed%20key%20lifecycle-F6C667)](docs/assuranceledger.md)
+[![AssuranceTrustRoot](https://img.shields.io/badge/AssuranceTrustRoot-dual--threshold%20rotation-FF9F6E)](docs/assurancetrustroot.md)
 [![ContainmentProof](https://img.shields.io/badge/ContainmentProof-canary%20control%20evidence-7DFFB2)](docs/assurance-control-plane.md)
 [![AgentBOM](https://img.shields.io/badge/AgentBOM-dependency%E2%86%92claim%20impact-FFCA70)](docs/assurance-control-plane.md)
 [![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
@@ -219,17 +222,26 @@ observed. Raw channel locators and log contents are never embedded.
 both fork views, attributing double-signing to exact witness keys and declared
 organizations without inferring motive or automatically revoking anything.
 
+`ledger evaluate-trust-root` closes the bootstrap and rotation gap. A first root
+is accepted only against an independently pinned exact digest. Every successor
+must advance exactly one version, bind the full predecessor, remain unexpired,
+and satisfy the separately declared key and organization thresholds of both the
+old and new roots. It authorizes exact ledger, observer, and quorum policy
+digests and identifies Ed25519, ECDSA P-256, or RSA-PSS keys; self-signature
+alone is never treated as trust, and post-quantum readiness is not claimed.
+
 Downstream implementers can run `ledger conformance` against a complete demo or
 integration artifact directory. The original seven rehashed adversarial vectors
 must be rejected across the ledger, gossip, re-review, fork, consistency, observation,
-and witness-attribution verifiers. V2 adds rehashed capability-contract and
-integration-lock checks for nine total; the result itself is exactly recomputable,
-and optional SARIF exposes every missed rejection to code scanning.
+and witness-attribution verifiers. V2 added rehashed capability-contract and
+integration-lock checks; v3 adds trust-root threshold/signature recomputation
+for ten total. The result itself is exactly recomputable, and optional SARIF
+exposes every missed rejection to code scanning.
 
 `ledger capabilities --out capability-manifest.json` gives agencies, vendors,
 and independent implementations one deterministic compatibility input instead
-of requiring them to infer support from prose. It binds nine protocol IDs to
-thirteen exact schema-byte digests, producer/verifier commands, standalone and
+of requiring them to infer support from prose. It binds ten protocol IDs to
+fifteen exact schema-byte digests, producer/verifier commands, standalone and
 evidence-root requirements, disclosed data classes, offline operation, and zero
 automatic actions. `ledger verify-capabilities` detects both rehashed field
 tampering and local schema drift.
@@ -253,6 +265,8 @@ dspy-security-bench ledger check-capability-lock \
 ```
 
 [Build witnessed reviewer trust evidence →](docs/assuranceledger.md)
+
+[Rotate assurance trust roots without breaking continuity →](docs/assurancetrustroot.md)
 
 ---
 
@@ -1805,9 +1819,11 @@ v0.1 scope choices:
 | AssuranceLedger ConsistencyProof — compact, entry-free proof that a newer signed checkpoint preserves the older tree | **shipped on main** |
 | AssuranceLedger ObserverReceipt — signed cross-organization/channel checkpoint provenance with privacy-bounded locators | **shipped on main** |
 | AssuranceLedger WitnessConflict — exact witness-key attribution for cosigning both sides of a proven fork | **shipped on main** |
-| AssuranceLedger VerifierConformance v2 — nine rehashed adversarial vectors for downstream verifier implementations | **shipped on main** |
-| AssuranceLedger CapabilityManifest — nine offline protocol contracts bound to thirteen exact schema digests | **shipped on main** |
+| AssuranceLedger VerifierConformance v2 — nine rehashed adversarial vectors for downstream verifier implementations | **superseded by v3** |
+| AssuranceLedger VerifierConformance v3 — ten clean-source-validated adversarial vectors including TrustRoot | **shipped on main** |
+| AssuranceLedger CapabilityManifest — ten offline protocol contracts bound to fifteen exact schema digests | **shipped on main** |
 | AssuranceLedger IntegrationLock — owner-pinned compatibility floors, drift SARIF, and fail-on-drift CI | **shipped on main** |
+| AssuranceTrustRoot — pinned bootstrap, exact policy authority, expiration, crypto-agile keys, and dual-threshold rotation | **shipped on main** |
 | AssuranceLedger ReReview — minimal claim/role re-review planning after retirement, compromise, or incomplete trust evidence | **shipped on main** |
 | Assurance Control Plane — ContainmentProof, AgentBOM ClaimImpact, non-executing probe contract, and non-ranking public exchange | **shipped on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |

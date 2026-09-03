@@ -103,11 +103,19 @@ v0.1 research choices are labeled separately from the current product surface.
     exchange to distinct declared organizations and hashed channels.
     WitnessConflict attributes double-signing to exact cosignature keys.
     ReReview maps trust changes back to the minimal affected claim/role set.
-    VerifierConformance exercises all nine verifier classes with rehashed mutations.
+    VerifierConformance v3 exercises all ten verifier classes with rehashed mutations.
     CapabilityManifest byte-binds every shipped schema to its protocol,
     producer/verifier CLI, portability boundary, and disclosed data classes.
     IntegrationLock lets owners pin that contract and obtain recomputable,
     fail-closed drift evidence when a candidate changes any requirement.
+33. **AssuranceTrustRoot** — distributes algorithm-explicit public trust keys,
+    role and distinct-organization thresholds, exact authorized policy digests,
+    version, predecessor, and expiration metadata. A bootstrap requires an
+    independently pinned root digest; each rotation must satisfy both old and
+    new root thresholds over the exact candidate payload. The standalone
+    verifier detects rollback, skipped intermediate versions, freeze/expiry,
+    continuity breaks, unauthorized policies, and rehashed signature tampering
+    without fetching metadata or taking an operational action.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer
@@ -145,7 +153,7 @@ dspy_security_bench/
 ├── containment/                # harmless canary control evidence + SARIF
 ├── evalguard/                  # content-free evaluation-integrity evidence + SARIF
 ├── quorum/                     # role-separated in-toto/DSSE review quorums
-├── ledger/                     # witnessed lifecycle + gossip + compact fork proof
+├── ledger/                     # witnessed lifecycle, trust roots, gossip, compact proofs
 ├── supplychain/                # AgentBOM inventory + dependency claim impact
 ├── probes/                     # data-only non-executing contribution contract
 ├── continuous/                 # baselines, drift, observe-only controller/timeline

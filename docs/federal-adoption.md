@@ -95,6 +95,17 @@ JSON/SARIF evidence. The lock may establish an exact technical compatibility
 floor; because it is unsigned, it does not establish who approved that floor and
 does not replace configuration control, supply-chain review, or authorization.
 
+Where multiple components or partners must share the policy and key authority,
+establish an organization-owned AssuranceTrustRoot. Bootstrap its first exact
+digest through the agency's approved independent distribution process, persist
+the last trusted version, set a reviewed expiration, require separately
+governed root signers, and authorize exact Ledger, ObserverReceipt, and Quorum
+policy digests. Every rotation should be evaluated against the previously
+trusted root so both old and new thresholds approve the same canonical payload.
+`trusted_rotation` is technical continuity evidence; it is not identity
+proofing, key-custody assurance, a FIPS determination, an ATO, or approval of
+the policies it carries.
+
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every
 candidate, report missing cost or outcome observations as missing, and treat
