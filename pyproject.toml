@@ -94,6 +94,7 @@ keywords = [
     "recovery-attestation",
     "secure-time-evidence",
     "time-quorum",
+    "temporal-trust-root",
     "crypto-agility",
     "continuous-review",
     "review-impact-analysis",

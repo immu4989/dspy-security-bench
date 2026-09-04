@@ -94,8 +94,8 @@ not people. A key that signs both fork views is cryptographically identifiable,
 but the analyzer cannot distinguish compromise, implementation failure,
 collusion, or other causes and performs no revocation.
 AssuranceLedger VerifierConformance trusts the native verifiers it exercises;
-v7 first requires fourteen clean source classes to pass native verification,
-then demonstrates rejection of fourteen exact mutations—not the absence of other bugs.
+v8 first requires fifteen clean source classes to pass native verification,
+then demonstrates rejection of fifteen exact mutations—not the absence of other bugs.
 Inputs and verifier code are identified by digest, and no network or system
 action is performed.
 AssuranceLedger CapabilityManifest trusts the package's compiled capability
@@ -137,6 +137,13 @@ that distinct declared organizations signed overlapping bounded intervals for
 one artifact, but cannot prove source independence, UTC accuracy, clock
 discipline, nonce freshness unless retained by the caller, or key custody. It
 returns an interval and never adjusts a system clock.
+TrustRootTimeGate inherits those assumptions plus the complete AssuranceTrustRoot
+boundary. It verifies that the time evidence names the exact candidate root and
+that the root passes at both conservative endpoints; it cannot establish UTC
+accuracy, source independence, global root freshness, or absence of a withheld
+successor. The endpoint argument is valid only for the root evaluator's
+monotonic issuance and expiration predicates, not arbitrary time-dependent
+policy logic. It installs no root and takes no automatic action.
 
 ## Threats addressed
 

@@ -146,6 +146,15 @@ intervals for that request. It is not proof of UTC accuracy, source
 independence, compliant time synchronization, a control assessment result, or
 an ATO, and it never sets a system clock.
 
+For a root-acceptance decision, pass that report to TrustRootTimeGate with the
+agency-retained policy digest and nonce, the independently controlled root
+anchor, trust domain, minimum version, and exact authorized policy inputs. The
+gate requires the complete root decision to pass at both interval endpoints,
+so an issuance or expiration boundary inside clock uncertainty remains a
+visible failure. Treat `temporally_trusted_root` as portable decision evidence,
+not a trust-anchor installation, FIPS determination, control assessment,
+authorization to operate, or proof that no newer root was withheld.
+
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every
 candidate, report missing cost or outcome observations as missing, and treat

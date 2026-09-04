@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes thirty-three related security surfaces:
+`dspy-security-bench` exposes thirty-seven related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -103,7 +103,7 @@ v0.1 research choices are labeled separately from the current product surface.
     exchange to distinct declared organizations and hashed channels.
     WitnessConflict attributes double-signing to exact cosignature keys.
     ReReview maps trust changes back to the minimal affected claim/role set.
-    VerifierConformance v7 exercises all fourteen verifier classes with rehashed mutations.
+    VerifierConformance v8 exercises all fifteen verifier classes with rehashed mutations.
     CapabilityManifest byte-binds every shipped schema to its protocol,
     producer/verifier CLI, portability boundary, and disclosed data classes.
     IntegrationLock lets owners pin that contract and obtain recomputable,
@@ -112,7 +112,7 @@ v0.1 research choices are labeled separately from the current product surface.
     receipts over one artifact digest and fresh caller nonce, enforces unique
     sources and declared-organization diversity, and emits only the conservative
     overlap of their uncertainty intervals without setting a clock.
-33. **AssuranceTrustRoot** — distributes algorithm-explicit public trust keys,
+34. **AssuranceTrustRoot** — distributes algorithm-explicit public trust keys,
     role and distinct-organization thresholds, exact authorized policy digests,
     version, predecessor, and expiration metadata. A bootstrap requires an
     independently pinned root digest; each rotation must satisfy both old and
@@ -122,18 +122,23 @@ v0.1 research choices are labeled separately from the current product surface.
     without fetching metadata or taking an operational action. TrustRootChain
     replays up to 64 exact successors for stale clients, permits expiration only
     on historical intermediates, and requires the final root to be current.
-34. **TrustRecoveryDrill** — evaluates an exact root-authorized recovery policy
+35. **TrustRecoveryDrill** — evaluates an exact root-authorized recovery policy
     against nine content-minimized simulation stages. Thirteen checks cover
     completeness, ordering, actor authorization, separation, organization
     diversity, evidence classes, root binding, future timestamps, response
     windows, and drill freshness. It activates no root and cannot bypass normal
     dual-threshold rotation.
-35. **TrustRecoveryAttestation** — authenticates each recovery-drill event as a
+36. **TrustRecoveryAttestation** — authenticates each recovery-drill event as a
     role-scoped in-toto Statement in a DSSE envelope. A separate exact policy,
     authorized by AssuranceTrustRoot, binds dedicated Ed25519 keys to recovery
     roles and organizations. Unique nonces and preceding-envelope digests make
     the nine handoffs complete, ordered, replay-resistant, and independently
     recomputable without inspecting retained evidence or activating a root.
+37. **TrustRootTimeGate** — natively recomputes caller-anchored signed bounded-
+    time evidence for the exact candidate root, then evaluates full TrustRoot
+    continuity and authorization at both conservative interval endpoints. It
+    fails closed when issuance or expiration cuts through the supported interval
+    and performs no clock adjustment, root installation, or automatic action.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer

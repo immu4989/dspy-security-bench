@@ -129,3 +129,14 @@ challenge across independent acceptance decisions, and review artifacts before
 sharing. Keep private keys at separately administered sources. A valid quorum
 does not prove UTC accuracy, source independence, secure clock discipline, or
 key custody, and the tool never synchronizes or adjusts a clock.
+
+TrustRootTimeGate embeds the complete TimeQuorum report, candidate and optional
+predecessor roots, exact policy inputs, the caller-retained time-policy digest
+and nonce, and two full endpoint root evaluations. This improves independent
+recomputation but duplicates governance, key, organization, and timing metadata;
+review the combined artifact before sharing it. Treat a nonce match as useful
+only when the verifier generated and retained an unpredictable challenge
+outside the report. A passing gate proves trust only throughout the supplied
+conservative interval. It cannot prove UTC accuracy, source independence,
+global root freshness, or absence of a withheld successor, and it performs no
+clock adjustment, root installation, notification, or remediation.

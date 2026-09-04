@@ -601,9 +601,9 @@ wide.
 Ten checks preserve policy replacement, artifact/nonce replay, source/key
 substitution, bad signatures, radius manipulation, duplicate-source quorum
 inflation, organization concentration, clock divergence, and excess uncertainty
-as explicit evidence. VerifierConformance v7 adds a rehashed conservative-bound
-mutation, and CapabilityManifest binds fourteen offline protocols to twenty-
-five exact schemas. The report processes zero artifact-content fields, makes
+as explicit evidence. At that milestone, VerifierConformance v7 added a rehashed
+conservative-bound mutation, and CapabilityManifest bound fourteen offline
+protocols to twenty-five exact schemas. The report processes zero artifact-content fields, makes
 zero clock adjustments, and takes zero automatic actions.
 
 This is not an RFC 3161, Roughtime, NTP, PTP, TSA, or clock-synchronization
@@ -612,3 +612,42 @@ security, legal identity, nonce freshness unless the verifier generated and
 retained the nonce, or whether selected uncertainty limits are appropriate. Its
 contribution is a deterministic bridge from independently signed rough-time
 observations to the repo's portable assurance evidence boundary.
+
+## September 4 continuation: time uncertainty must reach the trust decision
+
+AssuranceTimeQuorum removed the unsupported assumption that one caller-supplied
+integer represented trustworthy time, but it deliberately stopped at producing
+an interval. A downstream caller could still discard that uncertainty, choose
+the midpoint, and accept authority that was not valid for the complete interval.
+That composition gap matters most at signed issuance and expiration boundaries.
+
+TrustRootTimeGate makes the conservative rule executable. It first natively
+recomputes the complete TimeQuorum report, rather than trusting its outer digest
+or summary. It checks the independently retained policy digest and fresh nonce,
+then requires the signed subject to equal the candidate root's exact digest.
+Only after those prerequisites pass does it run the full AssuranceTrustRoot
+evaluator twice: once at the maximum supported lower bound and once at the
+minimum supported upper bound.
+
+For AssuranceTrustRoot, validity over time is defined by the monotonic predicate
+`issued_at <= evaluation_time < expires_at`. Therefore a passing evaluation at
+both ordered endpoints establishes that temporal predicate throughout the
+closed interval, while the full nested evaluations also repeat continuity,
+signature-threshold, organization-threshold, domain, version, and policy-
+authorization checks. The implementation explicitly does not generalize this
+endpoint argument to arbitrary policy functions.
+
+Eight deterministic checks keep invalid nested evidence, policy replacement,
+nonce replay, subject rebinding, absent or unordered intervals, not-yet-valid
+roots, expiry inside uncertainty, and other root-trust failures visible. The
+strict artifact includes both endpoint reports so independent verifiers can
+recompute the exact decision. VerifierConformance v8 adds a rehashed endpoint-
+status mutation, and CapabilityManifest now binds fifteen offline protocols to
+twenty-six exact schemas.
+
+The gate makes zero network requests, adjusts zero clocks, installs zero roots,
+and takes zero automatic actions. It does not prove UTC accuracy, actual source
+independence, secure key custody, global root freshness, absence of a withheld
+successor, compliance, certification, or authority to operate. Its narrower
+contribution is to prevent independently signed uncertainty from disappearing
+at the point where a trust anchor is accepted.

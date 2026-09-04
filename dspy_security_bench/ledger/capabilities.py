@@ -44,6 +44,10 @@ from dspy_security_bench.ledger.trust_recovery_attestation import (
 )
 from dspy_security_bench.ledger.trust_root import PROTOCOL_VERSION as TRUST_ROOT_VERSION
 from dspy_security_bench.ledger.trust_root import REPORT_TYPE as TRUST_ROOT_REPORT
+from dspy_security_bench.ledger.trust_root_time import (
+    PROTOCOL_VERSION as TRUST_ROOT_TIME_VERSION,
+)
+from dspy_security_bench.ledger.trust_root_time import REPORT_TYPE as TRUST_ROOT_TIME_REPORT
 from dspy_security_bench.ledger.witness_conflict import (
     PROTOCOL_VERSION as WITNESS_CONFLICT_VERSION,
 )
@@ -75,6 +79,7 @@ SCHEMA_FILES = (
     "assuranceledger-time-receipt.schema.json",
     "assuranceledger-trust-root-chain-report.schema.json",
     "assuranceledger-trust-root-report.schema.json",
+    "assuranceledger-trust-root-time-gate.schema.json",
     "assuranceledger-trust-root.schema.json",
     "assuranceledger-trust-recovery-attestation-policy.schema.json",
     "assuranceledger-trust-recovery-attestation-report.schema.json",
@@ -407,6 +412,27 @@ def _protocols() -> tuple[dict[str, Any], ...]:
                 "declared source organizations",
                 "artifact digests and caller nonces",
                 "signed midpoints and uncertainty radii",
+            ],
+        },
+        {
+            **common,
+            "protocol_id": TRUST_ROOT_TIME_VERSION,
+            "report_type": TRUST_ROOT_TIME_REPORT,
+            "artifact_schemas": [
+                "assuranceledger-trust-root.schema.json",
+                "assuranceledger-trust-root-report.schema.json",
+                "assuranceledger-time-quorum-report.schema.json",
+                "assuranceledger-trust-root-time-gate.schema.json",
+            ],
+            "producer_commands": ["ledger evaluate-trust-root-time"],
+            "verifier_command": "ledger verify-trust-root-time",
+            "standalone_verification": True,
+            "evidence_root_required": False,
+            "embedded_data_classes": [
+                "candidate and predecessor trust roots",
+                "signed bounded-time quorum evidence",
+                "caller-retained policy and nonce anchors",
+                "lower- and upper-bound root evaluations",
             ],
         },
         {

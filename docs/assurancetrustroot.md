@@ -338,3 +338,10 @@ organization assignments, set an operationally meaningful expiration, retain
 every intermediate root, and define recovery when an old threshold can no
 longer sign a successor. TrustRootChain verifies a supplied history; it neither
 retrieves missing roots nor proves the distributor exposed the latest one.
+
+When the acceptance clock itself needs independently inspectable evidence, use
+[TrustRootTimeGate](trust-root-time-gate.md). It composes a caller-anchored
+AssuranceTimeQuorum report with this full evaluator at both conservative
+interval endpoints. This catches roots issued or expiring inside clock
+uncertainty; it does not discover withheld successors or install an accepted
+root.

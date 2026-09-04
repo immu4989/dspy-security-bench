@@ -82,6 +82,10 @@ from dspy_security_bench.ledger.trust_root import (
     validate_trust_root,
     verify_trust_root_report,
 )
+from dspy_security_bench.ledger.trust_root_time import (
+    evaluate_trust_root_time,
+    verify_trust_root_time_report,
+)
 from dspy_security_bench.ledger.witness_conflict import (
     analyze_witness_conflict,
     verify_witness_conflict_report,
@@ -153,4 +157,6 @@ __all__ = [
     "time_source_descriptor",
     "validate_time_policy",
     "verify_time_quorum_report",
+    "evaluate_trust_root_time",
+    "verify_trust_root_time_report",
 ]

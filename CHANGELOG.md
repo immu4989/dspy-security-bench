@@ -10,6 +10,19 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **TrustRootTimeGate**, a conservative composition of AssuranceTimeQuorum and
+  AssuranceTrustRoot. It natively recomputes the signed time report, checks an
+  externally retained policy digest and fresh request nonce, requires the time
+  subject to equal the candidate-root digest, and evaluates complete root
+  continuity and policy authorization at both interval endpoints. Eight
+  deterministic checks preserve issuance-boundary, expiry-boundary, invalid
+  time, policy-replacement, nonce-replay, subject-rebinding, and root-trust
+  failures as distinct outcomes. Strict schema, CLI, SARIF, demo, standalone
+  offline recomputation, and a v8 conformance mutation are included with zero
+  content processing, clock adjustment, root installation, or automatic action.
+  Endpoint reasoning is intentionally limited to TrustRoot's monotonic
+  `issued_at <= time < expires_at` predicates and is not a generic temporal
+  policy proof.
 - **AssuranceTimeQuorum**, a portable bounded-time evidence protocol for
   assurance artifacts. An independently pinned policy authorizes Ed25519 source
   keys and requires unique-source and distinct-organization thresholds. Every
@@ -107,7 +120,7 @@ several of them changed published numbers.
   keeping operator-only and shared-witness conflicts distinct. Strict schema,
   semantic recomputation, key-level SARIF, and zero notifications or revocations
   are included without inferring motive, compromise cause, or legal identity.
-- **AssuranceLedger VerifierConformance v7**, an executable fourteen-case adversarial
+- **AssuranceLedger VerifierConformance v8**, an executable fifteen-case adversarial
   mutation matrix for downstream adopters. Rehashed signature, Merkle-path,
   observer-receipt, witness-attribution, re-review, gossip, and ledger mutations
   must trigger their intended native verifier rejection. Reports bind exact
@@ -116,14 +129,15 @@ several of them changed published numbers.
   cryptographic/lifecycle surfaces; v3 added TrustRoot threshold-signature
   recomputation, v4 added TrustRootChain hop-count recomputation, v5 added
   TrustRecoveryDrill readiness recomputation, v6 added authenticated recovery-
-  handoff recomputation, and v7 adds conservative time-bound recomputation.
+  handoff recomputation, v7 adds conservative time-bound recomputation, and v8
+  adds whole-interval TrustRoot status recomputation.
   Every clean source is natively verified
   before mutation so an already-invalid fixture cannot pass the matrix. Source
   files are regular-file and 100 MB bounded before JSON reading; the finite
   matrix is explicitly not certification, fuzzing, or a security proof. Stable
   SARIF rule `ALC001` exposes any missed rejection to CI without taking action.
 - **AssuranceLedger CapabilityManifest**, a deterministic partner-integration
-  contract covering all fourteen ledger protocols and twenty-five strict JSON Schemas.
+  contract covering all fifteen ledger protocols and twenty-six strict JSON Schemas.
   Exact schema-byte digests, protocol/report identifiers, producer and verifier
   commands, standalone/evidence-root requirements, disclosed data classes,
   offline operation, and the zero-action boundary recompute locally. CLI,
@@ -143,8 +157,8 @@ several of them changed published numbers.
 - A dedicated least-privilege AssuranceLedger pull-request workflow regenerates
   the complete fictional history, recomputes CapabilityManifest,
   IntegrationLockCheck, AssuranceTrustRoot, AssuranceTrustRootChain,
-  TrustRecoveryDrill, TrustRecoveryAttestation, AssuranceTimeQuorum, and
-  VerifierConformance v7, runs the focused trust and tamper suite from the
+  TrustRecoveryDrill, TrustRecoveryAttestation, AssuranceTimeQuorum,
+  TrustRootTimeGate, and VerifierConformance v8, runs the focused trust and tamper suite from the
   lockfile, and preserves JSON/SARIF review artifacts.
 - **AssuranceQuorum**, a role-separated review protocol using Ed25519-signed
   in-toto Statement v1 predicates inside DSSE envelopes. Content-addressed

@@ -9,6 +9,10 @@ It does not set a clock. It does not assert a perfectly precise time. It asks
 multiple policy-pinned sources to sign intervals and returns only their
 conservative overlap.
 
+When the subject is an AssuranceTrustRoot, the
+[TrustRootTimeGate](trust-root-time-gate.md) consumes this interval without
+rounding it to a favorable point and requires root trust at both endpoints.
+
 ```text
 artifact SHA-256 + fresh caller nonce
                │

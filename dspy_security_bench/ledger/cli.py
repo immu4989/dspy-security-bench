@@ -134,6 +134,16 @@ from dspy_security_bench.ledger.trust_root import (
 from dspy_security_bench.ledger.trust_root_sarif import (
     report_to_sarif as trust_root_to_sarif,
 )
+from dspy_security_bench.ledger.trust_root_time import (
+    TRUSTED_STATUS as TEMPORALLY_TRUSTED_ROOT_STATUS,
+)
+from dspy_security_bench.ledger.trust_root_time import (
+    evaluate_trust_root_time,
+    verify_trust_root_time_report,
+)
+from dspy_security_bench.ledger.trust_root_time_sarif import (
+    report_to_sarif as trust_root_time_to_sarif,
+)
 from dspy_security_bench.ledger.witness_conflict import (
     analyze_witness_conflict,
     verify_witness_conflict_report,
@@ -452,6 +462,32 @@ def main(argv: list[str] | None = None) -> int:
     verify_time_quorum_parser.add_argument("--expected-policy-sha256")
     verify_time_quorum_parser.add_argument("--subject-sha256")
     verify_time_quorum_parser.add_argument("--request-nonce")
+    evaluate_trust_root_time_parser = commands.add_parser(
+        "evaluate-trust-root-time",
+        help="require trust-root validity across a signed conservative time interval",
+    )
+    evaluate_trust_root_time_parser.add_argument("candidate_root")
+    evaluate_trust_root_time_parser.add_argument("time_quorum_report")
+    root_time_anchor = evaluate_trust_root_time_parser.add_mutually_exclusive_group()
+    root_time_anchor.add_argument("--trusted-root")
+    root_time_anchor.add_argument("--expected-root-sha256")
+    evaluate_trust_root_time_parser.add_argument(
+        "--expected-time-policy-sha256", required=True
+    )
+    evaluate_trust_root_time_parser.add_argument("--expected-request-nonce", required=True)
+    evaluate_trust_root_time_parser.add_argument("--expected-domain")
+    evaluate_trust_root_time_parser.add_argument("--minimum-version", type=int)
+    evaluate_trust_root_time_parser.add_argument("--policy", action="append", default=[])
+    evaluate_trust_root_time_parser.add_argument("--out", required=True)
+    evaluate_trust_root_time_parser.add_argument("--sarif-out")
+    evaluate_trust_root_time_parser.add_argument("--fail-on-trust", action="store_true")
+    verify_trust_root_time_parser = commands.add_parser(
+        "verify-trust-root-time",
+        help="recompute a saved TrustRootTimeGate report offline",
+    )
+    verify_trust_root_time_parser.add_argument("report")
+    verify_trust_root_time_parser.add_argument("--expected-time-policy-sha256")
+    verify_trust_root_time_parser.add_argument("--expected-request-nonce")
     plan = commands.add_parser("plan-rereview", help="compute the minimal claim/role re-review set")
     plan.add_argument("ledger_report")
     plan.add_argument("--evidence-root", required=True)
@@ -859,6 +895,40 @@ def main(argv: list[str] | None = None) -> int:
             ):
                 raise ValueError("; ".join(errors))
             print(f"[ledger] verified AssuranceTimeQuorum report {args.report}")
+            return 0
+        if args.command == "evaluate-trust-root-time":
+            report = evaluate_trust_root_time(
+                _read_json(Path(args.candidate_root)),
+                _read_json(Path(args.time_quorum_report)),
+                expected_time_policy_sha256=args.expected_time_policy_sha256,
+                expected_request_nonce=args.expected_request_nonce,
+                trusted_root=(
+                    _read_json(Path(args.trusted_root))
+                    if args.trusted_root is not None
+                    else None
+                ),
+                expected_root_sha256=args.expected_root_sha256,
+                expected_trust_domain=args.expected_domain,
+                minimum_version=args.minimum_version,
+                policies=[_read_json(Path(item)) for item in args.policy],
+            )
+            _write_json(Path(args.out), report)
+            if args.sarif_out:
+                _write_json(Path(args.sarif_out), trust_root_time_to_sarif(report))
+            print(f"[ledger] {report['summary']['status']}: wrote {args.out}")
+            return int(
+                args.fail_on_trust
+                and report["summary"]["status"] != TEMPORALLY_TRUSTED_ROOT_STATUS
+            )
+        if args.command == "verify-trust-root-time":
+            report = _read_json(Path(args.report))
+            if errors := verify_trust_root_time_report(
+                report,
+                expected_time_policy_sha256=args.expected_time_policy_sha256,
+                expected_request_nonce=args.expected_request_nonce,
+            ):
+                raise ValueError("; ".join(errors))
+            print(f"[ledger] verified TrustRootTimeGate report {args.report}")
             return 0
         if args.command == "plan-rereview":
             ledger_report = _read_json(Path(args.ledger_report))
@@ -1424,6 +1494,16 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             expected_subject_sha256=root_v3["root_sha256"],
             expected_request_nonce=time_request_nonce,
         )
+        trust_root_time_report = evaluate_trust_root_time(
+            root_v3,
+            time_quorum_report,
+            expected_time_policy_sha256=time_policy["policy_sha256"],
+            expected_request_nonce=time_request_nonce,
+            trusted_root=root_v2,
+            expected_trust_domain="fictional-national-ai-assurance-exchange",
+            minimum_version=3,
+            policies=[recovery_policy, recovery_attestation_policy],
+        )
         capability_manifest = build_capability_manifest()
         integration_lock = build_integration_lock(capability_manifest)
         integration_lock_check = check_integration_lock(integration_lock, capability_manifest)
@@ -1441,6 +1521,7 @@ def _demo(out_dir: Path, *, force: bool) -> None:
                 "trust_recovery": recovery_report,
                 "trust_recovery_attestation": recovery_attestation_report,
                 "time_quorum": time_quorum_report,
+                "trust_root_time": trust_root_time_report,
                 "capability_manifest": capability_manifest,
                 "integration_lock": integration_lock,
                 "integration_lock_check": integration_lock_check,
@@ -1514,6 +1595,11 @@ def _demo(out_dir: Path, *, force: bool) -> None:
         _write_json(out_dir / f"time-source-{receipt_index + 1}.receipt.json", receipt)
     _write_json(out_dir / "time-quorum.report.json", time_quorum_report)
     _write_json(out_dir / "time-quorum.sarif", time_quorum_to_sarif(time_quorum_report))
+    _write_json(out_dir / "trust-root-time.report.json", trust_root_time_report)
+    _write_json(
+        out_dir / "trust-root-time.sarif",
+        trust_root_time_to_sarif(trust_root_time_report),
+    )
     _write_json(out_dir / "verifier-conformance.report.json", conformance_report)
     _write_json(
         out_dir / "verifier-conformance.sarif",

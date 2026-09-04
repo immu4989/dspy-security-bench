@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-trust-root-time-gate.schema.json",
+  "title": "AssuranceLedger TrustRootTimeGate v1 report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "candidate_root", "trusted_root", "time_quorum_report", "anchor", "policy_inputs", "lower_bound_root_report", "upper_bound_root_report", "findings", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger TrustRootTimeGate / Conservatively time-bounded root trust"},
+    "protocol_version": {"const": "assuranceledger-trust-root-time-gate-v1"},
+    "analyzer": {"const": "deterministic-conservative-root-time-gate-v1"},
+    "candidate_root": {"$ref": "assuranceledger-trust-root.schema.json"},
+    "trusted_root": {"oneOf": [{"$ref": "assuranceledger-trust-root.schema.json"}, {"type": "null"}]},
+    "time_quorum_report": {"$ref": "assuranceledger-time-quorum-report.schema.json"},
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expected_time_policy_sha256", "expected_request_nonce", "expected_root_sha256", "expected_trust_domain", "minimum_version"],
+      "properties": {
+        "expected_time_policy_sha256": {"$ref": "#/$defs/digest"},
+        "expected_request_nonce": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{16,200}$"},
+        "expected_root_sha256": {"$ref": "#/$defs/nullableDigest"},
+        "expected_trust_domain": {"oneOf": [{"type": "string", "minLength": 1, "maxLength": 300}, {"type": "null"}]},
+        "minimum_version": {"$ref": "#/$defs/nullableInteger"}
+      }
+    },
+    "policy_inputs": {"type": "array", "maxItems": 100, "items": {"type": "object"}},
+    "lower_bound_root_report": {"oneOf": [{"$ref": "assuranceledger-trust-root-report.schema.json"}, {"type": "null"}]},
+    "upper_bound_root_report": {"oneOf": [{"$ref": "assuranceledger-trust-root-report.schema.json"}, {"type": "null"}]},
+    "findings": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule_id", "title", "status", "detail"],
+        "properties": {
+          "rule_id": {"enum": ["ART001", "ART002", "ART003", "ART004", "ART005", "ART006", "ART007", "ART008"]},
+          "title": {"type": "string", "minLength": 1},
+          "status": {"enum": ["passed", "failed"]},
+          "detail": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "lower_bound_unix", "upper_bound_unix", "interval_width_seconds", "lower_bound_root_status", "upper_bound_root_status", "passed_checks", "failed_checks", "content_fields_processed", "clock_adjustments", "roots_installed", "automatic_actions"],
+      "properties": {
+        "status": {"enum": ["temporally_trusted_root", "invalid_time_quorum", "time_policy_not_pinned", "time_request_mismatch", "time_subject_mismatch", "time_quorum_not_satisfied", "time_interval_unavailable", "root_not_yet_valid_for_interval", "root_expires_within_interval", "root_trust_failed"]},
+        "lower_bound_unix": {"$ref": "#/$defs/nullableInteger"},
+        "upper_bound_unix": {"$ref": "#/$defs/nullableInteger"},
+        "interval_width_seconds": {"$ref": "#/$defs/nullableInteger"},
+        "lower_bound_root_status": {"oneOf": [{"type": "string"}, {"type": "null"}]},
+        "upper_bound_root_status": {"oneOf": [{"type": "string"}, {"type": "null"}]},
+        "passed_checks": {"type": "integer", "minimum": 0, "maximum": 8},
+        "failed_checks": {"type": "integer", "minimum": 0, "maximum": 8},
+        "content_fields_processed": {"const": 0},
+        "clock_adjustments": {"const": 0},
+        "roots_installed": {"const": 0},
+        "automatic_actions": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullableDigest": {"oneOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
+    "nullableInteger": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "null"}]}
+  }
+}
