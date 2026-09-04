@@ -51,7 +51,7 @@ same-size conflict with no embedded ledger entries or review content.
 
 The same command now produces the complete partner-verification surface:
 
-- `capability-manifest.json` — twelve offline protocol contracts and nineteen
+- `capability-manifest.json` — thirteen offline protocol contracts and twenty-two
   exact schema digests;
 - `trust-root-v1.json` through `trust-root-v3.json`, `trust-root.report.json`,
   and `trust-root-chain.report.json` — a pinned predecessor, dual-threshold
@@ -59,9 +59,13 @@ The same command now produces the complete partner-verification surface:
 - `trust-recovery-policy.json`, `trust-recovery-drill.json`, and
   `trust-recovery-drill.report.json` — root-authorized, content-minimized
   compromise-recovery tabletop evidence with zero root activation;
+- `trust-recovery-attestation-policy.json`, nine files under
+  `trust-recovery-attestations/`, and
+  `trust-recovery-attestations.report.json` — role-scoped in-toto/DSSE
+  signatures linked into one replay-resistant recovery-handoff chain;
 - `integration-lock.json` and `integration-lock-check.report.json` — the
   owner-pin fixture and zero-drift reference result;
-- `verifier-conformance.report.json` — twelve clean-source-validated, rehashed
+- `verifier-conformance.report.json` — thirteen clean-source-validated, rehashed
   adversarial rejection cases; and
 - SARIF companions for ledger outcomes, gossip, compact proofs, observation,
   witness attribution, re-review, conformance, and integration drift.
@@ -186,6 +190,37 @@ custodian/approver separation, organization diversity, fixed evidence classes,
 exact root/policy binding, future dates, four response windows, and drill age.
 No incident content or key bytes enter the artifact, and a passing result
 activates zero roots. See the [TrustRecoveryDrill guide](trust-recovery-drill.md).
+
+For actor-authenticated exercises, layer `TrustRecoveryAttestation` over the
+same drill. A second exact policy—also authorized by the caller-pinned root—maps
+dedicated Ed25519 keys to recovery roles and declared organizations. Each event
+is signed as an in-toto Statement in a DSSE envelope. Unique nonces and the
+preceding envelope digest expose replay, deletion, insertion, and reordering:
+
+```bash
+dspy-security-bench ledger evaluate-recovery-attestations \
+  trust-recovery-attestation-policy.json \
+  trust-recovery-policy.json trust-recovery-drill.json trust-root-v3.json \
+  trust-recovery-attestations/event-00.json \
+  trust-recovery-attestations/event-01.json \
+  trust-recovery-attestations/event-02.json \
+  trust-recovery-attestations/event-03.json \
+  trust-recovery-attestations/event-04.json \
+  trust-recovery-attestations/event-05.json \
+  trust-recovery-attestations/event-06.json \
+  trust-recovery-attestations/event-07.json \
+  trust-recovery-attestations/event-08.json \
+  --expected-root-sha256 "$INDEPENDENTLY_TRUSTED_ROOT_V3_SHA256" \
+  --evaluation-time 1819680700 \
+  --out trust-recovery-attestations.report.json \
+  --sarif-out trust-recovery-attestations.sarif \
+  --fail-on-authentication
+```
+
+Ten checks verify complete coverage, envelope/statement structure, exact event
+subjects, policy/root/drill bindings, assigned signer roles, every Ed25519
+signature, timestamp order, nonce uniqueness, handoff linkage, and exact root
+authorization. See the [TrustRecoveryAttestation guide](trust-recovery-attestation.md).
 
 ## Outcomes with non-overlapping meanings
 
@@ -324,16 +359,16 @@ dspy-security-bench ledger verify-conformance \
 ```
 
 The runner changes a security-relevant field, recomputes the outer report hash,
-and requires the intended deeper verifier rejection for twelve surfaces:
+and requires the intended deeper verifier rejection for thirteen surfaces:
 checkpoint signature binding, gossip outcome, re-review impact, ForkProof root,
 ConsistencyProof path, ObserverReceipt signature, and witness-conflict
 attribution, plus TrustRoot threshold signatures, TrustRootChain hop counts,
-TrustRecoveryDrill readiness totals, CapabilityManifest contract drift, and
-IntegrationLockCheck outcome drift. The
+TrustRecoveryDrill readiness totals, TrustRecoveryAttestation signature totals,
+CapabilityManifest contract drift, and IntegrationLockCheck outcome drift. The
 report binds every source artifact digest and recomputes exactly from the same
 inputs.
 
-Before applying any mutation, v5 runs all twelve clean artifacts through their
+Before applying any mutation, v6 runs all thirteen clean artifacts through their
 native verifiers. One already-invalid source aborts the matrix and cannot be
 counted as an expected adversarial rejection. This makes “clean source” an
 enforced experimental precondition rather than a caller assertion.
@@ -368,7 +403,7 @@ dspy-security-bench ledger verify-capabilities \
   --schema-root dspy_security_bench/schemas
 ```
 
-The manifest covers twelve protocol surfaces and all nineteen AssuranceLedger
+The manifest covers thirteen protocol surfaces and all twenty-two AssuranceLedger
 Draft 2020-12 schemas. Each schema record binds its stable `$id` and exact file
 bytes with SHA-256. Each protocol record exposes its report type, producer and
 verifier commands, whether verification is standalone, whether an evidence root

@@ -521,3 +521,45 @@ summary mutation, while CapabilityManifest binds twelve offline protocols and
 nineteen exact schemas. The result is drill evidence only; it cannot prove the
 underlying records, identities, custody, facilities, communications, or actual
 recovery capability, and cannot authorize any replacement root.
+
+## September 3 continuation: authenticating recovery handoffs without reusing root authority
+
+The tabletop layer made one important residual limitation explicit: its actor
+and organization fields were owner assertions. A valid drill digest could prove
+that those fields had not changed after construction, but not that the named
+role key signed the event.
+
+The [in-toto Statement v1
+specification](https://github.com/in-toto/attestation/blob/main/spec/v1/statement.md)
+provides a portable subject/predicate binding, while its [envelope
+specification](https://github.com/in-toto/attestation/blob/main/spec/v1/envelope.md)
+recommends DSSE for serialization and authentication. The DSSE design signs a
+pre-authentication encoding of both payload type and exact payload bytes, which
+reduces cross-type confusion. In-toto's broader model also emphasizes evidence
+of which step was performed, by which functionary, and in what order.
+
+[NIST SP 800-61 Rev. 3](https://csrc.nist.gov/pubs/sp/800/61/r3/final)
+recommends informing people with recovery responsibilities about required
+authorizations, verifying the integrity of restoration assets before use,
+confirming restoration, and completing incident documentation. These are
+operational goals rather than a wire protocol, but they motivate making role
+handoffs and integrity checks independently inspectable.
+
+TrustRecoveryAttestation applies those ideas narrowly. The existing recovery
+policy remains the plan; a second exact policy maps dedicated Ed25519 public
+keys to its assigned actors, roles, and organizations. AssuranceTrustRoot
+authorizes both policy digests, but the event keys do not gain root-signing
+authority. Each of the nine content-free events becomes an in-toto Statement
+inside a DSSE envelope. Its predicate binds both policies, the root and drill,
+the exact event and retained-evidence digest, the signer identity tuple,
+issuance time, a unique nonce, and the preceding envelope digest.
+
+Ten deterministic checks reject incomplete coverage, invalid envelopes,
+changed subjects, context rebinding, role or key mismatch, bad signatures,
+timestamp violations, replayed nonces, broken handoff chains, and missing root
+authorization. VerifierConformance v6 adds a rehashed semantic mutation for the
+new native verifier; CapabilityManifest now binds thirteen offline protocols
+and twenty-two exact schemas. No content field is processed and no root is
+activated. The result proves only that authorized keys signed exact simulated
+records—not legal identity, competence, uncompromised custody, evidence truth,
+real-world recovery, compliance, or operational authority.

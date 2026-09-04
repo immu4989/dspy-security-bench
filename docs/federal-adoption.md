@@ -125,6 +125,16 @@ only their fixed evidence classes and digests. Treat
 the old root threshold, issue emergency credentials, skip incident reporting,
 or activate a replacement root.
 
+Where an agency or inter-organizational exercise needs actor-authenticated
+handoffs, add a separate TrustRecoveryAttestation policy with dedicated keys
+for each assigned recovery role. Require all nine in-toto/DSSE event envelopes,
+unique exercise nonces, and the complete preceding-envelope digest chain. Pin
+the authorizing root through an independent configuration-management channel
+and retain private keys in agency-approved custody. Treat
+`authenticated_recovery_handoffs` as evidence that the policy-authorized keys
+signed the exact simulated events—not proof of PIV identity, successful
+recovery, compliance, ATO approval, or authority to change a trust anchor.
+
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every
 candidate, report missing cost or outcome observations as missing, and treat

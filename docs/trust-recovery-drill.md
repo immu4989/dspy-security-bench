@@ -15,6 +15,12 @@ It is a content-minimized, deterministic tabletop-evidence protocol. The exact
 recovery policy must be authorized by a caller-anchored AssuranceTrustRoot. A
 passing drill remains **readiness evidence**, not recovery authority.
 
+When an exercise also needs cryptographic proof that each assigned role key
+signed its exact handoff, use the companion
+[TrustRecoveryAttestation](trust-recovery-attestation.md) layer. It adds
+root-authorized dedicated signer keys, in-toto/DSSE envelopes, unique nonces,
+and a preceding-envelope digest chain without granting those keys root authority.
+
 ## Why this matters
 
 [NIST SP 800-57 Part 1 Rev. 5](https://doi.org/10.6028/NIST.SP.800-57pt1r5)

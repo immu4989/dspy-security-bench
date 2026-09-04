@@ -34,6 +34,12 @@ from dspy_security_bench.ledger.trust_recovery import (
     PROTOCOL_VERSION as TRUST_RECOVERY_VERSION,
 )
 from dspy_security_bench.ledger.trust_recovery import REPORT_TYPE as TRUST_RECOVERY_REPORT
+from dspy_security_bench.ledger.trust_recovery_attestation import (
+    PROTOCOL_VERSION as TRUST_RECOVERY_ATTESTATION_VERSION,
+)
+from dspy_security_bench.ledger.trust_recovery_attestation import (
+    REPORT_TYPE as TRUST_RECOVERY_ATTESTATION_REPORT,
+)
 from dspy_security_bench.ledger.trust_root import PROTOCOL_VERSION as TRUST_ROOT_VERSION
 from dspy_security_bench.ledger.trust_root import REPORT_TYPE as TRUST_ROOT_REPORT
 from dspy_security_bench.ledger.witness_conflict import (
@@ -65,7 +71,10 @@ SCHEMA_FILES = (
     "assuranceledger-trust-root-chain-report.schema.json",
     "assuranceledger-trust-root-report.schema.json",
     "assuranceledger-trust-root.schema.json",
+    "assuranceledger-trust-recovery-attestation-policy.schema.json",
+    "assuranceledger-trust-recovery-attestation-report.schema.json",
     "assuranceledger-trust-recovery-drill.schema.json",
+    "assuranceledger-trust-recovery-event-attestation.schema.json",
     "assuranceledger-trust-recovery-policy.schema.json",
     "assuranceledger-trust-recovery-report.schema.json",
     "assuranceledger-witness-conflict.schema.json",
@@ -345,6 +354,30 @@ def _protocols() -> tuple[dict[str, Any], ...]:
                 "content-free recovery stage timestamps",
                 "recovery evidence digests and classes",
                 "root and recovery-policy bindings",
+            ],
+        },
+        {
+            **common,
+            "protocol_id": TRUST_RECOVERY_ATTESTATION_VERSION,
+            "report_type": TRUST_RECOVERY_ATTESTATION_REPORT,
+            "artifact_schemas": [
+                "assuranceledger-trust-recovery-attestation-policy.schema.json",
+                "assuranceledger-trust-recovery-event-attestation.schema.json",
+                "assuranceledger-trust-recovery-attestation-report.schema.json",
+            ],
+            "producer_commands": [
+                "ledger describe-recovery-attester",
+                "ledger sign-recovery-event",
+                "ledger evaluate-recovery-attestations",
+            ],
+            "verifier_command": "ledger verify-recovery-attestations",
+            "standalone_verification": True,
+            "evidence_root_required": False,
+            "embedded_data_classes": [
+                "root-authorized recovery-attester public keys",
+                "in-toto Statements in DSSE envelopes",
+                "content-free recovery event digests and timestamps",
+                "unique nonces and previous-attestation digests",
             ],
         },
         {

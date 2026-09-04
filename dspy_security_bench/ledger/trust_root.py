@@ -38,6 +38,7 @@ AUTHORIZED_POLICY_TYPES = (
     "dspy-security-bench-assurance-ledger-observer-policy",
     "dspy-security-bench-assurance-ledger-policy",
     "dspy-security-bench-assurance-quorum-policy",
+    "dspy-security-bench-assurance-trust-recovery-attestation-policy",
     "dspy-security-bench-assurance-trust-recovery-policy",
 )
 TRUSTED_STATUSES = ("trusted_bootstrap", "trusted_rotation")
@@ -47,8 +48,9 @@ MAX_SIGNATURES = 100
 CLAIM_BOUNDARY = (
     "AssuranceTrustRoot verifies a pinned bootstrap or one-step, dual-threshold trust-root "
     "rotation; exact version and predecessor continuity; expiration; distinct-organization "
-    "thresholds; supported signature schemes; and authorization of exact AssuranceLedger, "
-    "ObserverReceipt, and AssuranceQuorum policy digests. A trusted result establishes only "
+    "thresholds; supported signature schemes; and authorization of exact AssuranceLedger-"
+    "family policy digests, including recovery and recovery-attestation policies. A trusted "
+    "result establishes only "
     "continuity from the caller-selected trust anchor. It does not prove legal identity, "
     "organizational independence, private-key custody, policy quality, artifact truth, global "
     "consistency, compliance, authorization to operate, procurement approval, deployment "

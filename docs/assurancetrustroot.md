@@ -92,8 +92,9 @@ Inspect:
   and
 - `trust-root.sarif` — an empty result set for the valid reference transition.
 
-The roots authorize the exact fictional ledger, observer, and quorum policy
-digests created by the demo. They are protocol fixtures, not keys or approvals
+The roots authorize the exact fictional ledger, observer, quorum, recovery, and
+recovery-attestation policy digests created by the demo. They are protocol
+fixtures, not keys or approvals
 for any real organization or government system.
 
 ## Create an organization-owned root

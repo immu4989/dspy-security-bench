@@ -24,6 +24,8 @@ stale or intermittently connected clients replay every signed intermediate
 rotation offline while requiring a current final root. TrustRecoveryDrill then
 turns root-compromise preparedness into a content-minimized, role-separated,
 time-bounded tabletop artifact without creating an emergency trust bypass.
+TrustRecoveryAttestation then authenticates every role handoff as a chained
+in-toto/DSSE statement under a separate root-authorized signer policy.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -49,6 +51,7 @@ time-bounded tabletop artifact without creating an emergency trust bypass.
 [![AssuranceTrustRoot](https://img.shields.io/badge/AssuranceTrustRoot-dual--threshold%20rotation-FF9F6E)](docs/assurancetrustroot.md)
 [![TrustRootChain](https://img.shields.io/badge/TrustRootChain-bounded%20multi--hop%20catch--up-65DDB9)](docs/assurancetrustroot.md#catch-up-a-stale-client-across-multiple-rotations)
 [![TrustRecoveryDrill](https://img.shields.io/badge/TrustRecoveryDrill-13%20readiness%20checks-FF7E9D)](docs/trust-recovery-drill.md)
+[![TrustRecoveryAttestation](https://img.shields.io/badge/TrustRecoveryAttestation-DSSE%20handoff%20chain-AF8CFF)](docs/trust-recovery-attestation.md)
 [![ContainmentProof](https://img.shields.io/badge/ContainmentProof-canary%20control%20evidence-7DFFB2)](docs/assurance-control-plane.md)
 [![AgentBOM](https://img.shields.io/badge/AgentBOM-dependency%E2%86%92claim%20impact-FFCA70)](docs/assurance-control-plane.md)
 [![ContinuousProof](https://img.shields.io/badge/ContinuousProof-evidence%20drift-9C8CFF)](docs/continuousproof.md)
@@ -232,8 +235,9 @@ organizations without inferring motive or automatically revoking anything.
 is accepted only against an independently pinned exact digest. Every successor
 must advance exactly one version, bind the full predecessor, remain unexpired,
 and satisfy the separately declared key and organization thresholds of both the
-old and new roots. It authorizes exact ledger, observer, and quorum policy
-digests and identifies Ed25519, ECDSA P-256, or RSA-PSS keys; self-signature
+old and new roots. It authorizes exact ledger, observer, quorum, recovery, and
+recovery-attestation policy digests and identifies Ed25519, ECDSA P-256, or
+RSA-PSS keys; self-signature
 alone is never treated as trust, and post-quantum readiness is not claimed.
 
 `ledger evaluate-trust-chain` closes the stale-client gap. Starting from a
@@ -254,20 +258,30 @@ simulation-only drill binds nine content-free stage records and thirteen
 deterministic checks. A green result activates zero replacement roots and is
 readiness evidence—not authorization to bypass the old threshold.
 
+`ledger evaluate-recovery-attestations` closes the drill's actor-authenticity
+gap without reusing root authority. A separately root-authorized signer policy
+maps dedicated Ed25519 keys to the five recovery roles. Each of the nine events
+is an exact in-toto Statement inside a DSSE envelope, with a unique nonce and
+the preceding envelope digest. The ten-check verifier detects missing,
+reordered, replayed, wrong-role, wrong-key, re-signed, or policy/root-rebound
+handoffs while processing zero evidence content and activating zero roots.
+[Build an authenticated recovery handoff chain →](docs/trust-recovery-attestation.md)
+
 Downstream implementers can run `ledger conformance` against a complete demo or
 integration artifact directory. The original seven rehashed adversarial vectors
 must be rejected across the ledger, gossip, re-review, fork, consistency, observation,
 and witness-attribution verifiers. V2 added rehashed capability-contract and
 integration-lock checks; v3 added trust-root threshold/signature recomputation,
-v4 added multi-hop chain recomputation, and v5 adds recovery-readiness
-recomputation for twelve total. The result itself is
+v4 added multi-hop chain recomputation, v5 added recovery-readiness
+recomputation, and v6 adds authenticated recovery-handoff recomputation for
+thirteen total. The result itself is
 exactly recomputable, and optional SARIF
 exposes every missed rejection to code scanning.
 
 `ledger capabilities --out capability-manifest.json` gives agencies, vendors,
 and independent implementations one deterministic compatibility input instead
-of requiring them to infer support from prose. It binds twelve protocol IDs to
-nineteen exact schema-byte digests, producer/verifier commands, standalone and
+of requiring them to infer support from prose. It binds thirteen protocol IDs to
+twenty-two exact schema-byte digests, producer/verifier commands, standalone and
 evidence-root requirements, disclosed data classes, offline operation, and zero
 automatic actions. `ledger verify-capabilities` detects both rehashed field
 tampering and local schema drift.
@@ -1848,12 +1862,14 @@ v0.1 scope choices:
 | AssuranceLedger VerifierConformance v2 — nine rehashed adversarial vectors for downstream verifier implementations | **superseded by v3** |
 | AssuranceLedger VerifierConformance v3 — ten clean-source-validated adversarial vectors including TrustRoot | **superseded by v4** |
 | AssuranceLedger VerifierConformance v4 — eleven clean-source-validated adversarial vectors including TrustRootChain | **superseded by v5** |
-| AssuranceLedger VerifierConformance v5 — twelve clean-source-validated adversarial vectors including TrustRecoveryDrill | **shipped on main** |
-| AssuranceLedger CapabilityManifest — twelve offline protocol contracts bound to nineteen exact schema digests | **shipped on main** |
+| AssuranceLedger VerifierConformance v5 — twelve clean-source-validated adversarial vectors including TrustRecoveryDrill | **superseded by v6** |
+| AssuranceLedger VerifierConformance v6 — thirteen clean-source-validated adversarial vectors including TrustRecoveryAttestation | **shipped on main** |
+| AssuranceLedger CapabilityManifest — thirteen offline protocol contracts bound to twenty-two exact schema digests | **shipped on main** |
 | AssuranceLedger IntegrationLock — owner-pinned compatibility floors, drift SARIF, and fail-on-drift CI | **shipped on main** |
 | AssuranceTrustRoot — pinned bootstrap, exact policy authority, expiration, crypto-agile keys, and dual-threshold rotation | **shipped on main** |
 | AssuranceTrustRootChain — bounded multi-hop stale-client catch-up with historical-expiry handling and a current-final-root gate | **shipped on main** |
 | TrustRecoveryDrill — root-authorized, content-minimized compromise-recovery tabletop evidence with 13 checks and zero activation | **shipped on main** |
+| TrustRecoveryAttestation — root-authorized in-toto/DSSE signatures, unique nonces, and digest-linked role handoffs for all nine recovery events | **shipped on main** |
 | AssuranceLedger ReReview — minimal claim/role re-review planning after retirement, compromise, or incomplete trust evidence | **shipped on main** |
 | Assurance Control Plane — ContainmentProof, AgentBOM ClaimImpact, non-executing probe contract, and non-ranking public exchange | **shipped on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |

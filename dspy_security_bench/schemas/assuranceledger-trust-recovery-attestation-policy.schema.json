@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-trust-recovery-attestation-policy.schema.json",
+  "title": "AssuranceLedger TrustRecoveryAttestation v1 policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_type", "protocol_version", "attestation_policy_id", "recovery_policy_sha256", "plan_id", "trust_domain", "root_version", "issued_at", "expires_at", "signers", "required_event_types", "policy_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "policy_type": {"const": "dspy-security-bench-assurance-trust-recovery-attestation-policy"},
+    "protocol_version": {"const": "assuranceledger-trust-recovery-attestation-v1"},
+    "attestation_policy_id": {"$ref": "#/$defs/identifier"},
+    "recovery_policy_sha256": {"$ref": "#/$defs/digest"},
+    "plan_id": {"$ref": "#/$defs/identifier"},
+    "trust_domain": {"type": "string", "minLength": 1, "maxLength": 300},
+    "root_version": {"type": "integer", "minimum": 1},
+    "issued_at": {"type": "integer", "minimum": 0},
+    "expires_at": {"type": "integer", "minimum": 0},
+    "signers": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["signer_id", "recovery_role", "organization_id", "public_key_spki_base64", "public_key_sha256"],
+        "properties": {
+          "signer_id": {"$ref": "#/$defs/identifier"},
+          "recovery_role": {"$ref": "#/$defs/role"},
+          "organization_id": {"$ref": "#/$defs/identifier"},
+          "public_key_spki_base64": {"type": "string", "minLength": 1},
+          "public_key_sha256": {"$ref": "#/$defs/digest"}
+        }
+      }
+    },
+    "required_event_types": {
+      "const": ["affected-signatures-inventoried", "compromise-detected", "damage-assessment-completed", "incident-declared", "independent-approval-recorded", "lessons-retained", "out-of-band-distribution-rehearsed", "replacement-root-prepared", "replacement-verification-completed"]
+    },
+    "policy_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "role": {"enum": ["auditor", "distributor", "incident-commander", "independent-approver", "key-custodian"]}
+  }
+}

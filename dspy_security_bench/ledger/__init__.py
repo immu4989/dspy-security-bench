@@ -55,6 +55,15 @@ from dspy_security_bench.ledger.trust_recovery import (
     recovery_event,
     verify_recovery_drill_report,
 )
+from dspy_security_bench.ledger.trust_recovery_attestation import (
+    attester_descriptor,
+    build_attestation_policy,
+    evaluate_recovery_attestations,
+    sign_recovery_event,
+    validate_attestation_policy,
+    verify_recovery_attestation_report,
+    verify_recovery_event_attestation,
+)
 from dspy_security_bench.ledger.trust_root import (
     build_trust_root,
     embedded_trust_key_descriptor,
@@ -123,4 +132,11 @@ __all__ = [
     "evaluate_recovery_drill",
     "recovery_event",
     "verify_recovery_drill_report",
+    "attester_descriptor",
+    "build_attestation_policy",
+    "evaluate_recovery_attestations",
+    "sign_recovery_event",
+    "validate_attestation_policy",
+    "verify_recovery_attestation_report",
+    "verify_recovery_event_attestation",
 ]

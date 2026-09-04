@@ -77,6 +77,9 @@ from dspy_security_bench.ledger.trust_chain_sarif import (
     report_to_sarif as trust_chain_to_sarif,
 )
 from dspy_security_bench.ledger.trust_recovery import (
+    ROLE_NAMES as RECOVERY_ROLE_NAMES,
+)
+from dspy_security_bench.ledger.trust_recovery import (
     TRUSTED_STATUS as RECOVERY_READY_STATUS,
 )
 from dspy_security_bench.ledger.trust_recovery import (
@@ -85,6 +88,20 @@ from dspy_security_bench.ledger.trust_recovery import (
     evaluate_recovery_drill,
     recovery_event,
     verify_recovery_drill_report,
+)
+from dspy_security_bench.ledger.trust_recovery_attestation import (
+    GENESIS_ATTESTATION_SHA256,
+    attester_descriptor,
+    build_attestation_policy,
+    evaluate_recovery_attestations,
+    sign_recovery_event,
+    verify_recovery_attestation_report,
+)
+from dspy_security_bench.ledger.trust_recovery_attestation import (
+    TRUSTED_STATUS as RECOVERY_ATTESTED_STATUS,
+)
+from dspy_security_bench.ledger.trust_recovery_attestation_sarif import (
+    report_to_sarif as trust_recovery_attestation_to_sarif,
 )
 from dspy_security_bench.ledger.trust_recovery_sarif import (
     report_to_sarif as trust_recovery_to_sarif,
@@ -334,6 +351,54 @@ def main(argv: list[str] | None = None) -> int:
         help="recompute a saved TrustRecoveryDrill report offline",
     )
     verify_recovery_drill_parser.add_argument("report")
+    describe_recovery_attester = commands.add_parser(
+        "describe-recovery-attester",
+        help="describe an Ed25519 key for recovery-event attestations",
+    )
+    describe_recovery_attester.add_argument("public_key")
+    describe_recovery_attester.add_argument("--signer-id", required=True)
+    describe_recovery_attester.add_argument(
+        "--recovery-role", choices=sorted(RECOVERY_ROLE_NAMES), required=True
+    )
+    describe_recovery_attester.add_argument("--organization-id", required=True)
+    describe_recovery_attester.add_argument("--out", required=True)
+    sign_recovery = commands.add_parser(
+        "sign-recovery-event",
+        help="sign one exact recovery event as an in-toto/DSSE handoff",
+    )
+    sign_recovery.add_argument("attestation_policy")
+    sign_recovery.add_argument("recovery_policy")
+    sign_recovery.add_argument("drill")
+    sign_recovery.add_argument("private_key")
+    sign_recovery.add_argument("--event-index", type=int, required=True)
+    sign_recovery.add_argument("--issued-at", type=int, required=True)
+    sign_recovery.add_argument("--nonce", required=True)
+    sign_recovery.add_argument(
+        "--previous-attestation-sha256",
+        default=GENESIS_ATTESTATION_SHA256,
+    )
+    sign_recovery.add_argument("--out", required=True)
+    evaluate_recovery_attestations_parser = commands.add_parser(
+        "evaluate-recovery-attestations",
+        help="verify a complete digest-linked recovery-event DSSE chain",
+    )
+    evaluate_recovery_attestations_parser.add_argument("attestation_policy")
+    evaluate_recovery_attestations_parser.add_argument("recovery_policy")
+    evaluate_recovery_attestations_parser.add_argument("drill")
+    evaluate_recovery_attestations_parser.add_argument("trust_root")
+    evaluate_recovery_attestations_parser.add_argument("attestations", nargs="+")
+    evaluate_recovery_attestations_parser.add_argument("--expected-root-sha256")
+    evaluate_recovery_attestations_parser.add_argument("--evaluation-time", type=int, required=True)
+    evaluate_recovery_attestations_parser.add_argument("--out", required=True)
+    evaluate_recovery_attestations_parser.add_argument("--sarif-out")
+    evaluate_recovery_attestations_parser.add_argument(
+        "--fail-on-authentication", action="store_true"
+    )
+    verify_recovery_attestations_parser = commands.add_parser(
+        "verify-recovery-attestations",
+        help="recompute a saved TrustRecoveryAttestation report offline",
+    )
+    verify_recovery_attestations_parser.add_argument("report")
     plan = commands.add_parser("plan-rereview", help="compute the minimal claim/role re-review set")
     plan.add_argument("ledger_report")
     plan.add_argument("--evidence-root", required=True)
@@ -642,6 +707,57 @@ def main(argv: list[str] | None = None) -> int:
             if errors := verify_recovery_drill_report(report):
                 raise ValueError("; ".join(errors))
             print(f"[ledger] verified trust recovery drill {args.report}")
+            return 0
+        if args.command == "describe-recovery-attester":
+            descriptor = attester_descriptor(
+                args.public_key,
+                signer_id=args.signer_id,
+                recovery_role=args.recovery_role,
+                organization_id=args.organization_id,
+            )
+            _write_json(Path(args.out), descriptor)
+            print(f"[ledger] described recovery attester: wrote {args.out}")
+            return 0
+        if args.command == "sign-recovery-event":
+            envelope = sign_recovery_event(
+                _read_json(Path(args.attestation_policy)),
+                _read_json(Path(args.recovery_policy)),
+                _read_json(Path(args.drill)),
+                args.private_key,
+                event_index=args.event_index,
+                issued_at=args.issued_at,
+                nonce=args.nonce,
+                previous_attestation_sha256=args.previous_attestation_sha256,
+            )
+            _write_json(Path(args.out), envelope)
+            print(f"[ledger] signed recovery-event handoff: wrote {args.out}")
+            return 0
+        if args.command == "evaluate-recovery-attestations":
+            report = evaluate_recovery_attestations(
+                _read_json(Path(args.attestation_policy)),
+                _read_json(Path(args.recovery_policy)),
+                _read_json(Path(args.drill)),
+                _read_json(Path(args.trust_root)),
+                [_read_json(Path(item)) for item in args.attestations],
+                evaluation_time=args.evaluation_time,
+                expected_root_sha256=args.expected_root_sha256,
+            )
+            _write_json(Path(args.out), report)
+            if args.sarif_out:
+                _write_json(
+                    Path(args.sarif_out),
+                    trust_recovery_attestation_to_sarif(report),
+                )
+            print(f"[ledger] {report['summary']['status']}: wrote {args.out}")
+            return int(
+                args.fail_on_authentication
+                and report["summary"]["status"] != RECOVERY_ATTESTED_STATUS
+            )
+        if args.command == "verify-recovery-attestations":
+            report = _read_json(Path(args.report))
+            if errors := verify_recovery_attestation_report(report):
+                raise ValueError("; ".join(errors))
+            print(f"[ledger] verified recovery-event attestations {args.report}")
             return 0
         if args.command == "plan-rereview":
             ledger_report = _read_json(Path(args.ledger_report))
@@ -1035,9 +1151,28 @@ def _demo(out_dir: Path, *, force: bool) -> None:
                 "maximum_drill_age_seconds": 3_600,
             },
         )
+        recovery_attesters = []
+        for recovery_role in RECOVERY_ROLE_NAMES:
+            assignment = recovery_policy["role_assignments"][recovery_role][0]
+            recovery_attesters.append(
+                attester_descriptor(
+                    key_root / f"{assignment['actor_id']}.public.pem",
+                    signer_id=assignment["actor_id"],
+                    recovery_role=recovery_role,
+                    organization_id=assignment["organization_id"],
+                )
+            )
+        recovery_attestation_policy = build_attestation_policy(
+            recovery_policy,
+            recovery_attesters,
+            attestation_policy_id="fictional-recovery-handoff-attesters",
+            issued_at=1_819_680_000,
+            expires_at=1_819_766_400,
+        )
         authorized_policies_v3 = [
             *authorized_policies,
             policy_descriptor(recovery_policy),
+            policy_descriptor(recovery_attestation_policy),
         ]
         trust_roles_v3 = _demo_trust_roles(
             trust_descriptors,
@@ -1125,6 +1260,30 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             evaluation_time=1_819_680_700,
             expected_root_sha256=root_v3["root_sha256"],
         )
+        recovery_attestations = []
+        previous_attestation_sha256 = GENESIS_ATTESTATION_SHA256
+        for event_index, event in enumerate(recovery_drill["events"]):
+            envelope = sign_recovery_event(
+                recovery_attestation_policy,
+                recovery_policy,
+                recovery_drill,
+                key_paths[event["actor_id"]],
+                event_index=event_index,
+                issued_at=event["occurred_at"] + 5,
+                nonce=f"fictional-handoff-{event_index + 1}",
+                previous_attestation_sha256=previous_attestation_sha256,
+            )
+            recovery_attestations.append(envelope)
+            previous_attestation_sha256 = canonical_sha256(envelope)
+        recovery_attestation_report = evaluate_recovery_attestations(
+            recovery_attestation_policy,
+            recovery_policy,
+            recovery_drill,
+            root_v3,
+            recovery_attestations,
+            evaluation_time=1_819_680_700,
+            expected_root_sha256=root_v3["root_sha256"],
+        )
         capability_manifest = build_capability_manifest()
         integration_lock = build_integration_lock(capability_manifest)
         integration_lock_check = check_integration_lock(integration_lock, capability_manifest)
@@ -1140,6 +1299,7 @@ def _demo(out_dir: Path, *, force: bool) -> None:
                 "trust_root": trust_root_report,
                 "trust_chain": trust_chain_report,
                 "trust_recovery": recovery_report,
+                "trust_recovery_attestation": recovery_attestation_report,
                 "capability_manifest": capability_manifest,
                 "integration_lock": integration_lock,
                 "integration_lock_check": integration_lock_check,
@@ -1190,6 +1350,23 @@ def _demo(out_dir: Path, *, force: bool) -> None:
     _write_json(
         out_dir / "trust-recovery-drill.sarif",
         trust_recovery_to_sarif(recovery_report),
+    )
+    _write_json(
+        out_dir / "trust-recovery-attestation-policy.json",
+        recovery_attestation_policy,
+    )
+    for event_index, envelope in enumerate(recovery_attestations):
+        _write_json(
+            out_dir / "trust-recovery-attestations" / f"event-{event_index:02d}.json",
+            envelope,
+        )
+    _write_json(
+        out_dir / "trust-recovery-attestations.report.json",
+        recovery_attestation_report,
+    )
+    _write_json(
+        out_dir / "trust-recovery-attestations.sarif",
+        trust_recovery_attestation_to_sarif(recovery_attestation_report),
     )
     _write_json(out_dir / "verifier-conformance.report.json", conformance_report)
     _write_json(

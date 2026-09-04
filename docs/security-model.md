@@ -94,8 +94,8 @@ not people. A key that signs both fork views is cryptographically identifiable,
 but the analyzer cannot distinguish compromise, implementation failure,
 collusion, or other causes and performs no revocation.
 AssuranceLedger VerifierConformance trusts the native verifiers it exercises;
-v5 first requires twelve clean source classes to pass native verification, then
-demonstrates rejection of twelve exact mutations—not the absence of other bugs.
+v6 first requires thirteen clean source classes to pass native verification,
+then demonstrates rejection of thirteen exact mutations—not the absence of other bugs.
 Inputs and verifier code are identified by digest, and no network or system
 action is performed.
 AssuranceLedger CapabilityManifest trusts the package's compiled capability
@@ -124,6 +124,13 @@ declared roles, separation, organization diversity, stages, ordering, response
 windows, and freshness; it cannot prove the retained evidence is truthful or
 that recovery will succeed. The protocol deliberately cannot activate or
 authorize a replacement root.
+TrustRecoveryAttestation reduces that actor-assertion gap by requiring every
+event to carry a DSSE signature from a dedicated key in an exact root-authorized
+attester policy. It proves possession of those keys over exact in-toto
+statement bytes and detects missing, reordered, or replayed handoffs within the
+supplied chain. It cannot prove human identity, competence, key custody,
+underlying evidence truth, or real-world recovery, and it grants no root
+authority.
 
 ## Threats addressed
 

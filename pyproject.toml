@@ -91,6 +91,7 @@ keywords = [
     "trust-root-rotation",
     "stale-client-key-rotation",
     "cryptographic-recovery-drill",
+    "recovery-attestation",
     "crypto-agility",
     "continuous-review",
     "review-impact-analysis",
@@ -195,6 +196,7 @@ AssuranceLedger = "https://github.com/immu4989/dspy-security-bench/blob/main/doc
 AssuranceTrustRoot = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurancetrustroot.md"
 AssuranceTrustRootChain = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurancetrustroot.md#catch-up-a-stale-client-across-multiple-rotations"
 TrustRecoveryDrill = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/trust-recovery-drill.md"
+TrustRecoveryAttestation = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/trust-recovery-attestation.md"
 "AssuranceLedger ForkProof" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#disclose-the-conflict-without-disclosing-the-review-history"
 "AssuranceLedger ConsistencyProof" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#prove-legitimate-growth-without-sharing-log-entries"
 "AssuranceLedger ObserverReceipt" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#bind-each-view-to-an-independent-observer-receipt"

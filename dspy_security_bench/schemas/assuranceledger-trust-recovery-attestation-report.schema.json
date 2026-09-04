@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-trust-recovery-attestation-report.schema.json",
+  "title": "AssuranceLedger TrustRecoveryAttestation v1 report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "evaluation_time", "anchor", "attestation_policy_input", "recovery_policy_input", "drill_input", "trust_root_input", "attestation_envelopes", "recovery_readiness_report", "root_trust_report", "source_errors", "attestation_results", "findings", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger TrustRecoveryAttestation / Authenticated recovery handoffs"},
+    "protocol_version": {"const": "assuranceledger-trust-recovery-attestation-v1"},
+    "analyzer": {"const": "deterministic-recovery-handoff-attestation-analyzer-v1"},
+    "evaluation_time": {"type": "integer", "minimum": 0},
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expected_root_sha256"],
+      "properties": {"expected_root_sha256": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]}}
+    },
+    "attestation_policy_input": {"$ref": "assuranceledger-trust-recovery-attestation-policy.schema.json"},
+    "recovery_policy_input": {"$ref": "assuranceledger-trust-recovery-policy.schema.json"},
+    "drill_input": {"$ref": "assuranceledger-trust-recovery-drill.schema.json"},
+    "trust_root_input": {"$ref": "assuranceledger-trust-root.schema.json"},
+    "attestation_envelopes": {
+      "type": "array",
+      "maxItems": 9,
+      "items": {"$ref": "assuranceledger-trust-recovery-event-attestation.schema.json"}
+    },
+    "recovery_readiness_report": {"$ref": "assuranceledger-trust-recovery-report.schema.json"},
+    "root_trust_report": {"$ref": "assuranceledger-trust-root-report.schema.json"},
+    "source_errors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attestation_policy", "recovery_policy", "drill"],
+      "properties": {
+        "attestation_policy": {"$ref": "#/$defs/errors"},
+        "recovery_policy": {"$ref": "#/$defs/errors"},
+        "drill": {"$ref": "#/$defs/errors"}
+      }
+    },
+    "attestation_results": {
+      "type": "array",
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["attestation_index", "attestation_sha256", "sequence", "event_type", "signer_id", "organization_id", "status", "errors"],
+        "properties": {
+          "attestation_index": {"type": "integer", "minimum": 0, "maximum": 8},
+          "attestation_sha256": {"$ref": "#/$defs/digest"},
+          "sequence": {"anyOf": [{"type": "integer", "minimum": 0, "maximum": 8}, {"type": "null"}]},
+          "event_type": {"anyOf": [{"$ref": "#/$defs/event"}, {"type": "null"}]},
+          "signer_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+          "organization_id": {"anyOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+          "status": {"enum": ["valid", "invalid"]},
+          "errors": {"$ref": "#/$defs/errors"}
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule_id", "title", "status", "detail", "attestation_indexes"],
+        "properties": {
+          "rule_id": {"type": "string", "pattern": "^TRA0(?:0[1-9]|10)$"},
+          "title": {"type": "string", "minLength": 1},
+          "status": {"enum": ["passed", "failed"]},
+          "detail": {"type": "string"},
+          "attestation_indexes": {"type": "array", "maxItems": 9, "items": {"type": "integer", "minimum": 0, "maximum": 8}}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "checks_total", "checks_passed", "checks_failed", "events_expected", "attestations_observed", "valid_attestations", "distinct_signer_organizations", "terminal_attestation_sha256", "content_fields_processed", "replacement_roots_activated", "automatic_actions"],
+      "properties": {
+        "status": {"enum": ["authenticated_recovery_handoffs", "invalid_recovery_attestation_evidence", "recovery_readiness_not_evidenced", "recovery_attestation_policy_not_authorized", "untrusted_root", "recovery_handoffs_not_authenticated"]},
+        "checks_total": {"const": 10},
+        "checks_passed": {"type": "integer", "minimum": 0, "maximum": 10},
+        "checks_failed": {"type": "integer", "minimum": 0, "maximum": 10},
+        "events_expected": {"const": 9},
+        "attestations_observed": {"type": "integer", "minimum": 0, "maximum": 9},
+        "valid_attestations": {"type": "integer", "minimum": 0, "maximum": 9},
+        "distinct_signer_organizations": {"type": "integer", "minimum": 0, "maximum": 100},
+        "terminal_attestation_sha256": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
+        "content_fields_processed": {"const": 0},
+        "replacement_roots_activated": {"const": 0},
+        "automatic_actions": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "errors": {"type": "array", "items": {"type": "string"}},
+    "event": {"enum": ["affected-signatures-inventoried", "compromise-detected", "damage-assessment-completed", "incident-declared", "independent-approval-recorded", "lessons-retained", "out-of-band-distribution-rehearsed", "replacement-root-prepared", "replacement-verification-completed"]}
+  }
+}

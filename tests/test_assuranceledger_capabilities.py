@@ -20,12 +20,12 @@ def test_manifest_covers_every_assuranceledger_protocol_and_schema():
     manifest = build_capability_manifest()
     assert manifest["summary"] == {
         "automatic_actions": 0,
-        "offline_verifier_count": 12,
-        "protocol_count": 12,
-        "schema_count": 19,
-        "standalone_verifier_count": 7,
+        "offline_verifier_count": 13,
+        "protocol_count": 13,
+        "schema_count": 22,
+        "standalone_verifier_count": 8,
     }
-    assert len({item["protocol_id"] for item in manifest["protocols"]}) == 12
+    assert len({item["protocol_id"] for item in manifest["protocols"]}) == 13
     assert all(not item["network_required"] for item in manifest["protocols"])
     catalog = {item["filename"] for item in manifest["schema_catalog"]}
     assert catalog == {
@@ -96,4 +96,4 @@ def test_capability_cli_emits_and_verifies_manifest(tmp_path):
     assert ledger_main(["capabilities", "--out", str(output)]) == 0
     assert ledger_main(["verify-capabilities", str(output)]) == 0
     payload = json.loads(output.read_text())
-    assert payload["summary"]["protocol_count"] == 12
+    assert payload["summary"]["protocol_count"] == 13

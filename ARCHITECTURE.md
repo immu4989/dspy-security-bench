@@ -103,7 +103,7 @@ v0.1 research choices are labeled separately from the current product surface.
     exchange to distinct declared organizations and hashed channels.
     WitnessConflict attributes double-signing to exact cosignature keys.
     ReReview maps trust changes back to the minimal affected claim/role set.
-    VerifierConformance v5 exercises all twelve verifier classes with rehashed mutations.
+    VerifierConformance v6 exercises all thirteen verifier classes with rehashed mutations.
     CapabilityManifest byte-binds every shipped schema to its protocol,
     producer/verifier CLI, portability boundary, and disclosed data classes.
     IntegrationLock lets owners pin that contract and obtain recomputable,
@@ -124,6 +124,12 @@ v0.1 research choices are labeled separately from the current product surface.
     diversity, evidence classes, root binding, future timestamps, response
     windows, and drill freshness. It activates no root and cannot bypass normal
     dual-threshold rotation.
+35. **TrustRecoveryAttestation** — authenticates each recovery-drill event as a
+    role-scoped in-toto Statement in a DSSE envelope. A separate exact policy,
+    authorized by AssuranceTrustRoot, binds dedicated Ed25519 keys to recovery
+    roles and organizations. Unique nonces and preceding-envelope digests make
+    the nine handoffs complete, ordered, replay-resistant, and independently
+    recomputable without inspecting retained evidence or activating a root.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer

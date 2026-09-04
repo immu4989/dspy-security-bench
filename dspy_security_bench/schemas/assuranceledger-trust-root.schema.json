@@ -70,7 +70,7 @@
       "additionalProperties": false,
       "required": ["policy_type", "policy_sha256"],
       "properties": {
-        "policy_type": {"enum": ["dspy-security-bench-assurance-ledger-observer-policy", "dspy-security-bench-assurance-ledger-policy", "dspy-security-bench-assurance-quorum-policy", "dspy-security-bench-assurance-trust-recovery-policy"]},
+        "policy_type": {"enum": ["dspy-security-bench-assurance-ledger-observer-policy", "dspy-security-bench-assurance-ledger-policy", "dspy-security-bench-assurance-quorum-policy", "dspy-security-bench-assurance-trust-recovery-attestation-policy", "dspy-security-bench-assurance-trust-recovery-policy"]},
         "policy_sha256": {"$ref": "#/$defs/digest"}
       }
     },

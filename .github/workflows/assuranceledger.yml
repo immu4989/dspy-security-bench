@@ -69,7 +69,11 @@ jobs:
         run: >-
           uv run --locked --no-sync dspy-security-bench ledger verify-recovery-drill
           artifacts/assuranceledger/trust-recovery-drill.report.json
-      - name: Recompute twelve clean-source and adversarial verifier checks
+      - name: Recompute authenticated recovery-event handoffs
+        run: >-
+          uv run --locked --no-sync dspy-security-bench ledger verify-recovery-attestations
+          artifacts/assuranceledger/trust-recovery-attestations.report.json
+      - name: Recompute thirteen clean-source and adversarial verifier checks
         run: >-
           uv run --locked --no-sync dspy-security-bench ledger verify-conformance
           artifacts/assuranceledger/verifier-conformance.report.json
@@ -91,6 +95,7 @@ jobs:
           tests/test_assuranceledger_conformance.py
           tests/test_assuranceledger_trust_root.py
           tests/test_assuranceledger_trust_recovery.py
+          tests/test_assuranceledger_trust_recovery_attestation.py
       - name: Preserve reviewable JSON and SARIF evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

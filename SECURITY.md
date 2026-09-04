@@ -109,3 +109,13 @@ them before sharing, keep the underlying records out of public artifacts, and
 do not hash low-entropy secrets as evidence identifiers. A passing drill does
 not authorize key recovery or prove a real response will work; the analyzer
 activates no replacement root and performs no notification or remediation.
+
+TrustRecoveryAttestation embeds attester public keys, signer/role/organization
+labels, event and issuance times, unique nonces, and the digest of every prior
+handoff. Treat that metadata as incident-response-sensitive. Keep attester
+private keys outside bundles and separate from root-signing keys; rotate or
+revoke them through the organization-owned policy process. DSSE proves
+possession of an authorized private key and binds exact bytes—it does not prove
+legal identity, signer competence, physical presence, uncompromised custody, or
+the truth of the retained evidence. A passing chain remains simulation evidence
+and activates no root.
