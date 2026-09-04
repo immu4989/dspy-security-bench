@@ -10,6 +10,13 @@ from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from referencing import Registry, Resource
 
+from dspy_security_bench.ledger.trust_chain import (
+    evaluate_trust_root_chain,
+    verify_trust_root_chain_report,
+)
+from dspy_security_bench.ledger.trust_chain_sarif import (
+    report_to_sarif as chain_to_sarif,
+)
 from dspy_security_bench.ledger.trust_root import (
     ROLE_NAMES,
     TRUSTED_STATUSES,
@@ -111,6 +118,27 @@ def _roots(tmp_path: Path) -> tuple[dict, dict, dict, dict]:
     return first, second, policy, {"descriptors": descriptors, "private_paths": paths}
 
 
+def _chain(tmp_path: Path) -> tuple[dict, dict, dict, dict]:
+    first, second, policy, fixture = _roots(tmp_path)
+    descriptors = fixture["descriptors"]
+    paths = fixture["private_paths"]
+    third = build_trust_root(
+        [descriptors["root-ec"], descriptors["root-rsa"]],
+        _roles(descriptors["root-ec"], descriptors["root-rsa"]),
+        [policy_descriptor(policy)],
+        trust_domain=first["trust_domain"],
+        version=3,
+        issued_at=1_819_680_000,
+        expires_at=1_851_216_000,
+        previous_root_sha256=second["root_sha256"],
+    )
+    for signer in ("root-ec", "root-rsa"):
+        third = sign_trust_root(third, paths[signer])
+    for signer in ("root-ed", "root-rsa"):
+        third = sign_trust_root(third, paths[signer], signing_root=second)
+    return first, second, third, policy
+
+
 def test_dual_threshold_rotation_supports_algorithm_migration(tmp_path):
     first, second, policy, _ = _roots(tmp_path)
     assert validate_trust_root(first) == ()
@@ -138,9 +166,7 @@ def test_dual_threshold_rotation_supports_algorithm_migration(tmp_path):
 
 def test_bootstrap_requires_an_independently_pinned_digest(tmp_path):
     first, _, policy, _ = _roots(tmp_path)
-    unanchored = evaluate_trust_root(
-        first, evaluation_time=1_788_048_100, policies=[policy]
-    )
+    unanchored = evaluate_trust_root(first, evaluation_time=1_788_048_100, policies=[policy])
     assert unanchored["summary"]["status"] == "untrusted_bootstrap"
     anchored = evaluate_trust_root(
         first,
@@ -205,6 +231,175 @@ def test_expiration_is_not_translated_into_trust(tmp_path):
         policies=[policy],
     )
     assert report["summary"]["status"] == "expired_trust_root"
+
+
+def test_future_issued_root_is_not_translated_into_trust(tmp_path):
+    first, _, policy, _ = _roots(tmp_path)
+    report = evaluate_trust_root(
+        first,
+        evaluation_time=first["issued_at"] - 1,
+        expected_root_sha256=first["root_sha256"],
+        policies=[policy],
+    )
+    assert report["summary"]["status"] == "not_yet_valid_trust_root"
+
+
+def test_multihop_chain_accepts_expired_intermediates_but_current_final_root(tmp_path):
+    first, second, third, policy = _chain(tmp_path)
+    report = evaluate_trust_root_chain(
+        [first, second, third],
+        evaluation_time=1_819_700_000,
+        expected_root_sha256=first["root_sha256"],
+        expected_trust_domain=first["trust_domain"],
+        minimum_final_version=3,
+        policies=[policy],
+    )
+    assert report["summary"]["status"] == "trusted_chain"
+    assert report["summary"]["transitions_verified"] == 2
+    assert report["summary"]["expired_intermediate_roots"] == 2
+    assert report["summary"]["authorized_policies"] == 1
+    assert [item["status"] for item in report["transitions"]] == [
+        "trusted_rotation",
+        "trusted_rotation",
+    ]
+    assert verify_trust_root_chain_report(report) == ()
+
+
+def test_multihop_chain_can_start_from_a_locally_trusted_stale_root(tmp_path):
+    first, second, third, policy = _chain(tmp_path)
+    report = evaluate_trust_root_chain(
+        [second, third],
+        trusted_root=first,
+        evaluation_time=1_819_700_000,
+        minimum_final_version=3,
+        policies=[policy],
+    )
+    assert report["summary"]["status"] == "trusted_chain"
+    assert report["summary"]["anchor_version"] == 1
+    assert report["summary"]["roots_supplied"] == 2
+    assert report["summary"]["transitions_verified"] == 2
+
+
+def test_multihop_chain_detects_a_missing_intermediate_root(tmp_path):
+    first, _, third, policy = _chain(tmp_path)
+    report = evaluate_trust_root_chain(
+        [first, third],
+        evaluation_time=1_819_700_000,
+        expected_root_sha256=first["root_sha256"],
+        policies=[policy],
+    )
+    assert report["summary"]["status"] == "version_gap_detected"
+    assert report["summary"]["transitions_verified"] == 0
+
+
+def test_multihop_chain_requires_external_bootstrap_and_exact_final_policy(tmp_path):
+    first, second, third, _ = _chain(tmp_path)
+    unanchored = evaluate_trust_root_chain(
+        [first, second, third],
+        evaluation_time=1_819_700_000,
+    )
+    assert unanchored["summary"]["status"] == "untrusted_bootstrap"
+    unauthorized = evaluate_trust_root_chain(
+        [first, second, third],
+        evaluation_time=1_819_700_000,
+        expected_root_sha256=first["root_sha256"],
+        policies=[_policy("changed")],
+    )
+    assert unauthorized["summary"]["status"] == "policy_not_authorized"
+
+
+def test_multihop_chain_has_a_hard_verification_bound(tmp_path):
+    first, _, _, _ = _chain(tmp_path)
+    try:
+        evaluate_trust_root_chain(
+            [first] * 65,
+            evaluation_time=1_819_700_000,
+            expected_root_sha256=first["root_sha256"],
+        )
+    except ValueError as exc:
+        assert "64-root verification limit" in str(exc)
+    else:
+        raise AssertionError("oversized trust-root chain was accepted")
+
+
+def test_multihop_chain_minimum_version_detects_a_truncated_but_valid_prefix(tmp_path):
+    first, second, _, policy = _chain(tmp_path)
+    report = evaluate_trust_root_chain(
+        [first, second],
+        evaluation_time=1_788_220_800,
+        expected_root_sha256=first["root_sha256"],
+        minimum_final_version=3,
+        policies=[policy],
+    )
+    assert report["summary"]["status"] == "final_version_not_reached"
+    assert report["summary"]["transitions_verified"] == 1
+
+
+def test_multihop_chain_rejects_expired_or_future_final_roots(tmp_path):
+    first, second, third, policy = _chain(tmp_path)
+    expired = evaluate_trust_root_chain(
+        [first, second, third],
+        evaluation_time=third["expires_at"],
+        expected_root_sha256=first["root_sha256"],
+        policies=[policy],
+    )
+    assert expired["summary"]["status"] == "expired_final_root"
+    future = evaluate_trust_root_chain(
+        [first, second, third],
+        evaluation_time=third["issued_at"] - 1,
+        expected_root_sha256=first["root_sha256"],
+        policies=[policy],
+    )
+    assert future["summary"]["status"] == "not_yet_valid_final_root"
+
+
+def test_multihop_chain_rejects_rehashed_signature_tampering(tmp_path):
+    first, second, third, policy = _chain(tmp_path)
+    tampered = deepcopy(second)
+    tampered["previous_root_signatures"][0]["signature_base64"] = "aW52YWxpZA=="
+    tampered.pop("root_sha256")
+    tampered["root_sha256"] = canonical_sha256(tampered)
+    third["previous_root_sha256"] = tampered["root_sha256"]
+    third.pop("root_sha256")
+    third["root_sha256"] = canonical_sha256(third)
+    report = evaluate_trust_root_chain(
+        [first, tampered, third],
+        evaluation_time=1_819_700_000,
+        expected_root_sha256=first["root_sha256"],
+        policies=[policy],
+    )
+    assert report["summary"]["status"] == "invalid_chain_evidence"
+
+
+def test_multihop_chain_sarif_has_no_automatic_action(tmp_path):
+    first, second, _, policy = _chain(tmp_path)
+    report = evaluate_trust_root_chain(
+        [first, second],
+        evaluation_time=1_788_220_800,
+        expected_root_sha256=first["root_sha256"],
+        minimum_final_version=3,
+        policies=[policy],
+    )
+    result = chain_to_sarif(report)["runs"][0]["results"][0]
+    assert result["ruleId"] == "ALTC008"
+    assert result["properties"]["automaticActions"] == 0
+
+
+def test_multihop_chain_report_rejects_rehashed_summary_tampering(tmp_path):
+    first, second, third, policy = _chain(tmp_path)
+    report = evaluate_trust_root_chain(
+        [first, second, third],
+        evaluation_time=1_819_700_000,
+        expected_root_sha256=first["root_sha256"],
+        policies=[policy],
+    )
+    tampered = deepcopy(report)
+    tampered["summary"]["transitions_verified"] = 1
+    tampered.pop("report_sha256")
+    tampered["report_sha256"] = canonical_sha256(tampered)
+    assert "AssuranceTrustRootChain report does not recompute exactly" in (
+        verify_trust_root_chain_report(tampered)
+    )
 
 
 def test_root_authorizes_exact_policy_bytes(tmp_path):
@@ -292,6 +487,46 @@ def test_cli_evaluates_and_recomputes_rotation_report(tmp_path):
     assert json.loads(sarif_path.read_text())["runs"][0]["results"] == []
 
 
+def test_cli_evaluates_and_recomputes_multihop_chain_report(tmp_path):
+    from dspy_security_bench.ledger.cli import main as ledger_main
+
+    first, second, third, policy = _chain(tmp_path)
+    root_paths = []
+    for index, root in enumerate((first, second, third), start=1):
+        path = tmp_path / f"root-v{index}.json"
+        path.write_text(json.dumps(root))
+        root_paths.append(path)
+    policy_path = tmp_path / "ledger-policy.json"
+    policy_path.write_text(json.dumps(policy))
+    report_path = tmp_path / "trust-root-chain.report.json"
+    sarif_path = tmp_path / "trust-root-chain.sarif"
+    assert (
+        ledger_main(
+            [
+                "evaluate-trust-chain",
+                *(str(path) for path in root_paths),
+                "--expected-root-sha256",
+                first["root_sha256"],
+                "--minimum-final-version",
+                "3",
+                "--evaluation-time",
+                "1819700000",
+                "--policy",
+                str(policy_path),
+                "--out",
+                str(report_path),
+                "--sarif-out",
+                str(sarif_path),
+                "--fail-on-trust",
+            ]
+        )
+        == 0
+    )
+    assert ledger_main(["verify-trust-chain", str(report_path)]) == 0
+    assert json.loads(report_path.read_text())["summary"]["status"] == "trusted_chain"
+    assert json.loads(sarif_path.read_text())["runs"][0]["results"] == []
+
+
 def test_cli_creates_a_threshold_signed_root_from_data_only_spec(tmp_path):
     from dspy_security_bench.ledger.cli import main as ledger_main
 
@@ -344,12 +579,27 @@ def test_trust_root_schemas_validate_reference_artifacts(tmp_path):
         policies=[policy],
     )
     schema_root = Path(__file__).resolve().parents[1] / "dspy_security_bench" / "schemas"
-    root_schema = json.loads(
-        (schema_root / "assuranceledger-trust-root.schema.json").read_text()
-    )
+    root_schema = json.loads((schema_root / "assuranceledger-trust-root.schema.json").read_text())
     report_schema = json.loads(
         (schema_root / "assuranceledger-trust-root-report.schema.json").read_text()
     )
     registry = Registry().with_resource(root_schema["$id"], Resource.from_contents(root_schema))
     jsonschema.Draft202012Validator(root_schema, registry=registry).validate(first)
     jsonschema.Draft202012Validator(report_schema, registry=registry).validate(report)
+
+
+def test_trust_root_chain_schema_validates_reference_report(tmp_path):
+    first, second, third, policy = _chain(tmp_path)
+    report = evaluate_trust_root_chain(
+        [first, second, third],
+        evaluation_time=1_819_700_000,
+        expected_root_sha256=first["root_sha256"],
+        policies=[policy],
+    )
+    schema_root = Path(__file__).resolve().parents[1] / "dspy_security_bench" / "schemas"
+    root_schema = json.loads((schema_root / "assuranceledger-trust-root.schema.json").read_text())
+    chain_schema = json.loads(
+        (schema_root / "assuranceledger-trust-root-chain-report.schema.json").read_text()
+    )
+    registry = Registry().with_resource(root_schema["$id"], Resource.from_contents(root_schema))
+    jsonschema.Draft202012Validator(chain_schema, registry=registry).validate(report)

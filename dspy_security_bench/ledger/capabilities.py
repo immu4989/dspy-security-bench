@@ -26,6 +26,10 @@ from dspy_security_bench.ledger.proof import PROTOCOL_VERSION as LEDGER_VERSION
 from dspy_security_bench.ledger.proof import REPORT_TYPE as LEDGER_REPORT
 from dspy_security_bench.ledger.rereview import PROTOCOL_VERSION as REREVIEW_VERSION
 from dspy_security_bench.ledger.rereview import REPORT_TYPE as REREVIEW_REPORT
+from dspy_security_bench.ledger.trust_chain import (
+    PROTOCOL_VERSION as TRUST_CHAIN_VERSION,
+)
+from dspy_security_bench.ledger.trust_chain import REPORT_TYPE as TRUST_CHAIN_REPORT
 from dspy_security_bench.ledger.trust_root import PROTOCOL_VERSION as TRUST_ROOT_VERSION
 from dspy_security_bench.ledger.trust_root import REPORT_TYPE as TRUST_ROOT_REPORT
 from dspy_security_bench.ledger.witness_conflict import (
@@ -54,6 +58,7 @@ SCHEMA_FILES = (
     "assuranceledger-policy.schema.json",
     "assuranceledger-report.schema.json",
     "assuranceledger-rereview-report.schema.json",
+    "assuranceledger-trust-root-chain-report.schema.json",
     "assuranceledger-trust-root-report.schema.json",
     "assuranceledger-trust-root.schema.json",
     "assuranceledger-witness-conflict.schema.json",
@@ -294,6 +299,25 @@ def _protocols() -> tuple[dict[str, Any], ...]:
                 "declared organizations and role thresholds",
                 "authorized assurance-policy digests",
                 "current and predecessor root signatures",
+            ],
+        },
+        {
+            **common,
+            "protocol_id": TRUST_CHAIN_VERSION,
+            "report_type": TRUST_CHAIN_REPORT,
+            "artifact_schemas": [
+                "assuranceledger-trust-root.schema.json",
+                "assuranceledger-trust-root-chain-report.schema.json",
+            ],
+            "producer_commands": ["ledger evaluate-trust-chain"],
+            "verifier_command": "ledger verify-trust-chain",
+            "standalone_verification": True,
+            "evidence_root_required": False,
+            "embedded_data_classes": [
+                "ordered trust-root history",
+                "per-hop threshold verification outcomes",
+                "algorithm transitions and root validity windows",
+                "authorized assurance-policy digests",
             ],
         },
         {

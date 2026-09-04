@@ -69,7 +69,7 @@
       "additionalProperties": false,
       "required": ["status", "continuity_mode", "candidate_version", "previous_version", "current_valid_root_signatures", "current_distinct_root_organizations", "previous_valid_root_signatures", "previous_distinct_root_organizations", "authorized_policies", "unauthorized_policies", "automatic_actions"],
       "properties": {
-        "status": {"enum": ["trusted_bootstrap", "trusted_rotation", "untrusted_bootstrap", "invalid_trust_evidence", "expired_trust_root", "rollback_detected", "version_gap_detected", "trust_discontinuity", "policy_not_authorized"]},
+        "status": {"enum": ["trusted_bootstrap", "trusted_rotation", "untrusted_bootstrap", "invalid_trust_evidence", "expired_trust_root", "not_yet_valid_trust_root", "rollback_detected", "version_gap_detected", "trust_discontinuity", "policy_not_authorized"]},
         "continuity_mode": {"enum": ["bootstrap", "rotation"]},
         "candidate_version": {"$ref": "#/$defs/nullableInteger"},
         "previous_version": {"$ref": "#/$defs/nullableInteger"},

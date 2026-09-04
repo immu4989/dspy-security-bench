@@ -449,3 +449,40 @@ organizational independence, and takes no operational action. The v3
 conformance matrix adds a rehashed TrustRoot signature mutation so downstream
 implementations must exercise the deeper cryptographic verifier rather than
 accepting a replacement outer digest.
+
+## September 3 continuation: bounded stale-client root catch-up
+
+The first TrustRoot increment made a second gap explicit: a verifier that was
+offline for two rotations cannot safely skip from root `N` to root `N+2`.
+Accepting only the latest self-threshold would discard the old authority;
+requiring root `N` to sign `N+2` would discard the authority that root `N+1`
+legitimately introduced.
+
+The [TUF root-update workflow](https://theupdateframework.github.io/specification/latest/#update-root)
+requires outdated clients to retrieve every intermediate root, advance exactly
+one version at a time, and validate each candidate under both its immediate
+predecessor threshold and its own threshold. It defers the expiration decision
+until the latest supplied root, allowing an expired historical root to remain a
+continuity link. This is particularly relevant to the long-lived systems called
+out in the joint [CISA secure-by-demand guidance for operational technology](https://www.cisa.gov/sites/default/files/2025-01/joint-guide-secure-by-demand-priority-considerations-for-ot-owners-and-operators-508c.pdf),
+while NIST CSWP 39upd1 frames algorithm replacement without unnecessary
+operational disruption as enterprise crypto agility.
+
+AssuranceTrustRootChain implements that narrow security property as an offline,
+AssuranceLedger-specific report. It accepts either a locally persisted trusted
+root plus its successors or a chain whose first exact digest was distributed
+independently. Up to 64 roots are checked in order. Every hop records exact
+version/digest continuity, old/new key and declared-organization threshold
+counts, source errors, and algorithm additions/removals. Expired intermediates
+are disclosed but accepted only as historical links; the final root must be
+issued, unexpired, and authorize the exact supplied policy digests.
+
+An offline verifier cannot know that a distributor withheld root `N+1` when it
+is shown a valid root `N`. The caller-controlled `minimum_final_version` is
+therefore part of the report rather than an inferred freshness claim. It can
+turn a known truncated prefix into `final_version_not_reached`, but the source
+of that version floor remains deployment-owned. The v4 conformance matrix adds
+a rehashed chain-hop mutation, and CapabilityManifest now binds eleven protocol
+contracts to sixteen exact schemas. None of those artifacts retrieve metadata,
+approve an update, prove key custody, establish legal identity, or take an
+operational action.

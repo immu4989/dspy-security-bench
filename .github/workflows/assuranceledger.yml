@@ -61,7 +61,11 @@ jobs:
         run: >-
           uv run --locked --no-sync dspy-security-bench ledger verify-trust-root
           artifacts/assuranceledger/trust-root.report.json
-      - name: Recompute ten clean-source and adversarial verifier checks
+      - name: Recompute bounded multi-hop trust-root continuity
+        run: >-
+          uv run --locked --no-sync dspy-security-bench ledger verify-trust-chain
+          artifacts/assuranceledger/trust-root-chain.report.json
+      - name: Recompute eleven clean-source and adversarial verifier checks
         run: >-
           uv run --locked --no-sync dspy-security-bench ledger verify-conformance
           artifacts/assuranceledger/verifier-conformance.report.json

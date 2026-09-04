@@ -51,13 +51,14 @@ same-size conflict with no embedded ledger entries or review content.
 
 The same command now produces the complete partner-verification surface:
 
-- `capability-manifest.json` — ten offline protocol contracts and fifteen
+- `capability-manifest.json` — eleven offline protocol contracts and sixteen
   exact schema digests;
-- `trust-root-v1.json`, `trust-root-v2.json`, and `trust-root.report.json` — a
-  pinned predecessor plus dual-threshold fictional root rotation;
+- `trust-root-v1.json` through `trust-root-v3.json`, `trust-root.report.json`,
+  and `trust-root-chain.report.json` — a pinned predecessor, dual-threshold
+  rotation, and stale-client multi-hop catch-up;
 - `integration-lock.json` and `integration-lock-check.report.json` — the
   owner-pin fixture and zero-drift reference result;
-- `verifier-conformance.report.json` — ten clean-source-validated, rehashed
+- `verifier-conformance.report.json` — eleven clean-source-validated, rehashed
   adversarial rejection cases; and
 - SARIF companions for ledger outcomes, gossip, compact proofs, observation,
   witness attribution, re-review, conformance, and integration drift.
@@ -140,6 +141,25 @@ SHA-256 so an owner can perform a verified classical-algorithm migration. It
 does not claim post-quantum protection, FIPS validation, secure private-key
 custody, or TUF compatibility. See the complete [AssuranceTrustRoot operator
 guide](assurancetrustroot.md).
+
+Long-lived or intermittently connected clients can verify every missed
+rotation without treating an expired intermediate as current authority:
+
+```bash
+dspy-security-bench ledger evaluate-trust-chain \
+  root-v1.json root-v2.json root-v3.json \
+  --expected-root-sha256 "$REVIEWED_ROOT_V1_SHA256" \
+  --minimum-final-version 3 \
+  --evaluation-time 1819700000 \
+  --out trust-root-chain.report.json \
+  --sarif-out trust-root-chain.sarif \
+  --fail-on-trust
+```
+
+TrustRootChain verifies both thresholds at every exact successor hop, caps the
+input at 64 roots, records algorithm transitions, and requires the final root
+to be issued and unexpired. The minimum-version input can expose a known
+truncated prefix; no offline proof can discover a newer root that is withheld.
 
 ## Outcomes with non-overlapping meanings
 
@@ -278,14 +298,15 @@ dspy-security-bench ledger verify-conformance \
 ```
 
 The runner changes a security-relevant field, recomputes the outer report hash,
-and requires the intended deeper verifier rejection for ten surfaces:
+and requires the intended deeper verifier rejection for eleven surfaces:
 checkpoint signature binding, gossip outcome, re-review impact, ForkProof root,
 ConsistencyProof path, ObserverReceipt signature, and witness-conflict
-attribution, plus TrustRoot threshold signatures, CapabilityManifest contract
-drift, and IntegrationLockCheck outcome drift. The report binds every source
-artifact digest and recomputes exactly from the same inputs.
+attribution, plus TrustRoot threshold signatures, TrustRootChain hop counts,
+CapabilityManifest contract drift, and IntegrationLockCheck outcome drift. The
+report binds every source artifact digest and recomputes exactly from the same
+inputs.
 
-Before applying any mutation, v3 runs all ten clean artifacts through their
+Before applying any mutation, v4 runs all eleven clean artifacts through their
 native verifiers. One already-invalid source aborts the matrix and cannot be
 counted as an expected adversarial rejection. This makes “clean source” an
 enforced experimental precondition rather than a caller assertion.
@@ -320,7 +341,7 @@ dspy-security-bench ledger verify-capabilities \
   --schema-root dspy_security_bench/schemas
 ```
 
-The manifest covers ten protocol surfaces and all fifteen AssuranceLedger
+The manifest covers eleven protocol surfaces and all sixteen AssuranceLedger
 Draft 2020-12 schemas. Each schema record binds its stable `$id` and exact file
 bytes with SHA-256. Each protocol record exposes its report type, producer and
 verifier commands, whether verification is standalone, whether an evidence root

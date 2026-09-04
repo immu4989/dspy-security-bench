@@ -68,6 +68,14 @@ from dspy_security_bench.ledger.rereview import (
 )
 from dspy_security_bench.ledger.rereview_sarif import report_to_sarif as rereview_to_sarif
 from dspy_security_bench.ledger.sarif import report_to_sarif
+from dspy_security_bench.ledger.trust_chain import (
+    TRUSTED_CHAIN_STATUSES,
+    evaluate_trust_root_chain,
+    verify_trust_root_chain_report,
+)
+from dspy_security_bench.ledger.trust_chain_sarif import (
+    report_to_sarif as trust_chain_to_sarif,
+)
 from dspy_security_bench.ledger.trust_root import (
     ROLE_NAMES,
     TRUSTED_STATUSES,
@@ -275,6 +283,26 @@ def main(argv: list[str] | None = None) -> int:
         "verify-trust-root", help="recompute a saved AssuranceTrustRoot report offline"
     )
     verify_trust_root_parser.add_argument("report")
+    evaluate_trust_chain_parser = commands.add_parser(
+        "evaluate-trust-chain",
+        help="verify a bounded multi-hop trust-root catch-up chain",
+    )
+    evaluate_trust_chain_parser.add_argument("roots", nargs="+")
+    chain_anchor = evaluate_trust_chain_parser.add_mutually_exclusive_group()
+    chain_anchor.add_argument("--trusted-root")
+    chain_anchor.add_argument("--expected-root-sha256")
+    evaluate_trust_chain_parser.add_argument("--expected-domain")
+    evaluate_trust_chain_parser.add_argument("--minimum-final-version", type=int)
+    evaluate_trust_chain_parser.add_argument("--evaluation-time", type=int, required=True)
+    evaluate_trust_chain_parser.add_argument("--policy", action="append", default=[])
+    evaluate_trust_chain_parser.add_argument("--out", required=True)
+    evaluate_trust_chain_parser.add_argument("--sarif-out")
+    evaluate_trust_chain_parser.add_argument("--fail-on-trust", action="store_true")
+    verify_trust_chain_parser = commands.add_parser(
+        "verify-trust-chain",
+        help="recompute a saved AssuranceTrustRootChain report offline",
+    )
+    verify_trust_chain_parser.add_argument("report")
     plan = commands.add_parser("plan-rereview", help="compute the minimal claim/role re-review set")
     plan.add_argument("ledger_report")
     plan.add_argument("--evidence-root", required=True)
@@ -512,9 +540,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "evaluate-trust-root":
             candidate = _read_json(Path(args.candidate_root))
-            trusted = (
-                _read_json(Path(args.trusted_root)) if args.trusted_root is not None else None
-            )
+            trusted = _read_json(Path(args.trusted_root)) if args.trusted_root is not None else None
             policies = [_read_json(Path(item)) for item in args.policy]
             report = evaluate_trust_root(
                 candidate,
@@ -529,14 +555,38 @@ def main(argv: list[str] | None = None) -> int:
             if args.sarif_out:
                 _write_json(Path(args.sarif_out), trust_root_to_sarif(report))
             print(f"[ledger] {report['summary']['status']}: wrote {args.out}")
-            return int(
-                args.fail_on_trust and report["summary"]["status"] not in TRUSTED_STATUSES
-            )
+            return int(args.fail_on_trust and report["summary"]["status"] not in TRUSTED_STATUSES)
         if args.command == "verify-trust-root":
             report = _read_json(Path(args.report))
             if errors := verify_trust_root_report(report):
                 raise ValueError("; ".join(errors))
             print(f"[ledger] verified trust-root report {args.report}")
+            return 0
+        if args.command == "evaluate-trust-chain":
+            roots = [_read_json(Path(item)) for item in args.roots]
+            trusted = _read_json(Path(args.trusted_root)) if args.trusted_root is not None else None
+            policies = [_read_json(Path(item)) for item in args.policy]
+            report = evaluate_trust_root_chain(
+                roots,
+                evaluation_time=args.evaluation_time,
+                trusted_root=trusted,
+                expected_root_sha256=args.expected_root_sha256,
+                expected_trust_domain=args.expected_domain,
+                minimum_final_version=args.minimum_final_version,
+                policies=policies,
+            )
+            _write_json(Path(args.out), report)
+            if args.sarif_out:
+                _write_json(Path(args.sarif_out), trust_chain_to_sarif(report))
+            print(f"[ledger] {report['summary']['status']}: wrote {args.out}")
+            return int(
+                args.fail_on_trust and report["summary"]["status"] not in TRUSTED_CHAIN_STATUSES
+            )
+        if args.command == "verify-trust-chain":
+            report = _read_json(Path(args.report))
+            if errors := verify_trust_root_chain_report(report):
+                raise ValueError("; ".join(errors))
+            print(f"[ledger] verified trust-root chain report {args.report}")
             return 0
         if args.command == "plan-rereview":
             ledger_report = _read_json(Path(args.ledger_report))
@@ -832,8 +882,7 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             ),
         )
         authorized_policies = [
-            policy_descriptor(item)
-            for item in (policy, observer_policy, quorum_report["policy"])
+            policy_descriptor(item) for item in (policy, observer_policy, quorum_report["policy"])
         ]
         root_v1 = build_trust_root(
             list(trust_descriptors.values()),
@@ -877,6 +926,38 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             expected_trust_domain="fictional-national-ai-assurance-exchange",
             policies=[policy, observer_policy, quorum_report["policy"]],
         )
+        trust_roles_v3 = _demo_trust_roles(
+            trust_descriptors,
+            root_ids=(root_two, root_three),
+            operator_id=operator_id,
+            witness_ids=witness_ids,
+            observer_ids=observer_ids,
+            reviewer_ids=tuple(
+                reviewer["signer_id"] for reviewer in quorum_report["policy"]["reviewers"]
+            ),
+        )
+        root_v3 = build_trust_root(
+            list(trust_descriptors.values()),
+            trust_roles_v3,
+            authorized_policies,
+            trust_domain="fictional-national-ai-assurance-exchange",
+            version=3,
+            issued_at=1_819_680_000,
+            expires_at=1_851_216_000,
+            previous_root_sha256=root_v2["root_sha256"],
+        )
+        for signer in (root_two, root_three):
+            root_v3 = sign_trust_root(root_v3, key_paths[signer])
+        for signer in (root_one, root_three):
+            root_v3 = sign_trust_root(root_v3, key_paths[signer], signing_root=root_v2)
+        trust_chain_report = evaluate_trust_root_chain(
+            [root_v1, root_v2, root_v3],
+            evaluation_time=1_819_700_000,
+            expected_root_sha256=root_v1["root_sha256"],
+            expected_trust_domain="fictional-national-ai-assurance-exchange",
+            minimum_final_version=3,
+            policies=[policy, observer_policy, quorum_report["policy"]],
+        )
         capability_manifest = build_capability_manifest()
         integration_lock = build_integration_lock(capability_manifest)
         integration_lock_check = check_integration_lock(integration_lock, capability_manifest)
@@ -890,6 +971,7 @@ def _demo(out_dir: Path, *, force: bool) -> None:
                 "observer": observer_report,
                 "witness_conflict": witness_conflict,
                 "trust_root": trust_root_report,
+                "trust_chain": trust_chain_report,
                 "capability_manifest": capability_manifest,
                 "integration_lock": integration_lock,
                 "integration_lock_check": integration_lock_check,
@@ -926,8 +1008,14 @@ def _demo(out_dir: Path, *, force: bool) -> None:
     _write_json(out_dir / "rereview-plan.sarif", rereview_to_sarif(rereview))
     _write_json(out_dir / "trust-root-v1.json", root_v1)
     _write_json(out_dir / "trust-root-v2.json", root_v2)
+    _write_json(out_dir / "trust-root-v3.json", root_v3)
     _write_json(out_dir / "trust-root.report.json", trust_root_report)
     _write_json(out_dir / "trust-root.sarif", trust_root_to_sarif(trust_root_report))
+    _write_json(out_dir / "trust-root-chain.report.json", trust_chain_report)
+    _write_json(
+        out_dir / "trust-root-chain.sarif",
+        trust_chain_to_sarif(trust_chain_report),
+    )
     _write_json(out_dir / "verifier-conformance.report.json", conformance_report)
     _write_json(
         out_dir / "verifier-conformance.sarif",
@@ -980,9 +1068,7 @@ def _demo_trust_roles(
     return roles
 
 
-def _root_from_spec(
-    spec: dict[str, Any], previous_root: dict[str, Any] | None
-) -> dict[str, Any]:
+def _root_from_spec(spec: dict[str, Any], previous_root: dict[str, Any] | None) -> dict[str, Any]:
     expected = {
         "trust_domain",
         "version",
@@ -1004,9 +1090,7 @@ def _root_from_spec(
         version=spec["version"],
         issued_at=spec["issued_at"],
         expires_at=spec["expires_at"],
-        previous_root_sha256=(
-            previous_root["root_sha256"] if previous_root is not None else None
-        ),
+        previous_root_sha256=(previous_root["root_sha256"] if previous_root is not None else None),
     )
 
 

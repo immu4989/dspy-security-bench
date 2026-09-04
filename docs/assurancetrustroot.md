@@ -63,7 +63,7 @@ The implementation does not claim conformance to those broader systems.
 
 ## Five-minute fictional proof
 
-The existing AssuranceLedger demo now writes a two-root transition. All private
+The existing AssuranceLedger demo now writes a three-root history. All private
 keys are generated in a temporary directory and discarded:
 
 ```bash
@@ -73,6 +73,9 @@ dspy-security-bench ledger demo --out-dir artifacts/assurance-ledger
 
 dspy-security-bench ledger verify-trust-root \
   artifacts/assurance-ledger/trust-root.report.json
+
+dspy-security-bench ledger verify-trust-chain \
+  artifacts/assurance-ledger/trust-root-chain.report.json
 ```
 
 Inspect:
@@ -80,7 +83,12 @@ Inspect:
 - `trust-root-v1.json` — the previously trusted two-organization root;
 - `trust-root-v2.json` — an exact successor signed under both old and new root
   thresholds;
+- `trust-root-v3.json` — a second exact successor used to exercise stale-client
+  catch-up;
 - `trust-root.report.json` — the fully recomputable `trusted_rotation` result;
+- `trust-root-chain.report.json` — a fully recomputable three-root
+  `trusted_chain` result in which expired historical roots remain verifiable;
+- `trust-root-chain.sarif` — an empty result set for the valid multi-hop chain;
   and
 - `trust-root.sarif` — an empty result set for the valid reference transition.
 
@@ -234,6 +242,62 @@ The report embeds both public roots, every policy input, the anchor parameters,
 threshold counts, exact algorithm-set transition, errors, limitations, and
 final digest. Verification is standalone and performs no network request.
 
+## Catch up a stale client across multiple rotations
+
+A long-lived appliance, disconnected enclave, archived verifier, or partner
+integration may hold root v1 after operators have already issued v2 and v3.
+Skipping directly to v3 is unsafe: v1 cannot prove that v2's authority ever
+approved v3. Supply every intermediate root in ascending order:
+
+```bash
+dspy-security-bench ledger evaluate-trust-chain \
+  root-v1.json root-v2.json root-v3.json \
+  --expected-root-sha256 "$REVIEWED_ROOT_V1_SHA256" \
+  --expected-domain example-ai-assurance \
+  --minimum-final-version 3 \
+  --evaluation-time 1819700000 \
+  --policy ledger-policy.json \
+  --out trust-root-chain.report.json \
+  --sarif-out trust-root-chain.sarif \
+  --fail-on-trust
+
+dspy-security-bench ledger verify-trust-chain \
+  trust-root-chain.report.json
+```
+
+If the client already persists v1 as trusted state, pass only the successors:
+
+```bash
+dspy-security-bench ledger evaluate-trust-chain \
+  root-v2.json root-v3.json \
+  --trusted-root root-v1.json \
+  --minimum-final-version 3 \
+  --evaluation-time 1819700000 \
+  --out trust-root-chain.report.json \
+  --fail-on-trust
+```
+
+The verifier caps a chain at 64 supplied roots. Each hop must be the exact next
+version, bind the prior root digest, and satisfy both old and new root key and
+organization thresholds. It records algorithm additions/removals and threshold
+counts for every hop. Following the root catch-up property documented by TUF,
+an expired intermediate remains usable as historical continuity evidence; only
+the final root must be unexpired and already issued at the fixed evaluation
+time.
+
+`--minimum-final-version` is critical when an independent release channel says
+v3 should exist: a distributor that supplies a cryptographically valid chain
+ending at v2 then receives `final_version_not_reached`. Without such an external
+freshness signal, an offline verifier cannot discover a withheld newer root.
+The report says this explicitly instead of translating a valid prefix into a
+global freshness claim.
+
+TrustRootChain outcomes remain distinct: `version_gap_detected`,
+`rollback_detected`, `trust_discontinuity`, `invalid_chain_evidence`,
+`expired_final_root`, `not_yet_valid_final_root`,
+`final_version_not_reached`, `policy_not_authorized`, and
+`untrusted_bootstrap` never collapse into `trusted_chain`.
+
 ## Outcomes do not collapse
 
 | Status | Exact meaning |
@@ -243,6 +307,7 @@ final digest. Verification is standalone and performs no network request.
 | `untrusted_bootstrap` | No prior root or independently pinned digest was supplied. |
 | `invalid_trust_evidence` | Structure, key material, signatures, or self-threshold verification failed. |
 | `expired_trust_root` | The candidate expired at or before the evaluation time. This exposes a possible freeze; it does not infer cause. |
+| `not_yet_valid_trust_root` | The candidate's signed issuance time is later than the fixed evaluation time. |
 | `rollback_detected` | The candidate does not advance trusted state or is below the caller's version floor. |
 | `version_gap_detected` | The candidate skipped an intermediate version, so continuity cannot be reconstructed. |
 | `trust_discontinuity` | Domain, predecessor digest, old threshold, or another continuity condition failed. |
@@ -270,4 +335,5 @@ The deployment owner must independently distribute the first digest, persist
 the last trusted root and minimum version, protect signing keys, review role and
 organization assignments, set an operationally meaningful expiration, retain
 every intermediate root, and define recovery when an old threshold can no
-longer sign a successor.
+longer sign a successor. TrustRootChain verifies a supplied history; it neither
+retrieves missing roots nor proves the distributor exposed the latest one.

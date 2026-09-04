@@ -44,6 +44,10 @@ from dspy_security_bench.ledger.proof import (
     verify_ledger_report,
 )
 from dspy_security_bench.ledger.rereview import plan_rereview, verify_rereview_report
+from dspy_security_bench.ledger.trust_chain import (
+    evaluate_trust_root_chain,
+    verify_trust_root_chain_report,
+)
 from dspy_security_bench.ledger.trust_root import (
     build_trust_root,
     embedded_trust_key_descriptor,
@@ -105,4 +109,6 @@ __all__ = [
     "trust_key_descriptor",
     "validate_trust_root",
     "verify_trust_root_report",
+    "evaluate_trust_root_chain",
+    "verify_trust_root_chain_report",
 ]

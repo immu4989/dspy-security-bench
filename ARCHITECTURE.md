@@ -103,7 +103,7 @@ v0.1 research choices are labeled separately from the current product surface.
     exchange to distinct declared organizations and hashed channels.
     WitnessConflict attributes double-signing to exact cosignature keys.
     ReReview maps trust changes back to the minimal affected claim/role set.
-    VerifierConformance v3 exercises all ten verifier classes with rehashed mutations.
+    VerifierConformance v4 exercises all eleven verifier classes with rehashed mutations.
     CapabilityManifest byte-binds every shipped schema to its protocol,
     producer/verifier CLI, portability boundary, and disclosed data classes.
     IntegrationLock lets owners pin that contract and obtain recomputable,
@@ -115,7 +115,9 @@ v0.1 research choices are labeled separately from the current product surface.
     new root thresholds over the exact candidate payload. The standalone
     verifier detects rollback, skipped intermediate versions, freeze/expiry,
     continuity breaks, unauthorized policies, and rehashed signature tampering
-    without fetching metadata or taking an operational action.
+    without fetching metadata or taking an operational action. TrustRootChain
+    replays up to 64 exact successors for stale clients, permits expiration only
+    on historical intermediates, and requires the final root to be current.
 
 The original research runner still returns a `pandas.DataFrame` with one row
 per `(optimizer, attack, user_task, injection_task)` combination. The newer

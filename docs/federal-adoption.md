@@ -106,6 +106,15 @@ trusted root so both old and new thresholds approve the same canonical payload.
 proofing, key-custody assurance, a FIPS determination, an ATO, or approval of
 the policies it carries.
 
+For intermittently connected enclaves, long-lived operational technology, and
+vendor appliances that can miss several rotations, retain every numbered root
+and run `ledger evaluate-trust-chain` before accepting the new policy authority.
+Set `--minimum-final-version` from an independently governed release or
+configuration-management channel. The chain verifier accepts an expired root
+only as a historical intermediate, requires a current final root, and records
+every old/new threshold result. It does not retrieve metadata, prove that the
+presented chain is the latest, or authorize installation of the update.
+
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every
 candidate, report missing cost or outcome observations as missing, and treat

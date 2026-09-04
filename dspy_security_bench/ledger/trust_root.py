@@ -207,9 +207,7 @@ def build_trust_root(
             name: {
                 "keyids": sorted(set(value["keyids"])),
                 "signature_threshold": value["signature_threshold"],
-                "minimum_distinct_organizations": value[
-                    "minimum_distinct_organizations"
-                ],
+                "minimum_distinct_organizations": value["minimum_distinct_organizations"],
             }
             for name, value in sorted(roles.items())
         },
@@ -365,18 +363,14 @@ def evaluate_trust_root(
             elif candidate_version != previous_version + 1:
                 status_hint = "version_gap_detected"
                 trust_errors.append("candidate version is not the exact next root version")
-        if candidate_mapping.get("previous_root_sha256") != trusted_mapping.get(
-            "root_sha256"
-        ):
+        if candidate_mapping.get("previous_root_sha256") != trusted_mapping.get("root_sha256"):
             trust_errors.append("candidate previous_root_sha256 breaks root continuity")
         if not trusted_errors and not source_errors:
-            old_errors, old_valid_signatures, old_distinct_organizations = (
-                _verify_role_signatures(
-                    candidate_mapping,
-                    candidate_mapping.get("previous_root_signatures", []),
-                    trusted_mapping,
-                    label="previous root",
-                )
+            old_errors, old_valid_signatures, old_distinct_organizations = _verify_role_signatures(
+                candidate_mapping,
+                candidate_mapping.get("previous_root_signatures", []),
+                trusted_mapping,
+                label="previous root",
             )
             trust_errors.extend(old_errors)
     elif expected_root_sha256 is not None:
@@ -394,6 +388,11 @@ def evaluate_trust_root(
         trust_errors.append("candidate version is below the caller's minimum trusted version")
 
     expired = False
+    not_yet_valid = False
+    issued_at = _plain_int(candidate_mapping.get("issued_at"))
+    if issued_at is not None and evaluation_time < issued_at:
+        not_yet_valid = True
+        trust_errors.append("candidate trust root is not yet valid at the evaluation time")
     expires_at = _plain_int(candidate_mapping.get("expires_at"))
     if expires_at is not None and evaluation_time >= expires_at:
         expired = True
@@ -406,6 +405,8 @@ def evaluate_trust_root(
         status = "invalid_trust_evidence"
     elif status_hint in {"rollback_detected", "version_gap_detected"}:
         status = status_hint
+    elif not_yet_valid:
+        status = "not_yet_valid_trust_root"
     elif expired:
         status = "expired_trust_root"
     elif trust_errors:
@@ -534,7 +535,9 @@ def _evaluate_policies(
         results.append(
             {
                 "policy_index": index,
-                "policy_type": descriptor["policy_type"] if descriptor else policy.get("policy_type"),
+                "policy_type": descriptor["policy_type"]
+                if descriptor
+                else policy.get("policy_type"),
                 "policy_sha256": (
                     descriptor["policy_sha256"] if descriptor else policy.get("policy_sha256")
                 ),
@@ -639,10 +642,12 @@ def _validate_payload(root: Any) -> tuple[str, ...]:
     if not isinstance(policies, list) or not 1 <= len(policies) <= MAX_POLICIES:
         errors.append(f"authorized_policies must contain 1 to {MAX_POLICIES} entries")
         policies = []
+
     def policy_sort(item: Any) -> tuple[str, str]:
         if not isinstance(item, Mapping):
             return "", ""
         return str(item.get("policy_type", "")), str(item.get("policy_sha256", ""))
+
     if isinstance(policies, list) and policies != sorted(policies, key=policy_sort):
         errors.append("authorized_policies must be sorted")
     seen_policies: set[tuple[Any, Any]] = set()
@@ -763,9 +768,7 @@ def _verify_role_signatures(
         valid.add(str(keyid))
         organizations.add(str(descriptor["organization_id"]))
     threshold = role.get("signature_threshold") if isinstance(role, Mapping) else None
-    minimum_orgs = (
-        role.get("minimum_distinct_organizations") if isinstance(role, Mapping) else None
-    )
+    minimum_orgs = role.get("minimum_distinct_organizations") if isinstance(role, Mapping) else None
     if isinstance(threshold, int) and len(valid) < threshold:
         errors.append(
             f"{label} signature threshold unmet: observed {len(valid)}, required {threshold}"
@@ -790,9 +793,7 @@ def _verify_signature(
         errors.append(f"{label} signature scheme does not match the authorized key")
     try:
         raw = base64.b64decode(str(signature.get("signature_base64", "")), validate=True)
-        der = base64.b64decode(
-            str(descriptor.get("public_key_spki_base64", "")), validate=True
-        )
+        der = base64.b64decode(str(descriptor.get("public_key_spki_base64", "")), validate=True)
         serialization, _, _, _, _, _, InvalidSignature = _crypto()
         public = serialization.load_der_public_key(der)
         _verify(public, str(descriptor.get("signature_scheme")), raw, signed_bytes)

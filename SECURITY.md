@@ -92,3 +92,12 @@ in organization-approved custody; pass only local key paths to
 from the caller-selected anchor, not that key storage, identity proofing,
 organizational independence, algorithms, or policies meet a deployment's
 security or compliance requirements.
+
+AssuranceTrustRootChain reports embed every supplied public root so another
+party can recompute each hop offline. That history may expose past governance
+relationships even when keys are retired. Distribute it according to the same
+metadata review boundary. Expired intermediate roots are historical evidence,
+not current authority; only a current final root can produce `trusted_chain`.
+The verifier does not fetch missing roots or know whether a newer root was
+withheld, so persist a separately governed minimum version where freshness is
+security-relevant.

@@ -94,8 +94,8 @@ not people. A key that signs both fork views is cryptographically identifiable,
 but the analyzer cannot distinguish compromise, implementation failure,
 collusion, or other causes and performs no revocation.
 AssuranceLedger VerifierConformance trusts the native verifiers it exercises;
-v3 first requires ten clean source classes to pass native verification, then
-demonstrates rejection of ten exact mutations—not the absence of other bugs.
+v4 first requires eleven clean source classes to pass native verification, then
+demonstrates rejection of eleven exact mutations—not the absence of other bugs.
 Inputs and verifier code are identified by digest, and no network or system
 action is performed.
 AssuranceLedger CapabilityManifest trusts the package's compiled capability
@@ -113,6 +113,11 @@ digests, and expiration make unauthorized replacement, rollback, version gaps,
 and possible freeze visible. They do not prove private-key custody, real
 organizational independence, policy quality, post-quantum protection, or that a
 newer root was not withheld before the current one expired.
+AssuranceTrustRootChain extends that continuity across a bounded supplied
+history. It intentionally accepts expired roots only as verified historical
+links and requires the final root to be current. It cannot discover a withheld
+newer root, so deployments need an independently governed minimum-version or
+freshness signal when truncation matters.
 
 ## Threats addressed
 
