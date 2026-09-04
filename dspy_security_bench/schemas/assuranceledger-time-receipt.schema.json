@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-time-receipt.schema.json",
+  "title": "AssuranceTimeQuorum signed time receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["statement", "time_source_signature"],
+  "properties": {
+    "statement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "time_policy_sha256", "trust_domain", "subject_sha256", "request_nonce", "source_id", "source_organization_id", "source_key_sha256", "midpoint_unix", "radius_seconds", "lower_bound_unix", "upper_bound_unix"],
+      "properties": {
+        "protocol_version": {"const": "assuranceledger-time-quorum-v1"},
+        "time_policy_sha256": {"$ref": "#/$defs/digest"},
+        "trust_domain": {"type": "string", "minLength": 1, "maxLength": 300},
+        "subject_sha256": {"$ref": "#/$defs/digest"},
+        "request_nonce": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{16,200}$"},
+        "source_id": {"$ref": "#/$defs/id"},
+        "source_organization_id": {"$ref": "#/$defs/id"},
+        "source_key_sha256": {"$ref": "#/$defs/digest"},
+        "midpoint_unix": {"type": "integer", "minimum": 0},
+        "radius_seconds": {"type": "integer", "minimum": 1, "maximum": 86400},
+        "lower_bound_unix": {"type": "integer", "minimum": 0},
+        "upper_bound_unix": {"type": "integer", "minimum": 0}
+      }
+    },
+    "time_source_signature": {"$ref": "#/$defs/signature"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["keyid", "signer_id", "signature_base64"],
+      "properties": {
+        "keyid": {"$ref": "#/$defs/digest"},
+        "signer_id": {"$ref": "#/$defs/id"},
+        "signature_base64": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

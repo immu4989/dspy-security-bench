@@ -68,6 +68,19 @@ from dspy_security_bench.ledger.rereview import (
 )
 from dspy_security_bench.ledger.rereview_sarif import report_to_sarif as rereview_to_sarif
 from dspy_security_bench.ledger.sarif import report_to_sarif
+from dspy_security_bench.ledger.time_quorum import (
+    TRUSTED_STATUS as TIME_QUORUM_TRUSTED_STATUS,
+)
+from dspy_security_bench.ledger.time_quorum import (
+    build_time_policy,
+    create_time_receipt,
+    evaluate_time_quorum,
+    time_source_descriptor,
+    verify_time_quorum_report,
+)
+from dspy_security_bench.ledger.time_quorum_sarif import (
+    report_to_sarif as time_quorum_to_sarif,
+)
 from dspy_security_bench.ledger.trust_chain import (
     TRUSTED_CHAIN_STATUSES,
     evaluate_trust_root_chain,
@@ -399,6 +412,46 @@ def main(argv: list[str] | None = None) -> int:
         help="recompute a saved TrustRecoveryAttestation report offline",
     )
     verify_recovery_attestations_parser.add_argument("report")
+    describe_time_source_parser = commands.add_parser(
+        "describe-time-source",
+        help="describe an Ed25519 key for an AssuranceTimeQuorum policy",
+    )
+    describe_time_source_parser.add_argument("public_key")
+    describe_time_source_parser.add_argument("--source-id", required=True)
+    describe_time_source_parser.add_argument("--organization-id", required=True)
+    describe_time_source_parser.add_argument("--out", required=True)
+    issue_time_receipt_parser = commands.add_parser(
+        "issue-time-receipt",
+        help="sign one bounded-time receipt for an exact artifact and nonce",
+    )
+    issue_time_receipt_parser.add_argument("policy")
+    issue_time_receipt_parser.add_argument("private_key")
+    issue_time_receipt_parser.add_argument("--source-id", required=True)
+    issue_time_receipt_parser.add_argument("--subject-sha256", required=True)
+    issue_time_receipt_parser.add_argument("--request-nonce", required=True)
+    issue_time_receipt_parser.add_argument("--midpoint-unix", type=int, required=True)
+    issue_time_receipt_parser.add_argument("--radius-seconds", type=int, required=True)
+    issue_time_receipt_parser.add_argument("--out", required=True)
+    evaluate_time_quorum_parser = commands.add_parser(
+        "evaluate-time-quorum",
+        help="intersect independently signed bounded-time receipts offline",
+    )
+    evaluate_time_quorum_parser.add_argument("policy")
+    evaluate_time_quorum_parser.add_argument("receipts", nargs="+")
+    evaluate_time_quorum_parser.add_argument("--expected-policy-sha256", required=True)
+    evaluate_time_quorum_parser.add_argument("--subject-sha256", required=True)
+    evaluate_time_quorum_parser.add_argument("--request-nonce", required=True)
+    evaluate_time_quorum_parser.add_argument("--out", required=True)
+    evaluate_time_quorum_parser.add_argument("--sarif-out")
+    evaluate_time_quorum_parser.add_argument("--fail-on-time", action="store_true")
+    verify_time_quorum_parser = commands.add_parser(
+        "verify-time-quorum",
+        help="recompute a saved AssuranceTimeQuorum report offline",
+    )
+    verify_time_quorum_parser.add_argument("report")
+    verify_time_quorum_parser.add_argument("--expected-policy-sha256")
+    verify_time_quorum_parser.add_argument("--subject-sha256")
+    verify_time_quorum_parser.add_argument("--request-nonce")
     plan = commands.add_parser("plan-rereview", help="compute the minimal claim/role re-review set")
     plan.add_argument("ledger_report")
     plan.add_argument("--evidence-root", required=True)
@@ -759,6 +812,54 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("; ".join(errors))
             print(f"[ledger] verified recovery-event attestations {args.report}")
             return 0
+        if args.command == "describe-time-source":
+            descriptor = time_source_descriptor(
+                args.public_key,
+                source_id=args.source_id,
+                organization_id=args.organization_id,
+            )
+            _write_json(Path(args.out), descriptor)
+            print(f"[ledger] described AssuranceTimeQuorum source: wrote {args.out}")
+            return 0
+        if args.command == "issue-time-receipt":
+            receipt = create_time_receipt(
+                _read_json(Path(args.policy)),
+                args.private_key,
+                source_id=args.source_id,
+                subject_sha256=args.subject_sha256,
+                request_nonce=args.request_nonce,
+                midpoint_unix=args.midpoint_unix,
+                radius_seconds=args.radius_seconds,
+            )
+            _write_json(Path(args.out), receipt)
+            print(f"[ledger] signed bounded-time receipt: wrote {args.out}")
+            return 0
+        if args.command == "evaluate-time-quorum":
+            report = evaluate_time_quorum(
+                _read_json(Path(args.policy)),
+                [_read_json(Path(item)) for item in args.receipts],
+                expected_policy_sha256=args.expected_policy_sha256,
+                expected_subject_sha256=args.subject_sha256,
+                expected_request_nonce=args.request_nonce,
+            )
+            _write_json(Path(args.out), report)
+            if args.sarif_out:
+                _write_json(Path(args.sarif_out), time_quorum_to_sarif(report))
+            print(f"[ledger] {report['summary']['status']}: wrote {args.out}")
+            return int(
+                args.fail_on_time and report["summary"]["status"] != TIME_QUORUM_TRUSTED_STATUS
+            )
+        if args.command == "verify-time-quorum":
+            report = _read_json(Path(args.report))
+            if errors := verify_time_quorum_report(
+                report,
+                expected_policy_sha256=args.expected_policy_sha256,
+                expected_subject_sha256=args.subject_sha256,
+                expected_request_nonce=args.request_nonce,
+            ):
+                raise ValueError("; ".join(errors))
+            print(f"[ledger] verified AssuranceTimeQuorum report {args.report}")
+            return 0
         if args.command == "plan-rereview":
             ledger_report = _read_json(Path(args.ledger_report))
             report = plan_rereview(
@@ -835,6 +936,20 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             minimum_distinct_organizations=2,
             minimum_distinct_channels=2,
             maximum_observation_delay_seconds=3_600,
+        )
+        time_source_ids = (
+            "fictional-observer-one",
+            "fictional-observer-two",
+            "fictional-witness-one",
+        )
+        time_policy = build_time_policy(
+            [descriptors[item] for item in time_source_ids],
+            quorum_id="fictional-independent-assurance-time",
+            trust_domain="fictional-national-ai-assurance-exchange",
+            minimum_sources=3,
+            minimum_distinct_organizations=3,
+            maximum_radius_seconds=10,
+            maximum_interval_width_seconds=5,
         )
         entries = []
         for reviewer in quorum_report["policy"]["reviewers"]:
@@ -1284,6 +1399,31 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             evaluation_time=1_819_680_700,
             expected_root_sha256=root_v3["root_sha256"],
         )
+        time_request_nonce = "fictional-verifier-challenge-0001"
+        time_receipts = [
+            create_time_receipt(
+                time_policy,
+                key_paths[source_id],
+                source_id=source_id,
+                subject_sha256=root_v3["root_sha256"],
+                request_nonce=time_request_nonce,
+                midpoint_unix=1_819_700_000 + midpoint_offset,
+                radius_seconds=radius,
+            )
+            for source_id, midpoint_offset, radius in zip(
+                time_source_ids,
+                (0, 2, 1),
+                (3, 3, 2),
+                strict=True,
+            )
+        ]
+        time_quorum_report = evaluate_time_quorum(
+            time_policy,
+            time_receipts,
+            expected_policy_sha256=time_policy["policy_sha256"],
+            expected_subject_sha256=root_v3["root_sha256"],
+            expected_request_nonce=time_request_nonce,
+        )
         capability_manifest = build_capability_manifest()
         integration_lock = build_integration_lock(capability_manifest)
         integration_lock_check = check_integration_lock(integration_lock, capability_manifest)
@@ -1300,6 +1440,7 @@ def _demo(out_dir: Path, *, force: bool) -> None:
                 "trust_chain": trust_chain_report,
                 "trust_recovery": recovery_report,
                 "trust_recovery_attestation": recovery_attestation_report,
+                "time_quorum": time_quorum_report,
                 "capability_manifest": capability_manifest,
                 "integration_lock": integration_lock,
                 "integration_lock_check": integration_lock_check,
@@ -1368,6 +1509,11 @@ def _demo(out_dir: Path, *, force: bool) -> None:
         out_dir / "trust-recovery-attestations.sarif",
         trust_recovery_attestation_to_sarif(recovery_attestation_report),
     )
+    _write_json(out_dir / "time-quorum-policy.json", time_policy)
+    for receipt_index, receipt in enumerate(time_receipts):
+        _write_json(out_dir / f"time-source-{receipt_index + 1}.receipt.json", receipt)
+    _write_json(out_dir / "time-quorum.report.json", time_quorum_report)
+    _write_json(out_dir / "time-quorum.sarif", time_quorum_to_sarif(time_quorum_report))
     _write_json(out_dir / "verifier-conformance.report.json", conformance_report)
     _write_json(
         out_dir / "verifier-conformance.sarif",

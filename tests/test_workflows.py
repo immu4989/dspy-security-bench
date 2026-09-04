@@ -52,8 +52,10 @@ def test_assuranceledger_ci_recomputes_partner_contracts_offline():
     assert "ledger verify-capability-lock" in workflow
     assert "ledger verify-conformance" in workflow
     assert "ledger verify-recovery-attestations" in workflow
+    assert "ledger verify-time-quorum" in workflow
     assert "tests/test_assuranceledger_conformance.py" in workflow
     assert "tests/test_assuranceledger_trust_recovery_attestation.py" in workflow
+    assert "tests/test_assuranceledger_time_quorum.py" in workflow
     assert "artifacts/assuranceledger" in workflow
     assert "persist-credentials: false" in workflow
 

@@ -563,3 +563,52 @@ and twenty-two exact schemas. No content field is processed and no root is
 activated. The result proves only that authorized keys signed exact simulated
 records—not legal identity, competence, uncompromised custody, evidence truth,
 real-world recovery, compliance, or operational authority.
+
+## September 3 continuation: independently bounded time instead of one trusted integer
+
+The trust-root, recovery, and evidence-freshness layers exposed a shared
+assumption: their timestamps are evaluated against a caller-provided Unix
+integer. That makes reproduction deterministic, but a rolled-back, isolated, or
+incorrect clock can make expired authority appear current or move an event
+across a response deadline.
+
+[NIST SP 800-53 Rev. 5](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final)
+SC-45 requires clock synchronization and includes enhancements for an
+authoritative source and a secondary source in another geographic region.
+[NIST SP 800-82 Rev. 3](https://csrc.nist.gov/pubs/sp/800/82/r3/final)
+notes that coordinated OT time supports accurate troubleshooting and forensics,
+including cross-organizational correlation. These controls define operational
+objectives, not a portable evidence format.
+
+[RFC 3161](https://www.rfc-editor.org/rfc/rfc3161) requires a time-stamping
+authority to use a trustworthy source, include a trustworthy time value and a
+unique value, and bind the response to the requested message imprint. The
+experimental [IETF Roughtime draft](https://datatracker.ietf.org/doc/draft-ietf-ntp-roughtime/)
+signs a value derived from a client nonce and returns a midpoint with an
+uncertainty radius. [TUF](https://theupdateframework.github.io/specification/latest/)
+separately documents timestamp rollback and freeze checks, while acknowledging
+that expiration bounds the remaining exposure.
+
+AssuranceTimeQuorum takes a deliberately narrower, offline approach. An
+independently pinned policy binds Ed25519 source keys, declared organizations,
+minimum source and organization thresholds, a maximum per-source radius, and a
+maximum final width. Each source signs the same artifact digest and verifier-
+chosen nonce together with its identity, midpoint, radius, and exact derived
+bounds. The analyzer never averages disagreement: it returns the maximum lower
+bound and minimum upper bound, failing when the intersection is empty or too
+wide.
+
+Ten checks preserve policy replacement, artifact/nonce replay, source/key
+substitution, bad signatures, radius manipulation, duplicate-source quorum
+inflation, organization concentration, clock divergence, and excess uncertainty
+as explicit evidence. VerifierConformance v7 adds a rehashed conservative-bound
+mutation, and CapabilityManifest binds fourteen offline protocols to twenty-
+five exact schemas. The report processes zero artifact-content fields, makes
+zero clock adjustments, and takes zero automatic actions.
+
+This is not an RFC 3161, Roughtime, NTP, PTP, TSA, or clock-synchronization
+implementation. It cannot prove UTC accuracy, source independence, source
+security, legal identity, nonce freshness unless the verifier generated and
+retained the nonce, or whether selected uncertainty limits are appropriate. Its
+contribution is a deterministic bridge from independently signed rough-time
+observations to the repo's portable assurance evidence boundary.

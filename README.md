@@ -267,21 +267,31 @@ reordered, replayed, wrong-role, wrong-key, re-signed, or policy/root-rebound
 handoffs while processing zero evidence content and activating zero roots.
 [Build an authenticated recovery handoff chain →](docs/trust-recovery-attestation.md)
 
+`ledger evaluate-time-quorum` addresses a cross-cutting clock-trust gap. Multiple
+policy-pinned Ed25519 sources from distinct declared organizations sign the same
+artifact digest and fresh caller nonce, each with a midpoint and uncertainty
+radius. The ten-check verifier returns only the conservative interval
+intersection; it rejects replay/rebinding, duplicate sources, bad signatures,
+organization concentration, non-overlap, and excessive uncertainty. It makes
+zero clock adjustments and is bounded-time evidence—not RFC 3161/Roughtime
+compatibility or proof that any source's clock is correct.
+[Build independently corroborated bounded-time evidence →](docs/assurance-time-quorum.md)
+
 Downstream implementers can run `ledger conformance` against a complete demo or
 integration artifact directory. The original seven rehashed adversarial vectors
 must be rejected across the ledger, gossip, re-review, fork, consistency, observation,
 and witness-attribution verifiers. V2 added rehashed capability-contract and
 integration-lock checks; v3 added trust-root threshold/signature recomputation,
 v4 added multi-hop chain recomputation, v5 added recovery-readiness
-recomputation, and v6 adds authenticated recovery-handoff recomputation for
-thirteen total. The result itself is
+recomputation, v6 added authenticated recovery-handoff recomputation, and v7
+adds conservative time-bound recomputation for fourteen total. The result itself is
 exactly recomputable, and optional SARIF
 exposes every missed rejection to code scanning.
 
 `ledger capabilities --out capability-manifest.json` gives agencies, vendors,
 and independent implementations one deterministic compatibility input instead
-of requiring them to infer support from prose. It binds thirteen protocol IDs to
-twenty-two exact schema-byte digests, producer/verifier commands, standalone and
+of requiring them to infer support from prose. It binds fourteen protocol IDs to
+twenty-five exact schema-byte digests, producer/verifier commands, standalone and
 evidence-root requirements, disclosed data classes, offline operation, and zero
 automatic actions. `ledger verify-capabilities` detects both rehashed field
 tampering and local schema drift.
@@ -1863,13 +1873,15 @@ v0.1 scope choices:
 | AssuranceLedger VerifierConformance v3 — ten clean-source-validated adversarial vectors including TrustRoot | **superseded by v4** |
 | AssuranceLedger VerifierConformance v4 — eleven clean-source-validated adversarial vectors including TrustRootChain | **superseded by v5** |
 | AssuranceLedger VerifierConformance v5 — twelve clean-source-validated adversarial vectors including TrustRecoveryDrill | **superseded by v6** |
-| AssuranceLedger VerifierConformance v6 — thirteen clean-source-validated adversarial vectors including TrustRecoveryAttestation | **shipped on main** |
-| AssuranceLedger CapabilityManifest — thirteen offline protocol contracts bound to twenty-two exact schema digests | **shipped on main** |
+| AssuranceLedger VerifierConformance v6 — thirteen clean-source-validated adversarial vectors including TrustRecoveryAttestation | **superseded by v7** |
+| AssuranceLedger VerifierConformance v7 — fourteen clean-source-validated adversarial vectors including AssuranceTimeQuorum | **shipped on main** |
+| AssuranceLedger CapabilityManifest — fourteen offline protocol contracts bound to twenty-five exact schema digests | **shipped on main** |
 | AssuranceLedger IntegrationLock — owner-pinned compatibility floors, drift SARIF, and fail-on-drift CI | **shipped on main** |
 | AssuranceTrustRoot — pinned bootstrap, exact policy authority, expiration, crypto-agile keys, and dual-threshold rotation | **shipped on main** |
 | AssuranceTrustRootChain — bounded multi-hop stale-client catch-up with historical-expiry handling and a current-final-root gate | **shipped on main** |
 | TrustRecoveryDrill — root-authorized, content-minimized compromise-recovery tabletop evidence with 13 checks and zero activation | **shipped on main** |
 | TrustRecoveryAttestation — root-authorized in-toto/DSSE signatures, unique nonces, and digest-linked role handoffs for all nine recovery events | **shipped on main** |
+| AssuranceTimeQuorum — policy-pinned, nonce-bound, multi-organization signed uncertainty intervals with conservative overlap and zero clock adjustment | **shipped on main** |
 | AssuranceLedger ReReview — minimal claim/role re-review planning after retirement, compromise, or incomplete trust evidence | **shipped on main** |
 | Assurance Control Plane — ContainmentProof, AgentBOM ClaimImpact, non-executing probe contract, and non-ranking public exchange | **shipped on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |

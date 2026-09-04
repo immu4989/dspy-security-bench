@@ -94,8 +94,8 @@ not people. A key that signs both fork views is cryptographically identifiable,
 but the analyzer cannot distinguish compromise, implementation failure,
 collusion, or other causes and performs no revocation.
 AssuranceLedger VerifierConformance trusts the native verifiers it exercises;
-v6 first requires thirteen clean source classes to pass native verification,
-then demonstrates rejection of thirteen exact mutations—not the absence of other bugs.
+v7 first requires fourteen clean source classes to pass native verification,
+then demonstrates rejection of fourteen exact mutations—not the absence of other bugs.
 Inputs and verifier code are identified by digest, and no network or system
 action is performed.
 AssuranceLedger CapabilityManifest trusts the package's compiled capability
@@ -131,6 +131,12 @@ statement bytes and detects missing, reordered, or replayed handoffs within the
 supplied chain. It cannot prove human identity, competence, key custody,
 underlying evidence truth, or real-world recovery, and it grants no root
 authority.
+AssuranceTimeQuorum trusts an independently distributed policy digest, fresh
+caller nonce, and the clocks and keys behind its selected sources. It verifies
+that distinct declared organizations signed overlapping bounded intervals for
+one artifact, but cannot prove source independence, UTC accuracy, clock
+discipline, nonce freshness unless retained by the caller, or key custody. It
+returns an interval and never adjusts a system clock.
 
 ## Threats addressed
 
@@ -168,6 +174,9 @@ authority.
 - self-signed replacement trust roots, single-sided key rotation, root rollback,
   skipped rotation history, expired trust, undeclared algorithm changes, and
   same-name/different-byte assurance policies presented as authorized.
+- one caller-controlled timestamp presented as corroborated time, time receipts
+  replayed against another artifact or challenge, one source duplicated into a
+  quorum, silently divergent clocks, or uncertainty averaged away.
 
 ## Threats not solved
 

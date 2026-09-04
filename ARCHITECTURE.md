@@ -6,7 +6,7 @@ v0.1 research choices are labeled separately from the current product surface.
 
 ## System summary
 
-`dspy-security-bench` exposes thirty-one related security surfaces:
+`dspy-security-bench` exposes thirty-three related security surfaces:
 
 1. **Base-model and DSPy research** — runs frozen AgentDojo measurements,
    records capability beside injection robustness, and generates the committed
@@ -103,11 +103,15 @@ v0.1 research choices are labeled separately from the current product surface.
     exchange to distinct declared organizations and hashed channels.
     WitnessConflict attributes double-signing to exact cosignature keys.
     ReReview maps trust changes back to the minimal affected claim/role set.
-    VerifierConformance v6 exercises all thirteen verifier classes with rehashed mutations.
+    VerifierConformance v7 exercises all fourteen verifier classes with rehashed mutations.
     CapabilityManifest byte-binds every shipped schema to its protocol,
     producer/verifier CLI, portability boundary, and disclosed data classes.
     IntegrationLock lets owners pin that contract and obtain recomputable,
     fail-closed drift evidence when a candidate changes any requirement.
+33. **AssuranceTimeQuorum** — verifies policy-pinned Ed25519 bounded-time
+    receipts over one artifact digest and fresh caller nonce, enforces unique
+    sources and declared-organization diversity, and emits only the conservative
+    overlap of their uncertainty intervals without setting a clock.
 33. **AssuranceTrustRoot** — distributes algorithm-explicit public trust keys,
     role and distinct-organization thresholds, exact authorized policy digests,
     version, predecessor, and expiration metadata. A bootstrap requires an

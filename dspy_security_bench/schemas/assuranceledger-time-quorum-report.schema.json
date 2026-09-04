@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-time-quorum-report.schema.json",
+  "title": "AssuranceTimeQuorum report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "time_policy", "expectations", "receipts", "policy_errors", "receipt_results", "findings", "conservative_interval", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger AssuranceTimeQuorum / Independently bounded time evidence"},
+    "protocol_version": {"const": "assuranceledger-time-quorum-v1"},
+    "analyzer": {"const": "deterministic-independent-bounded-time-analyzer-v1"},
+    "time_policy": {"$ref": "assuranceledger-time-quorum-policy.schema.json"},
+    "expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expected_policy_sha256", "expected_subject_sha256", "expected_request_nonce"],
+      "properties": {
+        "expected_policy_sha256": {"$ref": "#/$defs/digest"},
+        "expected_subject_sha256": {"$ref": "#/$defs/digest"},
+        "expected_request_nonce": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{16,200}$"}
+      }
+    },
+    "receipts": {"type": "array", "minItems": 1, "maxItems": 50, "items": {"$ref": "assuranceledger-time-receipt.schema.json"}},
+    "policy_errors": {"type": "array", "items": {"type": "string"}},
+    "receipt_results": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["receipt_index", "source_id", "source_organization_id", "lower_bound_unix", "upper_bound_unix", "status", "errors"],
+        "properties": {
+          "receipt_index": {"type": "integer", "minimum": 0},
+          "source_id": {"type": ["string", "null"]},
+          "source_organization_id": {"type": ["string", "null"]},
+          "lower_bound_unix": {"type": ["integer", "null"], "minimum": 0},
+          "upper_bound_unix": {"type": ["integer", "null"], "minimum": 0},
+          "status": {"enum": ["valid", "invalid"]},
+          "errors": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule_id", "title", "status", "detail", "receipt_indexes"],
+        "properties": {
+          "rule_id": {"enum": ["ATQ001", "ATQ002", "ATQ003", "ATQ004", "ATQ005", "ATQ006", "ATQ007", "ATQ008", "ATQ009", "ATQ010"]},
+          "title": {"type": "string", "minLength": 1},
+          "status": {"enum": ["passed", "failed"]},
+          "detail": {"type": "string", "minLength": 1},
+          "receipt_indexes": {"type": "array", "items": {"type": "integer", "minimum": 0}}
+        }
+      }
+    },
+    "conservative_interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lower_bound_unix", "upper_bound_unix", "width_seconds"],
+      "properties": {
+        "lower_bound_unix": {"type": ["integer", "null"], "minimum": 0},
+        "upper_bound_unix": {"type": ["integer", "null"], "minimum": 0},
+        "width_seconds": {"type": ["integer", "null"], "minimum": 0}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "submitted_receipts", "valid_receipts", "distinct_sources", "distinct_organizations", "passed_checks", "failed_checks", "content_fields_processed", "clock_adjustments", "automatic_actions"],
+      "properties": {
+        "status": {"enum": ["bounded_time_corroborated", "invalid_time_evidence", "time_policy_not_pinned", "time_request_mismatch", "insufficient_time_sources", "insufficient_time_source_diversity", "time_sources_inconsistent", "time_uncertainty_too_wide"]},
+        "submitted_receipts": {"type": "integer", "minimum": 1, "maximum": 50},
+        "valid_receipts": {"type": "integer", "minimum": 0, "maximum": 50},
+        "distinct_sources": {"type": "integer", "minimum": 0, "maximum": 50},
+        "distinct_organizations": {"type": "integer", "minimum": 0, "maximum": 50},
+        "passed_checks": {"type": "integer", "minimum": 0, "maximum": 10},
+        "failed_checks": {"type": "integer", "minimum": 0, "maximum": 10},
+        "content_fields_processed": {"const": 0},
+        "clock_adjustments": {"const": 0},
+        "automatic_actions": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

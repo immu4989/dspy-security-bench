@@ -92,6 +92,8 @@ keywords = [
     "stale-client-key-rotation",
     "cryptographic-recovery-drill",
     "recovery-attestation",
+    "secure-time-evidence",
+    "time-quorum",
     "crypto-agility",
     "continuous-review",
     "review-impact-analysis",

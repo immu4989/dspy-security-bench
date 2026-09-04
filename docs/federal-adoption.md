@@ -135,6 +135,17 @@ and retain private keys in agency-approved custody. Treat
 signed the exact simulated events—not proof of PIV identity, successful
 recovery, compliance, ATO approval, or authority to change a trust anchor.
 
+Where an assurance decision crosses organizations, isolated enclaves, or OT
+systems and depends on time, use AssuranceTimeQuorum as supporting evidence for
+the agency's SC-45 implementation—not as the implementation itself. Pin an
+owner-reviewed source policy through configuration management, use separately
+administered sources and a fresh retained nonce for each artifact, set maximum
+source radius and final interval width, and preserve divergent results. Treat
+`bounded_time_corroborated` as evidence that authorized keys signed overlapping
+intervals for that request. It is not proof of UTC accuracy, source
+independence, compliant time synchronization, a control assessment result, or
+an ATO, and it never sets a system clock.
+
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every
 candidate, report missing cost or outcome observations as missing, and treat

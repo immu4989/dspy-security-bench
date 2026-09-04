@@ -13,6 +13,7 @@ from dspy_security_bench.ledger.misbehavior import verify_fork_proof
 from dspy_security_bench.ledger.observation import verify_observer_report
 from dspy_security_bench.ledger.proof import verify_ledger_report
 from dspy_security_bench.ledger.rereview import verify_rereview_report
+from dspy_security_bench.ledger.time_quorum import verify_time_quorum_report
 from dspy_security_bench.ledger.trust_chain import verify_trust_root_chain_report
 from dspy_security_bench.ledger.trust_recovery import verify_recovery_drill_report
 from dspy_security_bench.ledger.trust_recovery_attestation import (
@@ -23,8 +24,8 @@ from dspy_security_bench.ledger.witness_conflict import verify_witness_conflict_
 from dspy_security_bench.mission.loader import canonical_sha256
 
 REPORT_TYPE = "AssuranceLedger VerifierConformance / Adversarial mutation matrix"
-PROTOCOL_VERSION = "assuranceledger-verifier-conformance-v6"
-RUNNER = "deterministic-rehashed-semantic-mutation-runner-v6"
+PROTOCOL_VERSION = "assuranceledger-verifier-conformance-v7"
+RUNNER = "deterministic-rehashed-semantic-mutation-runner-v7"
 MAX_ARTIFACT_BYTES = 100_000_000
 ARTIFACT_FILES = {
     "ledger": "current-trust.report.json",
@@ -38,12 +39,13 @@ ARTIFACT_FILES = {
     "trust_chain": "trust-root-chain.report.json",
     "trust_recovery": "trust-recovery-drill.report.json",
     "trust_recovery_attestation": "trust-recovery-attestations.report.json",
+    "time_quorum": "time-quorum.report.json",
     "capability_manifest": "capability-manifest.json",
     "integration_lock": "integration-lock.json",
     "integration_lock_check": "integration-lock-check.report.json",
 }
 CLAIM_BOUNDARY = (
-    "AssuranceLedger VerifierConformance applies thirteen deterministic, rehashed adversarial "
+    "AssuranceLedger VerifierConformance applies fourteen deterministic, rehashed adversarial "
     "mutations to valid local reference artifacts and confirms each native verifier rejects "
     "the intended semantic or cryptographic violation. Passing demonstrates behavior for these "
     "exact vectors only; it is not a security proof, implementation certification, fuzzing "
@@ -103,6 +105,7 @@ def run_conformance(
         "trust_chain": verify_trust_root_chain_report,
         "trust_recovery": verify_recovery_drill_report,
         "trust_recovery_attestation": verify_recovery_attestation_report,
+        "time_quorum": verify_time_quorum_report,
         "capability_manifest": lambda value: verify_capability_manifest(value, schema_root),
         "integration_lock_check": lambda value: verify_integration_lock_check(
             value,
@@ -178,6 +181,14 @@ def run_conformance(
             _mutate_trust_recovery_attestation_summary,
             verify_recovery_attestation_report,
             "TrustRecoveryAttestation report does not recompute exactly",
+        ),
+        _case(
+            "time-quorum-conservative-bound-recompute",
+            "time_quorum",
+            artifacts["time_quorum"],
+            _mutate_time_quorum_bound,
+            verify_time_quorum_report,
+            "AssuranceTimeQuorum report does not recompute exactly",
         ),
         _case(
             "rereview-impact-semantic-recompute",
@@ -346,6 +357,10 @@ def _mutate_trust_recovery_summary(payload: dict[str, Any]) -> None:
 
 def _mutate_trust_recovery_attestation_summary(payload: dict[str, Any]) -> None:
     payload["summary"]["valid_attestations"] -= 1
+
+
+def _mutate_time_quorum_bound(payload: dict[str, Any]) -> None:
+    payload["conservative_interval"]["lower_bound_unix"] -= 1
 
 
 def _mutate_rereview_summary(payload: dict[str, Any]) -> None:

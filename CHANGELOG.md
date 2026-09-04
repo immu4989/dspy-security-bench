@@ -10,6 +10,18 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AssuranceTimeQuorum**, a portable bounded-time evidence protocol for
+  assurance artifacts. An independently pinned policy authorizes Ed25519 source
+  keys and requires unique-source and distinct-organization thresholds. Every
+  receipt binds the exact artifact digest, fresh caller nonce, source identity,
+  midpoint, uncertainty radius, and derived bounds; the verifier returns only
+  the conservative interval intersection and rejects replay/rebinding, bad
+  signatures, duplicated sources, concentrated organizations, divergent clocks,
+  and excessive uncertainty. Ten deterministic checks, three strict schemas,
+  CLI issuance/evaluation/reverification, SARIF, a three-source fictional demo,
+  and exact offline recomputation are included with zero content processing,
+  clock adjustment, or automatic action. It is not RFC 3161, Roughtime, NTP,
+  PTP, proof of UTC accuracy, or a substitute for deployment time governance.
 - **AssuranceTrustRoot**, a standalone trust-anchor continuity protocol for the
   AssuranceLedger family. It requires an independently pinned first-root
   digest or a previously trusted root, exact one-version advancement, full
@@ -95,7 +107,7 @@ several of them changed published numbers.
   keeping operator-only and shared-witness conflicts distinct. Strict schema,
   semantic recomputation, key-level SARIF, and zero notifications or revocations
   are included without inferring motive, compromise cause, or legal identity.
-- **AssuranceLedger VerifierConformance v6**, an executable thirteen-case adversarial
+- **AssuranceLedger VerifierConformance v7**, an executable fourteen-case adversarial
   mutation matrix for downstream adopters. Rehashed signature, Merkle-path,
   observer-receipt, witness-attribution, re-review, gossip, and ledger mutations
   must trigger their intended native verifier rejection. Reports bind exact
@@ -103,14 +115,15 @@ several of them changed published numbers.
   CapabilityManifest and IntegrationLockCheck semantic mutations to the seven
   cryptographic/lifecycle surfaces; v3 added TrustRoot threshold-signature
   recomputation, v4 added TrustRootChain hop-count recomputation, v5 added
-  TrustRecoveryDrill readiness recomputation, and v6 adds authenticated recovery-
-  handoff recomputation. Every clean source is natively verified
+  TrustRecoveryDrill readiness recomputation, v6 added authenticated recovery-
+  handoff recomputation, and v7 adds conservative time-bound recomputation.
+  Every clean source is natively verified
   before mutation so an already-invalid fixture cannot pass the matrix. Source
   files are regular-file and 100 MB bounded before JSON reading; the finite
   matrix is explicitly not certification, fuzzing, or a security proof. Stable
   SARIF rule `ALC001` exposes any missed rejection to CI without taking action.
 - **AssuranceLedger CapabilityManifest**, a deterministic partner-integration
-  contract covering all thirteen ledger protocols and twenty-two strict JSON Schemas.
+  contract covering all fourteen ledger protocols and twenty-five strict JSON Schemas.
   Exact schema-byte digests, protocol/report identifiers, producer and verifier
   commands, standalone/evidence-root requirements, disclosed data classes,
   offline operation, and the zero-action boundary recompute locally. CLI,
@@ -130,7 +143,8 @@ several of them changed published numbers.
 - A dedicated least-privilege AssuranceLedger pull-request workflow regenerates
   the complete fictional history, recomputes CapabilityManifest,
   IntegrationLockCheck, AssuranceTrustRoot, AssuranceTrustRootChain,
-  TrustRecoveryDrill, TrustRecoveryAttestation, and VerifierConformance v6, runs the focused trust and tamper suite from the
+  TrustRecoveryDrill, TrustRecoveryAttestation, AssuranceTimeQuorum, and
+  VerifierConformance v7, runs the focused trust and tamper suite from the
   lockfile, and preserves JSON/SARIF review artifacts.
 - **AssuranceQuorum**, a role-separated review protocol using Ed25519-signed
   in-toto Statement v1 predicates inside DSSE envelopes. Content-addressed

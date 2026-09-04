@@ -51,7 +51,7 @@ same-size conflict with no embedded ledger entries or review content.
 
 The same command now produces the complete partner-verification surface:
 
-- `capability-manifest.json` — thirteen offline protocol contracts and twenty-two
+- `capability-manifest.json` — fourteen offline protocol contracts and twenty-five
   exact schema digests;
 - `trust-root-v1.json` through `trust-root-v3.json`, `trust-root.report.json`,
   and `trust-root-chain.report.json` — a pinned predecessor, dual-threshold
@@ -63,9 +63,12 @@ The same command now produces the complete partner-verification surface:
   `trust-recovery-attestations/`, and
   `trust-recovery-attestations.report.json` — role-scoped in-toto/DSSE
   signatures linked into one replay-resistant recovery-handoff chain;
+- `time-quorum-policy.json`, three `time-source-*.receipt.json` files, and
+  `time-quorum.report.json` — policy-pinned, nonce-bound bounded-time evidence
+  from three distinct fictional organizations with zero clock adjustment;
 - `integration-lock.json` and `integration-lock-check.report.json` — the
   owner-pin fixture and zero-drift reference result;
-- `verifier-conformance.report.json` — thirteen clean-source-validated, rehashed
+- `verifier-conformance.report.json` — fourteen clean-source-validated, rehashed
   adversarial rejection cases; and
 - SARIF companions for ledger outcomes, gossip, compact proofs, observation,
   witness attribution, re-review, conformance, and integration drift.
@@ -222,6 +225,13 @@ subjects, policy/root/drill bindings, assigned signer roles, every Ed25519
 signature, timestamp order, nonce uniqueness, handoff linkage, and exact root
 authorization. See the [TrustRecoveryAttestation guide](trust-recovery-attestation.md).
 
+For decisions whose validity depends on clock integrity, `AssuranceTimeQuorum`
+accepts multiple signed midpoint-plus-radius receipts for one exact artifact
+digest and fresh caller nonce. It enforces unique sources and distinct declared
+organizations, then returns only the intersection of their uncertainty
+intervals. Divergence and over-wide uncertainty fail visibly; no clock is set or
+adjusted. See the [AssuranceTimeQuorum guide](assurance-time-quorum.md).
+
 ## Outcomes with non-overlapping meanings
 
 | Outcome | Exact meaning |
@@ -359,16 +369,17 @@ dspy-security-bench ledger verify-conformance \
 ```
 
 The runner changes a security-relevant field, recomputes the outer report hash,
-and requires the intended deeper verifier rejection for thirteen surfaces:
+and requires the intended deeper verifier rejection for fourteen surfaces:
 checkpoint signature binding, gossip outcome, re-review impact, ForkProof root,
 ConsistencyProof path, ObserverReceipt signature, and witness-conflict
 attribution, plus TrustRoot threshold signatures, TrustRootChain hop counts,
 TrustRecoveryDrill readiness totals, TrustRecoveryAttestation signature totals,
-CapabilityManifest contract drift, and IntegrationLockCheck outcome drift. The
+AssuranceTimeQuorum conservative bounds, CapabilityManifest contract drift, and
+IntegrationLockCheck outcome drift. The
 report binds every source artifact digest and recomputes exactly from the same
 inputs.
 
-Before applying any mutation, v6 runs all thirteen clean artifacts through their
+Before applying any mutation, v7 runs all fourteen clean artifacts through their
 native verifiers. One already-invalid source aborts the matrix and cannot be
 counted as an expected adversarial rejection. This makes “clean source” an
 enforced experimental precondition rather than a caller assertion.
@@ -403,7 +414,7 @@ dspy-security-bench ledger verify-capabilities \
   --schema-root dspy_security_bench/schemas
 ```
 
-The manifest covers thirteen protocol surfaces and all twenty-two AssuranceLedger
+The manifest covers fourteen protocol surfaces and all twenty-five AssuranceLedger
 Draft 2020-12 schemas. Each schema record binds its stable `$id` and exact file
 bytes with SHA-256. Each protocol record exposes its report type, producer and
 verifier commands, whether verification is standalone, whether an evidence root

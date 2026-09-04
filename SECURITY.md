@@ -119,3 +119,13 @@ possession of an authorized private key and binds exact bytes—it does not prov
 legal identity, signer competence, physical presence, uncompromised custody, or
 the truth of the retained evidence. A passing chain remains simulation evidence
 and activates no root.
+
+AssuranceTimeQuorum embeds time-source public keys, declared organization
+labels, the exact subject digest, caller nonce, signed Unix midpoints, and
+uncertainty radii. Those values can reveal system relationships and evaluation
+timing even though artifact content is absent. Use unpredictable nonces, retain
+the expected nonce and policy digest outside the returned report, never reuse a
+challenge across independent acceptance decisions, and review artifacts before
+sharing. Keep private keys at separately administered sources. A valid quorum
+does not prove UTC accuracy, source independence, secure clock discipline, or
+key custody, and the tool never synchronizes or adjusts a clock.

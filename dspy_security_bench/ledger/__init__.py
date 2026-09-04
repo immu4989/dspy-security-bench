@@ -44,6 +44,14 @@ from dspy_security_bench.ledger.proof import (
     verify_ledger_report,
 )
 from dspy_security_bench.ledger.rereview import plan_rereview, verify_rereview_report
+from dspy_security_bench.ledger.time_quorum import (
+    build_time_policy,
+    create_time_receipt,
+    evaluate_time_quorum,
+    time_source_descriptor,
+    validate_time_policy,
+    verify_time_quorum_report,
+)
 from dspy_security_bench.ledger.trust_chain import (
     evaluate_trust_root_chain,
     verify_trust_root_chain_report,
@@ -139,4 +147,10 @@ __all__ = [
     "validate_attestation_policy",
     "verify_recovery_attestation_report",
     "verify_recovery_event_attestation",
+    "build_time_policy",
+    "create_time_receipt",
+    "evaluate_time_quorum",
+    "time_source_descriptor",
+    "validate_time_policy",
+    "verify_time_quorum_report",
 ]

@@ -26,6 +26,8 @@ from dspy_security_bench.ledger.proof import PROTOCOL_VERSION as LEDGER_VERSION
 from dspy_security_bench.ledger.proof import REPORT_TYPE as LEDGER_REPORT
 from dspy_security_bench.ledger.rereview import PROTOCOL_VERSION as REREVIEW_VERSION
 from dspy_security_bench.ledger.rereview import REPORT_TYPE as REREVIEW_REPORT
+from dspy_security_bench.ledger.time_quorum import PROTOCOL_VERSION as TIME_QUORUM_VERSION
+from dspy_security_bench.ledger.time_quorum import REPORT_TYPE as TIME_QUORUM_REPORT
 from dspy_security_bench.ledger.trust_chain import (
     PROTOCOL_VERSION as TRUST_CHAIN_VERSION,
 )
@@ -68,6 +70,9 @@ SCHEMA_FILES = (
     "assuranceledger-policy.schema.json",
     "assuranceledger-report.schema.json",
     "assuranceledger-rereview-report.schema.json",
+    "assuranceledger-time-quorum-policy.schema.json",
+    "assuranceledger-time-quorum-report.schema.json",
+    "assuranceledger-time-receipt.schema.json",
     "assuranceledger-trust-root-chain-report.schema.json",
     "assuranceledger-trust-root-report.schema.json",
     "assuranceledger-trust-root.schema.json",
@@ -378,6 +383,30 @@ def _protocols() -> tuple[dict[str, Any], ...]:
                 "in-toto Statements in DSSE envelopes",
                 "content-free recovery event digests and timestamps",
                 "unique nonces and previous-attestation digests",
+            ],
+        },
+        {
+            **common,
+            "protocol_id": TIME_QUORUM_VERSION,
+            "report_type": TIME_QUORUM_REPORT,
+            "artifact_schemas": [
+                "assuranceledger-time-quorum-policy.schema.json",
+                "assuranceledger-time-receipt.schema.json",
+                "assuranceledger-time-quorum-report.schema.json",
+            ],
+            "producer_commands": [
+                "ledger describe-time-source",
+                "ledger issue-time-receipt",
+                "ledger evaluate-time-quorum",
+            ],
+            "verifier_command": "ledger verify-time-quorum",
+            "standalone_verification": True,
+            "evidence_root_required": False,
+            "embedded_data_classes": [
+                "pinned time-source public keys",
+                "declared source organizations",
+                "artifact digests and caller nonces",
+                "signed midpoints and uncertainty radii",
             ],
         },
         {
