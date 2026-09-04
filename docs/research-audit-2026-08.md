@@ -486,3 +486,38 @@ a rehashed chain-hop mutation, and CapabilityManifest now binds eleven protocol
 contracts to sixteen exact schemas. None of those artifacts retrieve metadata,
 approve an update, prove key custody, establish legal identity, or take an
 operational action.
+
+## September 3 continuation: recovery readiness without an authority bypass
+
+Multi-hop catch-up still depends on each old threshold being able to authorize
+its exact successor. The TUF specification states that compromise of a root-key
+threshold needs out-of-band recovery and is exceptionally difficult to make
+safe. Automatically treating a different key set as trusted would erase the
+continuity property this work is intended to protect.
+
+[NIST SP 800-57 Part 1 Rev. 5](https://doi.org/10.6028/NIST.SP.800-57pt1r5)
+frames compromise recovery as a contingency-planning and key-management
+problem: identify affected signatures, assess damage, define responsible
+personnel and a re-key method, distribute replacement material, monitor the
+operation, and prepare recovery instructions. It also highlights the tension
+between redundant recovery material for continuity and the added compromise
+surface created by more copies.
+
+TrustRecoveryDrill converts that narrow preparedness question into an
+AssuranceLedger artifact without defining a break-glass root replacement. The
+current caller-anchored root must authorize the exact recovery-policy digest.
+That policy binds five roles, actor/organization assignments, mandatory
+custodian/approver separation, an organization-diversity floor, four response
+windows, and maximum drill age. A simulation record then supplies nine fixed
+stage types with timestamps and retained-evidence digests but no incident
+narrative, key bytes, distribution address, or recovery instruction.
+
+Thirteen deterministic checks preserve missing stages, role collapse,
+organization concentration, evidence-class mismatch, root/policy mismatch,
+future timestamps, response-window misses, and stale exercises as explicit
+findings. `content_fields_processed`, `replacement_roots_activated`, and
+`automatic_actions` remain zero. VerifierConformance v5 adds a rehashed recovery
+summary mutation, while CapabilityManifest binds twelve offline protocols and
+nineteen exact schemas. The result is drill evidence only; it cannot prove the
+underlying records, identities, custody, facilities, communications, or actual
+recovery capability, and cannot authorize any replacement root.

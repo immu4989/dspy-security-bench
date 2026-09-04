@@ -115,6 +115,16 @@ only as a historical intermediate, requires a current final root, and records
 every old/new threshold result. It does not retrieve metadata, prove that the
 presented chain is the latest, or authorize installation of the update.
 
+Exercise threshold-loss and compromise response before deployment with a
+root-authorized TrustRecoveryDrill policy. Assign incident commander, key
+custodian, independent approver, distributor, and auditor roles; require the
+custodian and approver to remain actor-separated; set agency-owned response
+windows and an exercise-age limit; retain the real records locally; and export
+only their fixed evidence classes and digests. Treat
+`recovery_readiness_evidenced` as tabletop evidence, not permission to bypass
+the old root threshold, issue emergency credentials, skip incident reporting,
+or activate a replacement root.
+
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every
 candidate, report missing cost or outcome observations as missing, and treat

@@ -94,8 +94,8 @@ not people. A key that signs both fork views is cryptographically identifiable,
 but the analyzer cannot distinguish compromise, implementation failure,
 collusion, or other causes and performs no revocation.
 AssuranceLedger VerifierConformance trusts the native verifiers it exercises;
-v4 first requires eleven clean source classes to pass native verification, then
-demonstrates rejection of eleven exact mutations—not the absence of other bugs.
+v5 first requires twelve clean source classes to pass native verification, then
+demonstrates rejection of twelve exact mutations—not the absence of other bugs.
 Inputs and verifier code are identified by digest, and no network or system
 action is performed.
 AssuranceLedger CapabilityManifest trusts the package's compiled capability
@@ -118,6 +118,12 @@ history. It intentionally accepts expired roots only as verified historical
 links and requires the final root to be current. It cannot discover a withheld
 newer root, so deployments need an independently governed minimum-version or
 freshness signal when truncation matters.
+TrustRecoveryDrill trusts owner-supplied content-free event metadata and
+digests. It verifies that the exact root-authorized plan was exercised with the
+declared roles, separation, organization diversity, stages, ordering, response
+windows, and freshness; it cannot prove the retained evidence is truthful or
+that recovery will succeed. The protocol deliberately cannot activate or
+authorize a replacement root.
 
 ## Threats addressed
 

@@ -68,11 +68,11 @@ compliance or safety overclaims.
 - AssuranceLedger WitnessConflict v1 with native ForkProof verification, exact
   shared cosignature-key attribution, strict schema, key-level SARIF, and no
   inferred motive or automatic revocation.
-- AssuranceLedger VerifierConformance v4 with eleven deterministic rehashed
+- AssuranceLedger VerifierConformance v5 with twelve deterministic rehashed
   semantic/cryptographic mutation vectors, exact source digests, strict report
   schema, offline recomputation, and a fail-on-missed-rejection CI mode.
-- AssuranceLedger CapabilityManifest v1 with exact byte digests for sixteen
-  shipped schemas, eleven protocol/CLI contracts, declared portability and data
+- AssuranceLedger CapabilityManifest v1 with exact byte digests for nineteen
+  shipped schemas, twelve protocol/CLI contracts, declared portability and data
   classes, deterministic offline recomputation, and zero automatic actions.
 - AssuranceLedger IntegrationLock v1 with owner-pinned schema/protocol minimums,
   explicit contract-drift findings, exact offline recomputation, and a
@@ -85,6 +85,10 @@ compliance or safety overclaims.
   per-hop old/new threshold verification, historical intermediate-expiration
   evidence, a current-final-root gate, minimum-version truncation detection,
   strict schema, standalone recomputation, and SARIF.
+- TrustRecoveryDrill v1 with a root-authorized exact recovery policy, five
+  separation-of-duty roles, nine content-minimized tabletop stages, thirteen
+  deterministic readiness checks, response windows, drill freshness, strict
+  policy/drill/report schemas, SARIF, and zero replacement-root activation.
 - Seven fictional AssuranceGraph sector starters, a non-executing probe
   contract, closed federal review packs, and a non-ranking public reproduction
   exchange.

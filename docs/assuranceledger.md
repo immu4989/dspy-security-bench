@@ -51,14 +51,17 @@ same-size conflict with no embedded ledger entries or review content.
 
 The same command now produces the complete partner-verification surface:
 
-- `capability-manifest.json` — eleven offline protocol contracts and sixteen
+- `capability-manifest.json` — twelve offline protocol contracts and nineteen
   exact schema digests;
 - `trust-root-v1.json` through `trust-root-v3.json`, `trust-root.report.json`,
   and `trust-root-chain.report.json` — a pinned predecessor, dual-threshold
   rotation, and stale-client multi-hop catch-up;
+- `trust-recovery-policy.json`, `trust-recovery-drill.json`, and
+  `trust-recovery-drill.report.json` — root-authorized, content-minimized
+  compromise-recovery tabletop evidence with zero root activation;
 - `integration-lock.json` and `integration-lock-check.report.json` — the
   owner-pin fixture and zero-drift reference result;
-- `verifier-conformance.report.json` — eleven clean-source-validated, rehashed
+- `verifier-conformance.report.json` — twelve clean-source-validated, rehashed
   adversarial rejection cases; and
 - SARIF companions for ledger outcomes, gossip, compact proofs, observation,
   witness attribution, re-review, conformance, and integration drift.
@@ -160,6 +163,29 @@ TrustRootChain verifies both thresholds at every exact successor hop, caps the
 input at 64 roots, records algorithm transitions, and requires the final root
 to be issued and unexpired. The minimum-version input can expose a known
 truncated prefix; no offline proof can discover a newer root that is withheld.
+
+When a root threshold is unavailable or compromised, the verifier intentionally
+does not invent an emergency bypass. `ledger evaluate-recovery-drill` instead
+checks whether the organization rehearsed nine required response stages under
+an exact recovery policy authorized by the current root:
+
+```bash
+dspy-security-bench ledger evaluate-recovery-drill \
+  trust-recovery-policy.json \
+  trust-recovery-drill.json \
+  trust-root-v3.json \
+  --expected-root-sha256 "$INDEPENDENTLY_TRUSTED_ROOT_V3_SHA256" \
+  --evaluation-time 1819680700 \
+  --out trust-recovery-drill.report.json \
+  --sarif-out trust-recovery-drill.sarif \
+  --fail-on-readiness
+```
+
+Thirteen checks cover stage completeness, monotonic order, authorized actors,
+custodian/approver separation, organization diversity, fixed evidence classes,
+exact root/policy binding, future dates, four response windows, and drill age.
+No incident content or key bytes enter the artifact, and a passing result
+activates zero roots. See the [TrustRecoveryDrill guide](trust-recovery-drill.md).
 
 ## Outcomes with non-overlapping meanings
 
@@ -298,15 +324,16 @@ dspy-security-bench ledger verify-conformance \
 ```
 
 The runner changes a security-relevant field, recomputes the outer report hash,
-and requires the intended deeper verifier rejection for eleven surfaces:
+and requires the intended deeper verifier rejection for twelve surfaces:
 checkpoint signature binding, gossip outcome, re-review impact, ForkProof root,
 ConsistencyProof path, ObserverReceipt signature, and witness-conflict
 attribution, plus TrustRoot threshold signatures, TrustRootChain hop counts,
-CapabilityManifest contract drift, and IntegrationLockCheck outcome drift. The
+TrustRecoveryDrill readiness totals, CapabilityManifest contract drift, and
+IntegrationLockCheck outcome drift. The
 report binds every source artifact digest and recomputes exactly from the same
 inputs.
 
-Before applying any mutation, v4 runs all eleven clean artifacts through their
+Before applying any mutation, v5 runs all twelve clean artifacts through their
 native verifiers. One already-invalid source aborts the matrix and cannot be
 counted as an expected adversarial rejection. This makes “clean source” an
 enforced experimental precondition rather than a caller assertion.
@@ -341,7 +368,7 @@ dspy-security-bench ledger verify-capabilities \
   --schema-root dspy_security_bench/schemas
 ```
 
-The manifest covers eleven protocol surfaces and all sixteen AssuranceLedger
+The manifest covers twelve protocol surfaces and all nineteen AssuranceLedger
 Draft 2020-12 schemas. Each schema record binds its stable `$id` and exact file
 bytes with SHA-256. Each protocol record exposes its report type, producer and
 verifier commands, whether verification is standalone, whether an evidence root

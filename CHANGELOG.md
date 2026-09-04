@@ -30,6 +30,15 @@ several of them changed published numbers.
   caller-owned minimum-final-version truncation gate, strict report schema,
   CLI, SARIF, demo, and exact offline recomputation are included. It cannot
   retrieve roots, detect an unknown withheld update, or authorize deployment.
+- **TrustRecoveryDrill**, a content-minimized, root-authorized compromise
+  recovery readiness protocol. Five role classes, mandatory custodian/approver
+  separation, organization diversity, nine fixed simulation stages, evidence
+  class/digest binding, four response windows, drill freshness, and exact
+  root/policy linkage produce thirteen deterministic checks. Strict policy,
+  drill, and report schemas, CLI, SARIF, a fictional exercise, exact offline
+  recomputation, and a zero-content/zero-activation boundary are included. A
+  passing drill does not bypass the old root threshold, authorize recovery, or
+  prove real incident capability.
 - **AssuranceLedger**, a witnessed append-only reviewer-key lifecycle for
   AssuranceQuorum. It recomputes an RFC 6962-style domain-separated Merkle tree,
   prior-checkpoint prefix continuity, operator and cross-organization witness
@@ -77,20 +86,21 @@ several of them changed published numbers.
   keeping operator-only and shared-witness conflicts distinct. Strict schema,
   semantic recomputation, key-level SARIF, and zero notifications or revocations
   are included without inferring motive, compromise cause, or legal identity.
-- **AssuranceLedger VerifierConformance v4**, an executable eleven-case adversarial
+- **AssuranceLedger VerifierConformance v5**, an executable twelve-case adversarial
   mutation matrix for downstream adopters. Rehashed signature, Merkle-path,
   observer-receipt, witness-attribution, re-review, gossip, and ledger mutations
   must trigger their intended native verifier rejection. Reports bind exact
   source artifact digests and recompute from the same local inputs. V2 added
   CapabilityManifest and IntegrationLockCheck semantic mutations to the seven
   cryptographic/lifecycle surfaces; v3 added TrustRoot threshold-signature
-  recomputation, and v4 adds TrustRootChain hop-count recomputation. Every clean source is natively verified
+  recomputation, v4 added TrustRootChain hop-count recomputation, and v5 adds
+  TrustRecoveryDrill readiness recomputation. Every clean source is natively verified
   before mutation so an already-invalid fixture cannot pass the matrix. Source
   files are regular-file and 100 MB bounded before JSON reading; the finite
   matrix is explicitly not certification, fuzzing, or a security proof. Stable
   SARIF rule `ALC001` exposes any missed rejection to CI without taking action.
 - **AssuranceLedger CapabilityManifest**, a deterministic partner-integration
-  contract covering all eleven ledger protocols and sixteen strict JSON Schemas.
+  contract covering all twelve ledger protocols and nineteen strict JSON Schemas.
   Exact schema-byte digests, protocol/report identifiers, producer and verifier
   commands, standalone/evidence-root requirements, disclosed data classes,
   offline operation, and the zero-action boundary recompute locally. CLI,
@@ -109,8 +119,8 @@ several of them changed published numbers.
   vendor schema inputs are regular-file and 2 MB bounded before reading.
 - A dedicated least-privilege AssuranceLedger pull-request workflow regenerates
   the complete fictional history, recomputes CapabilityManifest,
-  IntegrationLockCheck, AssuranceTrustRoot, AssuranceTrustRootChain, and
-  VerifierConformance v4, runs the focused trust and tamper suite from the
+  IntegrationLockCheck, AssuranceTrustRoot, AssuranceTrustRootChain,
+  TrustRecoveryDrill, and VerifierConformance v5, runs the focused trust and tamper suite from the
   lockfile, and preserves JSON/SARIF review artifacts.
 - **AssuranceQuorum**, a role-separated review protocol using Ed25519-signed
   in-toto Statement v1 predicates inside DSSE envelopes. Content-addressed

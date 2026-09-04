@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-trust-recovery-policy.schema.json",
+  "title": "AssuranceLedger TrustRecoveryDrill v1 policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_type", "protocol_version", "plan_id", "trust_domain", "root_version", "issued_at", "expires_at", "role_assignments", "separation_constraints", "required_event_types", "minimum_distinct_organizations", "time_limits", "policy_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "policy_type": {"const": "dspy-security-bench-assurance-trust-recovery-policy"},
+    "protocol_version": {"const": "assuranceledger-trust-recovery-drill-v1"},
+    "plan_id": {"$ref": "#/$defs/identifier"},
+    "trust_domain": {"type": "string", "minLength": 1, "maxLength": 300},
+    "root_version": {"type": "integer", "minimum": 1},
+    "issued_at": {"type": "integer", "minimum": 0},
+    "expires_at": {"type": "integer", "minimum": 0},
+    "role_assignments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["auditor", "distributor", "incident-commander", "independent-approver", "key-custodian"],
+      "properties": {
+        "auditor": {"$ref": "#/$defs/actors"},
+        "distributor": {"$ref": "#/$defs/actors"},
+        "incident-commander": {"$ref": "#/$defs/actors"},
+        "independent-approver": {"$ref": "#/$defs/actors"},
+        "key-custodian": {"$ref": "#/$defs/actors"}
+      }
+    },
+    "separation_constraints": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["left_role", "right_role"],
+        "properties": {
+          "left_role": {"$ref": "#/$defs/role"},
+          "right_role": {"$ref": "#/$defs/role"}
+        }
+      }
+    },
+    "required_event_types": {
+      "const": ["affected-signatures-inventoried", "compromise-detected", "damage-assessment-completed", "incident-declared", "independent-approval-recorded", "lessons-retained", "out-of-band-distribution-rehearsed", "replacement-root-prepared", "replacement-verification-completed"]
+    },
+    "minimum_distinct_organizations": {"type": "integer", "minimum": 1, "maximum": 100},
+    "time_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["declaration_to_replacement_seconds", "detection_to_declaration_seconds", "distribution_to_verification_seconds", "maximum_drill_age_seconds", "replacement_to_distribution_seconds"],
+      "properties": {
+        "declaration_to_replacement_seconds": {"$ref": "#/$defs/timeLimit"},
+        "detection_to_declaration_seconds": {"$ref": "#/$defs/timeLimit"},
+        "distribution_to_verification_seconds": {"$ref": "#/$defs/timeLimit"},
+        "maximum_drill_age_seconds": {"$ref": "#/$defs/timeLimit"},
+        "replacement_to_distribution_seconds": {"$ref": "#/$defs/timeLimit"}
+      }
+    },
+    "policy_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "role": {"enum": ["auditor", "distributor", "incident-commander", "independent-approver", "key-custodian"]},
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "organization_id"],
+      "properties": {
+        "actor_id": {"$ref": "#/$defs/identifier"},
+        "organization_id": {"$ref": "#/$defs/identifier"}
+      }
+    },
+    "actors": {"type": "array", "minItems": 1, "maxItems": 20, "uniqueItems": true, "items": {"$ref": "#/$defs/actor"}},
+    "timeLimit": {"type": "integer", "minimum": 1, "maximum": 31536000}
+  }
+}

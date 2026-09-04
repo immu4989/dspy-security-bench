@@ -30,6 +30,10 @@ from dspy_security_bench.ledger.trust_chain import (
     PROTOCOL_VERSION as TRUST_CHAIN_VERSION,
 )
 from dspy_security_bench.ledger.trust_chain import REPORT_TYPE as TRUST_CHAIN_REPORT
+from dspy_security_bench.ledger.trust_recovery import (
+    PROTOCOL_VERSION as TRUST_RECOVERY_VERSION,
+)
+from dspy_security_bench.ledger.trust_recovery import REPORT_TYPE as TRUST_RECOVERY_REPORT
 from dspy_security_bench.ledger.trust_root import PROTOCOL_VERSION as TRUST_ROOT_VERSION
 from dspy_security_bench.ledger.trust_root import REPORT_TYPE as TRUST_ROOT_REPORT
 from dspy_security_bench.ledger.witness_conflict import (
@@ -61,6 +65,9 @@ SCHEMA_FILES = (
     "assuranceledger-trust-root-chain-report.schema.json",
     "assuranceledger-trust-root-report.schema.json",
     "assuranceledger-trust-root.schema.json",
+    "assuranceledger-trust-recovery-drill.schema.json",
+    "assuranceledger-trust-recovery-policy.schema.json",
+    "assuranceledger-trust-recovery-report.schema.json",
     "assuranceledger-witness-conflict.schema.json",
 )
 CLAIM_BOUNDARY = (
@@ -318,6 +325,26 @@ def _protocols() -> tuple[dict[str, Any], ...]:
                 "per-hop threshold verification outcomes",
                 "algorithm transitions and root validity windows",
                 "authorized assurance-policy digests",
+            ],
+        },
+        {
+            **common,
+            "protocol_id": TRUST_RECOVERY_VERSION,
+            "report_type": TRUST_RECOVERY_REPORT,
+            "artifact_schemas": [
+                "assuranceledger-trust-recovery-policy.schema.json",
+                "assuranceledger-trust-recovery-drill.schema.json",
+                "assuranceledger-trust-recovery-report.schema.json",
+            ],
+            "producer_commands": ["ledger evaluate-recovery-drill"],
+            "verifier_command": "ledger verify-recovery-drill",
+            "standalone_verification": True,
+            "evidence_root_required": False,
+            "embedded_data_classes": [
+                "recovery role and organization assignments",
+                "content-free recovery stage timestamps",
+                "recovery evidence digests and classes",
+                "root and recovery-policy bindings",
             ],
         },
         {

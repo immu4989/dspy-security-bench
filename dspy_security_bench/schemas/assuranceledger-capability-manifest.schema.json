@@ -12,8 +12,8 @@
     "schema_dialect": {"const": "https://json-schema.org/draft/2020-12/schema"},
     "schema_catalog": {
       "type": "array",
-      "minItems": 16,
-      "maxItems": 16,
+      "minItems": 19,
+      "maxItems": 19,
       "uniqueItems": true,
       "items": {
         "type": "object",
@@ -28,8 +28,8 @@
     },
     "protocols": {
       "type": "array",
-      "minItems": 11,
-      "maxItems": 11,
+      "minItems": 12,
+      "maxItems": 12,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -53,10 +53,10 @@
       "additionalProperties": false,
       "required": ["protocol_count", "schema_count", "offline_verifier_count", "standalone_verifier_count", "automatic_actions"],
       "properties": {
-        "protocol_count": {"const": 11},
-        "schema_count": {"const": 16},
-        "offline_verifier_count": {"const": 11},
-        "standalone_verifier_count": {"const": 6},
+        "protocol_count": {"const": 12},
+        "schema_count": {"const": 19},
+        "offline_verifier_count": {"const": 12},
+        "standalone_verifier_count": {"const": 7},
         "automatic_actions": {"const": 0}
       }
     },

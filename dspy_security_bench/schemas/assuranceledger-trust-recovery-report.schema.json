@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-trust-recovery-report.schema.json",
+  "title": "AssuranceLedger TrustRecoveryDrill v1 readiness report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "evaluation_time", "anchor", "policy_input", "drill_input", "trust_root_input", "root_trust_report", "source_errors", "findings", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger TrustRecoveryDrill / Root recovery readiness evidence"},
+    "protocol_version": {"const": "assuranceledger-trust-recovery-drill-v1"},
+    "analyzer": {"const": "deterministic-root-recovery-drill-analyzer-v1"},
+    "evaluation_time": {"type": "integer", "minimum": 0},
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expected_root_sha256"],
+      "properties": {"expected_root_sha256": {"oneOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]}}
+    },
+    "policy_input": {"$ref": "assuranceledger-trust-recovery-policy.schema.json"},
+    "drill_input": {"$ref": "assuranceledger-trust-recovery-drill.schema.json"},
+    "trust_root_input": {"$ref": "assuranceledger-trust-root.schema.json"},
+    "root_trust_report": {"$ref": "assuranceledger-trust-root-report.schema.json"},
+    "source_errors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "drill"],
+      "properties": {
+        "policy": {"$ref": "#/$defs/errors"},
+        "drill": {"$ref": "#/$defs/errors"}
+      }
+    },
+    "findings": {"type": "array", "minItems": 13, "maxItems": 13, "items": {"$ref": "#/$defs/finding"}},
+    "summary": {"$ref": "#/$defs/summary"},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "errors": {"type": "array", "maxItems": 500, "items": {"type": "string"}},
+    "eventType": {"enum": ["affected-signatures-inventoried", "compromise-detected", "damage-assessment-completed", "incident-declared", "independent-approval-recorded", "lessons-retained", "out-of-band-distribution-rehearsed", "replacement-root-prepared", "replacement-verification-completed"]},
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule_id", "title", "status", "detail", "event_types"],
+      "properties": {
+        "rule_id": {"type": "string", "pattern": "^TRD0(?:0[1-9]|1[0-3])$"},
+        "title": {"type": "string", "minLength": 1},
+        "status": {"enum": ["passed", "failed"]},
+        "detail": {"type": "string", "minLength": 1},
+        "event_types": {"type": "array", "maxItems": 9, "uniqueItems": true, "items": {"$ref": "#/$defs/eventType"}}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "checks_total", "checks_passed", "checks_failed", "events_observed", "required_events", "distinct_organizations_observed", "drill_age_seconds", "content_fields_processed", "replacement_roots_activated", "automatic_actions"],
+      "properties": {
+        "status": {"enum": ["recovery_readiness_evidenced", "recovery_readiness_not_evidenced", "invalid_recovery_evidence", "untrusted_root", "recovery_policy_not_authorized", "inactive_recovery_policy", "stale_recovery_drill"]},
+        "checks_total": {"const": 13},
+        "checks_passed": {"type": "integer", "minimum": 0, "maximum": 13},
+        "checks_failed": {"type": "integer", "minimum": 0, "maximum": 13},
+        "events_observed": {"type": "integer", "minimum": 0, "maximum": 9},
+        "required_events": {"const": 9},
+        "distinct_organizations_observed": {"type": "integer", "minimum": 0, "maximum": 9},
+        "drill_age_seconds": {"oneOf": [{"type": "integer"}, {"type": "null"}]},
+        "content_fields_processed": {"const": 0},
+        "replacement_roots_activated": {"const": 0},
+        "automatic_actions": {"const": 0}
+      }
+    }
+  }
+}

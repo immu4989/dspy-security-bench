@@ -101,3 +101,11 @@ not current authority; only a current final root can produce `trusted_chain`.
 The verifier does not fetch missing roots or know whether a newer root was
 withheld, so persist a separately governed minimum version where freshness is
 security-relevant.
+
+TrustRecoveryDrill intentionally accepts only simulation records and embeds
+actor/organization labels, event times, evidence classes, and evidence digests.
+Those fields can reveal incident-response structure and drill cadence. Review
+them before sharing, keep the underlying records out of public artifacts, and
+do not hash low-entropy secrets as evidence identifiers. A passing drill does
+not authorize key recovery or prove a real response will work; the analyzer
+activates no replacement root and performs no notification or remediation.

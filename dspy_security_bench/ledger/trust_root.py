@@ -38,6 +38,7 @@ AUTHORIZED_POLICY_TYPES = (
     "dspy-security-bench-assurance-ledger-observer-policy",
     "dspy-security-bench-assurance-ledger-policy",
     "dspy-security-bench-assurance-quorum-policy",
+    "dspy-security-bench-assurance-trust-recovery-policy",
 )
 TRUSTED_STATUSES = ("trusted_bootstrap", "trusted_rotation")
 MAX_KEYS = 100

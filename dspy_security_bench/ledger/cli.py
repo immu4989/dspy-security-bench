@@ -76,6 +76,19 @@ from dspy_security_bench.ledger.trust_chain import (
 from dspy_security_bench.ledger.trust_chain_sarif import (
     report_to_sarif as trust_chain_to_sarif,
 )
+from dspy_security_bench.ledger.trust_recovery import (
+    TRUSTED_STATUS as RECOVERY_READY_STATUS,
+)
+from dspy_security_bench.ledger.trust_recovery import (
+    build_recovery_drill,
+    build_recovery_policy,
+    evaluate_recovery_drill,
+    recovery_event,
+    verify_recovery_drill_report,
+)
+from dspy_security_bench.ledger.trust_recovery_sarif import (
+    report_to_sarif as trust_recovery_to_sarif,
+)
 from dspy_security_bench.ledger.trust_root import (
     ROLE_NAMES,
     TRUSTED_STATUSES,
@@ -99,6 +112,7 @@ from dspy_security_bench.ledger.witness_conflict_sarif import (
     report_to_sarif as witness_conflict_to_sarif,
 )
 from dspy_security_bench.mission.commons import generate_ed25519_keypair
+from dspy_security_bench.mission.loader import canonical_sha256
 from dspy_security_bench.quorum.cli import _demo as quorum_demo
 
 MAX_JSON_BYTES = 100_000_000
@@ -303,6 +317,23 @@ def main(argv: list[str] | None = None) -> int:
         help="recompute a saved AssuranceTrustRootChain report offline",
     )
     verify_trust_chain_parser.add_argument("report")
+    recovery_drill_parser = commands.add_parser(
+        "evaluate-recovery-drill",
+        help="evaluate content-minimized trust-root recovery readiness",
+    )
+    recovery_drill_parser.add_argument("policy")
+    recovery_drill_parser.add_argument("drill")
+    recovery_drill_parser.add_argument("trust_root")
+    recovery_drill_parser.add_argument("--expected-root-sha256")
+    recovery_drill_parser.add_argument("--evaluation-time", type=int, required=True)
+    recovery_drill_parser.add_argument("--out", required=True)
+    recovery_drill_parser.add_argument("--sarif-out")
+    recovery_drill_parser.add_argument("--fail-on-readiness", action="store_true")
+    verify_recovery_drill_parser = commands.add_parser(
+        "verify-recovery-drill",
+        help="recompute a saved TrustRecoveryDrill report offline",
+    )
+    verify_recovery_drill_parser.add_argument("report")
     plan = commands.add_parser("plan-rereview", help="compute the minimal claim/role re-review set")
     plan.add_argument("ledger_report")
     plan.add_argument("--evidence-root", required=True)
@@ -587,6 +618,30 @@ def main(argv: list[str] | None = None) -> int:
             if errors := verify_trust_root_chain_report(report):
                 raise ValueError("; ".join(errors))
             print(f"[ledger] verified trust-root chain report {args.report}")
+            return 0
+        if args.command == "evaluate-recovery-drill":
+            policy = _read_json(Path(args.policy))
+            drill = _read_json(Path(args.drill))
+            trust_root = _read_json(Path(args.trust_root))
+            report = evaluate_recovery_drill(
+                policy,
+                drill,
+                trust_root,
+                evaluation_time=args.evaluation_time,
+                expected_root_sha256=args.expected_root_sha256,
+            )
+            _write_json(Path(args.out), report)
+            if args.sarif_out:
+                _write_json(Path(args.sarif_out), trust_recovery_to_sarif(report))
+            print(f"[ledger] {report['summary']['status']}: wrote {args.out}")
+            return int(
+                args.fail_on_readiness and report["summary"]["status"] != RECOVERY_READY_STATUS
+            )
+        if args.command == "verify-recovery-drill":
+            report = _read_json(Path(args.report))
+            if errors := verify_recovery_drill_report(report):
+                raise ValueError("; ".join(errors))
+            print(f"[ledger] verified trust recovery drill {args.report}")
             return 0
         if args.command == "plan-rereview":
             ledger_report = _read_json(Path(args.ledger_report))
@@ -926,6 +981,64 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             expected_trust_domain="fictional-national-ai-assurance-exchange",
             policies=[policy, observer_policy, quorum_report["policy"]],
         )
+        recovery_policy = build_recovery_policy(
+            plan_id="fictional-national-ai-root-recovery",
+            trust_domain="fictional-national-ai-assurance-exchange",
+            root_version=3,
+            issued_at=1_819_680_000,
+            expires_at=1_851_216_000,
+            role_assignments={
+                "auditor": [
+                    {
+                        "actor_id": observer_ids[0],
+                        "organization_id": trust_descriptors[observer_ids[0]]["organization_id"],
+                    }
+                ],
+                "distributor": [
+                    {
+                        "actor_id": witness_ids[0],
+                        "organization_id": trust_descriptors[witness_ids[0]]["organization_id"],
+                    }
+                ],
+                "incident-commander": [
+                    {
+                        "actor_id": root_one,
+                        "organization_id": trust_descriptors[root_one]["organization_id"],
+                    }
+                ],
+                "independent-approver": [
+                    {
+                        "actor_id": root_three,
+                        "organization_id": trust_descriptors[root_three]["organization_id"],
+                    }
+                ],
+                "key-custodian": [
+                    {
+                        "actor_id": root_two,
+                        "organization_id": trust_descriptors[root_two]["organization_id"],
+                    }
+                ],
+            },
+            separation_constraints=[
+                {
+                    "left_role": "independent-approver",
+                    "right_role": "key-custodian",
+                },
+                {"left_role": "key-custodian", "right_role": "auditor"},
+            ],
+            minimum_distinct_organizations=3,
+            time_limits={
+                "detection_to_declaration_seconds": 120,
+                "declaration_to_replacement_seconds": 300,
+                "replacement_to_distribution_seconds": 300,
+                "distribution_to_verification_seconds": 120,
+                "maximum_drill_age_seconds": 3_600,
+            },
+        )
+        authorized_policies_v3 = [
+            *authorized_policies,
+            policy_descriptor(recovery_policy),
+        ]
         trust_roles_v3 = _demo_trust_roles(
             trust_descriptors,
             root_ids=(root_two, root_three),
@@ -939,7 +1052,7 @@ def _demo(out_dir: Path, *, force: bool) -> None:
         root_v3 = build_trust_root(
             list(trust_descriptors.values()),
             trust_roles_v3,
-            authorized_policies,
+            authorized_policies_v3,
             trust_domain="fictional-national-ai-assurance-exchange",
             version=3,
             issued_at=1_819_680_000,
@@ -958,6 +1071,60 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             minimum_final_version=3,
             policies=[policy, observer_policy, quorum_report["policy"]],
         )
+        recovery_actor_by_event = {
+            "compromise-detected": recovery_policy["role_assignments"]["incident-commander"][0],
+            "incident-declared": recovery_policy["role_assignments"]["incident-commander"][0],
+            "affected-signatures-inventoried": recovery_policy["role_assignments"]["auditor"][0],
+            "damage-assessment-completed": recovery_policy["role_assignments"]["auditor"][0],
+            "replacement-root-prepared": recovery_policy["role_assignments"]["key-custodian"][0],
+            "independent-approval-recorded": recovery_policy["role_assignments"][
+                "independent-approver"
+            ][0],
+            "out-of-band-distribution-rehearsed": recovery_policy["role_assignments"][
+                "distributor"
+            ][0],
+            "replacement-verification-completed": recovery_policy["role_assignments"]["auditor"][0],
+            "lessons-retained": recovery_policy["role_assignments"]["incident-commander"][0],
+        }
+        recovery_timeline = [
+            ("compromise-detected", 0),
+            ("incident-declared", 60),
+            ("affected-signatures-inventoried", 90),
+            ("damage-assessment-completed", 120),
+            ("replacement-root-prepared", 180),
+            ("independent-approval-recorded", 220),
+            ("out-of-band-distribution-rehearsed", 300),
+            ("replacement-verification-completed", 360),
+            ("lessons-retained", 420),
+        ]
+        recovery_events = []
+        for sequence, (event_type, offset) in enumerate(recovery_timeline):
+            actor = recovery_actor_by_event[event_type]
+            recovery_events.append(
+                recovery_event(
+                    sequence,
+                    event_type,
+                    1_819_680_100 + offset,
+                    actor_id=actor["actor_id"],
+                    organization_id=actor["organization_id"],
+                    evidence_sha256=canonical_sha256(
+                        {"fixture": "recovery-drill", "event_type": event_type}
+                    ),
+                )
+            )
+        recovery_drill = build_recovery_drill(
+            recovery_policy,
+            root_v3,
+            recovery_events,
+            drill_id="fictional-quarterly-root-recovery-exercise",
+        )
+        recovery_report = evaluate_recovery_drill(
+            recovery_policy,
+            recovery_drill,
+            root_v3,
+            evaluation_time=1_819_680_700,
+            expected_root_sha256=root_v3["root_sha256"],
+        )
         capability_manifest = build_capability_manifest()
         integration_lock = build_integration_lock(capability_manifest)
         integration_lock_check = check_integration_lock(integration_lock, capability_manifest)
@@ -972,6 +1139,7 @@ def _demo(out_dir: Path, *, force: bool) -> None:
                 "witness_conflict": witness_conflict,
                 "trust_root": trust_root_report,
                 "trust_chain": trust_chain_report,
+                "trust_recovery": recovery_report,
                 "capability_manifest": capability_manifest,
                 "integration_lock": integration_lock,
                 "integration_lock_check": integration_lock_check,
@@ -1015,6 +1183,13 @@ def _demo(out_dir: Path, *, force: bool) -> None:
     _write_json(
         out_dir / "trust-root-chain.sarif",
         trust_chain_to_sarif(trust_chain_report),
+    )
+    _write_json(out_dir / "trust-recovery-policy.json", recovery_policy)
+    _write_json(out_dir / "trust-recovery-drill.json", recovery_drill)
+    _write_json(out_dir / "trust-recovery-drill.report.json", recovery_report)
+    _write_json(
+        out_dir / "trust-recovery-drill.sarif",
+        trust_recovery_to_sarif(recovery_report),
     )
     _write_json(out_dir / "verifier-conformance.report.json", conformance_report)
     _write_json(

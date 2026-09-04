@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-trust-recovery-drill.schema.json",
+  "title": "AssuranceLedger TrustRecoveryDrill v1 content-minimized exercise record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "drill_type", "protocol_version", "plan_id", "policy_sha256", "trust_domain", "root_sha256", "root_version", "drill_id", "simulation_only", "events", "drill_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "drill_type": {"const": "dspy-security-bench-assurance-trust-recovery-drill"},
+    "protocol_version": {"const": "assuranceledger-trust-recovery-drill-v1"},
+    "plan_id": {"$ref": "#/$defs/identifier"},
+    "policy_sha256": {"$ref": "#/$defs/digest"},
+    "trust_domain": {"type": "string", "minLength": 1, "maxLength": 300},
+    "root_sha256": {"$ref": "#/$defs/digest"},
+    "root_version": {"type": "integer", "minimum": 1},
+    "drill_id": {"$ref": "#/$defs/identifier"},
+    "simulation_only": {"const": true},
+    "events": {"type": "array", "minItems": 1, "maxItems": 9, "items": {"$ref": "#/$defs/event"}},
+    "drill_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "eventType": {"enum": ["affected-signatures-inventoried", "compromise-detected", "damage-assessment-completed", "incident-declared", "independent-approval-recorded", "lessons-retained", "out-of-band-distribution-rehearsed", "replacement-root-prepared", "replacement-verification-completed"]},
+    "evidenceClass": {"enum": ["alert-record", "approval-record", "damage-assessment", "distribution-rehearsal", "incident-declaration", "lessons-record", "replacement-root-manifest", "signature-inventory", "verification-record"]},
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "event_type", "occurred_at", "actor_id", "organization_id", "evidence_class", "evidence_sha256"],
+      "properties": {
+        "sequence": {"type": "integer", "minimum": 0, "maximum": 8},
+        "event_type": {"$ref": "#/$defs/eventType"},
+        "occurred_at": {"type": "integer", "minimum": 0},
+        "actor_id": {"$ref": "#/$defs/identifier"},
+        "organization_id": {"$ref": "#/$defs/identifier"},
+        "evidence_class": {"$ref": "#/$defs/evidenceClass"},
+        "evidence_sha256": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

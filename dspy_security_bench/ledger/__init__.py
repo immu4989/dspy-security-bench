@@ -48,6 +48,13 @@ from dspy_security_bench.ledger.trust_chain import (
     evaluate_trust_root_chain,
     verify_trust_root_chain_report,
 )
+from dspy_security_bench.ledger.trust_recovery import (
+    build_recovery_drill,
+    build_recovery_policy,
+    evaluate_recovery_drill,
+    recovery_event,
+    verify_recovery_drill_report,
+)
 from dspy_security_bench.ledger.trust_root import (
     build_trust_root,
     embedded_trust_key_descriptor,
@@ -111,4 +118,9 @@ __all__ = [
     "verify_trust_root_report",
     "evaluate_trust_root_chain",
     "verify_trust_root_chain_report",
+    "build_recovery_drill",
+    "build_recovery_policy",
+    "evaluate_recovery_drill",
+    "recovery_event",
+    "verify_recovery_drill_report",
 ]

@@ -25,8 +25,8 @@ def test_owner_lock_pins_every_schema_and_protocol():
     lock = build_integration_lock(manifest)
     assert lock["summary"] == {
         "automatic_actions": 0,
-        "required_protocol_count": 11,
-        "required_schema_count": 16,
+        "required_protocol_count": 12,
+        "required_schema_count": 19,
     }
     assert set(lock["required_schemas"]) == {
         item["filename"] for item in manifest["schema_catalog"]
