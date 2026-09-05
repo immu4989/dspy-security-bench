@@ -67,6 +67,19 @@ from dspy_security_bench.ledger.rereview import (
     verify_rereview_report,
 )
 from dspy_security_bench.ledger.rereview_sarif import report_to_sarif as rereview_to_sarif
+from dspy_security_bench.ledger.root_view import (
+    TRUSTED_STATUS as ROOT_VIEW_TRUSTED_STATUS,
+)
+from dspy_security_bench.ledger.root_view import (
+    build_root_view_policy,
+    create_root_view_receipt,
+    evaluate_root_view_quorum,
+    root_view_observer_descriptor,
+    verify_root_view_report,
+)
+from dspy_security_bench.ledger.root_view_sarif import (
+    report_to_sarif as root_view_to_sarif,
+)
 from dspy_security_bench.ledger.sarif import report_to_sarif
 from dspy_security_bench.ledger.time_quorum import (
     TRUSTED_STATUS as TIME_QUORUM_TRUSTED_STATUS,
@@ -462,6 +475,51 @@ def main(argv: list[str] | None = None) -> int:
     verify_time_quorum_parser.add_argument("--expected-policy-sha256")
     verify_time_quorum_parser.add_argument("--subject-sha256")
     verify_time_quorum_parser.add_argument("--request-nonce")
+    describe_root_view_observer_parser = commands.add_parser(
+        "describe-root-view-observer",
+        help="describe an Ed25519 key for a RootViewQuorum observer policy",
+    )
+    describe_root_view_observer_parser.add_argument("public_key")
+    describe_root_view_observer_parser.add_argument("--observer-id", required=True)
+    describe_root_view_observer_parser.add_argument("--organization-id", required=True)
+    describe_root_view_observer_parser.add_argument("--out", required=True)
+    create_root_view_policy_parser = commands.add_parser(
+        "create-root-view-policy",
+        help="build a self-digested RootViewQuorum policy from a JSON spec",
+    )
+    create_root_view_policy_parser.add_argument("spec")
+    create_root_view_policy_parser.add_argument("--out", required=True)
+    sign_root_view_parser = commands.add_parser(
+        "sign-root-view",
+        help="sign one nonce-bound observation of an exact assurance trust root",
+    )
+    sign_root_view_parser.add_argument("policy")
+    sign_root_view_parser.add_argument("private_key")
+    sign_root_view_parser.add_argument("observed_root")
+    sign_root_view_parser.add_argument("--observer-id", required=True)
+    sign_root_view_parser.add_argument("--candidate-root-sha256", required=True)
+    sign_root_view_parser.add_argument("--request-nonce", required=True)
+    sign_root_view_parser.add_argument("--out", required=True)
+    evaluate_root_view_parser = commands.add_parser(
+        "evaluate-root-view",
+        help="corroborate root distribution across independent signed observations",
+    )
+    evaluate_root_view_parser.add_argument("policy")
+    evaluate_root_view_parser.add_argument("candidate_root")
+    evaluate_root_view_parser.add_argument("receipts", nargs="+")
+    evaluate_root_view_parser.add_argument("--expected-policy-sha256", required=True)
+    evaluate_root_view_parser.add_argument("--request-nonce", required=True)
+    evaluate_root_view_parser.add_argument("--out", required=True)
+    evaluate_root_view_parser.add_argument("--sarif-out")
+    evaluate_root_view_parser.add_argument("--fail-on-view", action="store_true")
+    verify_root_view_parser = commands.add_parser(
+        "verify-root-view",
+        help="recompute a saved RootViewQuorum report offline",
+    )
+    verify_root_view_parser.add_argument("report")
+    verify_root_view_parser.add_argument("--expected-policy-sha256")
+    verify_root_view_parser.add_argument("--candidate-root-sha256")
+    verify_root_view_parser.add_argument("--request-nonce")
     evaluate_trust_root_time_parser = commands.add_parser(
         "evaluate-trust-root-time",
         help="require trust-root validity across a signed conservative time interval",
@@ -896,6 +954,61 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("; ".join(errors))
             print(f"[ledger] verified AssuranceTimeQuorum report {args.report}")
             return 0
+        if args.command == "describe-root-view-observer":
+            descriptor = root_view_observer_descriptor(
+                args.public_key,
+                observer_id=args.observer_id,
+                organization_id=args.organization_id,
+            )
+            _write_json(Path(args.out), descriptor)
+            print(f"[ledger] described RootViewQuorum observer: wrote {args.out}")
+            return 0
+        if args.command == "create-root-view-policy":
+            policy = _root_view_policy_from_spec(_read_json(Path(args.spec)))
+            _write_json(Path(args.out), policy)
+            print(
+                f"[ledger] built RootViewQuorum policy ({policy['policy_sha256']}): "
+                f"wrote {args.out}"
+            )
+            return 0
+        if args.command == "sign-root-view":
+            receipt = create_root_view_receipt(
+                _read_json(Path(args.policy)),
+                args.private_key,
+                _read_json(Path(args.observed_root)),
+                observer_id=args.observer_id,
+                candidate_root_sha256=args.candidate_root_sha256,
+                request_nonce=args.request_nonce,
+            )
+            _write_json(Path(args.out), receipt)
+            print(f"[ledger] signed root-view observation: wrote {args.out}")
+            return 0
+        if args.command == "evaluate-root-view":
+            report = evaluate_root_view_quorum(
+                _read_json(Path(args.policy)),
+                _read_json(Path(args.candidate_root)),
+                [_read_json(Path(item)) for item in args.receipts],
+                expected_policy_sha256=args.expected_policy_sha256,
+                expected_request_nonce=args.request_nonce,
+            )
+            _write_json(Path(args.out), report)
+            if args.sarif_out:
+                _write_json(Path(args.sarif_out), root_view_to_sarif(report))
+            print(f"[ledger] {report['summary']['status']}: wrote {args.out}")
+            return int(
+                args.fail_on_view and report["summary"]["status"] != ROOT_VIEW_TRUSTED_STATUS
+            )
+        if args.command == "verify-root-view":
+            report = _read_json(Path(args.report))
+            if errors := verify_root_view_report(
+                report,
+                expected_policy_sha256=args.expected_policy_sha256,
+                expected_candidate_root_sha256=args.candidate_root_sha256,
+                expected_request_nonce=args.request_nonce,
+            ):
+                raise ValueError("; ".join(errors))
+            print(f"[ledger] verified RootViewQuorum report {args.report}")
+            return 0
         if args.command == "evaluate-trust-root-time":
             report = evaluate_trust_root_time(
                 _read_json(Path(args.candidate_root)),
@@ -1020,6 +1133,13 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             minimum_distinct_organizations=3,
             maximum_radius_seconds=10,
             maximum_interval_width_seconds=5,
+        )
+        root_view_policy = build_root_view_policy(
+            [descriptors[item] for item in time_source_ids],
+            quorum_id="fictional-independent-root-distribution-view",
+            trust_domain="fictional-national-ai-assurance-exchange",
+            minimum_observers=3,
+            minimum_distinct_organizations=3,
         )
         entries = []
         for reviewer in quorum_report["policy"]["reviewers"]:
@@ -1504,6 +1624,25 @@ def _demo(out_dir: Path, *, force: bool) -> None:
             minimum_version=3,
             policies=[recovery_policy, recovery_attestation_policy],
         )
+        root_view_nonce = "fictional-root-view-challenge-0001"
+        root_view_receipts = [
+            create_root_view_receipt(
+                root_view_policy,
+                key_paths[observer_id],
+                root_v3,
+                observer_id=observer_id,
+                candidate_root_sha256=root_v3["root_sha256"],
+                request_nonce=root_view_nonce,
+            )
+            for observer_id in time_source_ids
+        ]
+        root_view_report = evaluate_root_view_quorum(
+            root_view_policy,
+            root_v3,
+            root_view_receipts,
+            expected_policy_sha256=root_view_policy["policy_sha256"],
+            expected_request_nonce=root_view_nonce,
+        )
         capability_manifest = build_capability_manifest()
         integration_lock = build_integration_lock(capability_manifest)
         integration_lock_check = check_integration_lock(integration_lock, capability_manifest)
@@ -1522,6 +1661,7 @@ def _demo(out_dir: Path, *, force: bool) -> None:
                 "trust_recovery_attestation": recovery_attestation_report,
                 "time_quorum": time_quorum_report,
                 "trust_root_time": trust_root_time_report,
+                "root_view": root_view_report,
                 "capability_manifest": capability_manifest,
                 "integration_lock": integration_lock,
                 "integration_lock_check": integration_lock_check,
@@ -1600,6 +1740,11 @@ def _demo(out_dir: Path, *, force: bool) -> None:
         out_dir / "trust-root-time.sarif",
         trust_root_time_to_sarif(trust_root_time_report),
     )
+    _write_json(out_dir / "root-view-policy.json", root_view_policy)
+    for receipt_index, receipt in enumerate(root_view_receipts):
+        _write_json(out_dir / f"root-view-{receipt_index + 1}.receipt.json", receipt)
+    _write_json(out_dir / "root-view.report.json", root_view_report)
+    _write_json(out_dir / "root-view.sarif", root_view_to_sarif(root_view_report))
     _write_json(out_dir / "verifier-conformance.report.json", conformance_report)
     _write_json(
         out_dir / "verifier-conformance.sarif",
@@ -1675,6 +1820,29 @@ def _root_from_spec(spec: dict[str, Any], previous_root: dict[str, Any] | None) 
         issued_at=spec["issued_at"],
         expires_at=spec["expires_at"],
         previous_root_sha256=(previous_root["root_sha256"] if previous_root is not None else None),
+    )
+
+
+def _root_view_policy_from_spec(spec: dict[str, Any]) -> dict[str, Any]:
+    expected = {
+        "quorum_id",
+        "trust_domain",
+        "observers",
+        "minimum_observers",
+        "minimum_distinct_organizations",
+    }
+    if set(spec) != expected:
+        missing = sorted(expected - set(spec))
+        extra = sorted(set(spec) - expected)
+        raise ValueError(
+            f"root-view policy spec fields mismatch: missing={missing}, unexpected={extra}"
+        )
+    return build_root_view_policy(
+        spec["observers"],
+        quorum_id=spec["quorum_id"],
+        trust_domain=spec["trust_domain"],
+        minimum_observers=spec["minimum_observers"],
+        minimum_distinct_organizations=spec["minimum_distinct_organizations"],
     )
 
 

@@ -293,6 +293,11 @@ freshness signal, an offline verifier cannot discover a withheld newer root.
 The report says this explicitly instead of translating a valid prefix into a
 global freshness claim.
 
+When multiple separately governed channels can answer a fresh verifier
+challenge, [RootViewQuorum](root-view-quorum.md) makes that distribution signal
+signed and recomputable. It does not replace the chain: a newer observed root
+still requires complete continuity verification before acceptance.
+
 TrustRootChain outcomes remain distinct: `version_gap_detected`,
 `rollback_detected`, `trust_discontinuity`, `invalid_chain_evidence`,
 `expired_final_root`, `not_yet_valid_final_root`,
@@ -345,3 +350,8 @@ AssuranceTimeQuorum report with this full evaluator at both conservative
 interval endpoints. This catches roots issued or expiring inside clock
 uncertainty; it does not discover withheld successors or install an accepted
 root.
+
+Use [RootViewQuorum](root-view-quorum.md) for the complementary supplied-view
+question: whether policy-pinned independent observers received this exact root,
+a lagging version, a same-version conflict, or a higher version for a fresh
+challenge.

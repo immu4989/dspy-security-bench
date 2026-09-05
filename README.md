@@ -286,6 +286,16 @@ issued inside the interval or expiring before its upper bound fails closed.
 The report changes no clock, installs no root, and takes no automatic action.
 [Require root trust across the entire supported time interval →](docs/trust-root-time-gate.md)
 
+`ledger evaluate-root-view` closes the offline distributor-withholding gap.
+Independent, policy-pinned Ed25519 observers from distinct declared
+organizations sign the exact root they received while binding the verifier's
+candidate-root digest and fresh nonce. Matching views count toward quorum;
+lagging views remain visible but do not count. A valid same-version conflict or
+higher-version observation is non-outvotable. The ten-check report makes zero
+network requests and installs no root; it corroborates only the supplied views,
+not global freshness or complete dissemination.
+[Detect stale or split trust-root distribution →](docs/root-view-quorum.md)
+
 Downstream implementers can run `ledger conformance` against a complete demo or
 integration artifact directory. The original seven rehashed adversarial vectors
 must be rejected across the ledger, gossip, re-review, fork, consistency, observation,
@@ -293,15 +303,15 @@ and witness-attribution verifiers. V2 added rehashed capability-contract and
 integration-lock checks; v3 added trust-root threshold/signature recomputation,
 v4 added multi-hop chain recomputation, v5 added recovery-readiness
 recomputation, v6 added authenticated recovery-handoff recomputation, v7 added
-conservative time-bound recomputation, and v8 adds whole-interval TrustRoot
-recomputation for fifteen total. The result itself is
+conservative time-bound recomputation, v8 added whole-interval TrustRoot
+recomputation, and v9 adds root-view count recomputation for sixteen total. The result itself is
 exactly recomputable, and optional SARIF
 exposes every missed rejection to code scanning.
 
 `ledger capabilities --out capability-manifest.json` gives agencies, vendors,
 and independent implementations one deterministic compatibility input instead
-of requiring them to infer support from prose. It binds fifteen protocol IDs to
-twenty-six exact schema-byte digests, producer/verifier commands, standalone and
+of requiring them to infer support from prose. It binds sixteen protocol IDs to
+twenty-nine exact schema-byte digests, producer/verifier commands, standalone and
 evidence-root requirements, disclosed data classes, offline operation, and zero
 automatic actions. `ledger verify-capabilities` detects both rehashed field
 tampering and local schema drift.
@@ -1885,8 +1895,10 @@ v0.1 scope choices:
 | AssuranceLedger VerifierConformance v5 — twelve clean-source-validated adversarial vectors including TrustRecoveryDrill | **superseded by v6** |
 | AssuranceLedger VerifierConformance v6 — thirteen clean-source-validated adversarial vectors including TrustRecoveryAttestation | **superseded by v7** |
 | AssuranceLedger VerifierConformance v7 — fourteen clean-source-validated adversarial vectors including AssuranceTimeQuorum | **superseded by v8** |
-| AssuranceLedger VerifierConformance v8 — fifteen clean-source-validated adversarial vectors including TrustRootTimeGate | **shipped on main** |
-| AssuranceLedger CapabilityManifest — fifteen offline protocol contracts bound to twenty-six exact schema digests | **shipped on main** |
+| AssuranceLedger VerifierConformance v8 — fifteen clean-source-validated adversarial vectors including TrustRootTimeGate | **superseded by v9** |
+| AssuranceLedger VerifierConformance v9 — sixteen clean-source-validated adversarial vectors including RootViewQuorum | **shipped on main** |
+| AssuranceLedger RootViewQuorum — nonce-bound independent root-distribution observations with non-outvotable conflict/newer-root evidence | **shipped on main** |
+| AssuranceLedger CapabilityManifest — sixteen offline protocol contracts bound to twenty-nine exact schema digests | **shipped on main** |
 | AssuranceLedger IntegrationLock — owner-pinned compatibility floors, drift SARIF, and fail-on-drift CI | **shipped on main** |
 | AssuranceTrustRoot — pinned bootstrap, exact policy authority, expiration, crypto-agile keys, and dual-threshold rotation | **shipped on main** |
 | AssuranceTrustRootChain — bounded multi-hop stale-client catch-up with historical-expiry handling and a current-final-root gate | **shipped on main** |

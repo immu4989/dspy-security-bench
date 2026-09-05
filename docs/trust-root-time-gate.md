@@ -128,6 +128,11 @@ or outer digest.
 - Feed SARIF into review workflows, but keep root installation and deployment
   authorization in explicit human-owned control planes.
 
+[RootViewQuorum](root-view-quorum.md) complements this temporal decision by
+collecting fresh, signed observations from independently pinned distribution
+observers. It can surface lagging, same-version-conflicting, or higher views
+among those supplied observers; it still cannot establish global freshness.
+
 ## Explicit non-claims
 
 The protocol does not prove UTC accuracy, source independence, clock or key

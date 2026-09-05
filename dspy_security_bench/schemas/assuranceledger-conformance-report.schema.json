@@ -1,27 +1,27 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-conformance-report.schema.json",
-  "title": "AssuranceLedger VerifierConformance v8 report",
+  "title": "AssuranceLedger VerifierConformance v9 report",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "report_type", "protocol_version", "runner", "source_artifact_sha256", "cases", "summary", "claim_boundary", "limitations", "report_sha256"],
   "properties": {
     "schema_version": {"const": 1},
     "report_type": {"const": "AssuranceLedger VerifierConformance / Adversarial mutation matrix"},
-    "protocol_version": {"const": "assuranceledger-verifier-conformance-v8"},
-    "runner": {"const": "deterministic-rehashed-semantic-mutation-runner-v8"},
-    "source_artifact_sha256": {"type": "object", "minProperties": 16, "maxProperties": 16, "additionalProperties": {"$ref": "#/$defs/digest"}},
+    "protocol_version": {"const": "assuranceledger-verifier-conformance-v9"},
+    "runner": {"const": "deterministic-rehashed-semantic-mutation-runner-v9"},
+    "source_artifact_sha256": {"type": "object", "minProperties": 17, "maxProperties": 17, "additionalProperties": {"$ref": "#/$defs/digest"}},
     "cases": {
       "type": "array",
-      "minItems": 15,
-      "maxItems": 15,
+      "minItems": 16,
+      "maxItems": 16,
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": ["case_id", "artifact_kind", "mutation_sha256", "expected_error_fragment", "status", "verifier_errors"],
         "properties": {
           "case_id": {"type": "string", "minLength": 1},
-          "artifact_kind": {"enum": ["ledger", "gossip", "rereview", "fork_proof", "consistency_proof", "observer", "witness_conflict", "trust_root", "trust_chain", "trust_recovery", "trust_recovery_attestation", "time_quorum", "trust_root_time", "capability_manifest", "integration_lock_check"]},
+          "artifact_kind": {"enum": ["ledger", "gossip", "rereview", "fork_proof", "consistency_proof", "observer", "witness_conflict", "trust_root", "trust_chain", "trust_recovery", "trust_recovery_attestation", "time_quorum", "trust_root_time", "root_view", "capability_manifest", "integration_lock_check"]},
           "mutation_sha256": {"$ref": "#/$defs/digest"},
           "expected_error_fragment": {"type": "string", "minLength": 1},
           "status": {"enum": ["expected_rejection_observed", "unexpected_acceptance"]},
@@ -35,9 +35,9 @@
       "required": ["status", "case_count", "expected_rejections_observed", "unexpected_acceptances", "automatic_actions"],
       "properties": {
         "status": {"enum": ["conformance_passed", "conformance_failed"]},
-        "case_count": {"const": 15},
-        "expected_rejections_observed": {"type": "integer", "minimum": 0, "maximum": 15},
-        "unexpected_acceptances": {"type": "integer", "minimum": 0, "maximum": 15},
+        "case_count": {"const": 16},
+        "expected_rejections_observed": {"type": "integer", "minimum": 0, "maximum": 16},
+        "unexpected_acceptances": {"type": "integer", "minimum": 0, "maximum": 16},
         "automatic_actions": {"const": 0}
       }
     },

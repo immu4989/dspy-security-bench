@@ -10,6 +10,23 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AssuranceLedger RootViewQuorum**, an offline root-distribution evidence
+  protocol for the distributor-withholding and split-view boundary that a
+  locally valid trust chain cannot resolve. An independently pinned policy maps
+  Ed25519 observer keys to declared organizations; every receipt binds the
+  exact candidate-root digest, a fresh caller nonce, and the observer's complete
+  received root. Ten deterministic checks reject policy replacement,
+  replay/rebinding, duplicate observers, concentrated organizations, bad
+  signatures, and embedded-root tampering. Lagging views remain visible without
+  counting toward agreement, while any valid same-version conflict or
+  higher-version observation is non-outvotable. Three strict schemas, policy
+  authoring and receipt/evaluation/reverification CLI, SARIF, a three-observer
+  fictional demo, exact standalone recomputation, CI, and a v9 adversarial
+  conformance mutation are included with zero content processing, network
+  requests, root installation, or automatic action. A passing result covers
+  only supplied views; it is not proof of global freshness, full dissemination,
+  observer independence, root continuity, certification, or authorization to
+  install a root.
 - **TrustRootTimeGate**, a conservative composition of AssuranceTimeQuorum and
   AssuranceTrustRoot. It natively recomputes the signed time report, checks an
   externally retained policy digest and fresh request nonce, requires the time
@@ -120,7 +137,7 @@ several of them changed published numbers.
   keeping operator-only and shared-witness conflicts distinct. Strict schema,
   semantic recomputation, key-level SARIF, and zero notifications or revocations
   are included without inferring motive, compromise cause, or legal identity.
-- **AssuranceLedger VerifierConformance v8**, an executable fifteen-case adversarial
+- **AssuranceLedger VerifierConformance v9**, an executable sixteen-case adversarial
   mutation matrix for downstream adopters. Rehashed signature, Merkle-path,
   observer-receipt, witness-attribution, re-review, gossip, and ledger mutations
   must trigger their intended native verifier rejection. Reports bind exact
@@ -129,15 +146,16 @@ several of them changed published numbers.
   cryptographic/lifecycle surfaces; v3 added TrustRoot threshold-signature
   recomputation, v4 added TrustRootChain hop-count recomputation, v5 added
   TrustRecoveryDrill readiness recomputation, v6 added authenticated recovery-
-  handoff recomputation, v7 adds conservative time-bound recomputation, and v8
-  adds whole-interval TrustRoot status recomputation.
+  handoff recomputation, v7 added conservative time-bound recomputation, v8
+  added whole-interval TrustRoot status recomputation, and v9 adds
+  RootViewQuorum matching-observer count recomputation.
   Every clean source is natively verified
   before mutation so an already-invalid fixture cannot pass the matrix. Source
   files are regular-file and 100 MB bounded before JSON reading; the finite
   matrix is explicitly not certification, fuzzing, or a security proof. Stable
   SARIF rule `ALC001` exposes any missed rejection to CI without taking action.
 - **AssuranceLedger CapabilityManifest**, a deterministic partner-integration
-  contract covering all fifteen ledger protocols and twenty-six strict JSON Schemas.
+  contract covering all sixteen ledger protocols and twenty-nine strict JSON Schemas.
   Exact schema-byte digests, protocol/report identifiers, producer and verifier
   commands, standalone/evidence-root requirements, disclosed data classes,
   offline operation, and the zero-action boundary recompute locally. CLI,
@@ -158,7 +176,7 @@ several of them changed published numbers.
   the complete fictional history, recomputes CapabilityManifest,
   IntegrationLockCheck, AssuranceTrustRoot, AssuranceTrustRootChain,
   TrustRecoveryDrill, TrustRecoveryAttestation, AssuranceTimeQuorum,
-  TrustRootTimeGate, and VerifierConformance v8, runs the focused trust and tamper suite from the
+  TrustRootTimeGate, RootViewQuorum, and VerifierConformance v9, runs the focused trust and tamper suite from the
   lockfile, and preserves JSON/SARIF review artifacts.
 - **AssuranceQuorum**, a role-separated review protocol using Ed25519-signed
   in-toto Statement v1 predicates inside DSSE envelopes. Content-addressed

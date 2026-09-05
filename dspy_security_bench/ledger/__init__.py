@@ -44,6 +44,14 @@ from dspy_security_bench.ledger.proof import (
     verify_ledger_report,
 )
 from dspy_security_bench.ledger.rereview import plan_rereview, verify_rereview_report
+from dspy_security_bench.ledger.root_view import (
+    build_root_view_policy,
+    create_root_view_receipt,
+    evaluate_root_view_quorum,
+    root_view_observer_descriptor,
+    validate_root_view_policy,
+    verify_root_view_report,
+)
 from dspy_security_bench.ledger.time_quorum import (
     build_time_policy,
     create_time_receipt,
@@ -109,6 +117,12 @@ __all__ = [
     "verify_fork_proof",
     "plan_rereview",
     "verify_rereview_report",
+    "build_root_view_policy",
+    "create_root_view_receipt",
+    "evaluate_root_view_quorum",
+    "root_view_observer_descriptor",
+    "validate_root_view_policy",
+    "verify_root_view_report",
     "verify_checkpoint_signature_bundle",
     "export_consistency_proof",
     "merkle_consistency_path",

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-root-view-receipt.schema.json",
+  "title": "AssuranceLedger RootViewQuorum signed observation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["statement", "observed_root", "observer_signature"],
+  "properties": {
+    "statement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "root_view_policy_sha256", "trust_domain", "candidate_root_sha256", "request_nonce", "observer_id", "observer_organization_id", "observer_key_sha256", "observed_root_sha256", "observed_root_version"],
+      "properties": {
+        "protocol_version": {"const": "assuranceledger-root-view-quorum-v1"},
+        "root_view_policy_sha256": {"$ref": "#/$defs/digest"},
+        "trust_domain": {"type": "string", "minLength": 1, "maxLength": 300},
+        "candidate_root_sha256": {"$ref": "#/$defs/digest"},
+        "request_nonce": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{16,200}$"},
+        "observer_id": {"$ref": "#/$defs/id"},
+        "observer_organization_id": {"$ref": "#/$defs/id"},
+        "observer_key_sha256": {"$ref": "#/$defs/digest"},
+        "observed_root_sha256": {"$ref": "#/$defs/digest"},
+        "observed_root_version": {"type": "integer", "minimum": 1}
+      }
+    },
+    "observed_root": {"$ref": "assuranceledger-trust-root.schema.json"},
+    "observer_signature": {"$ref": "#/$defs/signature"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["keyid", "signer_id", "signature_base64"],
+      "properties": {
+        "keyid": {"$ref": "#/$defs/digest"},
+        "signer_id": {"$ref": "#/$defs/id"},
+        "signature_base64": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

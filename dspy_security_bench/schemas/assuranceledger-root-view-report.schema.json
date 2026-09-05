@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-root-view-report.schema.json",
+  "title": "AssuranceLedger RootViewQuorum report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "root_view_policy", "candidate_root", "expectations", "receipts", "policy_errors", "candidate_errors", "receipt_results", "findings", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AssuranceLedger RootViewQuorum / Independently observed root distribution"},
+    "protocol_version": {"const": "assuranceledger-root-view-quorum-v1"},
+    "analyzer": {"const": "deterministic-independent-root-view-analyzer-v1"},
+    "root_view_policy": {"$ref": "assuranceledger-root-view-policy.schema.json"},
+    "candidate_root": {"$ref": "assuranceledger-trust-root.schema.json"},
+    "expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expected_policy_sha256", "expected_request_nonce"],
+      "properties": {
+        "expected_policy_sha256": {"$ref": "#/$defs/digest"},
+        "expected_request_nonce": {"$ref": "#/$defs/nonce"}
+      }
+    },
+    "receipts": {"type": "array", "minItems": 1, "maxItems": 50, "items": {"$ref": "assuranceledger-root-view-receipt.schema.json"}},
+    "policy_errors": {"type": "array", "items": {"type": "string"}},
+    "candidate_errors": {"type": "array", "items": {"type": "string"}},
+    "receipt_results": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["receipt_index", "observer_id", "observer_organization_id", "observed_root_sha256", "observed_root_version", "classification", "status", "errors"],
+        "properties": {
+          "receipt_index": {"type": "integer", "minimum": 0},
+          "observer_id": {"type": ["string", "null"]},
+          "observer_organization_id": {"type": ["string", "null"]},
+          "observed_root_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+          "observed_root_version": {"type": ["integer", "null"], "minimum": 1},
+          "classification": {"enum": ["matching", "lagging", "newer", "same_version_conflict", "unclassified", "invalid"]},
+          "status": {"enum": ["valid", "invalid"]},
+          "errors": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule_id", "title", "status", "detail", "receipt_indexes"],
+        "properties": {
+          "rule_id": {"enum": ["ARV001", "ARV002", "ARV003", "ARV004", "ARV005", "ARV006", "ARV007", "ARV008", "ARV009", "ARV010"]},
+          "title": {"type": "string", "minLength": 1},
+          "status": {"enum": ["passed", "failed"]},
+          "detail": {"type": "string", "minLength": 1},
+          "receipt_indexes": {"type": "array", "items": {"type": "integer", "minimum": 0}}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "candidate_root_version", "submitted_receipts", "valid_receipts", "distinct_observers", "matching_observers", "matching_organizations", "lagging_observers", "newer_root_reports", "same_version_conflicts", "passed_checks", "failed_checks", "content_fields_processed", "network_requests", "roots_installed", "automatic_actions"],
+      "properties": {
+        "status": {"enum": ["root_view_corroborated", "invalid_root_view_evidence", "root_view_policy_not_pinned", "root_view_request_mismatch", "insufficient_root_observers", "same_version_root_conflict", "newer_root_reported", "insufficient_root_observer_diversity"]},
+        "candidate_root_version": {"type": ["integer", "null"], "minimum": 1},
+        "submitted_receipts": {"type": "integer", "minimum": 1, "maximum": 50},
+        "valid_receipts": {"type": "integer", "minimum": 0, "maximum": 50},
+        "distinct_observers": {"type": "integer", "minimum": 0, "maximum": 50},
+        "matching_observers": {"type": "integer", "minimum": 0, "maximum": 50},
+        "matching_organizations": {"type": "integer", "minimum": 0, "maximum": 50},
+        "lagging_observers": {"type": "integer", "minimum": 0, "maximum": 50},
+        "newer_root_reports": {"type": "integer", "minimum": 0, "maximum": 50},
+        "same_version_conflicts": {"type": "integer", "minimum": 0, "maximum": 50},
+        "passed_checks": {"type": "integer", "minimum": 0, "maximum": 10},
+        "failed_checks": {"type": "integer", "minimum": 0, "maximum": 10},
+        "content_fields_processed": {"const": 0},
+        "network_requests": {"const": 0},
+        "roots_installed": {"const": 0},
+        "automatic_actions": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonce": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{16,200}$"}
+  }
+}

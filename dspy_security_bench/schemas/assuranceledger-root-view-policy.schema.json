@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-root-view-policy.schema.json",
+  "title": "AssuranceLedger RootViewQuorum policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_type", "protocol_version", "quorum_id", "trust_domain", "observers", "minimum_observers", "minimum_distinct_organizations", "claim_boundary", "policy_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "policy_type": {"const": "dspy-security-bench-assurance-root-view-policy"},
+    "protocol_version": {"const": "assuranceledger-root-view-quorum-v1"},
+    "quorum_id": {"$ref": "#/$defs/id"},
+    "trust_domain": {"type": "string", "minLength": 1, "maxLength": 300},
+    "observers": {"type": "array", "minItems": 2, "maxItems": 50, "items": {"$ref": "#/$defs/observer"}},
+    "minimum_observers": {"type": "integer", "minimum": 2, "maximum": 50},
+    "minimum_distinct_organizations": {"type": "integer", "minimum": 2, "maximum": 50},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "policy_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "observer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entity_id", "organization_id", "public_key_spki_base64", "public_key_sha256"],
+      "properties": {
+        "entity_id": {"$ref": "#/$defs/id"},
+        "organization_id": {"$ref": "#/$defs/id"},
+        "public_key_spki_base64": {"type": "string", "minLength": 1},
+        "public_key_sha256": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

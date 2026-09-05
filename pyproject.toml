@@ -95,6 +95,8 @@ keywords = [
     "secure-time-evidence",
     "time-quorum",
     "temporal-trust-root",
+    "root-distribution",
+    "root-view-quorum",
     "crypto-agility",
     "continuous-review",
     "review-impact-analysis",

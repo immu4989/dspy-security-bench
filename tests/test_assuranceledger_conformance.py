@@ -22,12 +22,12 @@ def _demo(tmp_path: Path) -> dict:
     return json.loads((tmp_path / "verifier-conformance.report.json").read_text())
 
 
-def test_all_fifteen_rehashed_adversarial_vectors_are_rejected(tmp_path):
+def test_all_sixteen_rehashed_adversarial_vectors_are_rejected(tmp_path):
     report = _demo(tmp_path)
     assert report["summary"] == {
         "automatic_actions": 0,
-        "case_count": 15,
-        "expected_rejections_observed": 15,
+        "case_count": 16,
+        "expected_rejections_observed": 16,
         "status": "conformance_passed",
         "unexpected_acceptances": 0,
     }
@@ -45,6 +45,7 @@ def test_all_fifteen_rehashed_adversarial_vectors_are_rejected(tmp_path):
         "trust_recovery_attestation",
         "time_quorum",
         "trust_root_time",
+        "root_view",
         "capability_manifest",
         "integration_lock_check",
     }

@@ -155,6 +155,19 @@ visible failure. Treat `temporally_trusted_root` as portable decision evidence,
 not a trust-anchor installation, FIPS determination, control assessment,
 authorization to operate, or proof that no newer root was withheld.
 
+For the remaining distribution question, use RootViewQuorum with observers
+operated through meaningfully separate agency, integrator, laboratory, sector,
+or enclave paths. Retain the observer-policy digest in configuration control
+and generate a fresh nonce for each candidate-root decision. A matching
+observer and declared-organization threshold can corroborate the supplied
+distribution view; a lagging response remains visible, and one valid same-
+version conflict or higher-version response blocks acceptance even when a
+majority matches. Investigate those outcomes and retrieve the full continuity
+chain through the agency's approved process. `root_view_corroborated` is not
+proof of nationwide or ecosystem-wide dissemination, actual organizational
+independence, a current global root, a control assessment, an ATO, or approval
+to install the candidate.
+
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every
 candidate, report missing cost or outcome observations as missing, and treat

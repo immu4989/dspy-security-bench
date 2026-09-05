@@ -651,3 +651,55 @@ independence, secure key custody, global root freshness, absence of a withheld
 successor, compliance, certification, or authority to operate. Its narrower
 contribution is to prevent independently signed uncertainty from disappearing
 at the point where a trust anchor is accepted.
+
+## September 5 continuation: independent evidence of root distribution
+
+TrustRootChain can prove that a supplied sequence advances correctly, and
+TrustRootTimeGate can prove the candidate remains valid across signed time
+uncertainty. Neither can discover a newer root that a compromised, partitioned,
+or stale distributor never supplies. That is a separate evidence problem from
+cryptographic continuity.
+
+The [TUF specification](https://theupdateframework.github.io/specification/latest/)
+requires clients to update root metadata one version at a time and explicitly
+describes freeze exposure when an attacker withholds newer metadata. The
+[C2SP transparency-log witness protocol](https://c2sp.org/tlog-witness)
+illustrates independent parties retaining and cosigning consistent checkpoint
+advancement. The
+[IETF Key Transparency Architecture](https://datatracker.ietf.org/doc/draft-ietf-keytrans-architecture/)
+discusses monitors, split views, third-party participation, gossip, and the
+connectivity assumptions needed to expose forks. These sources motivate the
+security property; RootViewQuorum does not claim compatibility or conformance
+with any of them.
+
+RootViewQuorum uses an independently retained policy of Ed25519 observer keys
+and declared organizations. Each observer signs the verifier's exact candidate-
+root digest, a fresh caller nonce, and the digest and version of the complete
+root object it received. The root object is embedded so a standalone verifier
+can recompute its digest and validate its current-root threshold rather than
+trusting an observer-supplied label.
+
+The analyzer classifies valid observations as matching, lagging,
+same-version-conflicting, or newer. Only unique matching observers count toward
+the observer and organization thresholds. Lag is preserved as distribution
+telemetry. A same-version conflict or higher version is non-outvotable, so a
+majority cannot erase evidence of a split or a candidate that may already be
+stale.
+
+Ten checks cover policy pinning and structure, candidate-root integrity and
+domain, receipt shape, candidate/nonce binding, observer identity,
+organization, key and signature, embedded-root recomputation, observer quorum,
+organization diversity, and conflicting or higher roots. Three strict schemas,
+policy and receipt CLI, exact offline report recomputation, SARIF, a fictional
+three-organization demo, CI, and a rehashed v9 conformance mutation accompany
+the protocol. CapabilityManifest now binds sixteen offline protocols to twenty-
+nine schema files, including eleven standalone verifiers.
+
+The result deliberately remains narrower than “latest root.” It covers only the
+selected observers and supplied responses. A higher-version observation does
+not alone prove predecessor continuity. Declared organizations may not be
+operationally independent, selected observers may all share a partition, and
+undisclosed views remain invisible. The analyzer makes zero network requests,
+installs zero roots, processes zero content fields, and takes zero automatic
+actions. Its contribution is portable evidence at the boundary between valid
+root metadata and its real-world distribution.

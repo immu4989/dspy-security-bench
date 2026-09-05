@@ -94,10 +94,16 @@ not people. A key that signs both fork views is cryptographically identifiable,
 but the analyzer cannot distinguish compromise, implementation failure,
 collusion, or other causes and performs no revocation.
 AssuranceLedger VerifierConformance trusts the native verifiers it exercises;
-v8 first requires fifteen clean source classes to pass native verification,
-then demonstrates rejection of fifteen exact mutations—not the absence of other bugs.
+v9 first requires sixteen clean source classes to pass native verification,
+then demonstrates rejection of sixteen exact mutations—not the absence of other bugs.
 Inputs and verifier code are identified by digest, and no network or system
 action is performed.
+AssuranceLedger RootViewQuorum trusts an independently retained observer-policy
+digest, fresh caller nonce, observer keys, and declared organization mappings.
+It proves only what the selected observers signed for that challenge. It cannot
+discover undisclosed views, prove legal or operational independence, establish
+global freshness, validate a complete successor chain from a higher-version
+receipt, choose the truthful side of a conflict, or install a root.
 AssuranceLedger CapabilityManifest trusts the package's compiled capability
 table and local schema directory. Exact byte digests reveal drift, but do not
 establish that a schema is secure, that another implementation is compatible,

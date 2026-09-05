@@ -81,7 +81,11 @@ jobs:
         run: >-
           uv run --locked --no-sync dspy-security-bench ledger verify-trust-root-time
           artifacts/assuranceledger/trust-root-time.report.json
-      - name: Recompute fifteen clean-source and adversarial verifier checks
+      - name: Recompute independent root-distribution corroboration
+        run: >-
+          uv run --locked --no-sync dspy-security-bench ledger verify-root-view
+          artifacts/assuranceledger/root-view.report.json
+      - name: Recompute sixteen clean-source and adversarial verifier checks
         run: >-
           uv run --locked --no-sync dspy-security-bench ledger verify-conformance
           artifacts/assuranceledger/verifier-conformance.report.json
@@ -106,6 +110,7 @@ jobs:
           tests/test_assuranceledger_trust_recovery_attestation.py
           tests/test_assuranceledger_time_quorum.py
           tests/test_assuranceledger_trust_root_time.py
+          tests/test_assuranceledger_root_view.py
       - name: Preserve reviewable JSON and SARIF evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

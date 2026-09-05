@@ -51,7 +51,7 @@ same-size conflict with no embedded ledger entries or review content.
 
 The same command now produces the complete partner-verification surface:
 
-- `capability-manifest.json` — fifteen offline protocol contracts and twenty-six
+- `capability-manifest.json` — sixteen offline protocol contracts and twenty-nine
   exact schema digests;
 - `trust-root-v1.json` through `trust-root-v3.json`, `trust-root.report.json`,
   and `trust-root-chain.report.json` — a pinned predecessor, dual-threshold
@@ -68,9 +68,12 @@ The same command now produces the complete partner-verification surface:
   from three distinct fictional organizations with zero clock adjustment;
 - `trust-root-time.report.json` — native TimeQuorum recomputation plus complete
   TrustRoot checks at both conservative interval endpoints;
+- `root-view-policy.json`, three `root-view-*.receipt.json` files, and
+  `root-view.report.json` — independent nonce-bound observations of the exact
+  root received through three fictional organizations;
 - `integration-lock.json` and `integration-lock-check.report.json` — the
   owner-pin fixture and zero-drift reference result;
-- `verifier-conformance.report.json` — fifteen clean-source-validated, rehashed
+- `verifier-conformance.report.json` — sixteen clean-source-validated, rehashed
   adversarial rejection cases; and
 - SARIF companions for ledger outcomes, gossip, compact proofs, observation,
   witness attribution, re-review, conformance, and integration drift.
@@ -241,6 +244,12 @@ then requires complete root trust at both endpoints. Issuance or expiration
 inside the uncertainty interval fails closed. See the
 [TrustRootTimeGate guide](trust-root-time-gate.md).
 
+For distribution visibility, `RootViewQuorum` binds independently pinned
+observer keys, the verifier's candidate-root digest, and a fresh nonce to each
+observer's complete received root. Matching views count; lagging views are
+reported; same-version conflicts and newer versions cannot be outvoted. See the
+[RootViewQuorum guide](root-view-quorum.md).
+
 ## Outcomes with non-overlapping meanings
 
 | Outcome | Exact meaning |
@@ -378,18 +387,19 @@ dspy-security-bench ledger verify-conformance \
 ```
 
 The runner changes a security-relevant field, recomputes the outer report hash,
-and requires the intended deeper verifier rejection for fifteen surfaces:
+and requires the intended deeper verifier rejection for sixteen surfaces:
 checkpoint signature binding, gossip outcome, re-review impact, ForkProof root,
 ConsistencyProof path, ObserverReceipt signature, and witness-conflict
 attribution, plus TrustRoot threshold signatures, TrustRootChain hop counts,
 TrustRecoveryDrill readiness totals, TrustRecoveryAttestation signature totals,
 AssuranceTimeQuorum conservative bounds, TrustRootTimeGate endpoint status,
+RootViewQuorum matching-observer totals,
 CapabilityManifest contract drift, and
 IntegrationLockCheck outcome drift. The
 report binds every source artifact digest and recomputes exactly from the same
 inputs.
 
-Before applying any mutation, v8 runs all fifteen clean artifacts through their
+Before applying any mutation, v9 runs all sixteen clean artifacts through their
 native verifiers. One already-invalid source aborts the matrix and cannot be
 counted as an expected adversarial rejection. This makes “clean source” an
 enforced experimental precondition rather than a caller assertion.
@@ -424,7 +434,7 @@ dspy-security-bench ledger verify-capabilities \
   --schema-root dspy_security_bench/schemas
 ```
 
-The manifest covers fifteen protocol surfaces and all twenty-six AssuranceLedger
+The manifest covers sixteen protocol surfaces and all twenty-nine AssuranceLedger
 Draft 2020-12 schemas. Each schema record binds its stable `$id` and exact file
 bytes with SHA-256. Each protocol record exposes its report type, producer and
 verifier commands, whether verification is standalone, whether an evidence root
