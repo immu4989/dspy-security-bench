@@ -104,6 +104,12 @@ It proves only what the selected observers signed for that challenge. It cannot
 discover undisclosed views, prove legal or operational independence, establish
 global freshness, validate a complete successor chain from a higher-version
 receipt, choose the truthful side of a conflict, or install a root.
+Its v1 known-answer pack pins 21 exact public JSON artifacts through one
+immutable manifest and carries eight expected
+decisions; passing that finite corpus does not establish general conformance,
+parser safety, cryptographic-module validation, implementation certification,
+or an authorization to operate. Fixed generator seeds are public and test-only,
+and no private-key file is emitted.
 AssuranceLedger CapabilityManifest trusts the package's compiled capability
 table and local schema directory. Exact byte digests reveal drift, but do not
 establish that a schema is secure, that another implementation is compatible,

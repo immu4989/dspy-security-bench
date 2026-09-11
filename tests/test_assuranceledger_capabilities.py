@@ -22,7 +22,7 @@ def test_manifest_covers_every_assuranceledger_protocol_and_schema():
         "automatic_actions": 0,
         "offline_verifier_count": 16,
         "protocol_count": 16,
-        "schema_count": 29,
+        "schema_count": 30,
         "standalone_verifier_count": 11,
     }
     assert len({item["protocol_id"] for item in manifest["protocols"]}) == 16

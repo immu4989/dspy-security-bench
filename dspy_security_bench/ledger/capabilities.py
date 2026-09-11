@@ -79,6 +79,7 @@ SCHEMA_FILES = (
     "assuranceledger-root-view-policy.schema.json",
     "assuranceledger-root-view-receipt.schema.json",
     "assuranceledger-root-view-report.schema.json",
+    "assuranceledger-root-view-vector-manifest.schema.json",
     "assuranceledger-time-quorum-policy.schema.json",
     "assuranceledger-time-quorum-report.schema.json",
     "assuranceledger-time-receipt.schema.json",
@@ -427,6 +428,7 @@ def _protocols() -> tuple[dict[str, Any], ...]:
                 "assuranceledger-root-view-policy.schema.json",
                 "assuranceledger-root-view-receipt.schema.json",
                 "assuranceledger-root-view-report.schema.json",
+                "assuranceledger-root-view-vector-manifest.schema.json",
                 "assuranceledger-trust-root.schema.json",
             ],
             "producer_commands": [
@@ -434,6 +436,7 @@ def _protocols() -> tuple[dict[str, Any], ...]:
                 "ledger create-root-view-policy",
                 "ledger sign-root-view",
                 "ledger evaluate-root-view",
+                "ledger generate-root-view-vectors",
             ],
             "verifier_command": "ledger verify-root-view",
             "standalone_verification": True,
@@ -443,6 +446,7 @@ def _protocols() -> tuple[dict[str, Any], ...]:
                 "declared observer organizations",
                 "candidate root digests and caller nonces",
                 "signed exact observed trust roots",
+                "known-answer inputs and expected outcomes",
             ],
         },
         {

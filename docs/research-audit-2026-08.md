@@ -692,8 +692,8 @@ organization, key and signature, embedded-root recomputation, observer quorum,
 organization diversity, and conflicting or higher roots. Three strict schemas,
 policy and receipt CLI, exact offline report recomputation, SARIF, a fictional
 three-organization demo, CI, and a rehashed v9 conformance mutation accompany
-the protocol. CapabilityManifest now binds sixteen offline protocols to twenty-
-nine schema files, including eleven standalone verifiers.
+the protocol. CapabilityManifest now binds sixteen offline protocols to thirty
+schema files, including eleven standalone verifiers.
 
 The result deliberately remains narrower than “latest root.” It covers only the
 selected observers and supplied responses. A higher-version observation does
@@ -703,3 +703,32 @@ undisclosed views remain invisible. The analyzer makes zero network requests,
 installs zero roots, processes zero content fields, and takes zero automatic
 actions. Its contribution is portable evidence at the boundary between valid
 root metadata and its real-world distribution.
+
+## September 5 continuation: reproducible RootView interoperability
+
+A protocol with strict schemas and a Python reference verifier still leaves a
+practical adoption gap: another implementation can parse the schema yet assign
+different meaning to a nonce mismatch, duplicate observer, conflict, or
+tampered derived summary. A prose contract alone does not reveal that drift.
+
+The [TUF conformance suite](https://github.com/theupdateframework/tuf-conformance)
+and [Sigstore conformance suite](https://github.com/sigstore/sigstore-conformance)
+show the value of executing shared behavior across independent implementations.
+[RFC 8032 section 7](https://www.rfc-editor.org/rfc/rfc8032.html#section-7)
+provides deterministic Ed25519 known-answer inputs. These are design precedents,
+not compatibility or certification claims.
+
+The resulting RootViewQuorum v1 pack freezes 21 public input/report JSON files,
+their exact SHA-256 digests, one immutable manifest, eight ordered inputs, seven
+expected semantic results, and one
+mandatory verifier rejection. Generation is byte-deterministic across
+directories. The verifier checks an immutable official-manifest digest before
+executing cases, so an edited and self-rehashed corpus cannot masquerade as v1.
+Fixed signing seeds exist only as openly disclosed test material in generator
+memory and temporary files; no private key is distributed in the pack.
+
+This improves repeatable integration for agencies, suppliers, frontier labs,
+and independent implementations without inflating the claim. Eight passing
+cases cannot establish general conformance, parser safety, absence of other
+state-machine defects, cryptographic-module validation, FIPS status,
+certification, government endorsement, deployment approval, or an ATO.

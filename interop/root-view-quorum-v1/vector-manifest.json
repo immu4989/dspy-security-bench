@@ -1,0 +1,177 @@
+{
+  "canonicalization": "Protocol digests are SHA-256 over UTF-8 JSON with recursively sorted object keys, no insignificant whitespace, Unicode emitted directly, and non-finite numbers rejected; files use sorted keys, two-space indentation, and one LF terminator",
+  "cases": [
+    {
+      "candidate_root_file": "roots/candidate-v1.json",
+      "case_id": "matching-quorum",
+      "expected_error_fragment": null,
+      "expected_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+      "expected_request_nonce": "known-answer-root-view-challenge-0001",
+      "expected_status": "root_view_corroborated",
+      "expected_verifier_acceptance": true,
+      "operation": "evaluate",
+      "policy_file": "policy.json",
+      "receipt_files": [
+        "receipts/matching-v1-observer-1.json",
+        "receipts/matching-v1-observer-2.json",
+        "receipts/matching-v1-observer-3.json"
+      ],
+      "report_file": "reports/matching-quorum.json"
+    },
+    {
+      "candidate_root_file": "roots/candidate-v2.json",
+      "case_id": "lagging-view-preserved",
+      "expected_error_fragment": null,
+      "expected_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+      "expected_request_nonce": "known-answer-root-view-challenge-0001",
+      "expected_status": "root_view_corroborated",
+      "expected_verifier_acceptance": true,
+      "operation": "evaluate",
+      "policy_file": "policy.json",
+      "receipt_files": [
+        "receipts/matching-v2-observer-1.json",
+        "receipts/matching-v2-observer-2.json",
+        "receipts/lagging-v1-observer-3.json"
+      ],
+      "report_file": "reports/lagging-view-preserved.json"
+    },
+    {
+      "candidate_root_file": "roots/candidate-v1.json",
+      "case_id": "same-version-conflict",
+      "expected_error_fragment": null,
+      "expected_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+      "expected_request_nonce": "known-answer-root-view-challenge-0001",
+      "expected_status": "same_version_root_conflict",
+      "expected_verifier_acceptance": true,
+      "operation": "evaluate",
+      "policy_file": "policy.json",
+      "receipt_files": [
+        "receipts/matching-v1-observer-1.json",
+        "receipts/matching-v1-observer-2.json",
+        "receipts/conflicting-v1-observer-3.json"
+      ],
+      "report_file": "reports/same-version-conflict.json"
+    },
+    {
+      "candidate_root_file": "roots/candidate-v1.json",
+      "case_id": "newer-root-reported",
+      "expected_error_fragment": null,
+      "expected_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+      "expected_request_nonce": "known-answer-root-view-challenge-0001",
+      "expected_status": "newer_root_reported",
+      "expected_verifier_acceptance": true,
+      "operation": "evaluate",
+      "policy_file": "policy.json",
+      "receipt_files": [
+        "receipts/matching-v1-observer-1.json",
+        "receipts/matching-v1-observer-2.json",
+        "receipts/newer-v2-observer-3.json"
+      ],
+      "report_file": "reports/newer-root-reported.json"
+    },
+    {
+      "candidate_root_file": "roots/candidate-v1.json",
+      "case_id": "duplicate-observer",
+      "expected_error_fragment": null,
+      "expected_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+      "expected_request_nonce": "known-answer-root-view-challenge-0001",
+      "expected_status": "insufficient_root_observers",
+      "expected_verifier_acceptance": true,
+      "operation": "evaluate",
+      "policy_file": "policy.json",
+      "receipt_files": [
+        "receipts/matching-v1-observer-1.json",
+        "receipts/matching-v1-observer-1.json",
+        "receipts/matching-v1-observer-2.json"
+      ],
+      "report_file": "reports/duplicate-observer.json"
+    },
+    {
+      "candidate_root_file": "roots/candidate-v1.json",
+      "case_id": "nonce-mismatch",
+      "expected_error_fragment": null,
+      "expected_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+      "expected_request_nonce": "known-answer-root-view-challenge-0002",
+      "expected_status": "root_view_request_mismatch",
+      "expected_verifier_acceptance": true,
+      "operation": "evaluate",
+      "policy_file": "policy.json",
+      "receipt_files": [
+        "receipts/matching-v1-observer-1.json",
+        "receipts/matching-v1-observer-2.json",
+        "receipts/matching-v1-observer-3.json"
+      ],
+      "report_file": "reports/nonce-mismatch.json"
+    },
+    {
+      "candidate_root_file": "roots/candidate-v1.json",
+      "case_id": "invalid-observer-signature",
+      "expected_error_fragment": null,
+      "expected_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+      "expected_request_nonce": "known-answer-root-view-challenge-0001",
+      "expected_status": "invalid_root_view_evidence",
+      "expected_verifier_acceptance": true,
+      "operation": "evaluate",
+      "policy_file": "policy.json",
+      "receipt_files": [
+        "receipts/invalid-signature-observer-1.json",
+        "receipts/matching-v1-observer-2.json",
+        "receipts/matching-v1-observer-3.json"
+      ],
+      "report_file": "reports/invalid-observer-signature.json"
+    },
+    {
+      "candidate_root_file": null,
+      "case_id": "rehashed-summary-tamper",
+      "expected_error_fragment": "RootViewQuorum report does not recompute exactly",
+      "expected_policy_sha256": null,
+      "expected_request_nonce": null,
+      "expected_status": null,
+      "expected_verifier_acceptance": false,
+      "operation": "verify-report",
+      "policy_file": null,
+      "receipt_files": [],
+      "report_file": "reports/rehashed-summary-tamper.json"
+    }
+  ],
+  "claim_boundary": "RootViewQuorum KnownAnswerVectors binds deterministic public test artifacts, expected evaluation outcomes, verifier acceptance decisions, and exact file bytes for a finite RootViewQuorum v1 interoperability corpus. Passing the pack verifier demonstrates only behavior on these exact vectors; it is not general conformance, cryptographic-module validation, implementation certification, security certification, or deployment approval.",
+  "file_sha256": {
+    "policy.json": "35466aa180fae26d99999f30347222f8b8fd946ae39bb5788ea779abc65487a8",
+    "receipts/conflicting-v1-observer-3.json": "96721451c417e7a4ea40dcc1882e1635f76c6821fe3940e17027a16ae8644e84",
+    "receipts/invalid-signature-observer-1.json": "7772740233753976d24f13fca0aca3c010f77e5b0d925f7e40201e62f594eeb3",
+    "receipts/lagging-v1-observer-3.json": "684eeab91de47ea113974d5db239e61f1385789fd846225d109ac7de43f2110b",
+    "receipts/matching-v1-observer-1.json": "148a4fc2872713970de773a44252688998545ee4ebcb0f473fa9d32366cb155e",
+    "receipts/matching-v1-observer-2.json": "16fd3857b210baa609ce07498e7c9d645d8c590341388e3ebdce865ebc05625e",
+    "receipts/matching-v1-observer-3.json": "c173efa87d7b07c405926ff864da912cbf6b51c54c1a93194d0127d07215ba34",
+    "receipts/matching-v2-observer-1.json": "1875ddbb9f39a8efb0a01229e932e58dafbcd26a9c7e905689fe96574194e992",
+    "receipts/matching-v2-observer-2.json": "07e23f07b31d174b964a3c16766b1a80bc2c95b16adb9fe15a4a6d723022c8cd",
+    "receipts/newer-v2-observer-3.json": "18782ce9ef026809db25485ea5271450e785d51acdcb1d0e379271e3d88702c1",
+    "reports/duplicate-observer.json": "fdc2dc7bcc2bafc6e279978ffb21f44e0e69a3363cca1d47ae8a2ad97661cd2a",
+    "reports/invalid-observer-signature.json": "52536e7de4d6c18fe8674b071271dea10406e175f9c3c147ad29cbda68c67011",
+    "reports/lagging-view-preserved.json": "43a250ea80421aa5fdbce37ed7e7061f2c526bff73fe214a5137ec73f0b12603",
+    "reports/matching-quorum.json": "4a662ea37010a245808c4bf1387e0a5069b4e622abda3e99f8d11ce1bffa969f",
+    "reports/newer-root-reported.json": "e6e31f2c5ac611ae961028610fce089fadf14178b39ee2d3c0652a39d442d9df",
+    "reports/nonce-mismatch.json": "065d3bd57903a7a800e8e1242e425742668702fb6b9df327ddf0a4b58d6069b4",
+    "reports/rehashed-summary-tamper.json": "7ef8b77b886881e53b5981386537932f4a897ee475bdc627575ab46eedf94f09",
+    "reports/same-version-conflict.json": "2767b2446a9f145495f90f5c0742d279d75241fa59f02513ab20eb0e928647b8",
+    "roots/candidate-v1.json": "d7358ea05554b49fd6b98006560b413db3d380dfce8a4c7ed09313305c928566",
+    "roots/candidate-v2.json": "3281d7a70f014084d7bd157da7a67447e32e263d4e34721fba5d7d91e4efeff8",
+    "roots/conflicting-v1.json": "97d6fdbb64804e08d315e967599af717827cc82150c818a422e46f4887c2975d"
+  },
+  "generator": "deterministic-root-view-vector-generator-v1",
+  "limitations": [
+    "The generator derives intentionally public test-only private keys from fixed labels; those keys must never be used outside fixtures.",
+    "Generated artifacts contain public keys and signatures but no private-key material.",
+    "The finite corpus cannot establish the absence of parser, canonicalization, signature, policy, or state-machine defects outside its cases.",
+    "Expected error fragments describe this implementation's verifier surface and are not a cross-language error-message requirement.",
+    "The pack is not NIST ACVP/CAVP, FIPS validation, TUF conformance, Sigstore conformance, government endorsement, or an authorization to operate.",
+    "Generation and verification perform no network access, root installation, deployment, notification, revocation, or automatic remediation."
+  ],
+  "manifest_sha256": "e39be2384f1ff8e49d8e62e26df112a01d181e5ece06a9e9f7df36dd93750e08",
+  "private_keys_included": false,
+  "root_view_protocol_version": "assuranceledger-root-view-quorum-v1",
+  "schema_version": 1,
+  "test_only_keys": true,
+  "vector_suite": "dspy-security-bench-root-view-known-answer-vectors",
+  "vector_version": "assuranceledger-root-view-vectors-v1"
+}

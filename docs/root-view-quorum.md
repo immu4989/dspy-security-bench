@@ -171,6 +171,55 @@ Draft 2020-12 schemas. Reverification rebuilds the complete report from the
 embedded policy, candidate root, and receipts. Replacing the outer SHA-256 after
 changing a count, signature, or classification does not pass.
 
+## Cross-language known-answer vectors
+
+The committed [`interop/root-view-quorum-v1`](../interop/root-view-quorum-v1/README.md)
+pack lets another language or product test the protocol without invoking the
+Python generator. It contains 21 byte-stable public input/report artifacts plus
+one immutable manifest and eight ordered cases:
+
+| Case | Required decision |
+|---|---|
+| `matching-quorum` | accept `root_view_corroborated` |
+| `lagging-view-preserved` | accept while retaining the lagging observation |
+| `same-version-conflict` | accept the report with `same_version_root_conflict` |
+| `newer-root-reported` | accept the report with `newer_root_reported` |
+| `duplicate-observer` | accept the fail-closed `insufficient_root_observers` report |
+| `nonce-mismatch` | accept the fail-closed `root_view_request_mismatch` report |
+| `invalid-observer-signature` | accept the fail-closed `invalid_root_view_evidence` report |
+| `rehashed-summary-tamper` | reject the report even though its outer digest was recomputed |
+
+```bash
+# Verify exact file bytes, the immutable manifest identity, and all outcomes.
+dspy-security-bench ledger verify-root-view-vectors \
+  interop/root-view-quorum-v1
+
+# Recreate the official pack byte-for-byte in a new directory.
+dspy-security-bench ledger generate-root-view-vectors \
+  --out-dir /tmp/root-view-quorum-v1
+```
+
+Protocol digests use SHA-256 over UTF-8 JSON with recursively sorted object
+keys, no insignificant whitespace, direct Unicode emission, and rejection of
+non-finite numbers. Corpus files use sorted keys, two-space indentation, and
+one LF terminator. This is the project's defined canonical form for this pack,
+not a claim of RFC 8785 compatibility.
+
+The manifest binds every file SHA-256, case input, expected semantic outcome,
+and verifier-acceptance decision. Its expected digest is compiled into the v1
+verifier, so changing and rehashing the manifest cannot impersonate the
+official corpus. The generator derives intentionally public, test-only Ed25519
+seeds inside a temporary directory and emits no private key file.
+
+The structure follows the practical pattern used by the
+[TUF conformance suite](https://github.com/theupdateframework/tuf-conformance)
+and [Sigstore conformance suite](https://github.com/sigstore/sigstore-conformance),
+while deterministic signature inputs follow the known-answer testing principle
+illustrated by [RFC 8032 test vectors](https://www.rfc-editor.org/rfc/rfc8032.html#section-7).
+Passing these eight cases is a finite interoperability signal only. It is not
+general conformance, fuzzing, NIST ACVP/CAVP or FIPS validation, implementation
+certification, government endorsement, deployment approval, or an ATO.
+
 ## Deployment guidance
 
 - Keep the observer-policy pin and challenge nonce in a verifier-owned trust
@@ -211,6 +260,8 @@ wire compatibility or conformance:
 - [The Update Framework specification](https://theupdateframework.github.io/specification/latest/) describes sequential root updates and the freeze risk when an attacker withholds newer metadata.
 - [C2SP transparency-log witness protocol](https://c2sp.org/tlog-witness) describes witnesses retaining checkpoints and cosigning only consistent advancement.
 - [IETF Key Transparency Architecture](https://datatracker.ietf.org/doc/draft-ietf-keytrans-architecture/) discusses monitoring, split views, third-party participation, and gossip assumptions.
+- [TUF conformance](https://github.com/theupdateframework/tuf-conformance) and [Sigstore conformance](https://github.com/sigstore/sigstore-conformance) demonstrate cross-implementation test-suite patterns.
+- [RFC 8032 test vectors](https://www.rfc-editor.org/rfc/rfc8032.html#section-7) provide deterministic known-answer examples for Ed25519.
 
 RootViewQuorum is not TUF, a C2SP witness protocol, Key Transparency, SCITT,
 PKI, a trust store, a root installer, or a software-update client.

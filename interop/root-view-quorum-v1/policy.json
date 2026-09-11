@@ -1,0 +1,31 @@
+{
+  "claim_boundary": "RootViewQuorum verifies policy-pinned Ed25519 observations from distinct declared organizations over one candidate AssuranceTrustRoot and fresh caller nonce. It corroborates only the views supplied for that challenge and makes authenticated observations of a self-consistent same-version conflict or higher-version root non-outvotable. A passing report is bounded distribution-view evidence, not proof of global freshness or root trust.",
+  "minimum_distinct_organizations": 2,
+  "minimum_observers": 2,
+  "observers": [
+    {
+      "entity_id": "vector-observer-1",
+      "organization_id": "vector-observer-organization-1",
+      "public_key_sha256": "ff427d4c88e1d3e1b403af336f1f49920565c20586e476a567894abeed93f12a",
+      "public_key_spki_base64": "MCowBQYDK2VwAyEA5VEm5gpBONLjwBJher7ij/N1vn66FuWAbPTPbnWdri0="
+    },
+    {
+      "entity_id": "vector-observer-2",
+      "organization_id": "vector-observer-organization-2",
+      "public_key_sha256": "1419f9ee71203dd0678d8a65666568959d61b2d197b4079fda4cf6c0d6889241",
+      "public_key_spki_base64": "MCowBQYDK2VwAyEAtGWGVO7ABsukWqREkA4orqIMAo7ZR0aAXK3mFzkG0Dk="
+    },
+    {
+      "entity_id": "vector-observer-3",
+      "organization_id": "vector-observer-organization-3",
+      "public_key_sha256": "eba05233260b58a70f0d1a9c7da2caa31d207d5dd014c8b766680538ac202d99",
+      "public_key_spki_base64": "MCowBQYDK2VwAyEAngdjPpKySGibJWSd90XzSRNV7YFT+8bd+Ar0Mnuf1mI="
+    }
+  ],
+  "policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+  "policy_type": "dspy-security-bench-assurance-root-view-policy",
+  "protocol_version": "assuranceledger-root-view-quorum-v1",
+  "quorum_id": "root-view-known-answer",
+  "schema_version": 1,
+  "trust_domain": "root-view-vector.example/assurance"
+}

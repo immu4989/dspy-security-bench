@@ -26,7 +26,13 @@ several of them changed published numbers.
   requests, root installation, or automatic action. A passing result covers
   only supplied views; it is not proof of global freshness, full dissemination,
   observer independence, root continuity, certification, or authorization to
-  install a root.
+  install a root. A companion language-neutral known-answer pack adds eight
+  deterministic cases across 21 manifest-bound JSON artifacts plus the manifest,
+  exact file SHA-256
+  bindings, an immutable v1 manifest digest, reproducible generation, offline
+  execution, strict schema, CLI, tests, and CI. It contains no private keys and
+  is a finite interoperability aid—not general conformance, cryptographic-
+  module validation, implementation certification, or government approval.
 - **TrustRootTimeGate**, a conservative composition of AssuranceTimeQuorum and
   AssuranceTrustRoot. It natively recomputes the signed time report, checks an
   externally retained policy digest and fresh request nonce, requires the time
@@ -155,7 +161,7 @@ several of them changed published numbers.
   matrix is explicitly not certification, fuzzing, or a security proof. Stable
   SARIF rule `ALC001` exposes any missed rejection to CI without taking action.
 - **AssuranceLedger CapabilityManifest**, a deterministic partner-integration
-  contract covering all sixteen ledger protocols and twenty-nine strict JSON Schemas.
+  contract covering all sixteen ledger protocols and thirty strict JSON Schemas.
   Exact schema-byte digests, protocol/report identifiers, producer and verifier
   commands, standalone/evidence-root requirements, disclosed data classes,
   offline operation, and the zero-action boundary recompute locally. CLI,

@@ -48,6 +48,7 @@ in-toto/DSSE statement under a separate root-authorized signer policy.
 [![EvalIntegrityProof](https://img.shields.io/badge/EvalIntegrityProof-prove%20the%20evaluation-FF7CE5)](docs/evalintegrityproof.md)
 [![AssuranceQuorum](https://img.shields.io/badge/AssuranceQuorum-role--separated%20DSSE%20review-7FE7FF)](docs/assurancequorum.md)
 [![AssuranceLedger](https://img.shields.io/badge/AssuranceLedger-witnessed%20key%20lifecycle-F6C667)](docs/assuranceledger.md)
+[![RootView vectors](https://img.shields.io/badge/RootView-8%20byte--stable%20vectors-81EADB)](interop/root-view-quorum-v1/README.md)
 [![AssuranceTrustRoot](https://img.shields.io/badge/AssuranceTrustRoot-dual--threshold%20rotation-FF9F6E)](docs/assurancetrustroot.md)
 [![TrustRootChain](https://img.shields.io/badge/TrustRootChain-bounded%20multi--hop%20catch--up-65DDB9)](docs/assurancetrustroot.md#catch-up-a-stale-client-across-multiple-rotations)
 [![TrustRecoveryDrill](https://img.shields.io/badge/TrustRecoveryDrill-13%20readiness%20checks-FF7E9D)](docs/trust-recovery-drill.md)
@@ -296,6 +297,17 @@ network requests and installs no root; it corroborates only the supplied views,
 not global freshness or complete dissemination.
 [Detect stale or split trust-root distribution →](docs/root-view-quorum.md)
 
+Implementers do not need to reverse-engineer those semantics from Python.
+[`interop/root-view-quorum-v1`](interop/root-view-quorum-v1/README.md) ships
+eight deterministic, language-neutral known-answer cases: matching and lagging
+quorums, same-version conflict, newer root, duplicate observer, nonce mismatch,
+invalid signature, and a rehashed report mutation that must be rejected. The
+21 input/report JSON artifacts are byte-bound by a twenty-second manifest; none
+contains a private key. An immutable manifest digest pins the official v1 bytes
+and expected decisions. Generate or verify the pack
+offline with `ledger generate-root-view-vectors` and
+`ledger verify-root-view-vectors`.
+
 Downstream implementers can run `ledger conformance` against a complete demo or
 integration artifact directory. The original seven rehashed adversarial vectors
 must be rejected across the ledger, gossip, re-review, fork, consistency, observation,
@@ -311,7 +323,7 @@ exposes every missed rejection to code scanning.
 `ledger capabilities --out capability-manifest.json` gives agencies, vendors,
 and independent implementations one deterministic compatibility input instead
 of requiring them to infer support from prose. It binds sixteen protocol IDs to
-twenty-nine exact schema-byte digests, producer/verifier commands, standalone and
+thirty exact schema-byte digests, producer/verifier commands, standalone and
 evidence-root requirements, disclosed data classes, offline operation, and zero
 automatic actions. `ledger verify-capabilities` detects both rehashed field
 tampering and local schema drift.
@@ -1898,7 +1910,8 @@ v0.1 scope choices:
 | AssuranceLedger VerifierConformance v8 — fifteen clean-source-validated adversarial vectors including TrustRootTimeGate | **superseded by v9** |
 | AssuranceLedger VerifierConformance v9 — sixteen clean-source-validated adversarial vectors including RootViewQuorum | **shipped on main** |
 | AssuranceLedger RootViewQuorum — nonce-bound independent root-distribution observations with non-outvotable conflict/newer-root evidence | **shipped on main** |
-| AssuranceLedger CapabilityManifest — sixteen offline protocol contracts bound to twenty-nine exact schema digests | **shipped on main** |
+| RootViewQuorum known-answer vectors — eight byte-stable cross-language cases, 21 SHA-256-bound artifacts plus an immutable v1 manifest, and offline execution | **shipped on main** |
+| AssuranceLedger CapabilityManifest — sixteen offline protocol contracts bound to thirty exact schema digests | **shipped on main** |
 | AssuranceLedger IntegrationLock — owner-pinned compatibility floors, drift SARIF, and fail-on-drift CI | **shipped on main** |
 | AssuranceTrustRoot — pinned bootstrap, exact policy authority, expiration, crypto-agile keys, and dual-threshold rotation | **shipped on main** |
 | AssuranceTrustRootChain — bounded multi-hop stale-client catch-up with historical-expiry handling and a current-final-root gate | **shipped on main** |

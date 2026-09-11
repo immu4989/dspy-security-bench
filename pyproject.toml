@@ -209,6 +209,7 @@ TrustRecoveryAttestation = "https://github.com/immu4989/dspy-security-bench/blob
 "AssuranceLedger VerifierConformance" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#prove-your-verifier-rejects-rehashed-tampering"
 "AssuranceLedger CapabilityManifest" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#discover-the-exact-integration-contract"
 "AssuranceLedger IntegrationLock" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#pin-an-owner-reviewed-compatibility-floor"
+"RootViewQuorum Vectors" = "https://github.com/immu4989/dspy-security-bench/tree/main/interop/root-view-quorum-v1"
 AgentBOM = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurance-control-plane.md"
 "Assurance Reproduction Exchange" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/assurance"
 "Verified Cyber Defense Commons" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/defense"

@@ -71,14 +71,16 @@ compliance or safety overclaims.
 - AssuranceLedger VerifierConformance v9 with sixteen deterministic rehashed
   semantic/cryptographic mutation vectors, exact source digests, strict report
   schema, offline recomputation, and a fail-on-missed-rejection CI mode.
-- AssuranceLedger CapabilityManifest v1 with exact byte digests for twenty-nine
+- AssuranceLedger CapabilityManifest v1 with exact byte digests for thirty
   shipped schemas, sixteen protocol/CLI contracts, declared portability and data
   classes, deterministic offline recomputation, and zero automatic actions.
 - AssuranceLedger RootViewQuorum v1 with policy-pinned Ed25519 observers,
   candidate-root and fresh-nonce binding, exact embedded observed roots,
   unique-observer and organization thresholds, visible lag, non-outvotable
   same-version conflict or newer-root evidence, strict schemas, SARIF, and zero
-  network or root-installation actions.
+  network or root-installation actions; plus eight deterministic cross-language
+  known-answer cases, 21 byte-bound public JSON artifacts plus an immutable v1
+  manifest, offline execution, and no private-key files.
 - AssuranceLedger IntegrationLock v1 with owner-pinned schema/protocol minimums,
   explicit contract-drift findings, exact offline recomputation, and a
   fail-on-drift CI gate that allows additions but rejects changed requirements.

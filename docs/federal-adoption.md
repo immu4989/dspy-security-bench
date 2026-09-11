@@ -168,6 +168,14 @@ proof of nationwide or ecosystem-wide dissemination, actual organizational
 independence, a current global root, a control assessment, an ATO, or approval
 to install the candidate.
 
+Before accepting an implementation from an integrator or technology partner,
+require it to execute the committed RootViewQuorum v1 known-answer pack and
+retain the verifier output with the reviewed build. The eight cases give both
+sides identical bytes and expected decisions for positive, fail-closed, and
+tamper-rejection behavior without exposing a production root or key. This is a
+repeatable integration check, not FIPS validation, NIST ACVP/CAVP, product
+certification, a control assessment, or evidence that untested inputs are safe.
+
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every
 candidate, report missing cost or outcome observations as missing, and treat

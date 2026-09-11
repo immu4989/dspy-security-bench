@@ -51,7 +51,7 @@ same-size conflict with no embedded ledger entries or review content.
 
 The same command now produces the complete partner-verification surface:
 
-- `capability-manifest.json` — sixteen offline protocol contracts and twenty-nine
+- `capability-manifest.json` — sixteen offline protocol contracts and thirty
   exact schema digests;
 - `trust-root-v1.json` through `trust-root-v3.json`, `trust-root.report.json`,
   and `trust-root-chain.report.json` — a pinned predecessor, dual-threshold
@@ -248,7 +248,10 @@ For distribution visibility, `RootViewQuorum` binds independently pinned
 observer keys, the verifier's candidate-root digest, and a fresh nonce to each
 observer's complete received root. Matching views count; lagging views are
 reported; same-version conflicts and newer versions cannot be outvoted. See the
-[RootViewQuorum guide](root-view-quorum.md).
+[RootViewQuorum guide](root-view-quorum.md). Downstream implementations can
+verify 21 manifest-bound public JSON files and execute all eight expected decisions
+in the [v1 known-answer pack](../interop/root-view-quorum-v1/README.md); no
+private keys are shipped.
 
 ## Outcomes with non-overlapping meanings
 
@@ -434,7 +437,7 @@ dspy-security-bench ledger verify-capabilities \
   --schema-root dspy_security_bench/schemas
 ```
 
-The manifest covers sixteen protocol surfaces and all twenty-nine AssuranceLedger
+The manifest covers sixteen protocol surfaces and all thirty AssuranceLedger
 Draft 2020-12 schemas. Each schema record binds its stable `$id` and exact file
 bytes with SHA-256. Each protocol record exposes its report type, producer and
 verifier commands, whether verification is standalone, whether an evidence root

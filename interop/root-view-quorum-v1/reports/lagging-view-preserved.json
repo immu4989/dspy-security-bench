@@ -1,0 +1,673 @@
+{
+  "analyzer": "deterministic-independent-root-view-analyzer-v1",
+  "candidate_errors": [],
+  "candidate_root": {
+    "authorized_policies": [
+      {
+        "policy_sha256": "ffe78869bd31177cececfd793e99594b1da17b399045d1f3ca0e8a61d2e18dba",
+        "policy_type": "dspy-security-bench-assurance-ledger-policy"
+      }
+    ],
+    "expires_at": 1900000100,
+    "issued_at": 1800000100,
+    "keys": [
+      {
+        "entity_id": "vector-root-2",
+        "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+        "organization_id": "vector-root-organization-2",
+        "public_key_spki_base64": "MCowBQYDK2VwAyEAi3lBqLpFNllDzJKbJkSwLWdkjzLJf5nxn82vpGfTttY=",
+        "signature_scheme": "ed25519"
+      },
+      {
+        "entity_id": "vector-root-1",
+        "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+        "organization_id": "vector-root-organization-1",
+        "public_key_spki_base64": "MCowBQYDK2VwAyEABr56M2TDRFv3RNQVRU98fDVmhAQ/Tyn2fD5rkBEAXIs=",
+        "signature_scheme": "ed25519"
+      }
+    ],
+    "previous_root_sha256": "7dc6c73876558d1dc7bad38d60bb3a4adc587557ecffd0d79de58c6b7a943349",
+    "previous_root_signatures": [
+      {
+        "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+        "signature_base64": "jvFb99QFgTRXsLFnLQFbieDKu7HO8YNGIDT0eOHCzJDUietpxm09iGp8evPlVvzsghtin8Gj5Hk2GQCC5i0bBw==",
+        "signature_scheme": "ed25519",
+        "signer_id": "vector-root-2"
+      },
+      {
+        "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+        "signature_base64": "iVHh0upbgpdSqJqZSXZsw8tLQkET6MlXlRYjU3/5+kR8vP5AhUrQg0HCikY82vtUeYdN/T4w7hnwyl9/gNqEDQ==",
+        "signature_scheme": "ed25519",
+        "signer_id": "vector-root-1"
+      }
+    ],
+    "protocol_version": "assuranceledger-trust-root-v1",
+    "roles": {
+      "ledger-observer": {
+        "keyids": [
+          "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+          "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+        ],
+        "minimum_distinct_organizations": 1,
+        "signature_threshold": 1
+      },
+      "ledger-operator": {
+        "keyids": [
+          "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+          "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+        ],
+        "minimum_distinct_organizations": 1,
+        "signature_threshold": 1
+      },
+      "ledger-witness": {
+        "keyids": [
+          "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+          "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+        ],
+        "minimum_distinct_organizations": 1,
+        "signature_threshold": 1
+      },
+      "quorum-reviewer": {
+        "keyids": [
+          "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+          "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+        ],
+        "minimum_distinct_organizations": 1,
+        "signature_threshold": 1
+      },
+      "root": {
+        "keyids": [
+          "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+          "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+        ],
+        "minimum_distinct_organizations": 2,
+        "signature_threshold": 2
+      }
+    },
+    "root_sha256": "e2eea61f5e1d65adae67e53be4a7ce48482336e461cbaed5c6ec7c76d7b720db",
+    "root_type": "dspy-security-bench-assurance-trust-root",
+    "schema_version": 1,
+    "signatures": [
+      {
+        "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+        "signature_base64": "jvFb99QFgTRXsLFnLQFbieDKu7HO8YNGIDT0eOHCzJDUietpxm09iGp8evPlVvzsghtin8Gj5Hk2GQCC5i0bBw==",
+        "signature_scheme": "ed25519",
+        "signer_id": "vector-root-2"
+      },
+      {
+        "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+        "signature_base64": "iVHh0upbgpdSqJqZSXZsw8tLQkET6MlXlRYjU3/5+kR8vP5AhUrQg0HCikY82vtUeYdN/T4w7hnwyl9/gNqEDQ==",
+        "signature_scheme": "ed25519",
+        "signer_id": "vector-root-1"
+      }
+    ],
+    "trust_domain": "root-view-vector.example/assurance",
+    "version": 2
+  },
+  "claim_boundary": "RootViewQuorum verifies policy-pinned Ed25519 observations from distinct declared organizations over one candidate AssuranceTrustRoot and fresh caller nonce. It corroborates only the views supplied for that challenge and makes authenticated observations of a self-consistent same-version conflict or higher-version root non-outvotable. A passing report is bounded distribution-view evidence, not proof of global freshness or root trust.",
+  "expectations": {
+    "expected_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+    "expected_request_nonce": "known-answer-root-view-challenge-0001"
+  },
+  "findings": [
+    {
+      "detail": "verified",
+      "receipt_indexes": [
+        0,
+        1,
+        2
+      ],
+      "rule_id": "ARV001",
+      "status": "passed",
+      "title": "The exact root-view policy is independently pinned"
+    },
+    {
+      "detail": "verified",
+      "receipt_indexes": [
+        0,
+        1,
+        2
+      ],
+      "rule_id": "ARV002",
+      "status": "passed",
+      "title": "The root-view policy structure, keys, and digest are valid"
+    },
+    {
+      "detail": "verified",
+      "receipt_indexes": [
+        0,
+        1,
+        2
+      ],
+      "rule_id": "ARV003",
+      "status": "passed",
+      "title": "The candidate root is self-consistent and in the expected domain"
+    },
+    {
+      "detail": "verified",
+      "receipt_indexes": [
+        0,
+        1,
+        2
+      ],
+      "rule_id": "ARV004",
+      "status": "passed",
+      "title": "Every receipt has the exact root-view statement shape"
+    },
+    {
+      "detail": "verified",
+      "receipt_indexes": [
+        0,
+        1,
+        2
+      ],
+      "rule_id": "ARV005",
+      "status": "passed",
+      "title": "Every receipt binds the candidate root and fresh request nonce"
+    },
+    {
+      "detail": "verified",
+      "receipt_indexes": [
+        0,
+        1,
+        2
+      ],
+      "rule_id": "ARV006",
+      "status": "passed",
+      "title": "Every observer identity, organization, key, and signature verify"
+    },
+    {
+      "detail": "verified",
+      "receipt_indexes": [
+        0,
+        1,
+        2
+      ],
+      "rule_id": "ARV007",
+      "status": "passed",
+      "title": "Every embedded observed root recomputes and matches its statement"
+    },
+    {
+      "detail": "verified",
+      "receipt_indexes": [
+        0,
+        1,
+        2
+      ],
+      "rule_id": "ARV008",
+      "status": "passed",
+      "title": "The minimum number of unique matching observers is satisfied"
+    },
+    {
+      "detail": "verified",
+      "receipt_indexes": [
+        0,
+        1,
+        2
+      ],
+      "rule_id": "ARV009",
+      "status": "passed",
+      "title": "The matching-observer organization threshold is satisfied"
+    },
+    {
+      "detail": "verified",
+      "receipt_indexes": [
+        0,
+        1,
+        2
+      ],
+      "rule_id": "ARV010",
+      "status": "passed",
+      "title": "No authenticated self-consistent same-version conflict or higher root is reported"
+    }
+  ],
+  "limitations": [
+    "Observer and organization identifiers are policy assertions; signatures do not prove legal identity, operational independence, complete monitoring, or secure key custody.",
+    "Freshness depends on the caller generating and independently retaining an unpredictable nonce and the exact pinned observer-policy digest.",
+    "A higher-version receipt proves that an authorized observer signed a self-consistent root object; it does not by itself prove continuity from the candidate or that the root was globally deployed.",
+    "A passing quorum cannot exclude an undisclosed view held outside the selected observers, a partition affecting all selected observers, or collusion sufficient to satisfy the policy.",
+    "The protocol is not TUF, C2SP transparency-witness, Key Transparency, SCITT, PKI, trust-store, or software-update compatibility.",
+    "The analyzer performs no network access, root installation, key operation, notification, revocation, deployment, authorization, risk acceptance, or automatic remediation."
+  ],
+  "policy_errors": [],
+  "protocol_version": "assuranceledger-root-view-quorum-v1",
+  "receipt_results": [
+    {
+      "classification": "matching",
+      "errors": [],
+      "observed_root_sha256": "e2eea61f5e1d65adae67e53be4a7ce48482336e461cbaed5c6ec7c76d7b720db",
+      "observed_root_version": 2,
+      "observer_id": "vector-observer-1",
+      "observer_organization_id": "vector-observer-organization-1",
+      "receipt_index": 0,
+      "status": "valid"
+    },
+    {
+      "classification": "matching",
+      "errors": [],
+      "observed_root_sha256": "e2eea61f5e1d65adae67e53be4a7ce48482336e461cbaed5c6ec7c76d7b720db",
+      "observed_root_version": 2,
+      "observer_id": "vector-observer-2",
+      "observer_organization_id": "vector-observer-organization-2",
+      "receipt_index": 1,
+      "status": "valid"
+    },
+    {
+      "classification": "lagging",
+      "errors": [],
+      "observed_root_sha256": "7dc6c73876558d1dc7bad38d60bb3a4adc587557ecffd0d79de58c6b7a943349",
+      "observed_root_version": 1,
+      "observer_id": "vector-observer-3",
+      "observer_organization_id": "vector-observer-organization-3",
+      "receipt_index": 2,
+      "status": "valid"
+    }
+  ],
+  "receipts": [
+    {
+      "observed_root": {
+        "authorized_policies": [
+          {
+            "policy_sha256": "ffe78869bd31177cececfd793e99594b1da17b399045d1f3ca0e8a61d2e18dba",
+            "policy_type": "dspy-security-bench-assurance-ledger-policy"
+          }
+        ],
+        "expires_at": 1900000100,
+        "issued_at": 1800000100,
+        "keys": [
+          {
+            "entity_id": "vector-root-2",
+            "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+            "organization_id": "vector-root-organization-2",
+            "public_key_spki_base64": "MCowBQYDK2VwAyEAi3lBqLpFNllDzJKbJkSwLWdkjzLJf5nxn82vpGfTttY=",
+            "signature_scheme": "ed25519"
+          },
+          {
+            "entity_id": "vector-root-1",
+            "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+            "organization_id": "vector-root-organization-1",
+            "public_key_spki_base64": "MCowBQYDK2VwAyEABr56M2TDRFv3RNQVRU98fDVmhAQ/Tyn2fD5rkBEAXIs=",
+            "signature_scheme": "ed25519"
+          }
+        ],
+        "previous_root_sha256": "7dc6c73876558d1dc7bad38d60bb3a4adc587557ecffd0d79de58c6b7a943349",
+        "previous_root_signatures": [
+          {
+            "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+            "signature_base64": "jvFb99QFgTRXsLFnLQFbieDKu7HO8YNGIDT0eOHCzJDUietpxm09iGp8evPlVvzsghtin8Gj5Hk2GQCC5i0bBw==",
+            "signature_scheme": "ed25519",
+            "signer_id": "vector-root-2"
+          },
+          {
+            "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+            "signature_base64": "iVHh0upbgpdSqJqZSXZsw8tLQkET6MlXlRYjU3/5+kR8vP5AhUrQg0HCikY82vtUeYdN/T4w7hnwyl9/gNqEDQ==",
+            "signature_scheme": "ed25519",
+            "signer_id": "vector-root-1"
+          }
+        ],
+        "protocol_version": "assuranceledger-trust-root-v1",
+        "roles": {
+          "ledger-observer": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "ledger-operator": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "ledger-witness": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "quorum-reviewer": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "root": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 2,
+            "signature_threshold": 2
+          }
+        },
+        "root_sha256": "e2eea61f5e1d65adae67e53be4a7ce48482336e461cbaed5c6ec7c76d7b720db",
+        "root_type": "dspy-security-bench-assurance-trust-root",
+        "schema_version": 1,
+        "signatures": [
+          {
+            "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+            "signature_base64": "jvFb99QFgTRXsLFnLQFbieDKu7HO8YNGIDT0eOHCzJDUietpxm09iGp8evPlVvzsghtin8Gj5Hk2GQCC5i0bBw==",
+            "signature_scheme": "ed25519",
+            "signer_id": "vector-root-2"
+          },
+          {
+            "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+            "signature_base64": "iVHh0upbgpdSqJqZSXZsw8tLQkET6MlXlRYjU3/5+kR8vP5AhUrQg0HCikY82vtUeYdN/T4w7hnwyl9/gNqEDQ==",
+            "signature_scheme": "ed25519",
+            "signer_id": "vector-root-1"
+          }
+        ],
+        "trust_domain": "root-view-vector.example/assurance",
+        "version": 2
+      },
+      "observer_signature": {
+        "keyid": "ff427d4c88e1d3e1b403af336f1f49920565c20586e476a567894abeed93f12a",
+        "signature_base64": "1PAcoLbuTVjg461wIopsJaw2+QYG9feiJoEns5WrNnDPHHQsw8LKGBWY5jE73Rk3DhJ4/NzgAzQ+DPrmd6+0Aw==",
+        "signer_id": "vector-observer-1"
+      },
+      "statement": {
+        "candidate_root_sha256": "e2eea61f5e1d65adae67e53be4a7ce48482336e461cbaed5c6ec7c76d7b720db",
+        "observed_root_sha256": "e2eea61f5e1d65adae67e53be4a7ce48482336e461cbaed5c6ec7c76d7b720db",
+        "observed_root_version": 2,
+        "observer_id": "vector-observer-1",
+        "observer_key_sha256": "ff427d4c88e1d3e1b403af336f1f49920565c20586e476a567894abeed93f12a",
+        "observer_organization_id": "vector-observer-organization-1",
+        "protocol_version": "assuranceledger-root-view-quorum-v1",
+        "request_nonce": "known-answer-root-view-challenge-0001",
+        "root_view_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+        "trust_domain": "root-view-vector.example/assurance"
+      }
+    },
+    {
+      "observed_root": {
+        "authorized_policies": [
+          {
+            "policy_sha256": "ffe78869bd31177cececfd793e99594b1da17b399045d1f3ca0e8a61d2e18dba",
+            "policy_type": "dspy-security-bench-assurance-ledger-policy"
+          }
+        ],
+        "expires_at": 1900000100,
+        "issued_at": 1800000100,
+        "keys": [
+          {
+            "entity_id": "vector-root-2",
+            "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+            "organization_id": "vector-root-organization-2",
+            "public_key_spki_base64": "MCowBQYDK2VwAyEAi3lBqLpFNllDzJKbJkSwLWdkjzLJf5nxn82vpGfTttY=",
+            "signature_scheme": "ed25519"
+          },
+          {
+            "entity_id": "vector-root-1",
+            "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+            "organization_id": "vector-root-organization-1",
+            "public_key_spki_base64": "MCowBQYDK2VwAyEABr56M2TDRFv3RNQVRU98fDVmhAQ/Tyn2fD5rkBEAXIs=",
+            "signature_scheme": "ed25519"
+          }
+        ],
+        "previous_root_sha256": "7dc6c73876558d1dc7bad38d60bb3a4adc587557ecffd0d79de58c6b7a943349",
+        "previous_root_signatures": [
+          {
+            "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+            "signature_base64": "jvFb99QFgTRXsLFnLQFbieDKu7HO8YNGIDT0eOHCzJDUietpxm09iGp8evPlVvzsghtin8Gj5Hk2GQCC5i0bBw==",
+            "signature_scheme": "ed25519",
+            "signer_id": "vector-root-2"
+          },
+          {
+            "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+            "signature_base64": "iVHh0upbgpdSqJqZSXZsw8tLQkET6MlXlRYjU3/5+kR8vP5AhUrQg0HCikY82vtUeYdN/T4w7hnwyl9/gNqEDQ==",
+            "signature_scheme": "ed25519",
+            "signer_id": "vector-root-1"
+          }
+        ],
+        "protocol_version": "assuranceledger-trust-root-v1",
+        "roles": {
+          "ledger-observer": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "ledger-operator": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "ledger-witness": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "quorum-reviewer": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "root": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 2,
+            "signature_threshold": 2
+          }
+        },
+        "root_sha256": "e2eea61f5e1d65adae67e53be4a7ce48482336e461cbaed5c6ec7c76d7b720db",
+        "root_type": "dspy-security-bench-assurance-trust-root",
+        "schema_version": 1,
+        "signatures": [
+          {
+            "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+            "signature_base64": "jvFb99QFgTRXsLFnLQFbieDKu7HO8YNGIDT0eOHCzJDUietpxm09iGp8evPlVvzsghtin8Gj5Hk2GQCC5i0bBw==",
+            "signature_scheme": "ed25519",
+            "signer_id": "vector-root-2"
+          },
+          {
+            "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+            "signature_base64": "iVHh0upbgpdSqJqZSXZsw8tLQkET6MlXlRYjU3/5+kR8vP5AhUrQg0HCikY82vtUeYdN/T4w7hnwyl9/gNqEDQ==",
+            "signature_scheme": "ed25519",
+            "signer_id": "vector-root-1"
+          }
+        ],
+        "trust_domain": "root-view-vector.example/assurance",
+        "version": 2
+      },
+      "observer_signature": {
+        "keyid": "1419f9ee71203dd0678d8a65666568959d61b2d197b4079fda4cf6c0d6889241",
+        "signature_base64": "7OZOFyKZk44437O+ZA7dftjpbKV/g7zgIrfDSJvhsIAHcv7Gwf1npKPY4mHoIwokT3MiX1J660W40B0SNteqDQ==",
+        "signer_id": "vector-observer-2"
+      },
+      "statement": {
+        "candidate_root_sha256": "e2eea61f5e1d65adae67e53be4a7ce48482336e461cbaed5c6ec7c76d7b720db",
+        "observed_root_sha256": "e2eea61f5e1d65adae67e53be4a7ce48482336e461cbaed5c6ec7c76d7b720db",
+        "observed_root_version": 2,
+        "observer_id": "vector-observer-2",
+        "observer_key_sha256": "1419f9ee71203dd0678d8a65666568959d61b2d197b4079fda4cf6c0d6889241",
+        "observer_organization_id": "vector-observer-organization-2",
+        "protocol_version": "assuranceledger-root-view-quorum-v1",
+        "request_nonce": "known-answer-root-view-challenge-0001",
+        "root_view_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+        "trust_domain": "root-view-vector.example/assurance"
+      }
+    },
+    {
+      "observed_root": {
+        "authorized_policies": [
+          {
+            "policy_sha256": "ffe78869bd31177cececfd793e99594b1da17b399045d1f3ca0e8a61d2e18dba",
+            "policy_type": "dspy-security-bench-assurance-ledger-policy"
+          }
+        ],
+        "expires_at": 1900000000,
+        "issued_at": 1800000000,
+        "keys": [
+          {
+            "entity_id": "vector-root-2",
+            "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+            "organization_id": "vector-root-organization-2",
+            "public_key_spki_base64": "MCowBQYDK2VwAyEAi3lBqLpFNllDzJKbJkSwLWdkjzLJf5nxn82vpGfTttY=",
+            "signature_scheme": "ed25519"
+          },
+          {
+            "entity_id": "vector-root-1",
+            "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+            "organization_id": "vector-root-organization-1",
+            "public_key_spki_base64": "MCowBQYDK2VwAyEABr56M2TDRFv3RNQVRU98fDVmhAQ/Tyn2fD5rkBEAXIs=",
+            "signature_scheme": "ed25519"
+          }
+        ],
+        "previous_root_sha256": null,
+        "previous_root_signatures": [],
+        "protocol_version": "assuranceledger-trust-root-v1",
+        "roles": {
+          "ledger-observer": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "ledger-operator": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "ledger-witness": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "quorum-reviewer": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 1,
+            "signature_threshold": 1
+          },
+          "root": {
+            "keyids": [
+              "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+              "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+            ],
+            "minimum_distinct_organizations": 2,
+            "signature_threshold": 2
+          }
+        },
+        "root_sha256": "7dc6c73876558d1dc7bad38d60bb3a4adc587557ecffd0d79de58c6b7a943349",
+        "root_type": "dspy-security-bench-assurance-trust-root",
+        "schema_version": 1,
+        "signatures": [
+          {
+            "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+            "signature_base64": "qJPbaIv+JP3RbhDD9g94lfTPN0ZKwV0LY07oTT9seYcsX1kRr5eU+KhrObjjaOPVv5qx/cv8ZJanXqSV1HxTCg==",
+            "signature_scheme": "ed25519",
+            "signer_id": "vector-root-2"
+          },
+          {
+            "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+            "signature_base64": "j74xE7ZJAASMpbzMgeJRVpulrky+KLGFz9MTXaSfqoSLzenDsrSXs8eCwMJwu1dqAmWYofkx7r+qvtuR74hdDQ==",
+            "signature_scheme": "ed25519",
+            "signer_id": "vector-root-1"
+          }
+        ],
+        "trust_domain": "root-view-vector.example/assurance",
+        "version": 1
+      },
+      "observer_signature": {
+        "keyid": "eba05233260b58a70f0d1a9c7da2caa31d207d5dd014c8b766680538ac202d99",
+        "signature_base64": "VVBQ8SDINpwRQfVo8n8qNp9l6uBp7Vj/UxsVzM8E8xEik1Fp+gnLBh6Afb6igvPlpsjn1+u7wUS6JmcqZsH2Cg==",
+        "signer_id": "vector-observer-3"
+      },
+      "statement": {
+        "candidate_root_sha256": "e2eea61f5e1d65adae67e53be4a7ce48482336e461cbaed5c6ec7c76d7b720db",
+        "observed_root_sha256": "7dc6c73876558d1dc7bad38d60bb3a4adc587557ecffd0d79de58c6b7a943349",
+        "observed_root_version": 1,
+        "observer_id": "vector-observer-3",
+        "observer_key_sha256": "eba05233260b58a70f0d1a9c7da2caa31d207d5dd014c8b766680538ac202d99",
+        "observer_organization_id": "vector-observer-organization-3",
+        "protocol_version": "assuranceledger-root-view-quorum-v1",
+        "request_nonce": "known-answer-root-view-challenge-0001",
+        "root_view_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+        "trust_domain": "root-view-vector.example/assurance"
+      }
+    }
+  ],
+  "report_sha256": "e6ddd3c1d3811f98e40da7c80796dff26773fbebda80fc7cc756f93ff27845cd",
+  "report_type": "AssuranceLedger RootViewQuorum / Independently observed root distribution",
+  "root_view_policy": {
+    "claim_boundary": "RootViewQuorum verifies policy-pinned Ed25519 observations from distinct declared organizations over one candidate AssuranceTrustRoot and fresh caller nonce. It corroborates only the views supplied for that challenge and makes authenticated observations of a self-consistent same-version conflict or higher-version root non-outvotable. A passing report is bounded distribution-view evidence, not proof of global freshness or root trust.",
+    "minimum_distinct_organizations": 2,
+    "minimum_observers": 2,
+    "observers": [
+      {
+        "entity_id": "vector-observer-1",
+        "organization_id": "vector-observer-organization-1",
+        "public_key_sha256": "ff427d4c88e1d3e1b403af336f1f49920565c20586e476a567894abeed93f12a",
+        "public_key_spki_base64": "MCowBQYDK2VwAyEA5VEm5gpBONLjwBJher7ij/N1vn66FuWAbPTPbnWdri0="
+      },
+      {
+        "entity_id": "vector-observer-2",
+        "organization_id": "vector-observer-organization-2",
+        "public_key_sha256": "1419f9ee71203dd0678d8a65666568959d61b2d197b4079fda4cf6c0d6889241",
+        "public_key_spki_base64": "MCowBQYDK2VwAyEAtGWGVO7ABsukWqREkA4orqIMAo7ZR0aAXK3mFzkG0Dk="
+      },
+      {
+        "entity_id": "vector-observer-3",
+        "organization_id": "vector-observer-organization-3",
+        "public_key_sha256": "eba05233260b58a70f0d1a9c7da2caa31d207d5dd014c8b766680538ac202d99",
+        "public_key_spki_base64": "MCowBQYDK2VwAyEAngdjPpKySGibJWSd90XzSRNV7YFT+8bd+Ar0Mnuf1mI="
+      }
+    ],
+    "policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+    "policy_type": "dspy-security-bench-assurance-root-view-policy",
+    "protocol_version": "assuranceledger-root-view-quorum-v1",
+    "quorum_id": "root-view-known-answer",
+    "schema_version": 1,
+    "trust_domain": "root-view-vector.example/assurance"
+  },
+  "schema_version": 1,
+  "summary": {
+    "automatic_actions": 0,
+    "candidate_root_version": 2,
+    "content_fields_processed": 0,
+    "distinct_observers": 3,
+    "failed_checks": 0,
+    "lagging_observers": 1,
+    "matching_observers": 2,
+    "matching_organizations": 2,
+    "network_requests": 0,
+    "newer_root_reports": 0,
+    "passed_checks": 10,
+    "roots_installed": 0,
+    "same_version_conflicts": 0,
+    "status": "root_view_corroborated",
+    "submitted_receipts": 3,
+    "valid_receipts": 3
+  }
+}

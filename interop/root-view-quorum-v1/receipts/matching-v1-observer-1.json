@@ -1,0 +1,109 @@
+{
+  "observed_root": {
+    "authorized_policies": [
+      {
+        "policy_sha256": "ffe78869bd31177cececfd793e99594b1da17b399045d1f3ca0e8a61d2e18dba",
+        "policy_type": "dspy-security-bench-assurance-ledger-policy"
+      }
+    ],
+    "expires_at": 1900000000,
+    "issued_at": 1800000000,
+    "keys": [
+      {
+        "entity_id": "vector-root-2",
+        "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+        "organization_id": "vector-root-organization-2",
+        "public_key_spki_base64": "MCowBQYDK2VwAyEAi3lBqLpFNllDzJKbJkSwLWdkjzLJf5nxn82vpGfTttY=",
+        "signature_scheme": "ed25519"
+      },
+      {
+        "entity_id": "vector-root-1",
+        "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+        "organization_id": "vector-root-organization-1",
+        "public_key_spki_base64": "MCowBQYDK2VwAyEABr56M2TDRFv3RNQVRU98fDVmhAQ/Tyn2fD5rkBEAXIs=",
+        "signature_scheme": "ed25519"
+      }
+    ],
+    "previous_root_sha256": null,
+    "previous_root_signatures": [],
+    "protocol_version": "assuranceledger-trust-root-v1",
+    "roles": {
+      "ledger-observer": {
+        "keyids": [
+          "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+          "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+        ],
+        "minimum_distinct_organizations": 1,
+        "signature_threshold": 1
+      },
+      "ledger-operator": {
+        "keyids": [
+          "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+          "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+        ],
+        "minimum_distinct_organizations": 1,
+        "signature_threshold": 1
+      },
+      "ledger-witness": {
+        "keyids": [
+          "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+          "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+        ],
+        "minimum_distinct_organizations": 1,
+        "signature_threshold": 1
+      },
+      "quorum-reviewer": {
+        "keyids": [
+          "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+          "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+        ],
+        "minimum_distinct_organizations": 1,
+        "signature_threshold": 1
+      },
+      "root": {
+        "keyids": [
+          "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+          "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca"
+        ],
+        "minimum_distinct_organizations": 2,
+        "signature_threshold": 2
+      }
+    },
+    "root_sha256": "7dc6c73876558d1dc7bad38d60bb3a4adc587557ecffd0d79de58c6b7a943349",
+    "root_type": "dspy-security-bench-assurance-trust-root",
+    "schema_version": 1,
+    "signatures": [
+      {
+        "keyid": "5aab46a79eedbb08f52ba775a198cc771da13500ab3bb2e56ba717a94488582b",
+        "signature_base64": "qJPbaIv+JP3RbhDD9g94lfTPN0ZKwV0LY07oTT9seYcsX1kRr5eU+KhrObjjaOPVv5qx/cv8ZJanXqSV1HxTCg==",
+        "signature_scheme": "ed25519",
+        "signer_id": "vector-root-2"
+      },
+      {
+        "keyid": "b086889911b17e5a1486d0987cef6ea73942429470188590a78fabb1ab24b1ca",
+        "signature_base64": "j74xE7ZJAASMpbzMgeJRVpulrky+KLGFz9MTXaSfqoSLzenDsrSXs8eCwMJwu1dqAmWYofkx7r+qvtuR74hdDQ==",
+        "signature_scheme": "ed25519",
+        "signer_id": "vector-root-1"
+      }
+    ],
+    "trust_domain": "root-view-vector.example/assurance",
+    "version": 1
+  },
+  "observer_signature": {
+    "keyid": "ff427d4c88e1d3e1b403af336f1f49920565c20586e476a567894abeed93f12a",
+    "signature_base64": "BEoexOhMu4CjgeTT8snCLHDn0i4Qfbcgm+oNXHG9++pL0Vz3dnmTA/NdjL5jSbnLwg7BesaqXxvQi8V3cIRsCA==",
+    "signer_id": "vector-observer-1"
+  },
+  "statement": {
+    "candidate_root_sha256": "7dc6c73876558d1dc7bad38d60bb3a4adc587557ecffd0d79de58c6b7a943349",
+    "observed_root_sha256": "7dc6c73876558d1dc7bad38d60bb3a4adc587557ecffd0d79de58c6b7a943349",
+    "observed_root_version": 1,
+    "observer_id": "vector-observer-1",
+    "observer_key_sha256": "ff427d4c88e1d3e1b403af336f1f49920565c20586e476a567894abeed93f12a",
+    "observer_organization_id": "vector-observer-organization-1",
+    "protocol_version": "assuranceledger-root-view-quorum-v1",
+    "request_nonce": "known-answer-root-view-challenge-0001",
+    "root_view_policy_sha256": "79e9152f7dd08d20be54824658b84064cb23eb30a69922f051f1191e17f1523a",
+    "trust_domain": "root-view-vector.example/assurance"
+  }
+}

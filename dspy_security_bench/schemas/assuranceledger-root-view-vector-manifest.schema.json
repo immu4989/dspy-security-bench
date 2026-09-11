@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://immu4989.github.io/dspy-security-bench/schemas/assuranceledger-root-view-vector-manifest.schema.json",
+  "title": "AssuranceLedger RootViewQuorum known-answer vector manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "vector_suite", "vector_version", "root_view_protocol_version", "generator", "canonicalization", "test_only_keys", "private_keys_included", "file_sha256", "cases", "claim_boundary", "limitations", "manifest_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "vector_suite": {"const": "dspy-security-bench-root-view-known-answer-vectors"},
+    "vector_version": {"const": "assuranceledger-root-view-vectors-v1"},
+    "root_view_protocol_version": {"const": "assuranceledger-root-view-quorum-v1"},
+    "generator": {"const": "deterministic-root-view-vector-generator-v1"},
+    "canonicalization": {"const": "Protocol digests are SHA-256 over UTF-8 JSON with recursively sorted object keys, no insignificant whitespace, Unicode emitted directly, and non-finite numbers rejected; files use sorted keys, two-space indentation, and one LF terminator"},
+    "test_only_keys": {"const": true},
+    "private_keys_included": {"const": false},
+    "file_sha256": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 100,
+      "propertyNames": {"$ref": "#/$defs/path"},
+      "additionalProperties": {"$ref": "#/$defs/digest"}
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {"$ref": "#/$defs/case"}
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "manifest_sha256": {"const": "e39be2384f1ff8e49d8e62e26df112a01d181e5ece06a9e9f7df36dd93750e08"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonce": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{16,200}$"},
+    "path": {"type": "string", "pattern": "^(?:[a-z0-9-]+/)*[a-z0-9-]+\\.json$"},
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "operation", "policy_file", "candidate_root_file", "receipt_files", "expected_policy_sha256", "expected_request_nonce", "report_file", "expected_status", "expected_verifier_acceptance", "expected_error_fragment"],
+      "properties": {
+        "case_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+        "operation": {"enum": ["evaluate", "verify-report"]},
+        "policy_file": {"anyOf": [{"$ref": "#/$defs/path"}, {"type": "null"}]},
+        "candidate_root_file": {"anyOf": [{"$ref": "#/$defs/path"}, {"type": "null"}]},
+        "receipt_files": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/path"}},
+        "expected_policy_sha256": {"anyOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]},
+        "expected_request_nonce": {"anyOf": [{"$ref": "#/$defs/nonce"}, {"type": "null"}]},
+        "report_file": {"$ref": "#/$defs/path"},
+        "expected_status": {"enum": ["root_view_corroborated", "invalid_root_view_evidence", "root_view_policy_not_pinned", "root_view_request_mismatch", "insufficient_root_observers", "same_version_root_conflict", "newer_root_reported", "insufficient_root_observer_diversity", null]},
+        "expected_verifier_acceptance": {"type": "boolean"},
+        "expected_error_fragment": {"type": ["string", "null"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"operation": {"const": "evaluate"}}},
+          "then": {
+            "properties": {
+              "policy_file": {"$ref": "#/$defs/path"},
+              "candidate_root_file": {"$ref": "#/$defs/path"},
+              "receipt_files": {"minItems": 1},
+              "expected_policy_sha256": {"$ref": "#/$defs/digest"},
+              "expected_request_nonce": {"$ref": "#/$defs/nonce"},
+              "expected_status": {"type": "string"},
+              "expected_verifier_acceptance": {"const": true},
+              "expected_error_fragment": {"type": "null"}
+            }
+          },
+          "else": {
+            "properties": {
+              "policy_file": {"type": "null"},
+              "candidate_root_file": {"type": "null"},
+              "receipt_files": {"maxItems": 0},
+              "expected_policy_sha256": {"type": "null"},
+              "expected_request_nonce": {"type": "null"},
+              "expected_status": {"type": "null"},
+              "expected_verifier_acceptance": {"const": false},
+              "expected_error_fragment": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      ]
+    }
+  }
+}

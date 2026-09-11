@@ -80,6 +80,10 @@ from dspy_security_bench.ledger.root_view import (
 from dspy_security_bench.ledger.root_view_sarif import (
     report_to_sarif as root_view_to_sarif,
 )
+from dspy_security_bench.ledger.root_view_vectors import (
+    generate_root_view_vector_pack,
+    verify_root_view_vector_pack,
+)
 from dspy_security_bench.ledger.sarif import report_to_sarif
 from dspy_security_bench.ledger.time_quorum import (
     TRUSTED_STATUS as TIME_QUORUM_TRUSTED_STATUS,
@@ -520,6 +524,16 @@ def main(argv: list[str] | None = None) -> int:
     verify_root_view_parser.add_argument("--expected-policy-sha256")
     verify_root_view_parser.add_argument("--candidate-root-sha256")
     verify_root_view_parser.add_argument("--request-nonce")
+    generate_root_view_vectors_parser = commands.add_parser(
+        "generate-root-view-vectors",
+        help="generate deterministic public RootViewQuorum known-answer vectors",
+    )
+    generate_root_view_vectors_parser.add_argument("--out-dir", required=True)
+    verify_root_view_vectors_parser = commands.add_parser(
+        "verify-root-view-vectors",
+        help="verify exact bytes and execute every RootViewQuorum known-answer vector",
+    )
+    verify_root_view_vectors_parser.add_argument("pack_dir")
     evaluate_trust_root_time_parser = commands.add_parser(
         "evaluate-trust-root-time",
         help="require trust-root validity across a signed conservative time interval",
@@ -1008,6 +1022,18 @@ def main(argv: list[str] | None = None) -> int:
             ):
                 raise ValueError("; ".join(errors))
             print(f"[ledger] verified RootViewQuorum report {args.report}")
+            return 0
+        if args.command == "generate-root-view-vectors":
+            manifest = generate_root_view_vector_pack(args.out_dir)
+            print(
+                f"[ledger] generated {len(manifest['cases'])} RootViewQuorum vectors: "
+                f"wrote {args.out_dir}"
+            )
+            return 0
+        if args.command == "verify-root-view-vectors":
+            if errors := verify_root_view_vector_pack(args.pack_dir):
+                raise ValueError("; ".join(errors))
+            print(f"[ledger] verified RootViewQuorum vector pack {args.pack_dir}")
             return 0
         if args.command == "evaluate-trust-root-time":
             report = evaluate_trust_root_time(

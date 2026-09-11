@@ -103,7 +103,9 @@ v0.1 research choices are labeled separately from the current product surface.
     exchange to distinct declared organizations and hashed channels.
     WitnessConflict attributes double-signing to exact cosignature keys.
     ReReview maps trust changes back to the minimal affected claim/role set.
-    RootViewQuorum corroborates root distribution across independently pinned observers.
+    RootViewQuorum corroborates root distribution across independently pinned
+    observers; its immutable eight-case known-answer pack gives non-Python
+    implementations byte-stable inputs and expected decisions.
     VerifierConformance v9 exercises all sixteen verifier classes with rehashed mutations.
     CapabilityManifest byte-binds every shipped schema to its protocol,
     producer/verifier CLI, portability boundary, and disclosed data classes.
