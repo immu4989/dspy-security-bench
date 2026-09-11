@@ -245,6 +245,7 @@ def build_payload(
                 "referenceRootViewVectorCases": 8,
                 "referenceRootViewManifestBoundFiles": 21,
                 "rootViewIndependentImplementations": 2,
+                "rootViewCrossLanguageMutationCases": 21,
                 "rootViewVectorPrivateKeysIncluded": False,
                 "rootViewNetworkRequests": 0,
                 "rootViewRootsInstalled": 0,

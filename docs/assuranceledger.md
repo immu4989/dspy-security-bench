@@ -253,7 +253,10 @@ verify 21 manifest-bound public JSON files and execute all eight expected decisi
 in the [v1 known-answer pack](../interop/root-view-quorum-v1/README.md); no
 private keys are shipped. The
 [independent Node.js runner](../interop/root-view-quorum-node/README.md) executes
-the same eight cases with native Node cryptography and no Python process.
+the same eight cases with native Node cryptography and no Python process. Its
+standalone report mode supports all three root signature schemes, and a
+21-mutation differential suite requires both implementations to reject the
+same self-rehashed semantic changes.
 
 ## Outcomes with non-overlapping meanings
 

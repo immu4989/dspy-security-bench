@@ -83,7 +83,9 @@ compliance or safety overclaims.
   manifest, offline execution, and no private-key files. A zero-dependency
   Node.js 18+ runner independently verifies the file, Ed25519, trust-root,
   observer, nonce, classification, quorum, and tamper-rejection semantics
-  without invoking Python.
+  without invoking Python. Its standalone report mode covers Ed25519, ECDSA
+  P-256, and RSA-PSS roots, while 21 self-rehashed differential mutations must
+  be rejected identically by both implementations.
 - AssuranceLedger IntegrationLock v1 with owner-pinned schema/protocol minimums,
   explicit contract-drift findings, exact offline recomputation, and a
   fail-on-drift CI gate that allows additions but rejects changed requirements.

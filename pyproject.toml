@@ -211,6 +211,7 @@ TrustRecoveryAttestation = "https://github.com/immu4989/dspy-security-bench/blob
 "AssuranceLedger IntegrationLock" = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assuranceledger.md#pin-an-owner-reviewed-compatibility-floor"
 "RootViewQuorum Vectors" = "https://github.com/immu4989/dspy-security-bench/tree/main/interop/root-view-quorum-v1"
 "RootViewQuorum Node.js Runner" = "https://github.com/immu4989/dspy-security-bench/tree/main/interop/root-view-quorum-node"
+"Interoperability Lab" = "https://github.com/immu4989/dspy-security-bench/tree/main/interop"
 AgentBOM = "https://github.com/immu4989/dspy-security-bench/blob/main/docs/assurance-control-plane.md"
 "Assurance Reproduction Exchange" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/assurance"
 "Verified Cyber Defense Commons" = "https://github.com/immu4989/dspy-security-bench/tree/main/submissions/defense"

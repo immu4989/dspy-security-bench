@@ -10,7 +10,21 @@ node interop/root-view-quorum-node/verify.mjs \
 ```
 
 Standard output is a deterministic-shape JSON result suitable for a CI log or
-review artifact; the only runtime-specific field is the Node.js version.
+review artifact. It binds the exact verifier source bytes by SHA-256; the only
+runtime-specific field is the Node.js version.
+
+Verify a standalone RootViewQuorum report and receive a machine-readable
+accept/reject result:
+
+```bash
+node interop/root-view-quorum-node/verify.mjs \
+  --report root-view.report.json
+```
+
+`accepted` means the report recomputes and verifies; it does not mean the root
+view is favorable. Read `evidence_status` separately—for example, a correctly
+verified `same_version_root_conflict` report is accepted evidence of a blocking
+condition.
 
 The runner uses only Node.js built-ins. It independently checks:
 
@@ -25,9 +39,15 @@ The runner uses only Node.js built-ins. It independently checks:
 - all seven expected report outcomes; and
 - rejection of the self-rehashed derived-summary mutation.
 
-The implementation intentionally supports only the Ed25519 roots used by the
-v1 corpus. It is a second executable interpretation of these eight cases, not a
-general RootViewQuorum SDK or a replacement for the stricter Python verifier.
+For embedded trust roots it supports every RootViewQuorum v1 scheme: Ed25519,
+ECDSA P-256/SHA-256, and RSA-PSS/SHA-256 with a 32-byte salt. Observer receipts
+remain Ed25519 as required by the protocol. The test suite also applies 21
+self-rehashed mutations across every summary field, findings, receipt results,
+metadata, limitations, and a receipt signature; both Python and Node must
+reject every mutation.
+
+This is a second executable interpretation and standalone report verifier, not
+a published npm SDK.
 
 Passing both implementations improves confidence that the documented semantics
 are portable. It does not prove general conformance, parser safety, correctness

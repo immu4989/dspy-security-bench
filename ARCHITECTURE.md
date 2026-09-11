@@ -107,7 +107,8 @@ v0.1 research choices are labeled separately from the current product surface.
     observers; its immutable eight-case known-answer pack gives non-Python
     implementations byte-stable inputs and expected decisions. A separate
     zero-dependency Node.js runner verifies the same cryptographic and semantic
-    decisions without invoking the Python evaluator.
+    decisions without invoking the Python evaluator, including all three root
+    signature schemes and 21 cross-language differential tamper checks.
     VerifierConformance v9 exercises all sixteen verifier classes with rehashed mutations.
     CapabilityManifest byte-binds every shipped schema to its protocol,
     producer/verifier CLI, portability boundary, and disclosed data classes.

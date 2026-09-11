@@ -201,6 +201,10 @@ dspy-security-bench ledger generate-root-view-vectors \
 # Execute the same cases through the independent zero-dependency implementation.
 node interop/root-view-quorum-node/verify.mjs \
   interop/root-view-quorum-v1
+
+# Independently reverify one report with machine-readable output.
+node interop/root-view-quorum-node/verify.mjs \
+  --report root-view.report.json
 ```
 
 Protocol digests use SHA-256 over UTF-8 JSON with recursively sorted object
@@ -220,8 +224,11 @@ imports or invokes Python. Using only built-in filesystem and cryptography
 APIs, it independently validates the immutable manifest, exact file set,
 canonical digests, Ed25519 key identities and signatures, root thresholds,
 observer bindings, classifications, quorums, report summaries, and required
-tamper rejection. It supports the Ed25519 fixture roots in this corpus; it is
-not a general replacement SDK.
+tamper rejection. It verifies Ed25519, ECDSA P-256/SHA-256, and RSA-PSS/SHA-256
+trust-root signatures; observer receipts remain Ed25519. A 21-case differential
+suite rehashes mutations to every summary field, findings, receipt results,
+metadata, limitations, and a receipt signature and requires both Python and
+Node to reject them. It is not a published npm SDK.
 
 The structure follows the practical pattern used by the
 [TUF conformance suite](https://github.com/theupdateframework/tuf-conformance)

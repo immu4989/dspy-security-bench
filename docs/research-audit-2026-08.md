@@ -750,6 +750,14 @@ key identities, root signature and organization thresholds, observer
 signatures, nonce and candidate bindings, view classifications, quorum counts,
 seven expected outcomes, and the mandatory rehashed-summary rejection.
 
+The independent verifier was then extended from corpus execution to standalone
+exact report recomputation across Ed25519, ECDSA P-256/SHA-256, and
+RSA-PSS/SHA-256 roots. A differential suite makes 21 semantic changes, repairs
+the outer report digest, and requires both implementations to reject every
+case. The mutations span every summary value, findings, per-receipt results,
+metadata, limitations, and an observer signature; simple hash checking cannot
+pass the matrix.
+
 This closes a concrete interoperability-evidence gap while keeping the claim
 narrow. Both executors still consume the same finite corpus and specification;
 agreement cannot prove general conformance, parser safety, independence of

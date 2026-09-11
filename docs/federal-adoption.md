@@ -178,7 +178,9 @@ certification, a control assessment, or evidence that untested inputs are safe.
 For language-diversity evidence, retain outputs from both the package verifier
 and the zero-dependency Node.js runner. The second path does not call Python and
 uses Node's native Ed25519 verifier, but two agreeing implementations still do
-not establish independent assessment or certification.
+not establish independent assessment or certification. Retain the standalone
+JSON result and the 21-case differential-test output with the reviewed build;
+the Node path also exercises ECDSA P-256 and RSA-PSS trust-root signatures.
 
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every

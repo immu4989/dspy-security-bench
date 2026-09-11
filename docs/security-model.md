@@ -114,6 +114,8 @@ The companion Node.js runner is an independent implementation of the finite
 vector semantics and uses no Python subprocess. Agreement between two
 implementations reduces one class of shared-runtime error; it does not prove
 that either implementation is defect-free or that untested inputs conform.
+The differential suite covers 21 rehashed mutations and all three supported
+trust-root signature schemes, but remains deterministic and finite.
 AssuranceLedger CapabilityManifest trusts the package's compiled capability
 table and local schema directory. Exact byte digests reveal drift, but do not
 establish that a schema is secure, that another implementation is compatible,

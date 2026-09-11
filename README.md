@@ -309,7 +309,10 @@ offline with `ledger generate-root-view-vectors` and
 `ledger verify-root-view-vectors`. A separate
 [zero-dependency Node.js runner](interop/root-view-quorum-node/README.md)
 independently executes the same cryptographic and semantic cases without
-calling Python, so portability is tested rather than inferred.
+calling Python, supports all three trust-root signature schemes, and must agree
+with Python in rejecting 21 self-rehashed semantic mutations. Portability is
+tested rather than inferred.
+[Add another language implementation →](interop/README.md)
 
 Downstream implementers can run `ledger conformance` against a complete demo or
 integration artifact directory. The original seven rehashed adversarial vectors
@@ -1914,7 +1917,7 @@ v0.1 scope choices:
 | AssuranceLedger VerifierConformance v9 — sixteen clean-source-validated adversarial vectors including RootViewQuorum | **shipped on main** |
 | AssuranceLedger RootViewQuorum — nonce-bound independent root-distribution observations with non-outvotable conflict/newer-root evidence | **shipped on main** |
 | RootViewQuorum known-answer vectors — eight byte-stable cross-language cases, 21 SHA-256-bound artifacts plus an immutable v1 manifest, and offline execution | **shipped on main** |
-| Independent RootViewQuorum Node.js runner — zero dependencies, native Ed25519 verification, eight-case semantic parity, and no Python execution | **shipped on main** |
+| Independent RootViewQuorum Node.js verifier — zero dependencies, all three root signature schemes, exact report recomputation, eight known answers, and 21 differential tamper checks | **shipped on main** |
 | AssuranceLedger CapabilityManifest — sixteen offline protocol contracts bound to thirty exact schema digests | **shipped on main** |
 | AssuranceLedger IntegrationLock — owner-pinned compatibility floors, drift SARIF, and fail-on-drift CI | **shipped on main** |
 | AssuranceTrustRoot — pinned bootstrap, exact policy authority, expiration, crypto-agile keys, and dual-threshold rotation | **shipped on main** |

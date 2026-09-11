@@ -498,6 +498,7 @@
       "referenceRootViewVectorCases": 8,
       "referenceRootViewManifestBoundFiles": 21,
       "rootViewIndependentImplementations": 2,
+      "rootViewCrossLanguageMutationCases": 21,
       "rootViewVectorPrivateKeysIncluded": false,
       "rootViewNetworkRequests": 0,
       "rootViewRootsInstalled": 0,

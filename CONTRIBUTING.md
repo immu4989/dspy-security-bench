@@ -47,6 +47,11 @@ Contributions are welcome. The most useful ones, roughly in order:
    disagreements should be resolvable.
 16. Bug reports and documentation fixes.
 
+Cross-language security implementers are especially welcome. The
+[interoperability lab](interop/README.md) provides immutable RootViewQuorum
+known-answer inputs, Python and dependency-free Node.js executors, and 21
+differential self-rehashed mutations.
+
 Federal and regulated-sector contributors can also propose an inert
 IncidentTwin mission pack or improve an informative FederalProof mapping. Use
 the **Federal mission pack** issue form and never submit operational incidents,
@@ -68,6 +73,19 @@ The test suite does not make network calls. You only need provider API keys to
 run the benchmark itself. Contributors changing embedding-based synthesis or
 deduplication should install `.[dev,synthesis]`; the ordinary development and
 CI environment intentionally avoids the large optional ML runtime.
+
+## Contributing a RootViewQuorum implementation
+
+Create `interop/root-view-quorum-<language>/` and implement the frozen v1
+contract without importing or executing an existing verifier. Run the exact
+eight-case pack, emit a source-digested JSON result, add an offline test, and
+document every supported signature scheme and input bound. The
+[interoperability lab](interop/README.md) contains the full checklist.
+
+Do not edit `interop/root-view-quorum-v1` to make a new implementation pass.
+Report a disagreement first; if the protocol meaning changes, introduce a new
+vector version. Never include production roots, private keys, credentials,
+non-public identifiers, or controlled data.
 
 ## Adding or updating a framework bridge
 

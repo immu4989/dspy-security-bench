@@ -9,6 +9,17 @@
 - [ ] Generated artifacts were rebuilt from their committed sources
 - [ ] New research claims include scope, limitations, and related work
 
+## Cross-language interoperability
+
+<!-- Delete this section if the PR does not add or change an interop runner. -->
+
+- [ ] The implementation imports or executes neither an existing verifier nor its result
+- [ ] The immutable vector corpus is unchanged, or a new version is explicitly proposed
+- [ ] Output binds the exact implementation source and vector manifest digests
+- [ ] All known-answer and self-rehashed differential cases pass offline
+- [ ] No private keys, credentials, production roots, endpoints, or controlled data are included
+- [ ] The supported protocol subset and signature schemes are documented without certification claims
+
 ## Community evidence submission
 
 <!-- Delete this section if the PR is not a community result. -->
