@@ -1,0 +1,47 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://fictional-builder.example/build-types/ai-agent/v1",
+      "externalParameters": {
+        "configuration": "refs/tags/fictional-agent-v2",
+        "target": "agent-runtime"
+      },
+      "internalParameters": {
+        "workerPool": "fictional-isolated-linux"
+      },
+      "resolvedDependencies": [
+        {
+          "digest": {
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "name": "fictional-agent-source",
+          "uri": "git+https://fictional-source.example/agent@refs/tags/fictional-agent-v2"
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://fictional-builder.example/isolated/v1",
+        "version": {
+          "runner": "fictional-2026.09"
+        }
+      },
+      "metadata": {
+        "finishedOn": "2026-09-11T12:05:00Z",
+        "invocationId": "fictional-invocation-0001",
+        "startedOn": "2026-09-11T12:00:00Z"
+      }
+    }
+  },
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "subject": [
+    {
+      "digest": {
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "name": "fictional-agent-runtime.tar",
+      "uri": "pkg:oci/fictional-registry.example/agent@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ]
+}

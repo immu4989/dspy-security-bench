@@ -526,6 +526,11 @@
     },
     "agentBOM": {
       "protocolVersion": "agentbom-claimimpact-v1",
+      "slsaImportProtocolVersion": "agentbom-slsa-import-v1",
+      "slsaRawNamesRetained": false,
+      "slsaRawUrisRetained": false,
+      "slsaRawParametersRetained": false,
+      "slsaSignaturesVerified": false,
       "automaticDeploymentActions": 0
     },
     "probeContract": {

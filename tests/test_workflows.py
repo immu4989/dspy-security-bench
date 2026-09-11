@@ -74,6 +74,14 @@ def test_assuranceledger_ci_recomputes_partner_contracts_offline():
     assert clean_job.index("verify-root-view-interop") < clean_job.index("actions/attest@")
 
 
+def test_assurancegraph_ci_recomputes_privacy_minimized_slsa_import():
+    workflow = (WORKFLOWS / "assurancegraph.yml").read_text()
+    assert "dspy-security-bench bom import-slsa" in workflow
+    assert "dspy-security-bench bom verify-slsa-import" in workflow
+    assert "examples/slsa-provenance-v1.json" in workflow
+    assert "tests/test_agentbom_slsa.py" in workflow
+
+
 def test_ci_installs_from_lockfile_without_resolving_during_checks():
     workflow = (WORKFLOWS / "test.yml").read_text()
     assert "uv sync --locked --extra dev" in workflow

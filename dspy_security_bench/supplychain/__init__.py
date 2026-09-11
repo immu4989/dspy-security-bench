@@ -10,6 +10,11 @@ from dspy_security_bench.supplychain.proof import (
     seal_inventory,
     verify_report,
 )
+from dspy_security_bench.supplychain.slsa import (
+    build_slsa_import_report,
+    import_slsa,
+    verify_slsa_import_report,
+)
 
 __all__ = [
     "analyze_change",
@@ -20,4 +25,7 @@ __all__ = [
     "protocol_sha256",
     "seal_inventory",
     "verify_report",
+    "build_slsa_import_report",
+    "import_slsa",
+    "verify_slsa_import_report",
 ]

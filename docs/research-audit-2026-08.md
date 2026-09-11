@@ -764,3 +764,37 @@ agreement cannot prove general conformance, parser safety, independence of
 their underlying cryptographic libraries, correctness on untested inputs,
 FIPS validation, certification, government endorsement, deployment approval,
 or an authorization to operate.
+
+## September 11 continuation: privacy-minimized SLSA provenance import
+
+SLSA provenance can describe output subjects, resolved build dependencies,
+the build type, external parameters, and the builder identity. Those fields are
+valuable supply-chain evidence, but copying their raw values into a portable
+inventory can expose private repository names, artifact locations, workflow
+parameters, or internal builder topology. The
+[SLSA Provenance v1 predicate](https://slsa.dev/provenance/v1) also makes clear
+that external parameters are untrusted input and that a builder identity names
+the build platform's trust base; their presence alone does not prove that an
+artifact is trustworthy. The
+[in-toto Statement v1 specification](https://github.com/in-toto/attestation/blob/main/spec/v1/statement.md)
+defines the envelope shape, while the
+[ResourceDescriptor specification](https://github.com/in-toto/attestation/blob/main/spec/v1/resource_descriptor.md)
+defines the subjects and dependencies being mapped.
+
+AgentBOM SLSAImport v1 now converts a strict, unsigned in-toto Statement with a
+SLSA Provenance v1 predicate into a deterministic, privacy-minimized AgentBOM.
+It retains lowercase SHA-256 artifact digests and stable hashes of resource
+identity, build type, and builder identity, but never copies raw names, URIs,
+builder IDs, parameters, metadata, timestamps, byproducts, annotations,
+embedded content, or extensions. A separate strict import report binds the
+entire canonical source Statement and the exact derived AgentBOM so independent
+consumers can recompute the transformation and detect edited, self-rehashed
+reports. Stable identity hashes let a changed artifact digest appear as a
+content change instead of a misleading remove-and-add event.
+
+The boundary is deliberate: SLSAImport does not verify a DSSE envelope or
+signature, establish a trusted builder, apply a caller's expectations, assign a
+SLSA Build level, prove confidentiality, or endorse a supplier. Hashed
+low-entropy identifiers can still be guessed. The report is import evidence,
+not provenance authentication, certification, government endorsement,
+deployment approval, or an authorization to operate.

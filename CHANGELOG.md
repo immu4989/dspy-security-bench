@@ -10,6 +10,18 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AgentBOM SLSAImport v1**, a deterministic, privacy-minimized bridge from
+  in-toto Statement v1 / SLSA Provenance v1 into an incomplete AgentBOM. It maps
+  SHA-256-identified outputs and resolved dependencies plus hashed external
+  build-definition and builder identities, using stable privacy-hashed component
+  IDs so changed artifacts remain content changes across revisions. Raw names,
+  URIs, parameters, invocation metadata, timestamps, byproducts, annotations,
+  content, and extensions are not retained. A strict report binds the complete
+  source Statement digest, records every excluded field and non-claim, and
+  recomputes only with the retained source. Schema, CLI, fictional example, CI,
+  stable-identity tests, and secret-retention tests are included. The mapper
+  does not verify DSSE/signatures, assign a SLSA level, establish completeness
+  or truth, scan vulnerabilities, rank suppliers, or automate any decision.
 - **AssuranceLedger RootViewQuorum**, an offline root-distribution evidence
   protocol for the distributor-withholding and split-view boundary that a
   locally valid trust chain cannot resolve. An independently pinned policy maps

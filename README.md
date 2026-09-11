@@ -387,6 +387,14 @@ dspy-security-bench contain demo --out-dir artifacts/containmentproof
 # Changed and unchanged fictional AgentBOM comparisons.
 dspy-security-bench bom demo --out-dir artifacts/agentbom
 
+# Turn SLSA v1 output/dependency/build identities into a privacy-minimized,
+# incomplete AgentBOM plus an exactly recomputable mapping receipt.
+dspy-security-bench bom import-slsa examples/slsa-provenance-v1.json \
+  --inventory-id fictional-slsa-agent \
+  --out slsa.agentbom.json --report-out slsa-import.report.json
+dspy-security-bench bom verify-slsa-import \
+  slsa-import.report.json examples/slsa-provenance-v1.json
+
 # Start from one of seven explicit sector boundaries.
 dspy-security-bench assure init --sector public-benefits \
   --case-id benefits-pilot --out assurance-case.json
@@ -1941,7 +1949,7 @@ v0.1 scope choices:
 | AssuranceTimeQuorum — policy-pinned, nonce-bound, multi-organization signed uncertainty intervals with conservative overlap and zero clock adjustment | **shipped on main** |
 | TrustRootTimeGate — caller-anchored signed time evidence plus complete TrustRoot evaluation at both conservative interval endpoints | **shipped on main** |
 | AssuranceLedger ReReview — minimal claim/role re-review planning after retirement, compromise, or incomplete trust evidence | **shipped on main** |
-| Assurance Control Plane — ContainmentProof, AgentBOM ClaimImpact, non-executing probe contract, and non-ranking public exchange | **shipped on main** |
+| Assurance Control Plane — ContainmentProof, AgentBOM ClaimImpact, privacy-minimized SLSA Provenance mapping, non-executing probe contract, and non-ranking public exchange | **shipped on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

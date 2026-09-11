@@ -90,6 +90,10 @@ compliance or safety overclaims.
   eight exact cross-implementation agreements, offline reconstruction, and an
   explicit separation between source identity and authenticated execution
   provenance.
+- AgentBOM SLSAImport v1 with stable privacy-hashed component identities,
+  SHA-256-only resource mapping, source-bound reconstruction, strict exclusion
+  of raw names/URIs/parameters/run metadata, and no signature or SLSA-level
+  inference.
 - AssuranceLedger IntegrationLock v1 with owner-pinned schema/protocol minimums,
   explicit contract-drift findings, exact offline recomputation, and a
   fail-on-drift CI gate that allows additions but rejects changed requirements.
@@ -171,8 +175,9 @@ compliance or safety overclaims.
 - Recruit independent ContainmentProof, AgentBOM, and complete AssuranceGraph
   reproductions using synthetic or safely publishable evidence, including
   unfavorable cases and documented telemetry gaps.
-- Add owner-reviewed mappings for SLSA provenance and emerging AI/ML SBOM fields
-  only where they preserve the strict AgentBOM component and claim boundary.
+- Add owner-reviewed mappings for emerging AI/ML SBOM fields only where they
+  preserve the strict AgentBOM component and claim boundary; SLSA Provenance v1
+  mapping is now shipped.
 - Publish conformance fixtures from multiple runtimes through the declarative
   probe contract without accepting executable community plugins.
 - Publish independent real-backend AuthorityBridge evidence for each supported

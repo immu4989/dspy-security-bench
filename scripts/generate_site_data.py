@@ -273,6 +273,11 @@ def build_payload(
             },
             "agentBOM": {
                 "protocolVersion": "agentbom-claimimpact-v1",
+                "slsaImportProtocolVersion": "agentbom-slsa-import-v1",
+                "slsaRawNamesRetained": False,
+                "slsaRawUrisRetained": False,
+                "slsaRawParametersRetained": False,
+                "slsaSignaturesVerified": False,
                 "automaticDeploymentActions": 0,
             },
             "probeContract": {

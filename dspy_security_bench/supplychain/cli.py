@@ -20,6 +20,10 @@ from dspy_security_bench.supplychain.proof import (
     validate_inventory,
     verify_report,
 )
+from dspy_security_bench.supplychain.slsa import (
+    build_slsa_import_report,
+    verify_slsa_import_report,
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -44,6 +48,21 @@ def main(argv: list[str] | None = None) -> int:
         imported.add_argument("--inventory-id", required=True)
         imported.add_argument("--out", required=True)
         imported.add_argument("--force", action="store_true")
+    import_slsa = commands.add_parser(
+        "import-slsa",
+        help="privacy-minimize SLSA Provenance v1 into an incomplete AgentBOM",
+    )
+    import_slsa.add_argument("source")
+    import_slsa.add_argument("--inventory-id", required=True)
+    import_slsa.add_argument("--out", required=True)
+    import_slsa.add_argument("--report-out", required=True)
+    import_slsa.add_argument("--force", action="store_true")
+    verify_slsa = commands.add_parser(
+        "verify-slsa-import",
+        help="recompute a SLSA-to-AgentBOM mapping from the retained Statement",
+    )
+    verify_slsa.add_argument("report")
+    verify_slsa.add_argument("source")
     compare = commands.add_parser("compare", help="compute transitive claim impact")
     compare.add_argument("baseline")
     compare.add_argument("candidate")
@@ -83,6 +102,25 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_once(Path(args.out), inventory, args.force)
             print(f"[bom] wrote {args.out}; owner enrichment required before decision use")
+            return 0
+        if args.command == "import-slsa":
+            source = _read_json(Path(args.source), MAX_INVENTORY_BYTES)
+            report = build_slsa_import_report(source, inventory_id=args.inventory_id)
+            inventory_path, report_path = Path(args.out), Path(args.report_out)
+            _require_writable_targets((inventory_path, report_path), force=args.force)
+            _write_json(inventory_path, report["inventory"])
+            _write_json(report_path, report)
+            print(
+                f"[bom] wrote {inventory_path} and {report_path}; "
+                "signature verification and owner enrichment required"
+            )
+            return 0
+        if args.command == "verify-slsa-import":
+            report = _read_json(Path(args.report), 3 * MAX_INVENTORY_BYTES)
+            source = _read_json(Path(args.source), MAX_INVENTORY_BYTES)
+            if errors := verify_slsa_import_report(report, source):
+                raise ValueError("; ".join(errors))
+            print(f"[bom] verified privacy-minimized SLSA import {args.report}")
             return 0
         if args.command == "compare":
             baseline = _read_json(Path(args.baseline), MAX_INVENTORY_BYTES)
@@ -149,6 +187,11 @@ def _write_once(path: Path, payload: Any, force: bool) -> None:
     if path.exists() and not force:
         raise FileExistsError(f"{path} exists (use --force)")
     _write_json(path, payload)
+
+
+def _require_writable_targets(paths: tuple[Path, ...], *, force: bool) -> None:
+    if not force and (existing := [str(path) for path in paths if path.exists()]):
+        raise FileExistsError(f"output exists (use --force): {', '.join(existing)}")
 
 
 def _write_json(path: Path, payload: Any) -> None:

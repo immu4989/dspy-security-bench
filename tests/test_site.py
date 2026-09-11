@@ -471,7 +471,15 @@ def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plan
         "canaryProbeCount": 8,
         "automaticResponseActions": 0,
     }
-    assert commons["agentBOM"]["protocolVersion"] == "agentbom-claimimpact-v1"
+    assert commons["agentBOM"] == {
+        "protocolVersion": "agentbom-claimimpact-v1",
+        "slsaImportProtocolVersion": "agentbom-slsa-import-v1",
+        "slsaRawNamesRetained": False,
+        "slsaRawUrisRetained": False,
+        "slsaRawParametersRetained": False,
+        "slsaSignaturesVerified": False,
+        "automaticDeploymentActions": 0,
+    }
     assert commons["probeContract"]["thirdPartyCodeLoading"] is False
 
     html = (SITE / "index.html").read_text()
@@ -484,6 +492,8 @@ def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plan
         "VIOLATION ≠ MONITOR FAILURE ≠ INCOMPLETE EVIDENCE",
         "AUTOMATIC SHUTDOWNS: 0",
         "AUTOMATIC DEPLOYMENTS: 0",
+        "PRIVACY-MINIMIZED SLSA V1",
+        "RAW NAMES · URIs · PARAMETERS: 0",
         "data-assurance-exchange-count",
         "dspy-security-bench contain demo --out-dir artifacts/containmentproof",
     ):

@@ -88,17 +88,50 @@ dspy-security-bench bom compare baseline.agentbom.json candidate.agentbom.json \
 dspy-security-bench bom verify claim-impact.json
 ```
 
-Local CycloneDX and SPDX JSON imports create deliberately incomplete starters:
+Local CycloneDX, SPDX, and SLSA Provenance v1 imports create deliberately
+incomplete starters:
 
 ```bash
 dspy-security-bench bom import-cyclonedx bom.json \
   --inventory-id reviewed-agent --out agentbom.json
 dspy-security-bench bom import-spdx spdx.json \
   --inventory-id reviewed-agent --out agentbom.json
+dspy-security-bench bom import-slsa provenance.json \
+  --inventory-id reviewed-agent \
+  --out agentbom.json \
+  --report-out slsa-import.report.json
+dspy-security-bench bom verify-slsa-import \
+  slsa-import.report.json provenance.json
 ```
 
 The owner must enrich AI-specific components, dependency relationships, claim
 bindings, and completeness before decision use. Import is not attestation.
+
+The SLSA mapper accepts only in-toto Statement v1 with the
+`https://slsa.dev/provenance/v1` predicate and a lowercase SHA-256 identity for
+every mapped subject and resolved dependency. It creates stable privacy-hashed
+component IDs for output artifacts, the external build definition, the builder,
+and resolved inputs. This means a later artifact or parameter digest change is
+a content change to one logical component—not an unrelated remove/add pair—so
+existing owner claim bindings can drive a minimal reevaluation plan.
+
+Raw artifact names and URIs, builder ID, build type, external/internal
+parameters, invocation metadata, timestamps, byproducts, annotations, content,
+and extensions are excluded from the output. Exact digests bind their logical
+identities and the complete source Statement. Those hashes are identifiers, not
+confidentiality protection against guessing. The strict mapping report records
+every omission and can be recomputed only with the separately retained source.
+It does not parse a DSSE envelope, verify a signature, infer a SLSA Build level,
+or make a supplier, procurement, deployment, or risk decision.
+
+This mapping follows SLSA's BuildDefinition/RunDetails model: externally
+controlled parameters and resolved dependencies are distinct, the builder ID
+identifies the build platform trust base, and consumers must verify expected
+builder/signer pairs separately.
+
+- [SLSA Provenance v1](https://slsa.dev/provenance/v1)
+- [SLSA artifact verification](https://slsa.dev/spec/v1.2/verifying-artifacts)
+- [in-toto ResourceDescriptor v1](https://github.com/in-toto/attestation/blob/main/spec/v1/resource_descriptor.md)
 
 ## AssuranceGraph integration
 
