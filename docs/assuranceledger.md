@@ -506,6 +506,13 @@ this chain on every relevant pull request with read-only repository permission,
 SHA-pinned actions, lockfile-only dependencies, no provider credential, and no
 networked target. It preserves the generated JSON and SARIF bundle for 14 days
 so reviewers can inspect the exact evidence even when a gate fails.
+For official `main` pushes only, a separate least-privilege job downloads the
+bundle, checks out the exact verification engine separately, recomputes the
+RootView interoperability report, and then creates a GitHub OIDC-backed
+artifact attestation over that exact JSON file. The signing permission is not
+available to the evaluation job, and attestation happens only after clean-job
+verification. This authenticates workflow origin, not implementation
+correctness, compliance, or deployment suitability.
 
 ## Disclose the conflict without disclosing the review history
 

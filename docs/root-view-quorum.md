@@ -260,6 +260,36 @@ identity, while its subject digests follow the in-toto Statement model.
 - [SLSA v1.2 artifact verification](https://slsa.dev/spec/v1.2/verifying-artifacts)
 - [in-toto Statement v1](https://github.com/in-toto/attestation/blob/main/spec/v1/statement.md)
 
+### Authenticate the retained CI result
+
+On pushes to this repository's `main` branch, a separate clean job downloads
+the read-only job's evidence, checks out the exact commit into another
+directory, installs only lockfile-resolved dependencies, and recomputes the
+interop report before signing it. The job has `id-token: write` and
+`attestations: write`; the evaluation job retains only `contents: read`. The
+attestation action is pinned to an immutable commit.
+
+After downloading `root-view-interop.report.json` from a successful run, verify
+its repository and exact signer-workflow identity online:
+
+```bash
+gh attestation verify root-view-interop.report.json \
+  --repo immu4989/dspy-security-bench \
+  --signer-workflow \
+  immu4989/dspy-security-bench/.github/workflows/assuranceledger.yml
+```
+
+Then run `ledger verify-root-view-interop` against the retained corpus and
+external source for semantic reconstruction. The GitHub attestation establishes
+the report digest and workflow identity; the inner report establishes the
+finite-corpus agreement. Neither layer certifies the implementation or makes an
+operational decision. GitHub documents artifact attestations as signed claims
+about build provenance and exposes the repository, commit, triggering event,
+and workflow identity for verification.
+
+- [GitHub artifact-attestation concepts](https://docs.github.com/en/actions/concepts/security/artifact-attestations)
+- [GitHub artifact-attestation verification](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations)
+
 The structure follows the practical pattern used by the
 [TUF conformance suite](https://github.com/theupdateframework/tuf-conformance)
 and [Sigstore conformance suite](https://github.com/sigstore/sigstore-conformance),

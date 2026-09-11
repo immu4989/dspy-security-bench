@@ -250,6 +250,8 @@ def build_payload(
                 "referenceRootViewInteropAgreements": 8,
                 "referenceRootViewInteropDisagreements": 0,
                 "referenceRootViewInteropSubjects": 4,
+                "rootViewInteropMainBranchAttested": True,
+                "rootViewInteropAttestationCleanJob": True,
                 "rootViewVectorPrivateKeysIncluded": False,
                 "rootViewNetworkRequests": 0,
                 "rootViewRootsInstalled": 0,

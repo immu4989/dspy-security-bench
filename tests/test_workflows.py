@@ -60,6 +60,18 @@ def test_assuranceledger_ci_recomputes_partner_contracts_offline():
     assert "tests/test_assuranceledger_trust_root_time.py" in workflow
     assert "artifacts/assuranceledger" in workflow
     assert "persist-credentials: false" in workflow
+    assert "attest-root-view-interoperability:" in workflow
+    assert "github.event_name == 'push'" in workflow
+    assert "github.repository == 'immu4989/dspy-security-bench'" in workflow
+    assert "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6" in workflow
+    assert "verify-root-view-interop" in workflow
+    assert "root-view-interop-unverified-${{ github.run_id }}-${{ github.run_attempt }}" in workflow
+    clean_job = workflow.split("  attest-root-view-interoperability:", 1)[1]
+    assert "id-token: write" in clean_job
+    assert "attestations: write" in clean_job
+    assert "OPENAI_API_KEY" not in clean_job
+    assert "ANTHROPIC_API_KEY" not in clean_job
+    assert clean_job.index("verify-root-view-interop") < clean_job.index("actions/attest@")
 
 
 def test_ci_installs_from_lockfile_without_resolving_during_checks():

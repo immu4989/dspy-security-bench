@@ -503,6 +503,8 @@
       "referenceRootViewInteropAgreements": 8,
       "referenceRootViewInteropDisagreements": 0,
       "referenceRootViewInteropSubjects": 4,
+      "rootViewInteropMainBranchAttested": true,
+      "rootViewInteropAttestationCleanJob": true,
       "rootViewVectorPrivateKeysIncluded": false,
       "rootViewNetworkRequests": 0,
       "rootViewRootsInstalled": 0,

@@ -53,6 +53,14 @@ several of them changed published numbers.
   source drift and self-rehashed semantic edits fail. CI emits and retains the
   report. Its boundary is explicit: a source digest is not proof of execution,
   and this is not provenance, certification, independent assessment, or an ATO.
+- **Authenticated main-branch interoperability evidence.** A separate
+  least-privilege CI job downloads the read-only evaluation artifact, checks
+  out the exact engine separately, installs locked dependencies, and recomputes
+  `RootViewInteropEvidence` before applying a GitHub OIDC-backed artifact
+  attestation. It runs only for the official repository's `main` pushes; the
+  evaluation job keeps `contents: read`, and the signing job receives no model
+  credentials. Verification instructions pin the expected repository and
+  signer workflow. Provenance authenticates origin—not correctness or approval.
 - **TrustRootTimeGate**, a conservative composition of AssuranceTimeQuorum and
   AssuranceTrustRoot. It natively recomputes the signed time report, checks an
   externally retained policy digest and fresh request nonce, requires the time

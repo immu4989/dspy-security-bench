@@ -322,6 +322,10 @@ Statement; `ledger verify-root-view-interop` recomputes it offline from the
 retained corpus and source. Source identity is not execution identity, so the
 report explicitly requires separately authenticated CI provenance when that
 claim matters and never presents interoperability as certification.
+On official `main` pushes, a separate clean job reverifies the downloaded
+report and uses GitHub's OIDC-backed artifact attestation to bind it to the
+repository, commit, event, and signer workflow. Pull-request evaluation remains
+read-only; the identity-bearing job never receives model-provider credentials.
 
 Downstream implementers can run `ledger conformance` against a complete demo or
 integration artifact directory. The original seven rehashed adversarial vectors
@@ -1927,7 +1931,7 @@ v0.1 scope choices:
 | AssuranceLedger RootViewQuorum — nonce-bound independent root-distribution observations with non-outvotable conflict/newer-root evidence | **shipped on main** |
 | RootViewQuorum known-answer vectors — eight byte-stable cross-language cases, 21 SHA-256-bound artifacts plus an immutable v1 manifest, and offline execution | **shipped on main** |
 | Independent RootViewQuorum Node.js verifier — zero dependencies, all three root signature schemes, exact report recomputation, eight known answers, and 21 differential tamper checks | **shipped on main** |
-| RootViewInteropEvidence — source-bound, in-toto-shaped retention artifact for exact Python/external agreement across all eight vectors | **shipped on main** |
+| RootViewInteropEvidence — source-bound, in-toto-shaped retention artifact for exact Python/external agreement across all eight vectors, clean-job re-verification, and main-branch GitHub attestation | **shipped on main** |
 | AssuranceLedger CapabilityManifest — seventeen offline protocol contracts bound to thirty-one exact schema digests | **shipped on main** |
 | AssuranceLedger IntegrationLock — owner-pinned compatibility floors, drift SARIF, and fail-on-drift CI | **shipped on main** |
 | AssuranceTrustRoot — pinned bootstrap, exact policy authority, expiration, crypto-agile keys, and dual-threshold rotation | **shipped on main** |
