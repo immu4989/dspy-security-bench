@@ -17,6 +17,7 @@
 - [ ] The immutable vector corpus is unchanged, or a new version is explicitly proposed
 - [ ] Output binds the exact implementation source and vector manifest digests
 - [ ] All known-answer and self-rehashed differential cases pass offline
+- [ ] A RootViewInteropEvidence report builds and reverifies from the retained source
 - [ ] No private keys, credentials, production roots, endpoints, or controlled data are included
 - [ ] The supported protocol subset and signature schemes are documented without certification claims
 

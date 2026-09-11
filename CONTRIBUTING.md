@@ -49,8 +49,9 @@ Contributions are welcome. The most useful ones, roughly in order:
 
 Cross-language security implementers are especially welcome. The
 [interoperability lab](interop/README.md) provides immutable RootViewQuorum
-known-answer inputs, Python and dependency-free Node.js executors, and 21
-differential self-rehashed mutations.
+known-answer inputs, Python and dependency-free Node.js executors, 21
+differential self-rehashed mutations, and a source-bound interoperability
+evidence report.
 
 Federal and regulated-sector contributors can also propose an inert
 IncidentTwin mission pack or improve an informative FederalProof mapping. Use
@@ -81,6 +82,8 @@ contract without importing or executing an existing verifier. Run the exact
 eight-case pack, emit a source-digested JSON result, add an offline test, and
 document every supported signature scheme and input bound. The
 [interoperability lab](interop/README.md) contains the full checklist.
+Generate and reverify a `RootViewInteropEvidence` artifact so reviewers can
+inspect the exact corpus, source digest, runtime, and case agreement in CI.
 
 Do not edit `interop/root-view-quorum-v1` to make a new implementation pass.
 Report a disagreement first; if the protocol meaning changes, introduce a new

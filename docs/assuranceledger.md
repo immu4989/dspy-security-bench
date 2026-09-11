@@ -51,7 +51,7 @@ same-size conflict with no embedded ledger entries or review content.
 
 The same command now produces the complete partner-verification surface:
 
-- `capability-manifest.json` — sixteen offline protocol contracts and thirty
+- `capability-manifest.json` — seventeen offline protocol contracts and thirty-one
   exact schema digests;
 - `trust-root-v1.json` through `trust-root-v3.json`, `trust-root.report.json`,
   and `trust-root-chain.report.json` — a pinned predecessor, dual-threshold
@@ -257,6 +257,11 @@ the same eight cases with native Node cryptography and no Python process. Its
 standalone report mode supports all three root signature schemes, and a
 21-mutation differential suite requires both implementations to reject the
 same self-rehashed semantic changes.
+The `RootViewInteropEvidence` compiler then binds the frozen manifest, both
+implementations' exact source digests, the external runtime and result, and all
+eight agreements inside an unsigned in-toto Statement. Its offline verifier
+reconstructs the entire artifact from retained inputs. This improves CI review
+and vendor handoff without claiming that a source digest proves execution.
 
 ## Outcomes with non-overlapping meanings
 
@@ -442,7 +447,7 @@ dspy-security-bench ledger verify-capabilities \
   --schema-root dspy_security_bench/schemas
 ```
 
-The manifest covers sixteen protocol surfaces and all thirty AssuranceLedger
+The manifest covers seventeen protocol surfaces and all thirty-one AssuranceLedger
 Draft 2020-12 schemas. Each schema record binds its stable `$id` and exact file
 bytes with SHA-256. Each protocol record exposes its report type, producer and
 verifier commands, whether verification is standalone, whether an evidence root

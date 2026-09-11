@@ -692,7 +692,7 @@ organization, key and signature, embedded-root recomputation, observer quorum,
 organization diversity, and conflicting or higher roots. Three strict schemas,
 policy and receipt CLI, exact offline report recomputation, SARIF, a fictional
 three-organization demo, CI, and a rehashed v9 conformance mutation accompany
-the protocol. CapabilityManifest now binds sixteen offline protocols to thirty
+the protocol. CapabilityManifest now binds seventeen offline protocols to thirty-one
 schema files, including eleven standalone verifiers.
 
 The result deliberately remains narrower than “latest root.” It covers only the

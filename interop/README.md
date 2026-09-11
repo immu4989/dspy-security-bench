@@ -24,6 +24,22 @@ machine-readable results; the Node result also binds the exact verifier source
 bytes by SHA-256. Pull-request CI executes both implementations and applies the
 differential mutation suite.
 
+Preserve a successful run as portable, exactly recomputable evidence:
+
+```bash
+node interop/root-view-quorum-node/verify.mjs \
+  interop/root-view-quorum-v1 > root-view-node-result.json
+dspy-security-bench ledger evaluate-root-view-interop \
+  interop/root-view-quorum-v1 root-view-node-result.json \
+  --implementation-source interop/root-view-quorum-node/verify.mjs \
+  --implementation-language javascript \
+  --out root-view-interop.report.json
+```
+
+The report binds the corpus and exact verifier sources as in-toto Statement
+subjects and retains all eight agreements. It is unsigned and does not prove
+which code executed; pair it with authenticated CI provenance for that claim.
+
 ## Add another implementation
 
 A useful implementation contribution should:
@@ -38,8 +54,9 @@ A useful implementation contribution should:
    digest, ordered case results, and zero automatic actions;
 7. reject symlinks, undeclared files, unsafe relative paths, oversized inputs,
    malformed keys/signatures, and self-rehashed semantic tampering;
-8. include an offline test and a CI step; and
-9. state precisely which protocol subset and signature schemes it supports.
+8. include an offline test and a CI step;
+9. produce and reverify a `RootViewInteropEvidence` report from its result; and
+10. state precisely which protocol subset and signature schemes it supports.
 
 Do not change the v1 corpus in place. A semantic change requires a new vector
 version and directory so existing implementation results keep one meaning.

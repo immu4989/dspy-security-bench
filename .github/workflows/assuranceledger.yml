@@ -100,6 +100,18 @@ jobs:
           node interop/root-view-quorum-node/verify.mjs
           interop/root-view-quorum-v1
           > artifacts/assuranceledger/root-view-node-interop.json
+      - name: Bind and reverify portable cross-implementation evidence
+        run: |
+          uv run --locked --no-sync dspy-security-bench ledger evaluate-root-view-interop \
+            interop/root-view-quorum-v1 \
+            artifacts/assuranceledger/root-view-node-interop.json \
+            --implementation-source interop/root-view-quorum-node/verify.mjs \
+            --implementation-language javascript \
+            --out artifacts/assuranceledger/root-view-interop.report.json
+          uv run --locked --no-sync dspy-security-bench ledger verify-root-view-interop \
+            artifacts/assuranceledger/root-view-interop.report.json \
+            interop/root-view-quorum-v1 \
+            --implementation-source interop/root-view-quorum-node/verify.mjs
       - name: Recompute sixteen clean-source and adversarial verifier checks
         run: >-
           uv run --locked --no-sync dspy-security-bench ledger verify-conformance
@@ -127,6 +139,7 @@ jobs:
           tests/test_assuranceledger_trust_root_time.py
           tests/test_assuranceledger_root_view.py
           tests/test_assuranceledger_root_view_vectors.py
+          tests/test_assuranceledger_root_view_interop.py
           tests/test_root_view_node_interop.py
       - name: Preserve reviewable JSON and SARIF evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

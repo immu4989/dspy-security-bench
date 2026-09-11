@@ -205,6 +205,18 @@ node interop/root-view-quorum-node/verify.mjs \
 # Independently reverify one report with machine-readable output.
 node interop/root-view-quorum-node/verify.mjs \
   --report root-view.report.json
+
+# Retain exact cross-implementation agreement as a recomputable evidence report.
+node interop/root-view-quorum-node/verify.mjs \
+  interop/root-view-quorum-v1 > root-view-node-result.json
+dspy-security-bench ledger evaluate-root-view-interop \
+  interop/root-view-quorum-v1 root-view-node-result.json \
+  --implementation-source interop/root-view-quorum-node/verify.mjs \
+  --implementation-language javascript \
+  --out root-view-interop.report.json
+dspy-security-bench ledger verify-root-view-interop \
+  root-view-interop.report.json interop/root-view-quorum-v1 \
+  --implementation-source interop/root-view-quorum-node/verify.mjs
 ```
 
 Protocol digests use SHA-256 over UTF-8 JSON with recursively sorted object
@@ -229,6 +241,24 @@ trust-root signatures; observer receipts remain Ed25519. A 21-case differential
 suite rehashes mutations to every summary field, findings, receipt results,
 metadata, limitations, and a receipt signature and requires both Python and
 Node to reject them. It is not a published npm SDK.
+
+`RootViewInteropEvidence` makes the successful cross-language run retainable.
+Its strict JSON schema contains an unsigned in-toto Statement whose subjects
+bind the immutable vector manifest plus the exact Python and external verifier
+source files. The predicate retains the external runtime, original result, and
+eight case-by-case agreements. Reverification reruns the Python pack verifier,
+checks every bound source digest, and reconstructs the complete report, so an
+outer rehash cannot conceal a changed decision or source.
+
+This is intentionally not execution provenance: the external result is
+self-reported, and hashing an implementation file cannot prove that a runner
+executed those bytes. Authenticate the statement with deployment-owned signing
+and CI provenance when execution identity is required. This separation follows
+SLSA's distinction between artifact/provenance matching and trusted builder
+identity, while its subject digests follow the in-toto Statement model.
+
+- [SLSA v1.2 artifact verification](https://slsa.dev/spec/v1.2/verifying-artifacts)
+- [in-toto Statement v1](https://github.com/in-toto/attestation/blob/main/spec/v1/statement.md)
 
 The structure follows the practical pattern used by the
 [TUF conformance suite](https://github.com/theupdateframework/tuf-conformance)

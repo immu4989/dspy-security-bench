@@ -13,6 +13,10 @@ Standard output is a deterministic-shape JSON result suitable for a CI log or
 review artifact. It binds the exact verifier source bytes by SHA-256; the only
 runtime-specific field is the Node.js version.
 
+Turn that result into a strict, source-bound interoperability retention
+artifact with `ledger evaluate-root-view-interop`; the complete command and
+claim boundary are in the [interoperability lab](../README.md).
+
 Verify a standalone RootViewQuorum report and receive a machine-readable
 accept/reject result:
 

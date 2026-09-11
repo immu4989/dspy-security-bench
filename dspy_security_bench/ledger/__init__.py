@@ -52,6 +52,11 @@ from dspy_security_bench.ledger.root_view import (
     validate_root_view_policy,
     verify_root_view_report,
 )
+from dspy_security_bench.ledger.root_view_interop import (
+    build_root_view_interop_report,
+    load_implementation_result,
+    verify_root_view_interop_report,
+)
 from dspy_security_bench.ledger.root_view_vectors import (
     generate_root_view_vector_pack,
     verify_root_view_vector_pack,
@@ -127,6 +132,9 @@ __all__ = [
     "root_view_observer_descriptor",
     "validate_root_view_policy",
     "verify_root_view_report",
+    "build_root_view_interop_report",
+    "load_implementation_result",
+    "verify_root_view_interop_report",
     "generate_root_view_vector_pack",
     "verify_root_view_vector_pack",
     "verify_checkpoint_signature_bundle",

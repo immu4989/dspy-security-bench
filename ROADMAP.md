@@ -71,8 +71,8 @@ compliance or safety overclaims.
 - AssuranceLedger VerifierConformance v9 with sixteen deterministic rehashed
   semantic/cryptographic mutation vectors, exact source digests, strict report
   schema, offline recomputation, and a fail-on-missed-rejection CI mode.
-- AssuranceLedger CapabilityManifest v1 with exact byte digests for thirty
-  shipped schemas, sixteen protocol/CLI contracts, declared portability and data
+- AssuranceLedger CapabilityManifest v1 with exact byte digests for thirty-one
+  shipped schemas, seventeen protocol/CLI contracts, declared portability and data
   classes, deterministic offline recomputation, and zero automatic actions.
 - AssuranceLedger RootViewQuorum v1 with policy-pinned Ed25519 observers,
   candidate-root and fresh-nonce binding, exact embedded observed roots,
@@ -86,6 +86,10 @@ compliance or safety overclaims.
   without invoking Python. Its standalone report mode covers Ed25519, ECDSA
   P-256, and RSA-PSS roots, while 21 self-rehashed differential mutations must
   be rejected identically by both implementations.
+- RootViewInteropEvidence v1 with an unsigned, source-bound in-toto Statement,
+  eight exact cross-implementation agreements, offline reconstruction, and an
+  explicit separation between source identity and authenticated execution
+  provenance.
 - AssuranceLedger IntegrationLock v1 with owner-pinned schema/protocol minimums,
   explicit contract-drift findings, exact offline recomputation, and a
   fail-on-drift CI gate that allows additions but rejects changed requirements.

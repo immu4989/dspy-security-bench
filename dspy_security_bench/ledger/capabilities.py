@@ -28,6 +28,12 @@ from dspy_security_bench.ledger.rereview import PROTOCOL_VERSION as REREVIEW_VER
 from dspy_security_bench.ledger.rereview import REPORT_TYPE as REREVIEW_REPORT
 from dspy_security_bench.ledger.root_view import PROTOCOL_VERSION as ROOT_VIEW_VERSION
 from dspy_security_bench.ledger.root_view import REPORT_TYPE as ROOT_VIEW_REPORT
+from dspy_security_bench.ledger.root_view_interop import (
+    PROTOCOL_VERSION as ROOT_VIEW_INTEROP_VERSION,
+)
+from dspy_security_bench.ledger.root_view_interop import (
+    REPORT_TYPE as ROOT_VIEW_INTEROP_REPORT,
+)
 from dspy_security_bench.ledger.time_quorum import PROTOCOL_VERSION as TIME_QUORUM_VERSION
 from dspy_security_bench.ledger.time_quorum import REPORT_TYPE as TIME_QUORUM_REPORT
 from dspy_security_bench.ledger.trust_chain import (
@@ -79,6 +85,7 @@ SCHEMA_FILES = (
     "assuranceledger-root-view-policy.schema.json",
     "assuranceledger-root-view-receipt.schema.json",
     "assuranceledger-root-view-report.schema.json",
+    "assuranceledger-root-view-interop-evidence.schema.json",
     "assuranceledger-root-view-vector-manifest.schema.json",
     "assuranceledger-time-quorum-policy.schema.json",
     "assuranceledger-time-quorum-report.schema.json",
@@ -447,6 +454,25 @@ def _protocols() -> tuple[dict[str, Any], ...]:
                 "candidate root digests and caller nonces",
                 "signed exact observed trust roots",
                 "known-answer inputs and expected outcomes",
+            ],
+        },
+        {
+            **common,
+            "protocol_id": ROOT_VIEW_INTEROP_VERSION,
+            "report_type": ROOT_VIEW_INTEROP_REPORT,
+            "artifact_schemas": [
+                "assuranceledger-root-view-interop-evidence.schema.json",
+                "assuranceledger-root-view-vector-manifest.schema.json",
+            ],
+            "producer_commands": ["ledger evaluate-root-view-interop"],
+            "verifier_command": "ledger verify-root-view-interop",
+            "standalone_verification": False,
+            "evidence_root_required": False,
+            "embedded_data_classes": [
+                "immutable vector manifest digest",
+                "reference and external verifier source digests",
+                "external runtime identifier and case decisions",
+                "per-case cross-implementation agreements",
             ],
         },
         {

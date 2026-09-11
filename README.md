@@ -314,6 +314,15 @@ with Python in rejecting 21 self-rehashed semantic mutations. Portability is
 tested rather than inferred.
 [Add another language implementation →](interop/README.md)
 
+CI can preserve that agreement as a strict, tamper-evident
+`RootViewInteropEvidence` report. `ledger evaluate-root-view-interop` binds the
+immutable corpus manifest, exact Python and external-verifier source bytes,
+external runtime identifier, and all eight decisions in an unsigned in-toto
+Statement; `ledger verify-root-view-interop` recomputes it offline from the
+retained corpus and source. Source identity is not execution identity, so the
+report explicitly requires separately authenticated CI provenance when that
+claim matters and never presents interoperability as certification.
+
 Downstream implementers can run `ledger conformance` against a complete demo or
 integration artifact directory. The original seven rehashed adversarial vectors
 must be rejected across the ledger, gossip, re-review, fork, consistency, observation,
@@ -328,8 +337,8 @@ exposes every missed rejection to code scanning.
 
 `ledger capabilities --out capability-manifest.json` gives agencies, vendors,
 and independent implementations one deterministic compatibility input instead
-of requiring them to infer support from prose. It binds sixteen protocol IDs to
-thirty exact schema-byte digests, producer/verifier commands, standalone and
+of requiring them to infer support from prose. It binds seventeen protocol IDs to
+thirty-one exact schema-byte digests, producer/verifier commands, standalone and
 evidence-root requirements, disclosed data classes, offline operation, and zero
 automatic actions. `ledger verify-capabilities` detects both rehashed field
 tampering and local schema drift.
@@ -1918,7 +1927,8 @@ v0.1 scope choices:
 | AssuranceLedger RootViewQuorum — nonce-bound independent root-distribution observations with non-outvotable conflict/newer-root evidence | **shipped on main** |
 | RootViewQuorum known-answer vectors — eight byte-stable cross-language cases, 21 SHA-256-bound artifacts plus an immutable v1 manifest, and offline execution | **shipped on main** |
 | Independent RootViewQuorum Node.js verifier — zero dependencies, all three root signature schemes, exact report recomputation, eight known answers, and 21 differential tamper checks | **shipped on main** |
-| AssuranceLedger CapabilityManifest — sixteen offline protocol contracts bound to thirty exact schema digests | **shipped on main** |
+| RootViewInteropEvidence — source-bound, in-toto-shaped retention artifact for exact Python/external agreement across all eight vectors | **shipped on main** |
+| AssuranceLedger CapabilityManifest — seventeen offline protocol contracts bound to thirty-one exact schema digests | **shipped on main** |
 | AssuranceLedger IntegrationLock — owner-pinned compatibility floors, drift SARIF, and fail-on-drift CI | **shipped on main** |
 | AssuranceTrustRoot — pinned bootstrap, exact policy authority, expiration, crypto-agile keys, and dual-threshold rotation | **shipped on main** |
 | AssuranceTrustRootChain — bounded multi-hop stale-client catch-up with historical-expiry handling and a current-final-root gate | **shipped on main** |

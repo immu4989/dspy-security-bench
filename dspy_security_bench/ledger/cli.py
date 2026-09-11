@@ -77,6 +77,11 @@ from dspy_security_bench.ledger.root_view import (
     root_view_observer_descriptor,
     verify_root_view_report,
 )
+from dspy_security_bench.ledger.root_view_interop import (
+    build_root_view_interop_report,
+    load_implementation_result,
+    verify_root_view_interop_report,
+)
 from dspy_security_bench.ledger.root_view_sarif import (
     report_to_sarif as root_view_to_sarif,
 )
@@ -534,6 +539,22 @@ def main(argv: list[str] | None = None) -> int:
         help="verify exact bytes and execute every RootViewQuorum known-answer vector",
     )
     verify_root_view_vectors_parser.add_argument("pack_dir")
+    evaluate_root_view_interop_parser = commands.add_parser(
+        "evaluate-root-view-interop",
+        help="bind a successful external vector run to its exact verifier source",
+    )
+    evaluate_root_view_interop_parser.add_argument("pack_dir")
+    evaluate_root_view_interop_parser.add_argument("implementation_result")
+    evaluate_root_view_interop_parser.add_argument("--implementation-source", required=True)
+    evaluate_root_view_interop_parser.add_argument("--implementation-language", required=True)
+    evaluate_root_view_interop_parser.add_argument("--out", required=True)
+    verify_root_view_interop_parser = commands.add_parser(
+        "verify-root-view-interop",
+        help="recompute retained RootView interoperability evidence offline",
+    )
+    verify_root_view_interop_parser.add_argument("report")
+    verify_root_view_interop_parser.add_argument("pack_dir")
+    verify_root_view_interop_parser.add_argument("--implementation-source", required=True)
     evaluate_trust_root_time_parser = commands.add_parser(
         "evaluate-trust-root-time",
         help="require trust-root validity across a signed conservative time interval",
@@ -543,9 +564,7 @@ def main(argv: list[str] | None = None) -> int:
     root_time_anchor = evaluate_trust_root_time_parser.add_mutually_exclusive_group()
     root_time_anchor.add_argument("--trusted-root")
     root_time_anchor.add_argument("--expected-root-sha256")
-    evaluate_trust_root_time_parser.add_argument(
-        "--expected-time-policy-sha256", required=True
-    )
+    evaluate_trust_root_time_parser.add_argument("--expected-time-policy-sha256", required=True)
     evaluate_trust_root_time_parser.add_argument("--expected-request-nonce", required=True)
     evaluate_trust_root_time_parser.add_argument("--expected-domain")
     evaluate_trust_root_time_parser.add_argument("--minimum-version", type=int)
@@ -1035,6 +1054,31 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("; ".join(errors))
             print(f"[ledger] verified RootViewQuorum vector pack {args.pack_dir}")
             return 0
+        if args.command == "evaluate-root-view-interop":
+            report = build_root_view_interop_report(
+                args.pack_dir,
+                load_implementation_result(args.implementation_result),
+                args.implementation_source,
+                implementation_language=args.implementation_language,
+            )
+            _write_json(Path(args.out), report)
+            summary = report["statement"]["predicate"]["summary"]
+            print(
+                f"[ledger] {summary['status']} "
+                f"({summary['agreement_count']}/{summary['case_count']} cases): "
+                f"wrote {args.out}"
+            )
+            return 0
+        if args.command == "verify-root-view-interop":
+            report = _read_json(Path(args.report))
+            if errors := verify_root_view_interop_report(
+                report,
+                args.pack_dir,
+                args.implementation_source,
+            ):
+                raise ValueError("; ".join(errors))
+            print(f"[ledger] verified RootView interoperability evidence {args.report}")
+            return 0
         if args.command == "evaluate-trust-root-time":
             report = evaluate_trust_root_time(
                 _read_json(Path(args.candidate_root)),
@@ -1042,9 +1086,7 @@ def main(argv: list[str] | None = None) -> int:
                 expected_time_policy_sha256=args.expected_time_policy_sha256,
                 expected_request_nonce=args.expected_request_nonce,
                 trusted_root=(
-                    _read_json(Path(args.trusted_root))
-                    if args.trusted_root is not None
-                    else None
+                    _read_json(Path(args.trusted_root)) if args.trusted_root is not None else None
                 ),
                 expected_root_sha256=args.expected_root_sha256,
                 expected_trust_domain=args.expected_domain,
@@ -1056,8 +1098,7 @@ def main(argv: list[str] | None = None) -> int:
                 _write_json(Path(args.sarif_out), trust_root_time_to_sarif(report))
             print(f"[ledger] {report['summary']['status']}: wrote {args.out}")
             return int(
-                args.fail_on_trust
-                and report["summary"]["status"] != TEMPORALLY_TRUSTED_ROOT_STATUS
+                args.fail_on_trust and report["summary"]["status"] != TEMPORALLY_TRUSTED_ROOT_STATUS
             )
         if args.command == "verify-trust-root-time":
             report = _read_json(Path(args.report))
