@@ -175,9 +175,11 @@ compliance or safety overclaims.
 - Recruit independent ContainmentProof, AgentBOM, and complete AssuranceGraph
   reproductions using synthetic or safely publishable evidence, including
   unfavorable cases and documented telemetry gaps.
-- Add owner-reviewed mappings for emerging AI/ML SBOM fields only where they
-  preserve the strict AgentBOM component and claim boundary; SLSA Provenance v1
-  mapping is now shipped.
+- Recruit owner-reviewed CycloneDX 1.7 MLBOMDisclosure field profiles and
+  privacy-safe fixtures from real deployments. The deterministic model/data
+  mapping, sixteen-field model-card presence profile, six-field dataset
+  presence profile, and SLSA Provenance v1 mapping are now shipped; field
+  presence remains explicitly distinct from adequacy or trust.
 - Publish conformance fixtures from multiple runtimes through the declarative
   probe contract without accepting executable community plugins.
 - Publish independent real-backend AuthorityBridge evidence for each supported

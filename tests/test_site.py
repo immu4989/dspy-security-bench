@@ -478,6 +478,11 @@ def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plan
         "slsaRawUrisRetained": False,
         "slsaRawParametersRetained": False,
         "slsaSignaturesVerified": False,
+        "mlbomDisclosureProtocolVersion": "agentbom-mlbom-disclosure-v1",
+        "mlbomModelDisclosureFields": 16,
+        "mlbomDataDisclosureFields": 6,
+        "mlbomRawDisclosureValuesRetained": False,
+        "mlbomPresenceIsAdequacy": False,
         "automaticDeploymentActions": 0,
     }
     assert commons["probeContract"]["thirdPartyCodeLoading"] is False
@@ -492,7 +497,8 @@ def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plan
         "VIOLATION ≠ MONITOR FAILURE ≠ INCOMPLETE EVIDENCE",
         "AUTOMATIC SHUTDOWNS: 0",
         "AUTOMATIC DEPLOYMENTS: 0",
-        "PRIVACY-MINIMIZED SLSA V1",
+        "CYCLONEDX 1.7 ML-BOM",
+        "RAW DISCLOSURE VALUES RETAINED: 0",
         "RAW NAMES · URIs · PARAMETERS: 0",
         "data-assurance-exchange-count",
         "dspy-security-bench contain demo --out-dir artifacts/containmentproof",

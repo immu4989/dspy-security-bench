@@ -30,7 +30,7 @@ LIMITATIONS = (
     "Only declared components, relationships, and claim bindings are analyzed.",
     "A digest establishes canonical content identity, not supplier authenticity or runtime presence.",
     "Transitive impact means reevaluation may be required; it does not mean a vulnerability exists.",
-    "Imported SPDX, CycloneDX, and SLSA documents require owner enrichment for AI-specific components and claim bindings.",
+    "Imported SPDX, CycloneDX, SLSA, and ML-BOM documents require owner enrichment and claim bindings.",
     "No network lookup, vulnerability scan, probability, financial loss, or vendor score is produced.",
 )
 COMPONENT_TYPES = (
@@ -106,6 +106,7 @@ def protocol_payload() -> dict[str, Any]:
             "CycloneDX JSON",
             "SPDX JSON",
             "SLSA Provenance v1 (privacy-minimized unsigned mapping)",
+            "CycloneDX 1.7 ML-BOM (privacy-minimized disclosure mapping)",
         ],
         "network_access": False,
         "automatic_actions": 0,

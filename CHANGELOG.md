@@ -10,6 +10,20 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AgentBOM MLBOMDisclosure v1**, a deterministic, privacy-minimized bridge
+  from CycloneDX 1.7 ML-BOMs into incomplete model/dataset AgentBOMs. It maps
+  stable model and dataset identities, declared dependency edges, and model-to-
+  dataset provenance edges; records presence or absence across sixteen standard
+  model-card and six dataset disclosure fields; exposes unresolved dataset
+  references; and recomputes an exact source-bound report. Raw names, locators,
+  suppliers, model-card text, dataset descriptions and URLs, metrics, sensitive-
+  data labels, governance identities, fairness content, and environmental
+  content are never copied. The fictional example validates against the pinned
+  official CycloneDX 1.7.1 JSON Schema. Strict report schema, CLI, CI, source-
+  mutation, self-rehash, stable-identity, unresolved-reference, and data-
+  minimization tests are included. Field presence is not an adequacy score, and
+  the mapper does not authenticate the BOM, validate claims, certify a model,
+  determine compliance, approve deployment, or authorize operation.
 - **AgentBOM SLSAImport v1**, a deterministic, privacy-minimized bridge from
   in-toto Statement v1 / SLSA Provenance v1 into an incomplete AgentBOM. It maps
   SHA-256-identified outputs and resolved dependencies plus hashed external

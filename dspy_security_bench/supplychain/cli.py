@@ -8,6 +8,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from dspy_security_bench.supplychain.mlbom import (
+    build_mlbom_import_report,
+    verify_mlbom_import_report,
+)
 from dspy_security_bench.supplychain.proof import (
     MAX_INVENTORY_BYTES,
     analyze_change,
@@ -63,6 +67,21 @@ def main(argv: list[str] | None = None) -> int:
     )
     verify_slsa.add_argument("report")
     verify_slsa.add_argument("source")
+    import_mlbom = commands.add_parser(
+        "import-mlbom",
+        help="privacy-minimize CycloneDX 1.7 ML-BOM and map disclosure gaps",
+    )
+    import_mlbom.add_argument("source")
+    import_mlbom.add_argument("--inventory-id", required=True)
+    import_mlbom.add_argument("--out", required=True)
+    import_mlbom.add_argument("--report-out", required=True)
+    import_mlbom.add_argument("--force", action="store_true")
+    verify_mlbom = commands.add_parser(
+        "verify-mlbom-import",
+        help="recompute an ML-BOM disclosure mapping from the retained source",
+    )
+    verify_mlbom.add_argument("report")
+    verify_mlbom.add_argument("source")
     compare = commands.add_parser("compare", help="compute transitive claim impact")
     compare.add_argument("baseline")
     compare.add_argument("candidate")
@@ -121,6 +140,25 @@ def main(argv: list[str] | None = None) -> int:
             if errors := verify_slsa_import_report(report, source):
                 raise ValueError("; ".join(errors))
             print(f"[bom] verified privacy-minimized SLSA import {args.report}")
+            return 0
+        if args.command == "import-mlbom":
+            source = _read_json(Path(args.source), MAX_INVENTORY_BYTES)
+            report = build_mlbom_import_report(source, inventory_id=args.inventory_id)
+            inventory_path, report_path = Path(args.out), Path(args.report_out)
+            _require_writable_targets((inventory_path, report_path), force=args.force)
+            _write_json(inventory_path, report["inventory"])
+            _write_json(report_path, report)
+            print(
+                f"[bom] wrote {inventory_path} and {report_path}; "
+                "disclosure presence is not adequacy and owner review is required"
+            )
+            return 0
+        if args.command == "verify-mlbom-import":
+            report = _read_json(Path(args.report), 3 * MAX_INVENTORY_BYTES)
+            source = _read_json(Path(args.source), MAX_INVENTORY_BYTES)
+            if errors := verify_mlbom_import_report(report, source):
+                raise ValueError("; ".join(errors))
+            print(f"[bom] verified privacy-minimized ML-BOM disclosure import {args.report}")
             return 0
         if args.command == "compare":
             baseline = _read_json(Path(args.baseline), MAX_INVENTORY_BYTES)

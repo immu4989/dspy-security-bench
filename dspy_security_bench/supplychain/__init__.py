@@ -1,5 +1,10 @@
 """AgentBOM and ClaimImpact public API."""
 
+from dspy_security_bench.supplychain.mlbom import (
+    build_mlbom_import_report,
+    import_mlbom,
+    verify_mlbom_import_report,
+)
 from dspy_security_bench.supplychain.proof import (
     analyze_change,
     built_in_inventory,
@@ -25,6 +30,9 @@ __all__ = [
     "protocol_sha256",
     "seal_inventory",
     "verify_report",
+    "build_mlbom_import_report",
+    "import_mlbom",
+    "verify_mlbom_import_report",
     "build_slsa_import_report",
     "import_slsa",
     "verify_slsa_import_report",

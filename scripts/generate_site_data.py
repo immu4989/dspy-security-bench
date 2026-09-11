@@ -278,6 +278,11 @@ def build_payload(
                 "slsaRawUrisRetained": False,
                 "slsaRawParametersRetained": False,
                 "slsaSignaturesVerified": False,
+                "mlbomDisclosureProtocolVersion": "agentbom-mlbom-disclosure-v1",
+                "mlbomModelDisclosureFields": 16,
+                "mlbomDataDisclosureFields": 6,
+                "mlbomRawDisclosureValuesRetained": False,
+                "mlbomPresenceIsAdequacy": False,
                 "automaticDeploymentActions": 0,
             },
             "probeContract": {

@@ -798,3 +798,40 @@ SLSA Build level, prove confidentiality, or endorse a supplier. Hashed
 low-entropy identifiers can still be guessed. The report is import evidence,
 not provenance authentication, certification, government endorsement,
 deployment approval, or an authorization to operate.
+
+## September 11 continuation: standards-native ML-BOM disclosure gaps
+
+The generic CycloneDX importer could preserve a package graph, but it treated
+AI-specific components as ordinary dependencies and copied raw names and
+locators. That is a poor fit for cross-organization model review: the useful
+question is often which disclosures exist and what changed, while model-card
+text, dataset locations, sensitive-data labels, fairness descriptions, and
+governance contacts can themselves be sensitive.
+
+The official
+[CycloneDX 1.7 JSON Schema](https://github.com/CycloneDX/specification/blob/1.7.1/schema/bom-1.7.schema.json)
+defines first-class `machine-learning-model` and `data` component types. Its
+model card covers learning approach, task, architecture, datasets, inputs,
+outputs, performance analysis, intended users and uses, limitations, ethical
+and environmental considerations, and fairness assessments. Component data can
+describe contents, classification, sensitive data, graphics, description, and
+governance. The related
+[SPDX 3.0.1 AI profile](https://spdx.github.io/spdx-spec/v3.0.1/model/AI/AI/)
+likewise treats models and datasets as distinct AI artifacts, reinforcing the
+need for AI-aware inventory rather than package-only normalization.
+
+AgentBOM MLBOMDisclosure v1 therefore maps CycloneDX 1.7 model and data
+identities, dependencies, and model-to-dataset provenance into an incomplete
+AgentBOM while emitting only field-presence gaps. It never copies raw disclosure
+values. Identity is stable across content changes, the component digest binds
+both declared artifact hash and complete source component, unresolved dataset
+references remain visible, and the exact report can be recomputed only from the
+separately retained source. The fictional input validates against the pinned
+official CycloneDX 1.7.1 JSON Schema.
+
+This is deliberately not an AI transparency score. Presence cannot establish
+truth, adequacy, safety, fairness, privacy, provenance, license compliance, or
+model quality. The mapper does not fully validate CycloneDX, authenticate its
+signature, fetch artifacts, certify a model, approve a supplier or deployment,
+or authorize operation. Deterministic hashes also do not protect low-entropy
+source values from guessing.

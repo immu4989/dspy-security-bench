@@ -531,6 +531,11 @@
       "slsaRawUrisRetained": false,
       "slsaRawParametersRetained": false,
       "slsaSignaturesVerified": false,
+      "mlbomDisclosureProtocolVersion": "agentbom-mlbom-disclosure-v1",
+      "mlbomModelDisclosureFields": 16,
+      "mlbomDataDisclosureFields": 6,
+      "mlbomRawDisclosureValuesRetained": false,
+      "mlbomPresenceIsAdequacy": false,
       "automaticDeploymentActions": 0
     },
     "probeContract": {

@@ -1,0 +1,114 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.7.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.7",
+  "serialNumber": "urn:uuid:2c852f44-7f24-4d4e-88bd-26eb0e66f701",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "machine-learning-model",
+      "bom-ref": "urn:example:fictional-model:1",
+      "name": "Fictional public-service routing model",
+      "version": "1.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f28cf55f2c4d45ca35e60581955179d47cb2e6b43af86f034be151fe31070d72"
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "approach": {
+            "type": "supervised"
+          },
+          "task": "fictional request classification",
+          "architectureFamily": "fictional transformer",
+          "modelArchitecture": "fictional-small-v1",
+          "datasets": [
+            {
+              "ref": "urn:example:fictional-training-data:1"
+            }
+          ],
+          "inputs": [
+            {
+              "format": "synthetic text"
+            }
+          ],
+          "outputs": [
+            {
+              "format": "fictional route label"
+            }
+          ]
+        },
+        "quantitativeAnalysis": {
+          "performanceMetrics": [
+            {
+              "type": "fictional held-out accuracy",
+              "value": "0.00; illustrative only"
+            }
+          ]
+        },
+        "considerations": {
+          "users": [
+            "fictional trained reviewer"
+          ],
+          "useCases": [
+            "documentation example only"
+          ],
+          "technicalLimitations": [
+            "not a real model and not suitable for deployment"
+          ],
+          "ethicalConsiderations": [
+            {
+              "name": "fictional automation bias",
+              "mitigationStrategy": "human review is mandatory"
+            }
+          ],
+          "fairnessAssessments": [
+            {
+              "groupAtRisk": "fictional population",
+              "harms": "not evaluated",
+              "mitigationStrategy": "do not deploy this example"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "type": "data",
+      "bom-ref": "urn:example:fictional-training-data:1",
+      "name": "Fictional synthetic training rows",
+      "version": "1.0",
+      "data": [
+        {
+          "type": "dataset",
+          "name": "Fictional synthetic training rows",
+          "classification": "synthetic-public-example",
+          "description": "Generated placeholder records containing no operational data.",
+          "sensitiveData": [
+            "none; fictional example"
+          ],
+          "governance": {
+            "owners": [
+              {
+                "organization": {
+                  "name": "Fictional Example Organization"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "urn:example:fictional-model:1",
+      "dependsOn": [
+        "urn:example:fictional-training-data:1"
+      ]
+    }
+  ]
+}

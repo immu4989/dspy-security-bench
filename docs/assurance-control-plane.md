@@ -88,8 +88,8 @@ dspy-security-bench bom compare baseline.agentbom.json candidate.agentbom.json \
 dspy-security-bench bom verify claim-impact.json
 ```
 
-Local CycloneDX, SPDX, and SLSA Provenance v1 imports create deliberately
-incomplete starters:
+Local CycloneDX, SPDX, SLSA Provenance v1, and CycloneDX 1.7 ML-BOM imports
+create deliberately incomplete starters:
 
 ```bash
 dspy-security-bench bom import-cyclonedx bom.json \
@@ -102,6 +102,12 @@ dspy-security-bench bom import-slsa provenance.json \
   --report-out slsa-import.report.json
 dspy-security-bench bom verify-slsa-import \
   slsa-import.report.json provenance.json
+dspy-security-bench bom import-mlbom cyclonedx-mlbom.json \
+  --inventory-id reviewed-ml-system \
+  --out mlbom.agentbom.json \
+  --report-out mlbom-disclosure.report.json
+dspy-security-bench bom verify-mlbom-import \
+  mlbom-disclosure.report.json cyclonedx-mlbom.json
 ```
 
 The owner must enrich AI-specific components, dependency relationships, claim
@@ -132,6 +138,41 @@ builder/signer pairs separately.
 - [SLSA Provenance v1](https://slsa.dev/provenance/v1)
 - [SLSA artifact verification](https://slsa.dev/spec/v1.2/verifying-artifacts)
 - [in-toto ResourceDescriptor v1](https://github.com/in-toto/attestation/blob/main/spec/v1/resource_descriptor.md)
+
+### CycloneDX 1.7 ML-BOM disclosure gaps without disclosure leakage
+
+`MLBOMDisclosure v1` maps first-class CycloneDX `machine-learning-model` and
+`data` components to stable, privacy-hashed AgentBOM identities. Declared
+`dependsOn` edges remain dependencies; model-card dataset references become
+`sourced-from` edges. A later model-card or dataset disclosure change alters
+the component content digest without changing its identity, so an owner can
+bind the logical component once and request targeted reevaluation after change.
+
+The report records presence or absence—never the values—of these model-card
+fields:
+
+- learning approach, task, architecture family, model architecture, datasets,
+  inputs, and outputs;
+- performance metrics and graphics; and
+- intended users, use cases, technical limitations, performance tradeoffs,
+  ethical considerations, environmental considerations, and fairness
+  assessments.
+
+For `data` components and inline datasets it records presence of contents,
+classification, sensitive-data declarations, graphics, description, and
+governance. Missing and unresolved dataset references remain visible review
+gaps. Raw component names, versions, suppliers, package locators, URLs,
+descriptions, governance identities, metric values, and consideration text are
+excluded. The full canonical source digest and exact derived report make edits
+detectable when the separately retained source is supplied for verification.
+
+This is a bounded disclosure checklist, not full CycloneDX validation. A field
+can be populated yet false, stale, incomplete, or unsuitable. No score is
+produced, embedded signatures are not verified, hashes are not confidentiality
+controls, and the result is not a safety, fairness, privacy, provenance,
+compliance, certification, procurement, deployment, or ATO decision. The
+committed fictional example is separately tested against the official pinned
+CycloneDX 1.7.1 JSON Schema.
 
 ## AssuranceGraph integration
 
