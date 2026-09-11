@@ -403,6 +403,14 @@ dspy-security-bench bom import-mlbom examples/cyclonedx-mlbom-1.7.json \
 dspy-security-bench bom verify-mlbom-import \
   mlbom-disclosure.report.json examples/cyclonedx-mlbom-1.7.json
 
+# Preserve SPDX 3.0.1 AIPackage/DatasetPackage graph semantics and expose
+# disclosure plus exact-one declared/concluded-license relationship gaps.
+dspy-security-bench bom import-spdx-ai examples/spdx-ai-3.0.1.json \
+  --inventory-id fictional-spdx-ai \
+  --out spdx-ai.agentbom.json --report-out spdx-ai-disclosure.report.json
+dspy-security-bench bom verify-spdx-ai-import \
+  spdx-ai-disclosure.report.json examples/spdx-ai-3.0.1.json
+
 # Start from one of seven explicit sector boundaries.
 dspy-security-bench assure init --sector public-benefits \
   --case-id benefits-pilot --out assurance-case.json
@@ -1957,7 +1965,7 @@ v0.1 scope choices:
 | AssuranceTimeQuorum — policy-pinned, nonce-bound, multi-organization signed uncertainty intervals with conservative overlap and zero clock adjustment | **shipped on main** |
 | TrustRootTimeGate — caller-anchored signed time evidence plus complete TrustRoot evaluation at both conservative interval endpoints | **shipped on main** |
 | AssuranceLedger ReReview — minimal claim/role re-review planning after retirement, compromise, or incomplete trust evidence | **shipped on main** |
-| Assurance Control Plane — ContainmentProof, AgentBOM ClaimImpact, privacy-minimized SLSA Provenance and CycloneDX 1.7 ML-BOM disclosure mapping, non-executing probe contract, and non-ranking public exchange | **shipped on main** |
+| Assurance Control Plane — ContainmentProof, AgentBOM ClaimImpact, privacy-minimized SLSA Provenance, CycloneDX 1.7 ML-BOM, and SPDX 3.0.1 AI/Dataset disclosure mapping, non-executing probe contract, and non-ranking public exchange | **shipped on main** |
 | More families, secondary `direct` attack column, and independent reproduction campaigns | planned |
 | Paper — TMLR submission if the capability-vs-robustness decoupling holds at scale | conditional |
 

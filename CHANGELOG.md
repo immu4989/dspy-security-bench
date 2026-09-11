@@ -10,6 +10,20 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AgentBOM SPDXAIDisclosure v1**, a separate privacy-minimized bridge for the
+  SPDX 3.0.1 AI and Dataset profiles. It maps stable `ai_AIPackage` and
+  `dataset_DatasetPackage` identities, retains resolved `dependsOn`, `trainedOn`,
+  `testedOn`, and `hasDataFile` semantics as bounded AgentBOM relationships and
+  explicit counts, records presence across fifteen AI and thirteen dataset
+  disclosure fields, and checks each mapped package for exactly one resolved
+  `hasDeclaredLicense` and `hasConcludedLicense` relationship as required by the
+  profiles. Raw SPDX IDs, names, URLs, AI/dataset values, license expressions,
+  relationship IDs, and agent identities are excluded. The strict source-bound
+  report, CLI, CI, schema, stable-change and tamper tests, and a fictional input
+  validated against the official SPDX 3.0.1 JSON Schema are included. It is not
+  a JSON-LD processor or full JSON Schema/OWL/SHACL validator, legal advice,
+  model scoring, certification, compliance determination, or deployment/ATO
+  decision.
 - **AgentBOM MLBOMDisclosure v1**, a deterministic, privacy-minimized bridge
   from CycloneDX 1.7 ML-BOMs into incomplete model/dataset AgentBOMs. It maps
   stable model and dataset identities, declared dependency edges, and model-to-

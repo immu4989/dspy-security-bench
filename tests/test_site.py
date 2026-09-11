@@ -483,6 +483,11 @@ def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plan
         "mlbomDataDisclosureFields": 6,
         "mlbomRawDisclosureValuesRetained": False,
         "mlbomPresenceIsAdequacy": False,
+        "spdxAIDisclosureProtocolVersion": "agentbom-spdx-ai-disclosure-v1",
+        "spdxAIModelDisclosureFields": 15,
+        "spdxAIDatasetDisclosureFields": 13,
+        "spdxAILicenseRulesChecked": 2,
+        "spdxAIFullValidationPerformed": False,
         "automaticDeploymentActions": 0,
     }
     assert commons["probeContract"]["thirdPartyCodeLoading"] is False
@@ -498,6 +503,7 @@ def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plan
         "AUTOMATIC SHUTDOWNS: 0",
         "AUTOMATIC DEPLOYMENTS: 0",
         "CYCLONEDX 1.7 ML-BOM",
+        "SPDX 3.0.1 AI/DATASET",
         "RAW DISCLOSURE VALUES RETAINED: 0",
         "RAW NAMES · URIs · PARAMETERS: 0",
         "data-assurance-exchange-count",

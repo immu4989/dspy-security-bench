@@ -835,3 +835,36 @@ model quality. The mapper does not fully validate CycloneDX, authenticate its
 signature, fetch artifacts, certify a model, approve a supplier or deployment,
 or authorize operation. Deterministic hashes also do not protect low-entropy
 source values from guessing.
+
+## September 11 continuation: SPDX AI profile without semantic flattening
+
+CycloneDX is not the only standards path for AI inventory. The
+[SPDX 3.0.1 AIPackage](https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Classes/AIPackage/)
+defines fifteen AI-specific properties spanning autonomy, domain, energy,
+training, limitations, metrics, preprocessing, explainability, safety risk,
+standards, model type, and sensitive personal information. The
+[DatasetPackage](https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Classes/DatasetPackage/)
+defines dataset preparation, access, scale, intended use, bias, sensitivity,
+and provenance-oriented fields. SPDX also defines explicit `trainedOn` and
+`testedOn` relationship types rather than representing every data edge as a
+generic dependency.
+
+The AI and Dataset profile conformance rules each require exactly one
+`hasDeclaredLicense` and exactly one `hasConcludedLicense` relationship per
+package. SPDX's
+[JSON-LD serialization guidance](https://spdx.github.io/spdx-spec/v3.0.1/serializations/)
+requires the global 3.0.1 context and distinguishes structural JSON Schema
+validation from semantic OWL/SHACL validation.
+
+AgentBOM SPDXAIDisclosure v1 now preserves these distinctions in a separate
+source-bound mapping. It records fifteen AI and thirteen dataset field-presence
+gaps, retains counts for `trainedOn`, `testedOn`, `hasDataFile`, and `dependsOn`,
+checks resolved exact-one license relationships without copying license values,
+and maps stable model/dataset identities into an incomplete AgentBOM. The
+fictional source passes the official SPDX 3.0.1 JSON Schema.
+
+The mapper is not a JSON-LD processor and deliberately does not claim full SPDX
+schema, OWL, SHACL, or profile conformance. Its license check is not legal
+advice; field presence is not truth or adequacy; hashes are not confidentiality;
+and the result is not model scoring, certification, government endorsement,
+deployment approval, or an authorization to operate.

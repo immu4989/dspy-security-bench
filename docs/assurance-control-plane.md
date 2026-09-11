@@ -108,6 +108,12 @@ dspy-security-bench bom import-mlbom cyclonedx-mlbom.json \
   --report-out mlbom-disclosure.report.json
 dspy-security-bench bom verify-mlbom-import \
   mlbom-disclosure.report.json cyclonedx-mlbom.json
+dspy-security-bench bom import-spdx-ai spdx-ai.json \
+  --inventory-id reviewed-spdx-ai \
+  --out spdx-ai.agentbom.json \
+  --report-out spdx-ai-disclosure.report.json
+dspy-security-bench bom verify-spdx-ai-import \
+  spdx-ai-disclosure.report.json spdx-ai.json
 ```
 
 The owner must enrich AI-specific components, dependency relationships, claim
@@ -173,6 +179,40 @@ controls, and the result is not a safety, fairness, privacy, provenance,
 compliance, certification, procurement, deployment, or ATO decision. The
 committed fictional example is separately tested against the official pinned
 CycloneDX 1.7.1 JSON Schema.
+
+### SPDX 3.0.1 AI and Dataset profiles remain semantically separate
+
+`SPDXAIDisclosure v1` accepts the SPDX 3.0.1 global JSON-LD context and compact
+`ai_AIPackage` and `dataset_DatasetPackage` element types. It deliberately does
+not force SPDX into the CycloneDX field vocabulary. Instead it records presence
+for all fifteen AI-profile properties and thirteen Dataset-profile properties,
+then maps only the bounded graph semantics AgentBOM can represent:
+
+- `dependsOn` becomes `depends-on`;
+- `trainedOn`, `testedOn`, and `hasDataFile` become `sourced-from`, while their
+  distinct source relationship counts remain in the import report; and
+- unresolved targets remain explicit gaps rather than being silently dropped.
+
+SPDX 3.0.1 requires every AI and Dataset package to have exactly one
+`hasDeclaredLicense` and one `hasConcludedLicense` relationship to license
+information. The mapper reports resolved relationship counts per component but
+never copies the license expression or text. This is a structural review aid,
+not legal advice or license compatibility analysis.
+
+Stable privacy-hashed IDs preserve logical component continuity, while a digest
+of the complete source element makes disclosure changes visible to ClaimImpact.
+The separately retained source is required to recompute the report. Raw SPDX
+IDs, names, suppliers, locations, application/training descriptions,
+hyperparameters, metrics, model limitations, risk values, dataset preparation,
+bias descriptions, sensitive-data declarations, license expressions, and agent
+identities do not enter the portable artifact.
+
+The committed fictional example validates against the official SPDX 3.0.1 JSON
+Schema. The mapper itself does not expand JSON-LD or run that schema, the OWL
+ontology, or SHACL; it therefore never claims full SPDX conformance. Presence
+does not establish accuracy or adequacy, and the output is not a safety,
+privacy, fairness, legal, compliance, procurement, deployment, certification,
+or ATO decision.
 
 ## AssuranceGraph integration
 

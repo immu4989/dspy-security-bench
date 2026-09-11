@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/agentbom-spdx-ai-disclosure-report.schema.json",
+  "title": "AgentBOM SPDXAIDisclosure privacy-minimized mapping report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "source_document", "inventory", "mapping", "ai_disclosure_coverage", "dataset_disclosure_coverage", "license_relationship_checks", "excluded_input_fields", "summary", "claim_boundary", "agentbom_claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AgentBOM SPDXAIDisclosure / Privacy-minimized AI profile mapping"},
+    "protocol_version": {"const": "agentbom-spdx-ai-disclosure-v1"},
+    "analyzer": {"const": "deterministic-privacy-minimized-spdx-3-ai-mapper-v1"},
+    "source_document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context", "canonical_document_sha256", "graph_element_count", "ai_package_count", "dataset_package_count"],
+      "properties": {
+        "context": {"const": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld"},
+        "canonical_document_sha256": {"$ref": "#/$defs/digest"},
+        "graph_element_count": {"type": "integer", "minimum": 1, "maximum": 2000},
+        "ai_package_count": {"type": "integer", "minimum": 1, "maximum": 500},
+        "dataset_package_count": {"type": "integer", "minimum": 0, "maximum": 499}
+      }
+    },
+    "inventory": {"$ref": "#/$defs/inventory"},
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ai_component_ids", "dataset_component_ids", "depends_on_relationships", "trained_on_relationships", "tested_on_relationships", "has_data_file_relationships", "agentbom_relationship_count"],
+      "properties": {
+        "ai_component_ids": {"type": "array", "minItems": 1, "maxItems": 500, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "dataset_component_ids": {"type": "array", "maxItems": 499, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "depends_on_relationships": {"$ref": "#/$defs/count"},
+        "trained_on_relationships": {"$ref": "#/$defs/count"},
+        "tested_on_relationships": {"$ref": "#/$defs/count"},
+        "has_data_file_relationships": {"$ref": "#/$defs/count"},
+        "agentbom_relationship_count": {"$ref": "#/$defs/count"}
+      }
+    },
+    "ai_disclosure_coverage": {"type": "array", "minItems": 1, "maxItems": 500, "items": {"$ref": "#/$defs/aiCoverage"}},
+    "dataset_disclosure_coverage": {"type": "array", "maxItems": 499, "items": {"$ref": "#/$defs/datasetCoverage"}},
+    "license_relationship_checks": {"type": "array", "minItems": 1, "maxItems": 500, "items": {"$ref": "#/$defs/licenseCheck"}},
+    "excluded_input_fields": {"type": "array", "minItems": 5, "maxItems": 5, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ai_packages", "dataset_packages", "disclosure_fields_expected", "disclosure_fields_present", "disclosure_gaps", "license_relationship_rule_failures", "unresolved_ai_relationship_references", "inventory_complete", "claim_binding_count", "raw_disclosure_values_retained", "full_spdx_validation_performed", "network_requests", "automatic_actions", "review_status"],
+      "properties": {
+        "ai_packages": {"type": "integer", "minimum": 1, "maximum": 500},
+        "dataset_packages": {"type": "integer", "minimum": 0, "maximum": 499},
+        "disclosure_fields_expected": {"type": "integer", "minimum": 15, "maximum": 7500},
+        "disclosure_fields_present": {"type": "integer", "minimum": 0, "maximum": 7500},
+        "disclosure_gaps": {"type": "integer", "minimum": 0, "maximum": 7500},
+        "license_relationship_rule_failures": {"type": "integer", "minimum": 0, "maximum": 500},
+        "unresolved_ai_relationship_references": {"$ref": "#/$defs/count"},
+        "inventory_complete": {"const": false},
+        "claim_binding_count": {"const": 0},
+        "raw_disclosure_values_retained": {"const": false},
+        "full_spdx_validation_performed": {"const": false},
+        "network_requests": {"const": 0},
+        "automatic_actions": {"const": 0},
+        "review_status": {"const": "owner_review_required"}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "agentbom_claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 7, "maxItems": 7, "items": {"type": "string", "minLength": 1}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "count": {"type": "integer", "minimum": 0, "maximum": 2000},
+    "aiField": {
+      "enum": ["ai_autonomyType", "ai_domain", "ai_energyConsumption", "ai_hyperparameter", "ai_informationAboutApplication", "ai_informationAboutTraining", "ai_limitation", "ai_metric", "ai_metricDecisionThreshold", "ai_modelDataPreprocessing", "ai_modelExplainability", "ai_safetyRiskAssessment", "ai_standardCompliance", "ai_typeOfModel", "ai_useSensitivePersonalInformation"]
+    },
+    "datasetField": {
+      "enum": ["dataset_anonymizationMethodUsed", "dataset_confidentialityLevel", "dataset_dataCollectionProcess", "dataset_dataPreprocessing", "dataset_datasetAvailability", "dataset_datasetNoise", "dataset_datasetSize", "dataset_datasetType", "dataset_datasetUpdateMechanism", "dataset_hasSensitivePersonalInformation", "dataset_intendedUse", "dataset_knownBias", "dataset_sensor"]
+    },
+    "aiCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "present_fields", "missing_fields", "present_count", "expected_count", "review_status"],
+      "properties": {
+        "component_id": {"$ref": "#/$defs/id"},
+        "present_fields": {"type": "array", "maxItems": 15, "uniqueItems": true, "items": {"$ref": "#/$defs/aiField"}},
+        "missing_fields": {"type": "array", "maxItems": 15, "uniqueItems": true, "items": {"$ref": "#/$defs/aiField"}},
+        "present_count": {"type": "integer", "minimum": 0, "maximum": 15},
+        "expected_count": {"const": 15},
+        "review_status": {"const": "owner_review_required"}
+      }
+    },
+    "datasetCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "present_fields", "missing_fields", "present_count", "expected_count", "review_status"],
+      "properties": {
+        "component_id": {"$ref": "#/$defs/id"},
+        "present_fields": {"type": "array", "maxItems": 13, "uniqueItems": true, "items": {"$ref": "#/$defs/datasetField"}},
+        "missing_fields": {"type": "array", "maxItems": 13, "uniqueItems": true, "items": {"$ref": "#/$defs/datasetField"}},
+        "present_count": {"type": "integer", "minimum": 0, "maximum": 13},
+        "expected_count": {"const": 13},
+        "review_status": {"const": "owner_review_required"}
+      }
+    },
+    "licenseCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "declared_license_relationships", "concluded_license_relationships", "status"],
+      "properties": {
+        "component_id": {"$ref": "#/$defs/id"},
+        "declared_license_relationships": {"$ref": "#/$defs/count"},
+        "concluded_license_relationships": {"$ref": "#/$defs/count"},
+        "status": {"enum": ["exactly_one_each", "owner_review_required"]}
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "component_type", "name", "version", "supplier", "digest", "locator", "criticality", "external"],
+      "properties": {
+        "component_id": {"$ref": "#/$defs/id"},
+        "component_type": {"enum": ["model", "runtime", "framework", "library", "tool", "mcp-server", "policy", "dataset", "retrieval-index", "identity-provider", "trust-root", "container", "evaluator", "monitor", "infrastructure", "dependency"]},
+        "name": {"type": "string", "minLength": 1, "maxLength": 500},
+        "version": {"type": "string", "minLength": 1, "maxLength": 500},
+        "supplier": {"type": "string", "minLength": 1, "maxLength": 500},
+        "digest": {"$ref": "#/$defs/digest"},
+        "locator": {"type": "string", "minLength": 1, "maxLength": 500},
+        "criticality": {"enum": ["critical", "high", "moderate", "low"]},
+        "external": {"type": "boolean"}
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from_component_id", "to_component_id", "relationship"],
+      "properties": {
+        "from_component_id": {"$ref": "#/$defs/id"},
+        "to_component_id": {"$ref": "#/$defs/id"},
+        "relationship": {"enum": ["depends-on", "uses", "authorized-by", "evaluated-by", "runs-on", "sourced-from", "monitored-by"]}
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "inventory_type", "inventory_id", "title", "owner", "boundary", "complete", "components", "relationships", "required_claim_ids", "claim_bindings", "claim_boundary", "inventory_sha256"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "inventory_type": {"const": "dspy-security-bench-agentbom-inventory"},
+        "inventory_id": {"$ref": "#/$defs/id"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 300},
+        "owner": {"type": "string", "minLength": 1, "maxLength": 300},
+        "boundary": {"type": "string", "minLength": 1, "maxLength": 1500},
+        "complete": {"const": false},
+        "components": {"type": "array", "minItems": 1, "maxItems": 500, "uniqueItems": true, "items": {"$ref": "#/$defs/component"}},
+        "relationships": {"type": "array", "maxItems": 2000, "uniqueItems": true, "items": {"$ref": "#/$defs/relationship"}},
+        "required_claim_ids": {"type": "array", "maxItems": 0},
+        "claim_bindings": {"type": "array", "maxItems": 0},
+        "claim_boundary": {"type": "string", "minLength": 1},
+        "inventory_sha256": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

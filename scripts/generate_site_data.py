@@ -283,6 +283,11 @@ def build_payload(
                 "mlbomDataDisclosureFields": 6,
                 "mlbomRawDisclosureValuesRetained": False,
                 "mlbomPresenceIsAdequacy": False,
+                "spdxAIDisclosureProtocolVersion": "agentbom-spdx-ai-disclosure-v1",
+                "spdxAIModelDisclosureFields": 15,
+                "spdxAIDatasetDisclosureFields": 13,
+                "spdxAILicenseRulesChecked": 2,
+                "spdxAIFullValidationPerformed": False,
                 "automaticDeploymentActions": 0,
             },
             "probeContract": {

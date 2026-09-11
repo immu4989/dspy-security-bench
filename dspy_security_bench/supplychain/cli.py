@@ -28,6 +28,10 @@ from dspy_security_bench.supplychain.slsa import (
     build_slsa_import_report,
     verify_slsa_import_report,
 )
+from dspy_security_bench.supplychain.spdxai import (
+    build_spdx_ai_import_report,
+    verify_spdx_ai_import_report,
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -82,6 +86,21 @@ def main(argv: list[str] | None = None) -> int:
     )
     verify_mlbom.add_argument("report")
     verify_mlbom.add_argument("source")
+    import_spdx_ai = commands.add_parser(
+        "import-spdx-ai",
+        help="privacy-minimize SPDX 3.0.1 AI/Dataset profile disclosure gaps",
+    )
+    import_spdx_ai.add_argument("source")
+    import_spdx_ai.add_argument("--inventory-id", required=True)
+    import_spdx_ai.add_argument("--out", required=True)
+    import_spdx_ai.add_argument("--report-out", required=True)
+    import_spdx_ai.add_argument("--force", action="store_true")
+    verify_spdx_ai = commands.add_parser(
+        "verify-spdx-ai-import",
+        help="recompute an SPDX AI disclosure mapping from the retained source",
+    )
+    verify_spdx_ai.add_argument("report")
+    verify_spdx_ai.add_argument("source")
     compare = commands.add_parser("compare", help="compute transitive claim impact")
     compare.add_argument("baseline")
     compare.add_argument("candidate")
@@ -159,6 +178,25 @@ def main(argv: list[str] | None = None) -> int:
             if errors := verify_mlbom_import_report(report, source):
                 raise ValueError("; ".join(errors))
             print(f"[bom] verified privacy-minimized ML-BOM disclosure import {args.report}")
+            return 0
+        if args.command == "import-spdx-ai":
+            source = _read_json(Path(args.source), MAX_INVENTORY_BYTES)
+            report = build_spdx_ai_import_report(source, inventory_id=args.inventory_id)
+            inventory_path, report_path = Path(args.out), Path(args.report_out)
+            _require_writable_targets((inventory_path, report_path), force=args.force)
+            _write_json(inventory_path, report["inventory"])
+            _write_json(report_path, report)
+            print(
+                f"[bom] wrote {inventory_path} and {report_path}; "
+                "full SPDX validation and owner review are required"
+            )
+            return 0
+        if args.command == "verify-spdx-ai-import":
+            report = _read_json(Path(args.report), 3 * MAX_INVENTORY_BYTES)
+            source = _read_json(Path(args.source), MAX_INVENTORY_BYTES)
+            if errors := verify_spdx_ai_import_report(report, source):
+                raise ValueError("; ".join(errors))
+            print(f"[bom] verified privacy-minimized SPDX AI import {args.report}")
             return 0
         if args.command == "compare":
             baseline = _read_json(Path(args.baseline), MAX_INVENTORY_BYTES)

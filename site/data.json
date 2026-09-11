@@ -536,6 +536,11 @@
       "mlbomDataDisclosureFields": 6,
       "mlbomRawDisclosureValuesRetained": false,
       "mlbomPresenceIsAdequacy": false,
+      "spdxAIDisclosureProtocolVersion": "agentbom-spdx-ai-disclosure-v1",
+      "spdxAIModelDisclosureFields": 15,
+      "spdxAIDatasetDisclosureFields": 13,
+      "spdxAILicenseRulesChecked": 2,
+      "spdxAIFullValidationPerformed": false,
       "automaticDeploymentActions": 0
     },
     "probeContract": {

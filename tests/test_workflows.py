@@ -90,6 +90,14 @@ def test_assurancegraph_ci_recomputes_privacy_minimized_mlbom_import():
     assert "tests/test_agentbom_mlbom.py" in workflow
 
 
+def test_assurancegraph_ci_recomputes_privacy_minimized_spdx_ai_import():
+    workflow = (WORKFLOWS / "assurancegraph.yml").read_text()
+    assert "dspy-security-bench bom import-spdx-ai" in workflow
+    assert "dspy-security-bench bom verify-spdx-ai-import" in workflow
+    assert "examples/spdx-ai-3.0.1.json" in workflow
+    assert "tests/test_agentbom_spdx_ai.py" in workflow
+
+
 def test_ci_installs_from_lockfile_without_resolving_during_checks():
     workflow = (WORKFLOWS / "test.yml").read_text()
     assert "uv sync --locked --extra dev" in workflow

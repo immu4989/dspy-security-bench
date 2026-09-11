@@ -107,6 +107,7 @@ def protocol_payload() -> dict[str, Any]:
             "SPDX JSON",
             "SLSA Provenance v1 (privacy-minimized unsigned mapping)",
             "CycloneDX 1.7 ML-BOM (privacy-minimized disclosure mapping)",
+            "SPDX 3.0.1 AI/Dataset (privacy-minimized disclosure mapping)",
         ],
         "network_access": False,
         "automatic_actions": 0,

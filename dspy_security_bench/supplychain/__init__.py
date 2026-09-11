@@ -20,6 +20,11 @@ from dspy_security_bench.supplychain.slsa import (
     import_slsa,
     verify_slsa_import_report,
 )
+from dspy_security_bench.supplychain.spdxai import (
+    build_spdx_ai_import_report,
+    import_spdx_ai,
+    verify_spdx_ai_import_report,
+)
 
 __all__ = [
     "analyze_change",
@@ -36,4 +41,7 @@ __all__ = [
     "build_slsa_import_report",
     "import_slsa",
     "verify_slsa_import_report",
+    "build_spdx_ai_import_report",
+    "import_spdx_ai",
+    "verify_spdx_ai_import_report",
 ]

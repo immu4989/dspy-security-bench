@@ -1,0 +1,159 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "CreationInfo",
+      "@id": "_:fictional-creation-info",
+      "specVersion": "3.0.1",
+      "createdBy": [
+        "https://example.invalid/fictional-owner"
+      ],
+      "created": "2026-09-11T00:00:00Z"
+    },
+    {
+      "type": "Organization",
+      "spdxId": "https://example.invalid/fictional-owner",
+      "creationInfo": "_:fictional-creation-info",
+      "name": "Fictional Example Organization"
+    },
+    {
+      "type": "simplelicensing_LicenseExpression",
+      "spdxId": "https://spdx.org/licenses/CC0-1.0",
+      "creationInfo": "_:fictional-creation-info",
+      "simplelicensing_licenseExpression": "CC0-1.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "https://example.invalid/fictional-routing-model",
+      "creationInfo": "_:fictional-creation-info",
+      "name": "Fictional public-service routing model",
+      "releaseTime": "2026-09-11T00:00:00Z",
+      "suppliedBy": "https://example.invalid/fictional-owner",
+      "software_downloadLocation": "https://example.invalid/private/model.bin",
+      "software_packageVersion": "1.0",
+      "software_primaryPurpose": "application",
+      "ai_autonomyType": "no",
+      "ai_domain": [
+        "fictional request routing"
+      ],
+      "ai_hyperparameter": [
+        {
+          "type": "DictionaryEntry",
+          "key": "fictional-depth",
+          "value": "1"
+        }
+      ],
+      "ai_informationAboutApplication": "Documentation-only fictional routing example.",
+      "ai_informationAboutTraining": "No real training occurred; all material is synthetic.",
+      "ai_limitation": "Not a real model and not suitable for deployment.",
+      "ai_metric": [
+        {
+          "type": "DictionaryEntry",
+          "key": "fictional-accuracy",
+          "value": "0"
+        }
+      ],
+      "ai_modelDataPreprocessing": [
+        "No operational data; fictional placeholder only."
+      ],
+      "ai_modelExplainability": [
+        "No deployed decisions; fictional placeholder only."
+      ],
+      "ai_safetyRiskAssessment": "low",
+      "ai_typeOfModel": [
+        "fictional classifier"
+      ],
+      "ai_useSensitivePersonalInformation": "no"
+    },
+    {
+      "type": "dataset_DatasetPackage",
+      "spdxId": "https://example.invalid/fictional-training-dataset",
+      "creationInfo": "_:fictional-creation-info",
+      "name": "Fictional synthetic training dataset",
+      "builtTime": "2026-09-11T00:00:00Z",
+      "originatedBy": [
+        "https://example.invalid/fictional-owner"
+      ],
+      "software_downloadLocation": "https://example.invalid/private/data.json",
+      "software_primaryPurpose": "data",
+      "dataset_anonymizationMethodUsed": [
+        "No people or operational records are represented."
+      ],
+      "dataset_confidentialityLevel": "clear",
+      "dataset_dataCollectionProcess": "Programmatically generated fictional placeholders.",
+      "dataset_dataPreprocessing": [
+        "Static fictional strings only."
+      ],
+      "dataset_datasetAvailability": "directDownload",
+      "dataset_datasetSize": 128,
+      "dataset_datasetType": [
+        "text"
+      ],
+      "dataset_hasSensitivePersonalInformation": "no",
+      "dataset_intendedUse": "Documentation and deterministic tests only.",
+      "dataset_knownBias": [
+        "Not evaluated because this is not a real dataset."
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.invalid/relations/model-trained-on-data",
+      "creationInfo": "_:fictional-creation-info",
+      "relationshipType": "trainedOn",
+      "from": "https://example.invalid/fictional-routing-model",
+      "to": [
+        "https://example.invalid/fictional-training-dataset"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.invalid/relations/model-tested-on-data",
+      "creationInfo": "_:fictional-creation-info",
+      "relationshipType": "testedOn",
+      "from": "https://example.invalid/fictional-routing-model",
+      "to": [
+        "https://example.invalid/fictional-training-dataset"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.invalid/relations/model-declared-license",
+      "creationInfo": "_:fictional-creation-info",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "https://example.invalid/fictional-routing-model",
+      "to": [
+        "https://spdx.org/licenses/CC0-1.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.invalid/relations/model-concluded-license",
+      "creationInfo": "_:fictional-creation-info",
+      "relationshipType": "hasConcludedLicense",
+      "from": "https://example.invalid/fictional-routing-model",
+      "to": [
+        "https://spdx.org/licenses/CC0-1.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.invalid/relations/data-declared-license",
+      "creationInfo": "_:fictional-creation-info",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "https://example.invalid/fictional-training-dataset",
+      "to": [
+        "https://spdx.org/licenses/CC0-1.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.invalid/relations/data-concluded-license",
+      "creationInfo": "_:fictional-creation-info",
+      "relationshipType": "hasConcludedLicense",
+      "from": "https://example.invalid/fictional-training-dataset",
+      "to": [
+        "https://spdx.org/licenses/CC0-1.0"
+      ]
+    }
+  ]
+}
