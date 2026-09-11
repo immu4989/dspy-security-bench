@@ -197,6 +197,10 @@ dspy-security-bench ledger verify-root-view-vectors \
 # Recreate the official pack byte-for-byte in a new directory.
 dspy-security-bench ledger generate-root-view-vectors \
   --out-dir /tmp/root-view-quorum-v1
+
+# Execute the same cases through the independent zero-dependency implementation.
+node interop/root-view-quorum-node/verify.mjs \
+  interop/root-view-quorum-v1
 ```
 
 Protocol digests use SHA-256 over UTF-8 JSON with recursively sorted object
@@ -210,6 +214,14 @@ and verifier-acceptance decision. Its expected digest is compiled into the v1
 verifier, so changing and rehashing the manifest cannot impersonate the
 official corpus. The generator derives intentionally public, test-only Ed25519
 seeds inside a temporary directory and emits no private key file.
+
+The Node.js 18+ runner is deliberately separate from the package and never
+imports or invokes Python. Using only built-in filesystem and cryptography
+APIs, it independently validates the immutable manifest, exact file set,
+canonical digests, Ed25519 key identities and signatures, root thresholds,
+observer bindings, classifications, quorums, report summaries, and required
+tamper rejection. It supports the Ed25519 fixture roots in this corpus; it is
+not a general replacement SDK.
 
 The structure follows the practical pattern used by the
 [TUF conformance suite](https://github.com/theupdateframework/tuf-conformance)

@@ -33,6 +33,14 @@ several of them changed published numbers.
   execution, strict schema, CLI, tests, and CI. It contains no private keys and
   is a finite interoperability aid—not general conformance, cryptographic-
   module validation, implementation certification, or government approval.
+- **An independent, zero-dependency Node.js RootViewQuorum vector runner** that
+  does not import or execute the Python evaluator. It pins and recomputes the
+  official manifest, checks every declared file byte, rejects symlinks and
+  undeclared files, verifies Ed25519 key identities, observer and root
+  signatures, root thresholds, nonce binding, classifications, quorum counts,
+  seven semantic outcomes, and the mandatory rehashed-summary rejection. CI
+  exercises both implementations. This is cross-language evidence for the
+  finite v1 corpus, not a general Node SDK or certification claim.
 - **TrustRootTimeGate**, a conservative composition of AssuranceTimeQuorum and
   AssuranceTrustRoot. It natively recomputes the signed time report, checks an
   externally retained policy digest and fresh request nonce, requires the time

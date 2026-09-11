@@ -732,3 +732,27 @@ and independent implementations without inflating the claim. Eight passing
 cases cannot establish general conformance, parser safety, absence of other
 state-machine defects, cryptographic-module validation, FIPS status,
 certification, government endorsement, deployment approval, or an ATO.
+
+## September 11 continuation: a genuinely independent vector executor
+
+Publishing language-neutral JSON does not by itself establish language-neutral
+behavior. If every passing result still comes from the Python reference
+evaluator, canonicalization, signature, and state-machine mistakes can remain
+shared across generation and verification.
+
+The project therefore adds a second implementation in dependency-free Node.js.
+It never imports or launches Python. The runner uses Node's native Ed25519
+verification; the official
+[`crypto.verify`](https://nodejs.org/api/crypto.html#cryptoverifyalgorithm-data-key-signature-callback)
+contract specifies a `null` algorithm for Ed25519. It independently recomputes
+the pinned manifest, 21 file digests, canonical object digests, embedded SPKI
+key identities, root signature and organization thresholds, observer
+signatures, nonce and candidate bindings, view classifications, quorum counts,
+seven expected outcomes, and the mandatory rehashed-summary rejection.
+
+This closes a concrete interoperability-evidence gap while keeping the claim
+narrow. Both executors still consume the same finite corpus and specification;
+agreement cannot prove general conformance, parser safety, independence of
+their underlying cryptographic libraries, correctness on untested inputs,
+FIPS validation, certification, government endorsement, deployment approval,
+or an authorization to operate.

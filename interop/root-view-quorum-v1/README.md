@@ -16,6 +16,13 @@ dspy-security-bench ledger verify-root-view-vectors \
   interop/root-view-quorum-v1
 ```
 
+Execute the same cases with the independent zero-dependency Node.js runner:
+
+```bash
+node interop/root-view-quorum-node/verify.mjs \
+  interop/root-view-quorum-v1
+```
+
 Regenerate the same bytes into a fresh directory:
 
 ```bash

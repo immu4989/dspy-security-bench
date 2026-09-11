@@ -175,6 +175,10 @@ sides identical bytes and expected decisions for positive, fail-closed, and
 tamper-rejection behavior without exposing a production root or key. This is a
 repeatable integration check, not FIPS validation, NIST ACVP/CAVP, product
 certification, a control assessment, or evidence that untested inputs are safe.
+For language-diversity evidence, retain outputs from both the package verifier
+and the zero-dependency Node.js runner. The second path does not call Python and
+uses Node's native Ed25519 verifier, but two agreeing implementations still do
+not establish independent assessment or certification.
 
 For pre-solicitation or vendor comparison, create a separate owner-approved
 AcquisitionProof profile. Use the same frozen mission protocol for every

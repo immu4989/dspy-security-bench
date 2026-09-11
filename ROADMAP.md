@@ -80,7 +80,10 @@ compliance or safety overclaims.
   same-version conflict or newer-root evidence, strict schemas, SARIF, and zero
   network or root-installation actions; plus eight deterministic cross-language
   known-answer cases, 21 byte-bound public JSON artifacts plus an immutable v1
-  manifest, offline execution, and no private-key files.
+  manifest, offline execution, and no private-key files. A zero-dependency
+  Node.js 18+ runner independently verifies the file, Ed25519, trust-root,
+  observer, nonce, classification, quorum, and tamper-rejection semantics
+  without invoking Python.
 - AssuranceLedger IntegrationLock v1 with owner-pinned schema/protocol minimums,
   explicit contract-drift findings, exact offline recomputation, and a
   fail-on-drift CI gate that allows additions but rejects changed requirements.

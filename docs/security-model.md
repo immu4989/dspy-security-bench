@@ -110,6 +110,10 @@ decisions; passing that finite corpus does not establish general conformance,
 parser safety, cryptographic-module validation, implementation certification,
 or an authorization to operate. Fixed generator seeds are public and test-only,
 and no private-key file is emitted.
+The companion Node.js runner is an independent implementation of the finite
+vector semantics and uses no Python subprocess. Agreement between two
+implementations reduces one class of shared-runtime error; it does not prove
+that either implementation is defect-free or that untested inputs conform.
 AssuranceLedger CapabilityManifest trusts the package's compiled capability
 table and local schema directory. Exact byte digests reveal drift, but do not
 establish that a schema is secure, that another implementation is compatible,

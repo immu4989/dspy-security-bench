@@ -251,7 +251,9 @@ reported; same-version conflicts and newer versions cannot be outvoted. See the
 [RootViewQuorum guide](root-view-quorum.md). Downstream implementations can
 verify 21 manifest-bound public JSON files and execute all eight expected decisions
 in the [v1 known-answer pack](../interop/root-view-quorum-v1/README.md); no
-private keys are shipped.
+private keys are shipped. The
+[independent Node.js runner](../interop/root-view-quorum-node/README.md) executes
+the same eight cases with native Node cryptography and no Python process.
 
 ## Outcomes with non-overlapping meanings
 

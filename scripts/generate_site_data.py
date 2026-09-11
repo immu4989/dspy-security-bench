@@ -244,6 +244,7 @@ def build_payload(
                 "rootViewVectorVersion": "assuranceledger-root-view-vectors-v1",
                 "referenceRootViewVectorCases": 8,
                 "referenceRootViewManifestBoundFiles": 21,
+                "rootViewIndependentImplementations": 2,
                 "rootViewVectorPrivateKeysIncluded": False,
                 "rootViewNetworkRequests": 0,
                 "rootViewRootsInstalled": 0,
