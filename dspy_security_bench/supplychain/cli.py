@@ -12,6 +12,11 @@ from dspy_security_bench.supplychain.aibom_crosswalk import (
     build_ai_bom_crosswalk,
     verify_ai_bom_crosswalk,
 )
+from dspy_security_bench.supplychain.aibom_drift import (
+    ai_disclosure_drift_report_to_sarif,
+    build_ai_disclosure_drift_report,
+    verify_ai_disclosure_drift_report,
+)
 from dspy_security_bench.supplychain.aibom_policy import (
     ai_disclosure_policy_report_to_sarif,
     build_ai_disclosure_policy_report,
@@ -154,6 +159,28 @@ def main(argv: list[str] | None = None) -> int:
     verify_disclosure.add_argument("--cyclonedx-source", required=True)
     verify_disclosure.add_argument("--spdx-report", required=True)
     verify_disclosure.add_argument("--spdx-source", required=True)
+    compare_disclosure = commands.add_parser(
+        "compare-ai-disclosure",
+        help="compare exactly reverified AI disclosure evaluations across a lifecycle change",
+    )
+    verify_disclosure_drift = commands.add_parser(
+        "verify-ai-disclosure-drift",
+        help="exactly recompute a privacy-minimized AI disclosure lifecycle comparison",
+    )
+    verify_disclosure_drift.add_argument("report")
+    for drift_command in (compare_disclosure, verify_disclosure_drift):
+        drift_command.add_argument("--policy", required=True)
+        for prefix in ("baseline", "candidate"):
+            drift_command.add_argument(f"--{prefix}-evaluation", required=True)
+            drift_command.add_argument(f"--{prefix}-cyclonedx-report", required=True)
+            drift_command.add_argument(f"--{prefix}-cyclonedx-source", required=True)
+            drift_command.add_argument(f"--{prefix}-spdx-report", required=True)
+            drift_command.add_argument(f"--{prefix}-spdx-source", required=True)
+    compare_disclosure.add_argument("--out", required=True)
+    compare_disclosure.add_argument("--sarif-out")
+    compare_disclosure.add_argument("--force", action="store_true")
+    compare_disclosure.add_argument("--fail-on-regression", action="store_true")
+    compare_disclosure.add_argument("--fail-on-review", action="store_true")
     compare = commands.add_parser("compare", help="compute transitive claim impact")
     compare.add_argument("baseline")
     compare.add_argument("candidate")
@@ -303,6 +330,30 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("; ".join(errors))
             print(f"[bom] verified AI disclosure policy report {args.report}")
             return 0
+        if args.command in {"compare-ai-disclosure", "verify-ai-disclosure-drift"}:
+            policy = _read_json(Path(args.policy), MAX_INVENTORY_BYTES)
+            snapshots = _read_ai_disclosure_snapshots(args)
+            if args.command == "compare-ai-disclosure":
+                report = build_ai_disclosure_drift_report(policy, **snapshots)
+                outputs = [Path(args.out)]
+                if args.sarif_out:
+                    outputs.append(Path(args.sarif_out))
+                _require_writable_targets(tuple(outputs), force=args.force)
+                _write_json(outputs[0], report)
+                if args.sarif_out:
+                    _write_json(outputs[1], ai_disclosure_drift_report_to_sarif(report))
+                status = report["summary"]["status"]
+                print(f"[bom] {status}: wrote {args.out}")
+                fail_regression = args.fail_on_regression and (
+                    report["summary"]["regression_findings"] > 0
+                )
+                fail_review = args.fail_on_review and status != "no_new_disclosure_regression"
+                return int(fail_regression or fail_review)
+            report = _read_json(Path(args.report), 5 * MAX_INVENTORY_BYTES)
+            if errors := verify_ai_disclosure_drift_report(report, policy, **snapshots):
+                raise ValueError("; ".join(errors))
+            print(f"[bom] verified AI disclosure drift report {args.report}")
+            return 0
         if args.command == "compare":
             baseline = _read_json(Path(args.baseline), MAX_INVENTORY_BYTES)
             candidate = _read_json(Path(args.candidate), MAX_INVENTORY_BYTES)
@@ -373,6 +424,25 @@ def _write_once(path: Path, payload: Any, force: bool) -> None:
 def _require_writable_targets(paths: tuple[Path, ...], *, force: bool) -> None:
     if not force and (existing := [str(path) for path in paths if path.exists()]):
         raise FileExistsError(f"output exists (use --force): {', '.join(existing)}")
+
+
+def _read_ai_disclosure_snapshots(args: argparse.Namespace) -> dict[str, dict[str, Any]]:
+    snapshots = {}
+    for prefix in ("baseline", "candidate"):
+        argument = prefix.replace("-", "_")
+        snapshots[f"{prefix}_evaluation"] = _read_json(
+            Path(getattr(args, f"{argument}_evaluation")), 3 * MAX_INVENTORY_BYTES
+        )
+        for standard in ("cyclonedx", "spdx"):
+            report_name = f"{argument}_{standard}_report"
+            source_name = f"{argument}_{standard}_source"
+            snapshots[f"{prefix}_{standard}_report"] = _read_json(
+                Path(getattr(args, report_name)), 3 * MAX_INVENTORY_BYTES
+            )
+            snapshots[f"{prefix}_{standard}_source"] = _read_json(
+                Path(getattr(args, source_name)), MAX_INVENTORY_BYTES
+            )
+    return snapshots
 
 
 def _write_json(path: Path, payload: Any) -> None:

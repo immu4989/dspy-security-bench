@@ -287,6 +287,59 @@ or deployment, determines compliance, certifies a system, or authorizes
 operation. Policy ownership and every resulting decision stay with the
 accountable organization.
 
+### Compare disclosure lifecycle change without copying values
+
+`AIDisclosureDrift v1` compares two policy evaluations under the exact same
+owner policy. Every baseline and candidate import report is first recomputed
+against its retained source. The drift report then classifies structural
+findings as introduced, worsened, persistent, improved, resolved, an added-
+component gap, or a prior gap on a removed component. Component membership is
+tracked separately, so removal cannot be presented as remediation.
+
+```bash
+dspy-security-bench bom compare-ai-disclosure \
+  --policy ai-bom-disclosure-policy.json \
+  --baseline-evaluation baseline-policy.report.json \
+  --baseline-cyclonedx-report baseline-mlbom.report.json \
+  --baseline-cyclonedx-source baseline-cyclonedx.json \
+  --baseline-spdx-report baseline-spdx.report.json \
+  --baseline-spdx-source baseline-spdx.json \
+  --candidate-evaluation candidate-policy.report.json \
+  --candidate-cyclonedx-report candidate-mlbom.report.json \
+  --candidate-cyclonedx-source candidate-cyclonedx.json \
+  --candidate-spdx-report candidate-spdx.report.json \
+  --candidate-spdx-source candidate-spdx.json \
+  --out ai-disclosure-drift.report.json \
+  --sarif-out ai-disclosure-drift.sarif \
+  --fail-on-regression
+
+dspy-security-bench bom verify-ai-disclosure-drift \
+  ai-disclosure-drift.report.json \
+  --policy ai-bom-disclosure-policy.json \
+  --baseline-evaluation baseline-policy.report.json \
+  --baseline-cyclonedx-report baseline-mlbom.report.json \
+  --baseline-cyclonedx-source baseline-cyclonedx.json \
+  --baseline-spdx-report baseline-spdx.report.json \
+  --baseline-spdx-source baseline-spdx.json \
+  --candidate-evaluation candidate-policy.report.json \
+  --candidate-cyclonedx-report candidate-mlbom.report.json \
+  --candidate-cyclonedx-source candidate-cyclonedx.json \
+  --candidate-spdx-report candidate-spdx.report.json \
+  --candidate-spdx-source candidate-spdx.json
+```
+
+`--fail-on-regression` fails only for introduced or worsened findings.
+`--fail-on-review` also fails when the component set changed. Persistent gaps
+remain visible but are not silently reclassified as new; pair this lifecycle
+gate with `evaluate-ai-disclosure --fail-on-findings` when the candidate must
+satisfy every current requirement.
+
+Stable privacy-hashed IDs make comparison possible but do not establish
+supplier continuity or authorized lineage. A resolved field is structural
+presence, not proof that the new value is accurate or better. The protocol
+does not compare raw values, approve an update, grant a waiver, rank a supplier,
+determine compliance, certify a system, deploy anything, or authorize operation.
+
 ## AssuranceGraph integration
 
 Critical-infrastructure cases now evaluate nine independent claims from nine

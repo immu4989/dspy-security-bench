@@ -44,6 +44,10 @@ compliance or safety overclaims.
   disclosure requirements, exact source-report recomputation, deterministic
   missing-field/relationship findings, SARIF, and an explicit CI gate without
   universal scoring, automated waivers, or decision authority.
+- AgentBOM AIDisclosureDrift v1 with exact baseline/candidate source
+  reverification, lifecycle finding states, component-topology review, SARIF,
+  and separate regression/review gates without raw-value comparison or upgrade
+  approval.
 - EvalIntegrityProof v1 with content-free commit/reveal, evaluator isolation,
   leakage monitoring, case accounting, safe-exit, schema, SARIF, and native
   AssuranceGraph/ContinuousProof integration.
@@ -181,9 +185,10 @@ compliance or safety overclaims.
   unfavorable cases and documented telemetry gaps.
 - Recruit owner-reviewed, safely publishable AIDisclosurePolicy profiles and
   independent CycloneDX 1.7/SPDX 3.0.1 reproductions from real deployments.
-  Deterministic imports, a source-verified crosswalk, and owner-authored CI
-  findings are now shipped; external evidence should test which field profiles
-  are useful without treating presence as equivalence, adequacy, or trust.
+  Deterministic imports, a source-verified crosswalk, owner-authored CI findings,
+  and lifecycle drift are now shipped; external evidence should test which
+  field profiles are useful without treating presence or improvement as
+  equivalence, adequacy, or trust.
 - Publish conformance fixtures from multiple runtimes through the declarative
   probe contract without accepting executable community plugins.
 - Publish independent real-backend AuthorityBridge evidence for each supported

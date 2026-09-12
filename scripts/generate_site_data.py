@@ -298,6 +298,11 @@ def build_payload(
                 "aiDisclosurePolicyUniversalProfileProvided": False,
                 "aiDisclosurePolicyRawValuesProcessed": False,
                 "aiDisclosurePolicyAutomaticWaivers": 0,
+                "aiDisclosureDriftProtocolVersion": "agentbom-ai-disclosure-drift-v1",
+                "aiDisclosureDriftFindingStates": 7,
+                "aiDisclosureDriftRemovalIsResolution": False,
+                "aiDisclosureDriftRawValuesCompared": False,
+                "aiDisclosureDriftAutomaticUpgradeApprovals": 0,
                 "automaticDeploymentActions": 0,
             },
             "probeContract": {

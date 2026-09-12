@@ -551,6 +551,11 @@
       "aiDisclosurePolicyUniversalProfileProvided": false,
       "aiDisclosurePolicyRawValuesProcessed": false,
       "aiDisclosurePolicyAutomaticWaivers": 0,
+      "aiDisclosureDriftProtocolVersion": "agentbom-ai-disclosure-drift-v1",
+      "aiDisclosureDriftFindingStates": 7,
+      "aiDisclosureDriftRemovalIsResolution": false,
+      "aiDisclosureDriftRawValuesCompared": false,
+      "aiDisclosureDriftAutomaticUpgradeApprovals": 0,
       "automaticDeploymentActions": 0
     },
     "probeContract": {

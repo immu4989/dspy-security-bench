@@ -498,6 +498,11 @@ def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plan
         "aiDisclosurePolicyUniversalProfileProvided": False,
         "aiDisclosurePolicyRawValuesProcessed": False,
         "aiDisclosurePolicyAutomaticWaivers": 0,
+        "aiDisclosureDriftProtocolVersion": "agentbom-ai-disclosure-drift-v1",
+        "aiDisclosureDriftFindingStates": 7,
+        "aiDisclosureDriftRemovalIsResolution": False,
+        "aiDisclosureDriftRawValuesCompared": False,
+        "aiDisclosureDriftAutomaticUpgradeApprovals": 0,
         "automaticDeploymentActions": 0,
     }
     assert commons["probeContract"]["thirdPartyCodeLoading"] is False
@@ -512,11 +517,12 @@ def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plan
         "VIOLATION ≠ MONITOR FAILURE ≠ INCOMPLETE EVIDENCE",
         "AUTOMATIC SHUTDOWNS: 0",
         "AUTOMATIC DEPLOYMENTS: 0",
-        "CYCLONEDX 1.7 ↔ SPDX 3.0.1 AI-BOM CROSSWALK",
         "RAW VALUES COMPARED: 0",
-        "SEMANTIC EQUIVALENCE CLAIMED: 0",
-        "OWNER-AUTHORED DISCLOSURE POLICY + SARIF",
+        "OWNER-AUTHORED AI-BOM POLICY + SARIF",
         "AUTOMATIC WAIVERS: 0",
+        "LIFECYCLE DRIFT: 7 STATES",
+        "REMOVAL ≠ RESOLUTION",
+        "AUTOMATIC UPGRADE APPROVALS: 0",
         "data-assurance-exchange-count",
         "dspy-security-bench contain demo --out-dir artifacts/containmentproof",
     ):

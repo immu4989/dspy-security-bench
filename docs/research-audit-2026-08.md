@@ -929,3 +929,40 @@ adequacy, freshness, safety, fairness, privacy, license compatibility,
 compliance, supplier identity, certification, procurement or deployment
 approval, risk acceptance, government endorsement, or an authorization to
 operate. The evaluator grants no waiver and takes no automatic action.
+
+## September 12 continuation: lifecycle drift without false remediation
+
+A passing intake snapshot is not enough for long-lived AI systems. Suppliers,
+models, datasets, and disclosures change. Comparing total missing-field counts
+would hide which requirement regressed and could even call a gap "resolved"
+when the deficient component was simply removed.
+
+NIST's 2026 concept note for a
+[Trustworthy AI in Critical Infrastructure Profile](https://www.nist.gov/programs-projects/concept-note-ai-rmf-profile-trustworthy-ai-critical-infrastructure)
+describes a repeatable full-lifecycle approach and calls for trustworthiness
+requirements that can be communicated across AI, critical-infrastructure, and
+supply-chain stakeholders. The official
+[SPDX 3.0.1 scope](https://spdx.github.io/spdx-spec/v3.0.1/scope/) includes AI
+models, datasets, relationships, provenance, integrity, and software lifecycle
+information. CISA's
+[SBOM consumption guidance](https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf)
+likewise treats inventory consumption as a lifecycle practice. These sources
+motivate lifecycle evidence; they do not imply endorsement, conformance, or a
+mapping to government requirements.
+
+AgentBOM AIDisclosureDrift v1 exactly reverifies baseline and candidate policy
+evaluations, both underlying import reports, both retained source documents,
+and the shared owner policy. It compares only privacy-hashed component IDs,
+field names, structural finding types, and counts. Findings become introduced,
+worsened, persistent, improved, resolved, an added-component gap, or a prior
+gap on a removed component. Component membership is also tracked independently.
+Two explicit CLI switches let an owner fail CI on regression alone or on any
+topology review state.
+
+The resulting history is not a model-improvement claim. Stable hashed identity
+does not prove supplier continuity or authorized lineage; a newly populated
+field may still be false, stale, or inadequate; a persistent gap is not waived;
+and SARIF entries are review routes rather than vulnerabilities. The protocol
+does not compare raw values, score suppliers, grant waivers, accept risk,
+approve an upgrade, determine compliance, certify a system, deploy anything,
+or authorize operation.

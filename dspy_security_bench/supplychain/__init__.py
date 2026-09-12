@@ -4,6 +4,11 @@ from dspy_security_bench.supplychain.aibom_crosswalk import (
     build_ai_bom_crosswalk,
     verify_ai_bom_crosswalk,
 )
+from dspy_security_bench.supplychain.aibom_drift import (
+    ai_disclosure_drift_report_to_sarif,
+    build_ai_disclosure_drift_report,
+    verify_ai_disclosure_drift_report,
+)
 from dspy_security_bench.supplychain.aibom_policy import (
     ai_disclosure_policy_report_to_sarif,
     build_ai_disclosure_policy_report,
@@ -38,6 +43,9 @@ from dspy_security_bench.supplychain.spdxai import (
 __all__ = [
     "build_ai_bom_crosswalk",
     "verify_ai_bom_crosswalk",
+    "ai_disclosure_drift_report_to_sarif",
+    "build_ai_disclosure_drift_report",
+    "verify_ai_disclosure_drift_report",
     "ai_disclosure_policy_report_to_sarif",
     "build_ai_disclosure_policy_report",
     "verify_ai_disclosure_policy_report",

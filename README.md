@@ -447,6 +447,13 @@ dspy-security-bench assure init --sector public-benefits \
 dspy-security-bench probe conformance probe-manifest.json --fixture-root .
 ```
 
+For supplier/model upgrades, `bom compare-ai-disclosure` exactly reverifies
+baseline and candidate policy reports and classifies each structural finding as
+introduced, worsened, persistent, improved, or resolved. Added and removed
+components remain separate review events; removal never masquerades as a fixed
+gap. JSON and SARIF contain no raw disclosure values. See the
+[lifecycle command and claim boundary](docs/assurance-control-plane.md#compare-disclosure-lifecycle-change-without-copying-values).
+
 Verified cases can become a closed eight-file federal review pack with OSCAL
 observations, an evidence index, freshness plan, change triggers, and owner-only
 POA&M inputs. The public assurance exchange accepts unfavorable cases and

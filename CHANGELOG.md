@@ -10,6 +10,15 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AgentBOM AIDisclosureDrift v1**, a source-verified lifecycle comparison for
+  two AIDisclosurePolicy evaluations under one exact owner policy. It
+  distinguishes introduced, worsened, persistent, improved, and resolved
+  structural findings; keeps added/removed components separate; and labels a
+  prior gap on a removed component without calling it resolved. JSON, SARIF,
+  exact verification, strict schema, two explicit CI gates, regression,
+  topology, source-drift, self-rehash, and data-minimization tests are included.
+  It does not compare raw values, prove supplier lineage, grant waivers, approve
+  upgrades, determine compliance, deploy changes, or authorize operation.
 - **AgentBOM AIDisclosurePolicy v1**, a deterministic, owner-authored gate over
   the source-verified CycloneDX 1.7 and SPDX 3.0.1 AI disclosure reports.
   Organizations select their required model and dataset fields, resolved-
