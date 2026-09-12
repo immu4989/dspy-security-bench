@@ -1,0 +1,17 @@
+{
+  "policy_version": "agentbom-ai-crosswalk-pairs-v1",
+  "pairs": [
+    {
+      "pair_id": "fictional-routing-model",
+      "component_type": "model",
+      "cyclonedx_component_id": "mlbom-model-1b0c6a911b95",
+      "spdx_component_id": "spdx-model-4bef43f4af0d"
+    },
+    {
+      "pair_id": "fictional-training-dataset",
+      "component_type": "dataset",
+      "cyclonedx_component_id": "mlbom-dataset-221427ba85a9",
+      "spdx_component_id": "spdx-dataset-a954cb329f8b"
+    }
+  ]
+}

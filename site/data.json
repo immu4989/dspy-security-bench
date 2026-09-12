@@ -541,6 +541,11 @@
       "spdxAIDatasetDisclosureFields": 13,
       "spdxAILicenseRulesChecked": 2,
       "spdxAIFullValidationPerformed": false,
+      "aiBOMCrosswalkProtocolVersion": "agentbom-ai-crosswalk-v1",
+      "aiBOMCrosswalkModelTopics": 10,
+      "aiBOMCrosswalkDatasetTopics": 6,
+      "aiBOMCrosswalkRawValuesCompared": false,
+      "aiBOMCrosswalkSemanticEquivalenceEstablished": false,
       "automaticDeploymentActions": 0
     },
     "probeContract": {

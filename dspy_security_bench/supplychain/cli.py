@@ -8,6 +8,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from dspy_security_bench.supplychain.aibom_crosswalk import (
+    build_ai_bom_crosswalk,
+    verify_ai_bom_crosswalk,
+)
 from dspy_security_bench.supplychain.mlbom import (
     build_mlbom_import_report,
     verify_mlbom_import_report,
@@ -101,6 +105,27 @@ def main(argv: list[str] | None = None) -> int:
     )
     verify_spdx_ai.add_argument("report")
     verify_spdx_ai.add_argument("source")
+    crosswalk_ai = commands.add_parser(
+        "crosswalk-ai",
+        help="compare disclosure presence for owner-paired CycloneDX and SPDX AI components",
+    )
+    crosswalk_ai.add_argument("--cyclonedx-report", required=True)
+    crosswalk_ai.add_argument("--cyclonedx-source", required=True)
+    crosswalk_ai.add_argument("--spdx-report", required=True)
+    crosswalk_ai.add_argument("--spdx-source", required=True)
+    crosswalk_ai.add_argument("--pairs", required=True)
+    crosswalk_ai.add_argument("--out", required=True)
+    crosswalk_ai.add_argument("--force", action="store_true")
+    verify_crosswalk = commands.add_parser(
+        "verify-ai-crosswalk",
+        help="exactly recompute an AI BOM cross-standard disclosure review",
+    )
+    verify_crosswalk.add_argument("report")
+    verify_crosswalk.add_argument("--cyclonedx-report", required=True)
+    verify_crosswalk.add_argument("--cyclonedx-source", required=True)
+    verify_crosswalk.add_argument("--spdx-report", required=True)
+    verify_crosswalk.add_argument("--spdx-source", required=True)
+    verify_crosswalk.add_argument("--pairs", required=True)
     compare = commands.add_parser("compare", help="compute transitive claim impact")
     compare.add_argument("baseline")
     compare.add_argument("candidate")
@@ -197,6 +222,28 @@ def main(argv: list[str] | None = None) -> int:
             if errors := verify_spdx_ai_import_report(report, source):
                 raise ValueError("; ".join(errors))
             print(f"[bom] verified privacy-minimized SPDX AI import {args.report}")
+            return 0
+        if args.command in {"crosswalk-ai", "verify-ai-crosswalk"}:
+            cdx_report = _read_json(Path(args.cyclonedx_report), 3 * MAX_INVENTORY_BYTES)
+            cdx_source = _read_json(Path(args.cyclonedx_source), MAX_INVENTORY_BYTES)
+            spdx_report = _read_json(Path(args.spdx_report), 3 * MAX_INVENTORY_BYTES)
+            spdx_source = _read_json(Path(args.spdx_source), MAX_INVENTORY_BYTES)
+            pairs = _read_json(Path(args.pairs), MAX_INVENTORY_BYTES)
+            if args.command == "crosswalk-ai":
+                report = build_ai_bom_crosswalk(
+                    cdx_report, cdx_source, spdx_report, spdx_source, pairs
+                )
+                _write_once(Path(args.out), report, args.force)
+                print(
+                    f"[bom] wrote {args.out}; component pairing and every topic require owner review"
+                )
+                return 0
+            report = _read_json(Path(args.report), 3 * MAX_INVENTORY_BYTES)
+            if errors := verify_ai_bom_crosswalk(
+                report, cdx_report, cdx_source, spdx_report, spdx_source, pairs
+            ):
+                raise ValueError("; ".join(errors))
+            print(f"[bom] verified AI BOM crosswalk {args.report}")
             return 0
         if args.command == "compare":
             baseline = _read_json(Path(args.baseline), MAX_INVENTORY_BYTES)

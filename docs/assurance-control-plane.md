@@ -114,6 +114,13 @@ dspy-security-bench bom import-spdx-ai spdx-ai.json \
   --report-out spdx-ai-disclosure.report.json
 dspy-security-bench bom verify-spdx-ai-import \
   spdx-ai-disclosure.report.json spdx-ai.json
+dspy-security-bench bom crosswalk-ai \
+  --cyclonedx-report mlbom-disclosure.report.json \
+  --cyclonedx-source cyclonedx-mlbom.json \
+  --spdx-report spdx-ai-disclosure.report.json \
+  --spdx-source spdx-ai.json \
+  --pairs ai-bom-crosswalk-pairs.json \
+  --out ai-bom-crosswalk.report.json
 ```
 
 The owner must enrich AI-specific components, dependency relationships, claim
@@ -212,6 +219,31 @@ Schema. The mapper itself does not expand JSON-LD or run that schema, the OWL
 ontology, or SHACL; it therefore never claims full SPDX conformance. Presence
 does not establish accuracy or adequacy, and the output is not a safety,
 privacy, fairness, legal, compliance, procurement, deployment, certification,
+or ATO decision.
+
+### Cross-standard review without invented equivalence
+
+`AIBOMCrosswalk v1` accepts the two source-bound import reports, both retained
+source documents, and an explicit owner pairing policy. It first exactly
+recomputes each import report. It then groups field presence into ten model and
+six dataset review topics and distinguishes:
+
+- both standards have at least one populated field for the topic;
+- both have mapped fields but neither is populated;
+- only one side has a populated mapped field; and
+- one standard has no field in this narrow crosswalk for the topic.
+
+Those states support supplier intake, standards migration, and multi-party
+review without exporting model-card or dataset values. The crosswalk retains
+only privacy-hashed component IDs already present in the import reports, lists
+of populated field names, source/report digests, and the digest of the strict
+owner pairing policy. The report is exactly recomputable offline.
+
+The topic groupings are review routes, not assertions that fields mean the same
+thing. Component pairing is owner-supplied and not discovered or authenticated.
+`raw_values_compared` and `semantic_equivalence_established` are always false.
+No asymmetry is a defect finding or a judgment about either standard, and no
+state is a model-quality, compliance, procurement, certification, deployment,
 or ATO decision.
 
 ## AssuranceGraph integration

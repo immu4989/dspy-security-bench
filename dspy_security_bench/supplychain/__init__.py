@@ -1,5 +1,9 @@
 """AgentBOM and ClaimImpact public API."""
 
+from dspy_security_bench.supplychain.aibom_crosswalk import (
+    build_ai_bom_crosswalk,
+    verify_ai_bom_crosswalk,
+)
 from dspy_security_bench.supplychain.mlbom import (
     build_mlbom_import_report,
     import_mlbom,
@@ -27,6 +31,8 @@ from dspy_security_bench.supplychain.spdxai import (
 )
 
 __all__ = [
+    "build_ai_bom_crosswalk",
+    "verify_ai_bom_crosswalk",
     "analyze_change",
     "built_in_inventory",
     "import_cyclonedx",

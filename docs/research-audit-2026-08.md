@@ -868,3 +868,27 @@ schema, OWL, SHACL, or profile conformance. Its license check is not legal
 advice; field presence is not truth or adequacy; hashes are not confidentiality;
 and the result is not model scoring, certification, government endorsement,
 deployment approval, or an authorization to operate.
+
+## September 12 continuation: cross-standard review without equivalence claims
+
+CycloneDX 1.7 and SPDX 3.0.1 both describe AI models and datasets, but their
+field structures differ. CycloneDX nests training, performance, limitations,
+fairness, and environmental information in a model card. SPDX exposes separate
+AI and Dataset profile properties and explicit relationship types. Treating
+similarly named fields as interchangeable would discard meaning; copying values
+into a central crosswalk would also expand the privacy boundary.
+
+AgentBOM AIBOMCrosswalk v1 uses ten model and six dataset review topics only to
+route human review. Before comparison it exactly reverifies both underlying
+privacy-minimized reports against their retained sources. An owner must pair
+components explicitly. Each topic distinguishes shared presence, shared
+absence, one-sided presence, and the absence of a mapped field in one standard.
+The report contains field names and privacy-hashed component IDs, never raw
+values, and binds the two reports, sources, and pair policy by digest.
+
+This design follows the distinct official
+[CycloneDX model-card structure](https://github.com/CycloneDX/specification/blob/1.7.1/schema/bom-1.7.schema.json)
+and [SPDX AI/Dataset model](https://spdx.github.io/spdx-spec/v3.0.1/model/AI/AI/)
+without declaring compatibility. It does not compare hidden values, discover
+component identity, prove semantic equivalence, rank standards or suppliers,
+or make a compliance, procurement, certification, deployment, or ATO decision.

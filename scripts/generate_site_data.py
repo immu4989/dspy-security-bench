@@ -288,6 +288,11 @@ def build_payload(
                 "spdxAIDatasetDisclosureFields": 13,
                 "spdxAILicenseRulesChecked": 2,
                 "spdxAIFullValidationPerformed": False,
+                "aiBOMCrosswalkProtocolVersion": "agentbom-ai-crosswalk-v1",
+                "aiBOMCrosswalkModelTopics": 10,
+                "aiBOMCrosswalkDatasetTopics": 6,
+                "aiBOMCrosswalkRawValuesCompared": False,
+                "aiBOMCrosswalkSemanticEquivalenceEstablished": False,
                 "automaticDeploymentActions": 0,
             },
             "probeContract": {

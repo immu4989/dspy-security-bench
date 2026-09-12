@@ -179,8 +179,10 @@ compliance or safety overclaims.
   privacy-safe fixtures from real deployments, plus independent SPDX 3.0.1 AI
   profile reproductions. Deterministic CycloneDX model/data mapping, SPDX
   AIPackage/DatasetPackage mapping with license-rule gaps, and SLSA Provenance
-  v1 mapping are now shipped; field presence remains explicitly distinct from
-  adequacy or trust.
+  v1 mapping are now shipped. A source-verified CycloneDX↔SPDX crosswalk now
+  routes presence asymmetries and vocabulary-shape differences using explicit
+  owner pairings; field presence remains distinct from equivalence, adequacy,
+  or trust.
 - Publish conformance fixtures from multiple runtimes through the declarative
   probe contract without accepting executable community plugins.
 - Publish independent real-backend AuthorityBridge evidence for each supported

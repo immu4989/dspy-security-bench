@@ -10,6 +10,18 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AgentBOM AIBOMCrosswalk v1**, a source-verified, privacy-preserving review
+  matrix for owner-paired CycloneDX 1.7 ML-BOM and SPDX 3.0.1 AI/Dataset
+  components. Ten model and six dataset review topics separate shared presence,
+  shared absence, one-sided presence, and vocabulary-shape differences. Both
+  underlying import reports are exactly recomputed against their retained
+  sources before comparison; the strict pairing policy and final report are
+  digest-bound and exactly reverifiable. No raw model/dataset values are
+  compared. Schema, CLI, fictional pairing policy, CI, tamper, type mismatch,
+  duplicate pairing, hidden-value, and source-drift tests are included. Topic
+  routing does not declare fields semantically equivalent, authenticate owner
+  pairing, score either standard, determine compliance, rank suppliers, approve
+  deployment, or authorize operation.
 - **AgentBOM SPDXAIDisclosure v1**, a separate privacy-minimized bridge for the
   SPDX 3.0.1 AI and Dataset profiles. It maps stable `ai_AIPackage` and
   `dataset_DatasetPackage` identities, retains resolved `dependsOn`, `trainedOn`,

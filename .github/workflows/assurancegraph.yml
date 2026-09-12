@@ -14,6 +14,7 @@ on:
       - "examples/slsa-provenance-v1.json"
       - "examples/cyclonedx-mlbom-1.7.json"
       - "examples/spdx-ai-3.0.1.json"
+      - "examples/ai-bom-crosswalk-pairs.json"
       - "submissions/assurance/**"
       - "tests/test_assurancegraph.py"
       - "tests/test_assurance_*.py"
@@ -36,6 +37,7 @@ on:
       - "examples/slsa-provenance-v1.json"
       - "examples/cyclonedx-mlbom-1.7.json"
       - "examples/spdx-ai-3.0.1.json"
+      - "examples/ai-bom-crosswalk-pairs.json"
       - "submissions/assurance/**"
       - "tests/test_assurancegraph.py"
       - "tests/test_assurance_*.py"
@@ -110,6 +112,22 @@ jobs:
           uv run --locked --no-sync dspy-security-bench bom verify-spdx-ai-import \
             artifacts/agentbom/spdx-ai-disclosure.report.json \
             examples/spdx-ai-3.0.1.json
+      - name: Crosswalk paired AI BOM disclosure presence without comparing values
+        run: |
+          uv run --locked --no-sync dspy-security-bench bom crosswalk-ai \
+            --cyclonedx-report artifacts/agentbom/mlbom-disclosure.report.json \
+            --cyclonedx-source examples/cyclonedx-mlbom-1.7.json \
+            --spdx-report artifacts/agentbom/spdx-ai-disclosure.report.json \
+            --spdx-source examples/spdx-ai-3.0.1.json \
+            --pairs examples/ai-bom-crosswalk-pairs.json \
+            --out artifacts/agentbom/ai-bom-crosswalk.report.json
+          uv run --locked --no-sync dspy-security-bench bom verify-ai-crosswalk \
+            artifacts/agentbom/ai-bom-crosswalk.report.json \
+            --cyclonedx-report artifacts/agentbom/mlbom-disclosure.report.json \
+            --cyclonedx-source examples/cyclonedx-mlbom-1.7.json \
+            --spdx-report artifacts/agentbom/spdx-ai-disclosure.report.json \
+            --spdx-source examples/spdx-ai-3.0.1.json \
+            --pairs examples/ai-bom-crosswalk-pairs.json
       - name: Export and recompute non-certifying federal review inputs
         run: |
           uv run --locked --no-sync dspy-security-bench assure federal-pack \
@@ -133,6 +151,7 @@ jobs:
           tests/test_agentbom_slsa.py
           tests/test_agentbom_mlbom.py
           tests/test_agentbom_spdx_ai.py
+          tests/test_agentbom_ai_crosswalk.py
           tests/test_probe_contract.py
       - name: Upload review surfaces, control evidence, dependency impact, and review pack
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

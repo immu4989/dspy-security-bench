@@ -98,6 +98,14 @@ def test_assurancegraph_ci_recomputes_privacy_minimized_spdx_ai_import():
     assert "tests/test_agentbom_spdx_ai.py" in workflow
 
 
+def test_assurancegraph_ci_recomputes_ai_bom_crosswalk():
+    workflow = (WORKFLOWS / "assurancegraph.yml").read_text()
+    assert "dspy-security-bench bom crosswalk-ai" in workflow
+    assert "dspy-security-bench bom verify-ai-crosswalk" in workflow
+    assert "examples/ai-bom-crosswalk-pairs.json" in workflow
+    assert "tests/test_agentbom_ai_crosswalk.py" in workflow
+
+
 def test_ci_installs_from_lockfile_without_resolving_during_checks():
     workflow = (WORKFLOWS / "test.yml").read_text()
     assert "uv sync --locked --extra dev" in workflow

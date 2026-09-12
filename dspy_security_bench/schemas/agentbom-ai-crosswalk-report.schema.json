@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/agentbom-ai-crosswalk-report.schema.json",
+  "title": "AgentBOM AIBOMCrosswalk cross-standard disclosure review v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "source_reports", "pair_policy", "pair_results", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AgentBOM AIBOMCrosswalk / Cross-standard disclosure review"},
+    "protocol_version": {"const": "agentbom-ai-crosswalk-v1"},
+    "analyzer": {"const": "deterministic-privacy-preserving-ai-bom-crosswalk-v1"},
+    "source_reports": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cyclonedx_protocol_version", "cyclonedx_report_sha256", "cyclonedx_source_sha256", "spdx_protocol_version", "spdx_report_sha256", "spdx_source_sha256"],
+      "properties": {
+        "cyclonedx_protocol_version": {"const": "agentbom-mlbom-disclosure-v1"},
+        "cyclonedx_report_sha256": {"$ref": "#/$defs/digest"},
+        "cyclonedx_source_sha256": {"$ref": "#/$defs/digest"},
+        "spdx_protocol_version": {"const": "agentbom-spdx-ai-disclosure-v1"},
+        "spdx_report_sha256": {"$ref": "#/$defs/digest"},
+        "spdx_source_sha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "pair_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_version", "canonical_policy_sha256", "pair_count"],
+      "properties": {
+        "policy_version": {"const": "agentbom-ai-crosswalk-pairs-v1"},
+        "canonical_policy_sha256": {"$ref": "#/$defs/digest"},
+        "pair_count": {"type": "integer", "minimum": 1, "maximum": 500}
+      }
+    },
+    "pair_results": {"type": "array", "minItems": 1, "maxItems": 500, "items": {"$ref": "#/$defs/pairResult"}},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pair_count", "topic_count", "both_present", "both_missing", "presence_asymmetries", "standard_shape_differences", "raw_values_compared", "semantic_equivalence_established", "automatic_actions", "review_status"],
+      "properties": {
+        "pair_count": {"type": "integer", "minimum": 1, "maximum": 500},
+        "topic_count": {"type": "integer", "minimum": 1, "maximum": 5000},
+        "both_present": {"$ref": "#/$defs/count"},
+        "both_missing": {"$ref": "#/$defs/count"},
+        "presence_asymmetries": {"$ref": "#/$defs/count"},
+        "standard_shape_differences": {"$ref": "#/$defs/count"},
+        "raw_values_compared": {"const": false},
+        "semantic_equivalence_established": {"const": false},
+        "automatic_actions": {"const": 0},
+        "review_status": {"const": "owner_review_required"}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"type": "string", "minLength": 1}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "count": {"type": "integer", "minimum": 0, "maximum": 5000},
+    "field": {
+      "enum": [
+        "modelParameters.approach.type", "modelParameters.task", "modelParameters.architectureFamily", "modelParameters.modelArchitecture", "modelParameters.datasets", "modelParameters.inputs", "modelParameters.outputs", "quantitativeAnalysis.performanceMetrics", "quantitativeAnalysis.graphics", "considerations.users", "considerations.useCases", "considerations.technicalLimitations", "considerations.performanceTradeoffs", "considerations.ethicalConsiderations", "considerations.environmentalConsiderations", "considerations.fairnessAssessments",
+        "contents", "classification", "sensitiveData", "graphics", "description", "governance",
+        "ai_autonomyType", "ai_domain", "ai_energyConsumption", "ai_hyperparameter", "ai_informationAboutApplication", "ai_informationAboutTraining", "ai_limitation", "ai_metric", "ai_metricDecisionThreshold", "ai_modelDataPreprocessing", "ai_modelExplainability", "ai_safetyRiskAssessment", "ai_standardCompliance", "ai_typeOfModel", "ai_useSensitivePersonalInformation",
+        "dataset_anonymizationMethodUsed", "dataset_confidentialityLevel", "dataset_dataCollectionProcess", "dataset_dataPreprocessing", "dataset_datasetAvailability", "dataset_datasetNoise", "dataset_datasetSize", "dataset_datasetType", "dataset_datasetUpdateMechanism", "dataset_hasSensitivePersonalInformation", "dataset_intendedUse", "dataset_knownBias", "dataset_sensor"
+      ]
+    },
+    "topic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["topic_id", "cyclonedx_fields_present", "spdx_fields_present", "state", "owner_review_required"],
+      "properties": {
+        "topic_id": {"$ref": "#/$defs/id"},
+        "cyclonedx_fields_present": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/field"}},
+        "spdx_fields_present": {"type": "array", "maxItems": 15, "uniqueItems": true, "items": {"$ref": "#/$defs/field"}},
+        "state": {"enum": ["both_present", "both_missing", "cyclonedx_only", "spdx_only", "cyclonedx_not_represented", "spdx_not_represented"]},
+        "owner_review_required": {"type": "boolean"}
+      }
+    },
+    "pairResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pair_id", "component_type", "cyclonedx_component_id", "spdx_component_id", "topics"],
+      "properties": {
+        "pair_id": {"$ref": "#/$defs/id"},
+        "component_type": {"enum": ["model", "dataset"]},
+        "cyclonedx_component_id": {"$ref": "#/$defs/id"},
+        "spdx_component_id": {"$ref": "#/$defs/id"},
+        "topics": {"type": "array", "minItems": 6, "maxItems": 10, "items": {"$ref": "#/$defs/topic"}}
+      }
+    }
+  }
+}
