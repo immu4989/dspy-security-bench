@@ -421,6 +421,24 @@ dspy-security-bench bom crosswalk-ai \
   --pairs examples/ai-bom-crosswalk-pairs.json \
   --out ai-bom-crosswalk.report.json
 
+# Turn owner-selected disclosure requirements into deterministic review
+# findings and SARIF. Add --fail-on-findings when findings should gate CI.
+dspy-security-bench bom evaluate-ai-disclosure \
+  --policy examples/ai-bom-disclosure-policy.json \
+  --cyclonedx-report mlbom-disclosure.report.json \
+  --cyclonedx-source examples/cyclonedx-mlbom-1.7.json \
+  --spdx-report spdx-ai-disclosure.report.json \
+  --spdx-source examples/spdx-ai-3.0.1.json \
+  --out ai-disclosure-policy.report.json \
+  --sarif-out ai-disclosure-policy.sarif
+dspy-security-bench bom verify-ai-disclosure \
+  ai-disclosure-policy.report.json \
+  --policy examples/ai-bom-disclosure-policy.json \
+  --cyclonedx-report mlbom-disclosure.report.json \
+  --cyclonedx-source examples/cyclonedx-mlbom-1.7.json \
+  --spdx-report spdx-ai-disclosure.report.json \
+  --spdx-source examples/spdx-ai-3.0.1.json
+
 # Start from one of seven explicit sector boundaries.
 dspy-security-bench assure init --sector public-benefits \
   --case-id benefits-pilot --out assurance-case.json

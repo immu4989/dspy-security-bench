@@ -293,6 +293,11 @@ def build_payload(
                 "aiBOMCrosswalkDatasetTopics": 6,
                 "aiBOMCrosswalkRawValuesCompared": False,
                 "aiBOMCrosswalkSemanticEquivalenceEstablished": False,
+                "aiDisclosurePolicyProtocolVersion": "agentbom-ai-disclosure-policy-evaluation-v1",
+                "aiDisclosurePolicyOwnerRequiredFields": 20,
+                "aiDisclosurePolicyUniversalProfileProvided": False,
+                "aiDisclosurePolicyRawValuesProcessed": False,
+                "aiDisclosurePolicyAutomaticWaivers": 0,
                 "automaticDeploymentActions": 0,
             },
             "probeContract": {

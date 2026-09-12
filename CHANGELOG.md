@@ -10,6 +10,19 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Added
+- **AgentBOM AIDisclosurePolicy v1**, a deterministic, owner-authored gate over
+  the source-verified CycloneDX 1.7 and SPDX 3.0.1 AI disclosure reports.
+  Organizations select their required model and dataset fields, resolved-
+  reference rules, and SPDX license-relationship shape; the evaluator emits
+  component-level missing-field, unresolved-reference, and relationship
+  findings as strict JSON and optional SARIF. Both input reports are exactly
+  recomputed against their retained sources, the policy and sources are digest-
+  bound, `--fail-on-findings` supports explicit CI gating, and the unfavorable
+  fictional policy, strict policy/report schemas, exact verification, source-
+  drift, self-rehash, data-minimization, and CLI tests are included. It does not
+  prescribe universal requirements, inspect raw values, grant waivers, score
+  models, determine compliance, approve procurement/deployment, certify a
+  system, or authorize operation.
 - **AgentBOM AIBOMCrosswalk v1**, a source-verified, privacy-preserving review
   matrix for owner-paired CycloneDX 1.7 ML-BOM and SPDX 3.0.1 AI/Dataset
   components. Ten model and six dataset review topics separate shared presence,

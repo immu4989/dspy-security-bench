@@ -546,6 +546,11 @@
       "aiBOMCrosswalkDatasetTopics": 6,
       "aiBOMCrosswalkRawValuesCompared": false,
       "aiBOMCrosswalkSemanticEquivalenceEstablished": false,
+      "aiDisclosurePolicyProtocolVersion": "agentbom-ai-disclosure-policy-evaluation-v1",
+      "aiDisclosurePolicyOwnerRequiredFields": 20,
+      "aiDisclosurePolicyUniversalProfileProvided": false,
+      "aiDisclosurePolicyRawValuesProcessed": false,
+      "aiDisclosurePolicyAutomaticWaivers": 0,
       "automaticDeploymentActions": 0
     },
     "probeContract": {

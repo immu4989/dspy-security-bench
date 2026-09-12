@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/agentbom-ai-disclosure-policy-report.schema.json",
+  "title": "AgentBOM owner-required AI disclosure findings v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "analyzer", "policy", "source_reports", "component_checks", "findings", "summary", "claim_boundary", "limitations", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AgentBOM AIDisclosurePolicy / Owner-required disclosure findings"},
+    "protocol_version": {"const": "agentbom-ai-disclosure-policy-evaluation-v1"},
+    "analyzer": {"const": "deterministic-owner-required-ai-disclosure-evaluator-v1"},
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_type", "policy_version", "policy_id", "owner", "canonical_policy_sha256"],
+      "properties": {
+        "policy_type": {"const": "dspy-security-bench-ai-disclosure-policy"},
+        "policy_version": {"const": "agentbom-ai-disclosure-policy-v1"},
+        "policy_id": {"$ref": "#/$defs/id"},
+        "owner": {"type": "string", "minLength": 1, "maxLength": 500},
+        "canonical_policy_sha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "source_reports": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cyclonedx_protocol_version", "cyclonedx_report_sha256", "cyclonedx_source_sha256", "spdx_protocol_version", "spdx_report_sha256", "spdx_source_sha256"],
+      "properties": {
+        "cyclonedx_protocol_version": {"const": "agentbom-mlbom-disclosure-v1"},
+        "cyclonedx_report_sha256": {"$ref": "#/$defs/digest"},
+        "cyclonedx_source_sha256": {"$ref": "#/$defs/digest"},
+        "spdx_protocol_version": {"const": "agentbom-spdx-ai-disclosure-v1"},
+        "spdx_report_sha256": {"$ref": "#/$defs/digest"},
+        "spdx_source_sha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "component_checks": {"type": "array", "minItems": 2, "maxItems": 4000, "items": {"$ref": "#/$defs/componentCheck"}},
+    "findings": {"type": "array", "maxItems": 20000, "items": {"$ref": "#/$defs/finding"}},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "component_checks", "requirements_met_components", "components_requiring_review", "finding_count", "missing_required_fields", "unresolved_reference_findings", "license_relationship_findings", "raw_disclosure_values_processed", "automatic_waivers", "automatic_actions"],
+      "properties": {
+        "status": {"enum": ["requirements_met", "owner_review_required"]},
+        "component_checks": {"$ref": "#/$defs/count"},
+        "requirements_met_components": {"$ref": "#/$defs/count"},
+        "components_requiring_review": {"$ref": "#/$defs/count"},
+        "finding_count": {"$ref": "#/$defs/count"},
+        "missing_required_fields": {"$ref": "#/$defs/count"},
+        "unresolved_reference_findings": {"$ref": "#/$defs/count"},
+        "license_relationship_findings": {"$ref": "#/$defs/count"},
+        "raw_disclosure_values_processed": {"const": false},
+        "automatic_waivers": {"const": 0},
+        "automatic_actions": {"const": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"type": "string", "minLength": 1}},
+    "report_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 500},
+    "componentId": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100},
+    "count": {"type": "integer", "minimum": 0, "maximum": 20000},
+    "field": {"enum": [
+      "modelParameters.approach.type", "modelParameters.task", "modelParameters.architectureFamily", "modelParameters.modelArchitecture", "modelParameters.datasets", "modelParameters.inputs", "modelParameters.outputs", "quantitativeAnalysis.performanceMetrics", "quantitativeAnalysis.graphics", "considerations.users", "considerations.useCases", "considerations.technicalLimitations", "considerations.performanceTradeoffs", "considerations.ethicalConsiderations", "considerations.environmentalConsiderations", "considerations.fairnessAssessments",
+      "contents", "classification", "sensitiveData", "graphics", "description", "governance",
+      "ai_autonomyType", "ai_domain", "ai_energyConsumption", "ai_hyperparameter", "ai_informationAboutApplication", "ai_informationAboutTraining", "ai_limitation", "ai_metric", "ai_metricDecisionThreshold", "ai_modelDataPreprocessing", "ai_modelExplainability", "ai_safetyRiskAssessment", "ai_standardCompliance", "ai_typeOfModel", "ai_useSensitivePersonalInformation",
+      "dataset_anonymizationMethodUsed", "dataset_confidentialityLevel", "dataset_dataCollectionProcess", "dataset_dataPreprocessing", "dataset_datasetAvailability", "dataset_datasetNoise", "dataset_datasetSize", "dataset_datasetType", "dataset_datasetUpdateMechanism", "dataset_hasSensitivePersonalInformation", "dataset_intendedUse", "dataset_knownBias", "dataset_sensor"
+    ]},
+    "fieldArray": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/field"}},
+    "componentCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["standard", "component_id", "required_fields", "present_required_fields", "missing_required_fields", "status"],
+      "properties": {
+        "standard": {"enum": ["cyclonedx", "spdx"]},
+        "component_id": {"$ref": "#/$defs/componentId"},
+        "required_fields": {"$ref": "#/$defs/fieldArray"},
+        "present_required_fields": {"$ref": "#/$defs/fieldArray"},
+        "missing_required_fields": {"$ref": "#/$defs/fieldArray"},
+        "status": {"enum": ["requirements_met", "owner_review_required"]}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["finding_id", "standard", "component_id", "finding_type", "field", "count", "automatic_action"],
+      "properties": {
+        "finding_id": {"type": "string", "pattern": "^finding-[0-9]{5}$"},
+        "standard": {"enum": ["cyclonedx", "spdx"]},
+        "component_id": {"anyOf": [{"$ref": "#/$defs/componentId"}, {"const": "document"}]},
+        "finding_type": {"enum": ["missing_required_field", "unresolved_dataset_reference", "unresolved_relationship_reference", "license_relationship_rule"]},
+        "field": {"anyOf": [{"$ref": "#/$defs/field"}, {"type": "null"}]},
+        "count": {"type": "integer", "minimum": 1, "maximum": 20000},
+        "automatic_action": {"const": false}
+      },
+      "allOf": [
+        {"if": {"properties": {"finding_type": {"const": "missing_required_field"}}}, "then": {"properties": {"field": {"$ref": "#/$defs/field"}}}, "else": {"properties": {"field": {"type": "null"}}}}
+      ]
+    }
+  }
+}

@@ -40,6 +40,10 @@ compliance or safety overclaims.
   monitoring, and evidence-completeness outcomes.
 - AgentBOM ClaimImpact v1 with AI-agent component and claim bindings, transitive
   invalidation, local CycloneDX/SPDX imports, and exact reevaluation plans.
+- AgentBOM AIDisclosurePolicy v1 with organization-owned CycloneDX/SPDX AI
+  disclosure requirements, exact source-report recomputation, deterministic
+  missing-field/relationship findings, SARIF, and an explicit CI gate without
+  universal scoring, automated waivers, or decision authority.
 - EvalIntegrityProof v1 with content-free commit/reveal, evaluator isolation,
   leakage monitoring, case accounting, safe-exit, schema, SARIF, and native
   AssuranceGraph/ContinuousProof integration.
@@ -175,14 +179,11 @@ compliance or safety overclaims.
 - Recruit independent ContainmentProof, AgentBOM, and complete AssuranceGraph
   reproductions using synthetic or safely publishable evidence, including
   unfavorable cases and documented telemetry gaps.
-- Recruit owner-reviewed CycloneDX 1.7 MLBOMDisclosure field profiles and
-  privacy-safe fixtures from real deployments, plus independent SPDX 3.0.1 AI
-  profile reproductions. Deterministic CycloneDX model/data mapping, SPDX
-  AIPackage/DatasetPackage mapping with license-rule gaps, and SLSA Provenance
-  v1 mapping are now shipped. A source-verified CycloneDX↔SPDX crosswalk now
-  routes presence asymmetries and vocabulary-shape differences using explicit
-  owner pairings; field presence remains distinct from equivalence, adequacy,
-  or trust.
+- Recruit owner-reviewed, safely publishable AIDisclosurePolicy profiles and
+  independent CycloneDX 1.7/SPDX 3.0.1 reproductions from real deployments.
+  Deterministic imports, a source-verified crosswalk, and owner-authored CI
+  findings are now shipped; external evidence should test which field profiles
+  are useful without treating presence as equivalence, adequacy, or trust.
 - Publish conformance fixtures from multiple runtimes through the declarative
   probe contract without accepting executable community plugins.
 - Publish independent real-backend AuthorityBridge evidence for each supported

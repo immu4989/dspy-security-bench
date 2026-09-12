@@ -121,6 +121,22 @@ dspy-security-bench bom crosswalk-ai \
   --spdx-source spdx-ai.json \
   --pairs ai-bom-crosswalk-pairs.json \
   --out ai-bom-crosswalk.report.json
+dspy-security-bench bom evaluate-ai-disclosure \
+  --policy ai-bom-disclosure-policy.json \
+  --cyclonedx-report mlbom-disclosure.report.json \
+  --cyclonedx-source cyclonedx-mlbom.json \
+  --spdx-report spdx-ai-disclosure.report.json \
+  --spdx-source spdx-ai.json \
+  --out ai-disclosure-policy.report.json \
+  --sarif-out ai-disclosure-policy.sarif \
+  --fail-on-findings
+dspy-security-bench bom verify-ai-disclosure \
+  ai-disclosure-policy.report.json \
+  --policy ai-bom-disclosure-policy.json \
+  --cyclonedx-report mlbom-disclosure.report.json \
+  --cyclonedx-source cyclonedx-mlbom.json \
+  --spdx-report spdx-ai-disclosure.report.json \
+  --spdx-source spdx-ai.json
 ```
 
 The owner must enrich AI-specific components, dependency relationships, claim
@@ -245,6 +261,31 @@ thing. Component pairing is owner-supplied and not discovered or authenticated.
 No asymmetry is a defect finding or a judgment about either standard, and no
 state is a model-quality, compliance, procurement, certification, deployment,
 or ATO decision.
+
+### Owner-authored AI disclosure requirements, not a universal score
+
+`AIDisclosurePolicy v1` converts an organization's own minimum disclosure
+requirements into deterministic component-level findings. A policy selects any
+of the sixteen CycloneDX model-card fields, six CycloneDX dataset fields,
+fifteen SPDX AI fields, and thirteen SPDX Dataset fields already exposed by the
+privacy-minimized import reports. It may also require resolved model/dataset
+references and SPDX's exactly-one declared/concluded-license relationship
+shape.
+
+Evaluation first exactly recomputes both import reports against their separately
+retained sources. It then emits stable missing-field, unresolved-reference, and
+license-relationship findings in JSON and optional SARIF. `--fail-on-findings`
+provides an explicit CI gate; omitting it preserves an observe-and-review flow.
+The committed fictional policy deliberately produces four findings so the
+reference workflow exercises the unfavorable path.
+
+This project does not choose an organization's requirements. A populated field
+may still be false, stale, incomplete, unsafe, or unfit for the mission. The
+evaluator never processes raw disclosure values, authenticates supplier
+assertions, grants waivers, scores a model, accepts risk, approves procurement
+or deployment, determines compliance, certifies a system, or authorizes
+operation. Policy ownership and every resulting decision stay with the
+accountable organization.
 
 ## AssuranceGraph integration
 

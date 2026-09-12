@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "policy_type": "dspy-security-bench-ai-disclosure-policy",
+  "policy_version": "agentbom-ai-disclosure-policy-v1",
+  "policy_id": "fictional-public-service-ai-disclosure",
+  "owner": "replace-with-accountable-policy-owner",
+  "cyclonedx": {
+    "required_model_fields": [
+      "modelParameters.task",
+      "modelParameters.datasets",
+      "quantitativeAnalysis.performanceMetrics",
+      "considerations.technicalLimitations",
+      "considerations.environmentalConsiderations"
+    ],
+    "required_dataset_fields": [
+      "contents",
+      "classification",
+      "sensitiveData",
+      "governance"
+    ],
+    "require_resolved_dataset_references": true
+  },
+  "spdx": {
+    "required_ai_fields": [
+      "ai_informationAboutApplication",
+      "ai_informationAboutTraining",
+      "ai_limitation",
+      "ai_metric",
+      "ai_modelExplainability",
+      "ai_energyConsumption"
+    ],
+    "required_dataset_fields": [
+      "dataset_confidentialityLevel",
+      "dataset_hasSensitivePersonalInformation",
+      "dataset_intendedUse",
+      "dataset_knownBias",
+      "dataset_sensor"
+    ],
+    "require_resolved_ai_relationships": true,
+    "require_exactly_one_license_relationship_each": true
+  }
+}

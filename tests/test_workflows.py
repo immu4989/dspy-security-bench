@@ -106,6 +106,15 @@ def test_assurancegraph_ci_recomputes_ai_bom_crosswalk():
     assert "tests/test_agentbom_ai_crosswalk.py" in workflow
 
 
+def test_assurancegraph_ci_recomputes_owner_ai_disclosure_policy():
+    workflow = (WORKFLOWS / "assurancegraph.yml").read_text()
+    assert "dspy-security-bench bom evaluate-ai-disclosure" in workflow
+    assert "dspy-security-bench bom verify-ai-disclosure" in workflow
+    assert "examples/ai-bom-disclosure-policy.json" in workflow
+    assert "--sarif-out artifacts/agentbom/ai-disclosure-policy.sarif" in workflow
+    assert "tests/test_agentbom_ai_policy.py" in workflow
+
+
 def test_ci_installs_from_lockfile_without_resolving_during_checks():
     workflow = (WORKFLOWS / "test.yml").read_text()
     assert "uv sync --locked --extra dev" in workflow

@@ -12,6 +12,11 @@ from dspy_security_bench.supplychain.aibom_crosswalk import (
     build_ai_bom_crosswalk,
     verify_ai_bom_crosswalk,
 )
+from dspy_security_bench.supplychain.aibom_policy import (
+    ai_disclosure_policy_report_to_sarif,
+    build_ai_disclosure_policy_report,
+    verify_ai_disclosure_policy_report,
+)
 from dspy_security_bench.supplychain.mlbom import (
     build_mlbom_import_report,
     verify_mlbom_import_report,
@@ -126,6 +131,29 @@ def main(argv: list[str] | None = None) -> int:
     verify_crosswalk.add_argument("--spdx-report", required=True)
     verify_crosswalk.add_argument("--spdx-source", required=True)
     verify_crosswalk.add_argument("--pairs", required=True)
+    evaluate_disclosure = commands.add_parser(
+        "evaluate-ai-disclosure",
+        help="evaluate source-bound AI BOM reports against an owner-authored policy",
+    )
+    evaluate_disclosure.add_argument("--policy", required=True)
+    evaluate_disclosure.add_argument("--cyclonedx-report", required=True)
+    evaluate_disclosure.add_argument("--cyclonedx-source", required=True)
+    evaluate_disclosure.add_argument("--spdx-report", required=True)
+    evaluate_disclosure.add_argument("--spdx-source", required=True)
+    evaluate_disclosure.add_argument("--out", required=True)
+    evaluate_disclosure.add_argument("--sarif-out")
+    evaluate_disclosure.add_argument("--force", action="store_true")
+    evaluate_disclosure.add_argument("--fail-on-findings", action="store_true")
+    verify_disclosure = commands.add_parser(
+        "verify-ai-disclosure",
+        help="exactly recompute an owner-authored AI BOM disclosure evaluation",
+    )
+    verify_disclosure.add_argument("report")
+    verify_disclosure.add_argument("--policy", required=True)
+    verify_disclosure.add_argument("--cyclonedx-report", required=True)
+    verify_disclosure.add_argument("--cyclonedx-source", required=True)
+    verify_disclosure.add_argument("--spdx-report", required=True)
+    verify_disclosure.add_argument("--spdx-source", required=True)
     compare = commands.add_parser("compare", help="compute transitive claim impact")
     compare.add_argument("baseline")
     compare.add_argument("candidate")
@@ -244,6 +272,36 @@ def main(argv: list[str] | None = None) -> int:
             ):
                 raise ValueError("; ".join(errors))
             print(f"[bom] verified AI BOM crosswalk {args.report}")
+            return 0
+        if args.command in {"evaluate-ai-disclosure", "verify-ai-disclosure"}:
+            policy = _read_json(Path(args.policy), MAX_INVENTORY_BYTES)
+            cdx_report = _read_json(Path(args.cyclonedx_report), 3 * MAX_INVENTORY_BYTES)
+            cdx_source = _read_json(Path(args.cyclonedx_source), MAX_INVENTORY_BYTES)
+            spdx_report = _read_json(Path(args.spdx_report), 3 * MAX_INVENTORY_BYTES)
+            spdx_source = _read_json(Path(args.spdx_source), MAX_INVENTORY_BYTES)
+            if args.command == "evaluate-ai-disclosure":
+                report = build_ai_disclosure_policy_report(
+                    policy, cdx_report, cdx_source, spdx_report, spdx_source
+                )
+                outputs = [Path(args.out)]
+                if args.sarif_out:
+                    outputs.append(Path(args.sarif_out))
+                _require_writable_targets(tuple(outputs), force=args.force)
+                _write_json(outputs[0], report)
+                if args.sarif_out:
+                    _write_json(outputs[1], ai_disclosure_policy_report_to_sarif(report))
+                findings = report["summary"]["finding_count"]
+                print(
+                    f"[bom] {report['summary']['status']}: wrote {args.out} "
+                    f"with {findings} owner-review finding(s)"
+                )
+                return int(args.fail_on_findings and findings > 0)
+            report = _read_json(Path(args.report), 3 * MAX_INVENTORY_BYTES)
+            if errors := verify_ai_disclosure_policy_report(
+                report, policy, cdx_report, cdx_source, spdx_report, spdx_source
+            ):
+                raise ValueError("; ".join(errors))
+            print(f"[bom] verified AI disclosure policy report {args.report}")
             return 0
         if args.command == "compare":
             baseline = _read_json(Path(args.baseline), MAX_INVENTORY_BYTES)

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/agentbom-ai-disclosure-policy.schema.json",
+  "title": "AgentBOM owner-authored AI disclosure policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_type", "policy_version", "policy_id", "owner", "cyclonedx", "spdx"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "policy_type": {"const": "dspy-security-bench-ai-disclosure-policy"},
+    "policy_version": {"const": "agentbom-ai-disclosure-policy-v1"},
+    "policy_id": {"$ref": "#/$defs/id"},
+    "owner": {"type": "string", "minLength": 1, "maxLength": 500},
+    "cyclonedx": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_model_fields", "required_dataset_fields", "require_resolved_dataset_references"],
+      "properties": {
+        "required_model_fields": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/cyclonedxModelField"}},
+        "required_dataset_fields": {"type": "array", "maxItems": 6, "uniqueItems": true, "items": {"$ref": "#/$defs/cyclonedxDatasetField"}},
+        "require_resolved_dataset_references": {"type": "boolean"}
+      }
+    },
+    "spdx": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_ai_fields", "required_dataset_fields", "require_resolved_ai_relationships", "require_exactly_one_license_relationship_each"],
+      "properties": {
+        "required_ai_fields": {"type": "array", "maxItems": 15, "uniqueItems": true, "items": {"$ref": "#/$defs/spdxAIField"}},
+        "required_dataset_fields": {"type": "array", "maxItems": 13, "uniqueItems": true, "items": {"$ref": "#/$defs/spdxDatasetField"}},
+        "require_resolved_ai_relationships": {"type": "boolean"},
+        "require_exactly_one_license_relationship_each": {"type": "boolean"}
+      }
+    }
+  },
+  "anyOf": [
+    {"properties": {"cyclonedx": {"properties": {"required_model_fields": {"minItems": 1}}}}},
+    {"properties": {"cyclonedx": {"properties": {"required_dataset_fields": {"minItems": 1}}}}},
+    {"properties": {"spdx": {"properties": {"required_ai_fields": {"minItems": 1}}}}},
+    {"properties": {"spdx": {"properties": {"required_dataset_fields": {"minItems": 1}}}}}
+  ],
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 500},
+    "cyclonedxModelField": {"enum": ["modelParameters.approach.type", "modelParameters.task", "modelParameters.architectureFamily", "modelParameters.modelArchitecture", "modelParameters.datasets", "modelParameters.inputs", "modelParameters.outputs", "quantitativeAnalysis.performanceMetrics", "quantitativeAnalysis.graphics", "considerations.users", "considerations.useCases", "considerations.technicalLimitations", "considerations.performanceTradeoffs", "considerations.ethicalConsiderations", "considerations.environmentalConsiderations", "considerations.fairnessAssessments"]},
+    "cyclonedxDatasetField": {"enum": ["contents", "classification", "sensitiveData", "graphics", "description", "governance"]},
+    "spdxAIField": {"enum": ["ai_autonomyType", "ai_domain", "ai_energyConsumption", "ai_hyperparameter", "ai_informationAboutApplication", "ai_informationAboutTraining", "ai_limitation", "ai_metric", "ai_metricDecisionThreshold", "ai_modelDataPreprocessing", "ai_modelExplainability", "ai_safetyRiskAssessment", "ai_standardCompliance", "ai_typeOfModel", "ai_useSensitivePersonalInformation"]},
+    "spdxDatasetField": {"enum": ["dataset_anonymizationMethodUsed", "dataset_confidentialityLevel", "dataset_dataCollectionProcess", "dataset_dataPreprocessing", "dataset_datasetAvailability", "dataset_datasetNoise", "dataset_datasetSize", "dataset_datasetType", "dataset_datasetUpdateMechanism", "dataset_hasSensitivePersonalInformation", "dataset_intendedUse", "dataset_knownBias", "dataset_sensor"]}
+  }
+}

@@ -892,3 +892,40 @@ and [SPDX AI/Dataset model](https://spdx.github.io/spdx-spec/v3.0.1/model/AI/AI/
 without declaring compatibility. It does not compare hidden values, discover
 component identity, prove semantic equivalence, rank standards or suppliers,
 or make a compliance, procurement, certification, deployment, or ATO decision.
+
+## September 12 continuation: owner-defined AI disclosure gates
+
+Standards-native inventories make disclosure presence observable, but they do
+not answer which disclosures a particular mission owner requires. Hard-coding
+one universal checklist would confuse a tool author's preferences with agency,
+sector, or enterprise risk ownership. It would also invite an attractive but
+invalid aggregate score.
+
+The official [CycloneDX ML-BOM capability description](https://cyclonedx.org/capabilities/mlbom/)
+frames model and dataset transparency as input to informed deployment and
+maintenance decisions. SPDX 3.0.1 separately defines exact-one declared and
+concluded license relationships for both its
+[AI profile](https://spdx.github.io/spdx-spec/v3.0.1/model/AI/AI/) and
+[Dataset profile](https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Dataset/).
+NIST describes the AI RMF as voluntary and oriented toward organizations'
+design, development, use, and evaluation practices; its Generative AI Profile
+likewise proposes actions aligned with organizational goals and priorities.
+These are design inputs, not claims that this feature implements NIST guidance
+or establishes standards conformance.
+
+AgentBOM AIDisclosurePolicy v1 therefore leaves the requirement set with a
+named owner. It can require any field already represented by the privacy-
+minimized CycloneDX/SPDX import reports, resolved AI/data references, and the
+SPDX license-relationship shape. Before evaluation it exactly recomputes both
+source-bound reports. Stable component-level findings distinguish missing
+fields, unresolved references, and license relationship gaps and can be routed
+through SARIF; an explicit flag, rather than a hidden default, decides whether
+findings fail CI. The fictional profile intentionally fails four requirements.
+
+No raw disclosure value enters the policy report, and no missing item is called
+a vulnerability. A passing result means only that the owner-selected structural
+requirements are present in the supplied reports. It cannot establish truth,
+adequacy, freshness, safety, fairness, privacy, license compatibility,
+compliance, supplier identity, certification, procurement or deployment
+approval, risk acceptance, government endorsement, or an authorization to
+operate. The evaluator grants no waiver and takes no automatic action.

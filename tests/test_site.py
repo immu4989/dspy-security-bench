@@ -493,6 +493,11 @@ def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plan
         "aiBOMCrosswalkDatasetTopics": 6,
         "aiBOMCrosswalkRawValuesCompared": False,
         "aiBOMCrosswalkSemanticEquivalenceEstablished": False,
+        "aiDisclosurePolicyProtocolVersion": "agentbom-ai-disclosure-policy-evaluation-v1",
+        "aiDisclosurePolicyOwnerRequiredFields": 20,
+        "aiDisclosurePolicyUniversalProfileProvided": False,
+        "aiDisclosurePolicyRawValuesProcessed": False,
+        "aiDisclosurePolicyAutomaticWaivers": 0,
         "automaticDeploymentActions": 0,
     }
     assert commons["probeContract"]["thirdPartyCodeLoading"] is False
@@ -510,6 +515,8 @@ def test_site_payload_exposes_the_nonranking_assurance_exchange_and_control_plan
         "CYCLONEDX 1.7 ↔ SPDX 3.0.1 AI-BOM CROSSWALK",
         "RAW VALUES COMPARED: 0",
         "SEMANTIC EQUIVALENCE CLAIMED: 0",
+        "OWNER-AUTHORED DISCLOSURE POLICY + SARIF",
+        "AUTOMATIC WAIVERS: 0",
         "data-assurance-exchange-count",
         "dspy-security-bench contain demo --out-dir artifacts/containmentproof",
     ):
