@@ -118,8 +118,11 @@ def build_ai_disclosure_policy_report(
                         item["component_id"],
                         "license_relationship_rule",
                         None,
-                        abs(1 - item["declared_license_relationships"])
-                        + abs(1 - item["concluded_license_relationships"]),
+                        max(
+                            1,
+                            abs(1 - item["declared_license_relationships"])
+                            + abs(1 - item["concluded_license_relationships"]),
+                        ),
                     )
                 )
     if len(finding_inputs) > MAX_FINDINGS:

@@ -201,6 +201,17 @@ def test_extra_invalid_license_relationship_cannot_be_hidden_by_valid_one(target
     report = build_spdx_ai_import_report(source, inventory_id="extra-relations")
     assert report["summary"]["license_relationship_rule_failures"] == 1
     assert verify_spdx_ai_import_report(report, source) == ()
+    from dspy_security_bench.supplychain.intake import build_intake_artifacts
+
+    policy = json.loads((ROOT / "examples/ai-bom-disclosure-policy.json").read_text())
+    cdx = json.loads((ROOT / "examples/cyclonedx-mlbom-1.7.json").read_text())
+    evaluation = json.loads(build_intake_artifacts(policy, cdx, source)["policy.report.json"])
+    findings = [
+        item
+        for item in evaluation["findings"]
+        if item["finding_type"] == "license_relationship_rule"
+    ]
+    assert findings and all(item["count"] >= 1 for item in findings)
 
 
 def test_spdx_ai_report_schema_is_strict_and_valid():
