@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- Ten additional evidence CLI families and nested AssuranceGraph evidence now
+  use the shared strict, byte-bounded JSON reader. Duplicate members, non-finite
+  numbers, invalid Unicode, and non-object roots fail consistently before native
+  evidence verification; parser diagnostics do not echo source keys or values.
 - SPDX AI license relationship checks recognize concrete license combinations
   and exact standard None/NoAssertion individuals without network resolution.
   Abstract license types no longer count, and extra invalid relationships can

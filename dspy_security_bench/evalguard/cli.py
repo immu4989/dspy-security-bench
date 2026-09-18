@@ -19,6 +19,7 @@ from dspy_security_bench.evalguard.proof import (
     verify_report,
 )
 from dspy_security_bench.evalguard.sarif import report_to_sarif
+from dspy_security_bench.jsonio import read_json_object
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -100,12 +101,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _read_json(path: Path, maximum: int) -> dict[str, Any]:
-    if path.stat().st_size > maximum:
-        raise ValueError(f"input exceeds {maximum} bytes")
-    payload = json.loads(path.read_text())
-    if not isinstance(payload, dict):
-        raise ValueError("JSON root must be an object")
-    return payload
+    return read_json_object(path, maximum)
 
 
 def _write_json(path: Path, payload: Any) -> None:

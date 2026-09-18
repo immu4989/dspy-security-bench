@@ -7,6 +7,7 @@ import json
 import sys
 from pathlib import Path
 
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.schedule.proof import (
     BUILT_IN_PROFILES,
     MAX_SCENARIO_BYTES,
@@ -141,12 +142,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _read_json(path: Path) -> dict:
-    if path.stat().st_size > MAX_SCENARIO_BYTES:
-        raise ValueError("ScheduleProof JSON input exceeds the 1 MiB boundary")
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(payload, dict):
-        raise ValueError("JSON root must be an object")
-    return payload
+    return read_json_object(path, MAX_SCENARIO_BYTES)
 
 
 def _write_json(path: Path, payload: dict) -> None:

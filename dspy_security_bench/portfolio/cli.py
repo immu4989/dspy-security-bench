@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.portfolio.proof import (
     MAX_CAMPAIGN_BYTES,
     analyze_campaign,
@@ -131,12 +132,7 @@ def _print_summary(report: dict[str, Any]) -> None:
 
 
 def _read_json(path: Path) -> dict[str, Any]:
-    if path.stat().st_size > MAX_CAMPAIGN_BYTES:
-        raise ValueError(f"input exceeds {MAX_CAMPAIGN_BYTES} bytes")
-    payload = json.loads(path.read_text())
-    if not isinstance(payload, dict):
-        raise ValueError("JSON root must be an object")
-    return payload
+    return read_json_object(path, MAX_CAMPAIGN_BYTES)
 
 
 def _write_once(path: Path, payload: dict[str, Any], force: bool) -> None:

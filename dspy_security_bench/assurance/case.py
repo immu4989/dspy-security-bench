@@ -21,6 +21,7 @@ from dspy_security_bench.assurance.profiles import (
     profile_ids,
 )
 from dspy_security_bench.continuous.proof import build_evidence_snapshot
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.mission.loader import canonical_sha256
 
 CASE_TYPE = "dspy-security-bench-assurance-case"
@@ -378,11 +379,7 @@ def _evaluate_evidence(item: Mapping[str, Any], evaluation_time: int, root: Path
         result["errors"].append("evidence file is missing")
         return result
     try:
-        if candidate.stat().st_size > MAX_EVIDENCE_BYTES:
-            raise ValueError(f"evidence exceeds {MAX_EVIDENCE_BYTES} bytes")
-        payload = json.loads(candidate.read_text())
-        if not isinstance(payload, dict):
-            raise ValueError("evidence JSON root must be an object")
+        payload = read_json_object(candidate, MAX_EVIDENCE_BYTES)
         snapshot = build_evidence_snapshot(payload, label=item["evidence_id"])
         result["actual_sha256"] = snapshot["evidence_sha256"]
         if snapshot["evidence_kind"] != item["evidence_kind"]:

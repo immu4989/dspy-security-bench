@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from dspy_security_bench.continuous.proof import build_evidence_snapshot
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.probes.contract import (
     MAX_MANIFEST_BYTES,
     build_manifest,
@@ -100,12 +101,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _read(path: Path, maximum: int) -> dict:
-    if path.stat().st_size > maximum:
-        raise ValueError(f"input exceeds {maximum} bytes")
-    payload = json.loads(path.read_text())
-    if not isinstance(payload, dict):
-        raise ValueError("JSON root must be an object")
-    return payload
+    return read_json_object(path, maximum)
 
 
 def _write_once(path: Path, payload: dict, force: bool) -> None:

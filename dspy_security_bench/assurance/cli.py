@@ -29,6 +29,7 @@ from dspy_security_bench.assurance.exports import export_oscal, export_sarif, re
 from dspy_security_bench.assurance.federal import export_review_pack, verify_review_pack
 from dspy_security_bench.assurance.profiles import built_in_profile, profile_ids
 from dspy_security_bench.assurance.sectors import sector_case, sector_ids, sector_profile
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.mission.loader import canonical_sha256
 
 
@@ -396,12 +397,7 @@ def _print_report(report: dict[str, Any]) -> None:
 
 
 def _read_json(path: Path, maximum: int) -> dict[str, Any]:
-    if path.stat().st_size > maximum:
-        raise ValueError(f"input exceeds {maximum} bytes")
-    payload = json.loads(path.read_text())
-    if not isinstance(payload, dict):
-        raise ValueError("JSON root must be an object")
-    return payload
+    return read_json_object(path, maximum)
 
 
 def _write_once(path: Path, content: str, force: bool) -> None:

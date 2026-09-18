@@ -19,6 +19,7 @@ from dspy_security_bench.collective.proof import (
     verify_collective_report,
 )
 from dspy_security_bench.collective.sarif import collective_report_to_sarif
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.mission.loader import canonical_sha256
 
 
@@ -406,12 +407,7 @@ def _profile(args: argparse.Namespace) -> int:
 
 
 def _read_json(path: Path) -> dict[str, Any]:
-    if path.stat().st_size > MAX_SCENARIO_BYTES:
-        raise ValueError("CollectiveGuard JSON input exceeds the 1 MiB boundary")
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(payload, dict):
-        raise ValueError("JSON root must be an object")
-    return payload
+    return read_json_object(path, MAX_SCENARIO_BYTES)
 
 
 def _write_json(path: Path, payload: Mapping[str, Any]) -> None:

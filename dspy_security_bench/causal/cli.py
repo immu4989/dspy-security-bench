@@ -15,6 +15,7 @@ from dspy_security_bench.causal.proof import (
     read_trace_file,
     verify_causal_report,
 )
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.schedule.proof import analyze_scenario
 
 
@@ -193,12 +194,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _read(path: Path, limit: int) -> dict:
-    if path.stat().st_size > limit:
-        raise ValueError(f"JSON input {path} exceeds its byte boundary")
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(payload, dict):
-        raise ValueError("JSON input root must be an object")
-    return payload
+    return read_json_object(path, limit)
 
 
 def _write(path: Path, payload: dict) -> None:

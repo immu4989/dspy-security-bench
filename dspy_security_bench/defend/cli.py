@@ -19,6 +19,7 @@ from dspy_security_bench.defend.protocol import (
     validate_proposal,
     verify_report,
 )
+from dspy_security_bench.jsonio import read_json_object
 
 MAX_INPUT_BYTES = 5_000_000
 
@@ -277,12 +278,7 @@ def _mission(value: str) -> dict[str, Any]:
 
 
 def _read_json(path: Path) -> dict[str, Any]:
-    if path.stat().st_size > MAX_INPUT_BYTES:
-        raise ValueError(f"input exceeds {MAX_INPUT_BYTES} bytes")
-    payload = json.loads(path.read_text())
-    if not isinstance(payload, dict):
-        raise ValueError("input must be a JSON object")
-    return payload
+    return read_json_object(path, MAX_INPUT_BYTES)
 
 
 def _write_json(path: Path, payload: Any) -> None:

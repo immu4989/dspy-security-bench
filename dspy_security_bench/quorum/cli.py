@@ -11,6 +11,7 @@ from typing import Any
 
 from dspy_security_bench.assurance.case import analyze_case, built_in_case, seal_case
 from dspy_security_bench.assurance.cli import _demo_evidence
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.mission.commons import generate_ed25519_keypair
 from dspy_security_bench.mission.loader import canonical_sha256
 from dspy_security_bench.quorum.proof import (
@@ -315,12 +316,7 @@ def _parse_reviewer(spec: str) -> dict[str, Any]:
 
 
 def _read_json(path: Path) -> dict[str, Any]:
-    if path.stat().st_size > MAX_JSON_BYTES:
-        raise ValueError(f"input exceeds {MAX_JSON_BYTES} bytes")
-    payload = json.loads(path.read_text())
-    if not isinstance(payload, dict):
-        raise ValueError("JSON root must be an object")
-    return payload
+    return read_json_object(path, MAX_JSON_BYTES)
 
 
 def _write_json(path: Path, payload: Any) -> None:
