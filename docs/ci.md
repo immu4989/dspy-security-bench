@@ -12,6 +12,13 @@ that upgrade an improvement. This gate catches it.
 
 ## 1. Configure
 
+On main, configuration is strict: keys must be known, sections must be mappings,
+and duplicate YAML keys are rejected, including conflicting YAML merge overrides.
+Files must be valid UTF-8 and at most 1 MB. Thresholds must be numeric (not quoted
+strings or booleans), and selection/format lists must be nonempty and unique.
+Misspelled settings fail before a model is constructed rather than falling back
+to a different policy.
+
 Generate the config and workflow in one command:
 
 ```bash

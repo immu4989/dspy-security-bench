@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- Scan YAML rejects duplicate keys (including merge overrides), unknown settings,
+  non-mapping sections, invalid format lists, invalid Unicode, and oversized
+  files. Redacted parser diagnostics and early validation prevent ambiguous
+  configuration from silently changing a gate before model invocation.
 - Scan planning validates attack, adaptive-strategy, defense, and unique matrix
   selections before constructing an agent. Mixed DoS/ordinary plans use actual
   per-attack injection counts and disclose auxiliary injection-task utility runs

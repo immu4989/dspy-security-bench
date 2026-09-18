@@ -83,13 +83,23 @@ class ScanConfig:
     def from_dict(cls, d: dict[str, Any]) -> ScanConfig:
         if not isinstance(d, dict):
             raise ValueError("config must be a mapping")
+        if set(d) - {"agent", "scan", "gate", "report", "fail_on"}:
+            raise ValueError("config contains unknown top-level settings")
         d = d or {}
-        agent = d.get("agent", {}) or {}
-        scan = d.get("scan", {}) or {}
-        gate = d.get("gate", {}) or {}
-        report = d.get("report", {}) or {}
+        agent = d.get("agent") if d.get("agent") is not None else {}
+        scan = d.get("scan") if d.get("scan") is not None else {}
+        gate = d.get("gate") if d.get("gate") is not None else {}
+        report = d.get("report") if d.get("report") is not None else {}
         if any(not isinstance(section, dict) for section in (agent, scan, gate, report)):
             raise ValueError("config sections must be mappings")
+        for name, section, allowed in (
+            ("agent", agent, {"model", "import", "name"}),
+            ("scan", scan, {"suites", "attacks", "defenses", "user_tasks", "injection_tasks"}),
+            ("gate", gate, {"mode", "min_security", "baseline", "max_regression", "warn_margin", "require_baseline_coverage"}),
+            ("report", report, {"formats", "sarif_out", "json_out"}),
+        ):
+            if set(section) - allowed:
+                raise ValueError(f"config: {name} contains unknown settings")
         return cls(
             agent=AgentSpec(
                 model=agent.get("model"),
@@ -122,8 +132,32 @@ class ScanConfig:
     @classmethod
     def load(cls, path: str | Path) -> ScanConfig:
         import yaml
-        text = Path(path).read_text()
-        return cls.from_dict(yaml.safe_load(text) or {})
+
+        class UniqueSafeLoader(yaml.SafeLoader):
+            pass
+
+        def mapping(loader, node, deep=False):
+            loader.flatten_mapping(node)
+            result = {}
+            for key_node, value_node in node.value:
+                key = loader.construct_object(key_node, deep=deep)
+                if not isinstance(key, str):
+                    raise ValueError("config mapping keys must be strings")
+                if key in result:
+                    raise ValueError("config contains duplicate YAML keys")
+                result[key] = loader.construct_object(value_node, deep=deep)
+            return result
+
+        UniqueSafeLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, mapping)
+        with Path(path).open("rb") as stream:
+            raw = stream.read(1_000_001)
+        if len(raw) > 1_000_000:
+            raise ValueError("config exceeds 1000000 bytes")
+        try:
+            payload = yaml.load(raw.decode("utf-8"), Loader=UniqueSafeLoader)
+        except (yaml.YAMLError, UnicodeError, RecursionError) as exc:
+            raise ValueError("config must be bounded valid UTF-8 YAML") from exc
+        return cls.from_dict({} if payload is None else payload)
 
     def validate(self) -> None:
         """Raise ValueError on an unusable config."""
@@ -149,6 +183,13 @@ class ScanConfig:
         ):
             if value != "all" and (not isinstance(value, int) or isinstance(value, bool) or value < 1):
                 raise ValueError(f"config: scan.{name} must be a positive integer or 'all'")
+        if not isinstance(self.report.formats, list) or not self.report.formats or not all(isinstance(fmt, str) for fmt in self.report.formats):
+            raise ValueError("config: report.formats must be a nonempty list of names")
+        if len(set(self.report.formats)) != len(self.report.formats):
+            raise ValueError("config: report.formats must not contain duplicates")
+        for name, value in (("json_out", self.report.json_out), ("sarif_out", self.report.sarif_out)):
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"config: report.{name} must be a nonempty path")
         for fmt in self.report.formats:
             if fmt not in ("terminal", "json", "sarif"):
                 raise ValueError(f"config: unknown report format {fmt!r}")
