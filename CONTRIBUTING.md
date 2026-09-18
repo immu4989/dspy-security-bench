@@ -75,7 +75,18 @@ run the benchmark itself. Contributors changing embedding-based synthesis or
 deduplication should install `.[dev,synthesis]`; the ordinary development and
 CI environment intentionally avoids the large optional ML runtime.
 
+## Release archive checks
+
+Before publishing a release, build from a reviewed checkout and run
+`python scripts/check_distribution_contents.py dist`. The inventory check rejects
+untracked archive paths, links, duplicate members, and missing package resources.
+Local `assets/social/` drafts are excluded from source distributions. This is not
+a secret scanner or a proof that tracked content is safe; review the content and
+retain the existing release tests, metadata checks, and attestations. Untracked
+new source files must be deliberately reviewed and added to Git before this check.
+
 ## Contributing a RootViewQuorum implementation
+
 
 Create `interop/root-view-quorum-<language>/` and implement the frozen v1
 contract without importing or executing an existing verifier. Run the exact

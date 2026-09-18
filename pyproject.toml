@@ -240,6 +240,10 @@ dspy-security-bench-validate = "dspy_security_bench.synthesis.validator:_cli"
 [tool.hatch.build.targets.wheel]
 packages = ["dspy_security_bench"]
 
+[tool.hatch.build.targets.sdist]
+# Local promotional drafts are not release inputs, even when not git-ignored.
+exclude = ["/assets/social"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"

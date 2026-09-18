@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- Source distributions exclude local promotional drafts. A release inventory
+  gate rejects untracked paths, links, duplicate members, unexpected metadata,
+  and missing tracked package resources before any publishing step. This checks
+  archive membership, not content authenticity or absence of secrets.
 - Scan YAML rejects duplicate keys (including merge overrides), unknown settings,
   non-mapping sections, invalid format lists, invalid Unicode, and oversized
   files. Redacted parser diagnostics and early validation prevent ambiguous

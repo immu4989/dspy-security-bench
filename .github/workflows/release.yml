@@ -31,6 +31,8 @@ jobs:
           PY
       - run: python -m pip install build twine
       - run: python -m build
+      - name: Reject unexpected or incomplete distribution contents
+        run: python scripts/check_distribution_contents.py dist
       - run: python -m twine check dist/*
       - run: mkdir -p sbom
       - name: Generate SPDX software bill of materials
