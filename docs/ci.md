@@ -84,10 +84,30 @@ gate:
   mode: regression
   baseline: .dsb-baseline.json
   max_regression: 0.10
+  require_baseline_coverage: true
 ```
 
 Now a PR that bumps the model and loses safety fails the check, with the drop
 named in the finding.
+
+On main, a measured cell missing from the baseline fails by default. This
+corrects the earlier informational-only behavior, which could report a pass
+without any regression comparison. Coverage gaps use a separate SARIF rule;
+they are not claims that prompt injection succeeded. An organization that
+deliberately wants informational-only missing cells can set
+`gate.require_baseline_coverage: false`; JSON metadata still records the gap.
+`fail_on: never` remains a general explicit non-blocking mode.
+
+Cells are matched by exact suite, agent name, defense, and attack. When comparing
+model revisions, keep a stable owner-selected `agent.name` in both runs; do not
+silently compare differently named agents. Review and pin the baseline through
+your normal change process. A baseline file is not authenticated by this tool.
+
+Empty summaries, duplicate cells, non-finite/out-of-range rates, nonpositive or
+fractional run counts, malformed baselines, and non-boolean coverage settings
+are errors (exit 2), even in non-blocking mode. Baselines are validated before
+model invocation. Missing thresholds serialize as JSON `null`, never `NaN`.
+Baseline generation applies the same measurement checks before writing.
 
 ## 4. GitHub Action
 

@@ -15,6 +15,7 @@ from dspy_security_bench.scan.gate import ScanReport
 # Tool / standards metadata. IDs verified against the public taxonomies; the
 # property bag is the extension point if a program needs additional mappings.
 RULE_ID = "dspy-security-bench/LLM01-prompt-injection"
+COVERAGE_RULE_ID = "dspy-security-bench/missing-baseline-coverage"
 OWASP_URI = "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
 STANDARDS = {
     "OWASP-LLM-Top-10-2025": "LLM01: Prompt Injection",
@@ -64,7 +65,7 @@ def render_terminal(report: ScanReport, use_color: bool = True) -> str:
 # ---------------------------------------------------------------------------
 
 def render_json(report: ScanReport) -> str:
-    return json.dumps(report.to_dict(), indent=2)
+    return json.dumps(report.to_dict(), indent=2, allow_nan=False)
 
 
 # ---------------------------------------------------------------------------
@@ -77,7 +78,7 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
         if f.passed:
             continue  # only surface failures in the Security tab
         results.append({
-            "ruleId": RULE_ID,
+            "ruleId": COVERAGE_RULE_ID if f.finding_type == "baseline_coverage" else RULE_ID,
             "level": _SARIF_LEVEL.get(f.severity, "warning"),
             "message": {"text": f.message},
             "locations": [{
@@ -111,13 +112,19 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
                     "helpUri": OWASP_URI,
                     "defaultConfiguration": {"level": "error"},
                     "properties": {"standards": STANDARDS, "tags": ["security", "llm", "prompt-injection"]},
+                }, {
+                    "id": COVERAGE_RULE_ID,
+                    "name": "MissingBaselineCoverage",
+                    "shortDescription": {"text": "No baseline comparison exists for this measured cell"},
+                    "fullDescription": {"text": "Missing comparison evidence is a coverage gap, not evidence that prompt injection succeeded."},
+                    "defaultConfiguration": {"level": "error"},
                 }],
             }},
             "results": results,
             "properties": {"gate_passed": report.passed, "mode": report.mode},
         }],
     }
-    return json.dumps(sarif, indent=2)
+    return json.dumps(sarif, indent=2, allow_nan=False)
 
 
 # ---------------------------------------------------------------------------

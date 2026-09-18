@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- **Scan gate behavior change:** missing regression baseline cells now fail by
+  default instead of passing without a comparison. An explicit boolean
+  `require_baseline_coverage: false` restores informational handling; coverage
+  gaps remain visible and have a separate SARIF rule. Missing thresholds are
+  JSON null, not NaN. Empty/duplicate summaries, invalid rates/counts, ambiguous
+  baselines, and invalid thresholds are rejected before publishing a gate or
+  baseline. Baseline parsing occurs before any model invocation.
 - Signed review and recovery-attestation payloads use strict JSON decoding with
   a 1 MB decoded-statement limit and a pre-decode base64 size check. Nested
   malformed signer IDs, decisions, claims, and reason lists return invalid

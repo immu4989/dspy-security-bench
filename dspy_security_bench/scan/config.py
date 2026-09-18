@@ -7,6 +7,7 @@ YAML file and/or CLI flags, so a CI job is a one-liner referencing the file.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from numbers import Real
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +47,19 @@ class GateSpec:
     baseline: str | None = None        # regression mode: path to baseline json
     max_regression: float = 0.10       # regression mode
     warn_margin: float = 0.05          # cells within this of the bar → warning
+    require_baseline_coverage: bool = True
+
+    def validate(self) -> None:
+        if self.mode not in ("absolute", "regression"):
+            raise ValueError("config: gate.mode must be absolute|regression")
+        if self.mode == "regression" and not self.baseline:
+            raise ValueError("config: gate.mode=regression requires gate.baseline")
+        if type(self.require_baseline_coverage) is not bool:
+            raise ValueError("config: gate.require_baseline_coverage must be boolean")
+        for name in ("min_security", "max_regression", "warn_margin"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, Real) or not 0 <= value <= 1:
+                raise ValueError(f"config: gate.{name} must be a finite number between 0 and 1")
 
 
 @dataclass
@@ -67,11 +81,15 @@ class ScanConfig:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> ScanConfig:
+        if not isinstance(d, dict):
+            raise ValueError("config must be a mapping")
         d = d or {}
         agent = d.get("agent", {}) or {}
         scan = d.get("scan", {}) or {}
         gate = d.get("gate", {}) or {}
         report = d.get("report", {}) or {}
+        if any(not isinstance(section, dict) for section in (agent, scan, gate, report)):
+            raise ValueError("config sections must be mappings")
         return cls(
             agent=AgentSpec(
                 model=agent.get("model"),
@@ -87,10 +105,11 @@ class ScanConfig:
             ),
             gate=GateSpec(
                 mode=gate.get("mode", GateSpec().mode),
-                min_security=float(gate.get("min_security", GateSpec().min_security)),
+                min_security=gate.get("min_security", GateSpec().min_security),
                 baseline=gate.get("baseline"),
-                max_regression=float(gate.get("max_regression", GateSpec().max_regression)),
-                warn_margin=float(gate.get("warn_margin", GateSpec().warn_margin)),
+                max_regression=gate.get("max_regression", GateSpec().max_regression),
+                warn_margin=gate.get("warn_margin", GateSpec().warn_margin),
+                require_baseline_coverage=gate.get("require_baseline_coverage", True),
             ),
             report=ReportSpec(
                 formats=report.get("formats", ReportSpec().formats),
@@ -112,10 +131,7 @@ class ScanConfig:
             raise ValueError("config: set agent.model or agent.import")
         if self.agent.model and self.agent.import_path:
             raise ValueError("config: set only one of agent.model / agent.import")
-        if self.gate.mode not in ("absolute", "regression"):
-            raise ValueError(f"config: gate.mode must be absolute|regression, got {self.gate.mode!r}")
-        if self.gate.mode == "regression" and not self.gate.baseline:
-            raise ValueError("config: gate.mode=regression requires gate.baseline")
+        self.gate.validate()
         if self.fail_on not in ("error", "warning", "never"):
             raise ValueError(f"config: fail_on must be error|warning|never, got {self.fail_on!r}")
         if not self.scan.suites:
@@ -130,13 +146,6 @@ class ScanConfig:
         ):
             if value != "all" and (not isinstance(value, int) or isinstance(value, bool) or value < 1):
                 raise ValueError(f"config: scan.{name} must be a positive integer or 'all'")
-        for name, value in (
-            ("gate.min_security", self.gate.min_security),
-            ("gate.max_regression", self.gate.max_regression),
-            ("gate.warn_margin", self.gate.warn_margin),
-        ):
-            if not 0 <= value <= 1:
-                raise ValueError(f"config: {name} must be between 0 and 1")
         for fmt in self.report.formats:
             if fmt not in ("terminal", "json", "sarif"):
                 raise ValueError(f"config: unknown report format {fmt!r}")

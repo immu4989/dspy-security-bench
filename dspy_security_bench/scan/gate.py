@@ -9,11 +9,14 @@ Two modes:
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import asdict, dataclass, field
+from numbers import Real
 from pathlib import Path
 
 import pandas as pd
 
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.scan.config import GateSpec
 
 DISCLAIMER = (
@@ -33,11 +36,12 @@ class Finding:
     security_rate: float
     injection_success_rate: float
     n_runs: int
-    threshold: float                 # the bar this cell had to clear
+    threshold: float | None          # null when no baseline comparison exists
     passed: bool
     severity: str                    # "error" | "warning" | "none"
     message: str
     baseline_security: float | None = None  # regression mode only
+    finding_type: str = "security_threshold"
 
 
 @dataclass
@@ -65,21 +69,60 @@ class ScanReport:
 # ---------------------------------------------------------------------------
 
 def _cell_key(suite: str, agent: str, defense: str, attack: str) -> str:
+    if any(not isinstance(value, str) or not value or "|" in value for value in (suite, agent, defense, attack)):
+        raise ValueError("baseline cell identifiers must be nonempty strings without '|'")
     return f"{suite}|{agent}|{defense}|{attack}"
 
 
 def write_baseline(summary: pd.DataFrame, suite_col_value: str, path: str | Path) -> None:
     """Persist per-cell security rates as a baseline for regression mode."""
-    cells = {}
-    for _, r in summary.iterrows():
-        key = _cell_key(suite_col_value, r["agent"], r["defense"], r["attack"])
-        cells[key] = float(r["security_rate"])
-    Path(path).write_text(json.dumps({"security_by_cell": cells}, indent=2))
+    cells = baseline_cells(summary, suite_col_value)
+    Path(path).write_text(json.dumps({"security_by_cell": cells}, indent=2, allow_nan=False))
 
 
 def load_baseline(path: str | Path) -> dict[str, float]:
-    data = json.loads(Path(path).read_text())
-    return data.get("security_by_cell", {})
+    data = read_json_object(Path(path), 2_000_000)
+    if set(data) != {"security_by_cell"} or not isinstance(data["security_by_cell"], dict):
+        raise ValueError("baseline must contain a security_by_cell object")
+    cells = data["security_by_cell"]
+    if len(cells) > 10_000:
+        raise ValueError("baseline exceeds 10000 cells")
+    for key, value in cells.items():
+        parts = key.split("|")
+        if len(parts) != 4:
+            raise ValueError("baseline keys must contain suite, agent, defense, and attack")
+        _cell_key(*parts)
+        _rate(value, "baseline security rate")
+    return cells
+
+
+def baseline_cells(summary: pd.DataFrame, suite: str) -> dict[str, float]:
+    """Validate measured cells before persisting a comparison baseline."""
+    _validate_summary(summary, suite)
+    return {_cell_key(suite, r["agent"], r["defense"], r["attack"]): float(r["security_rate"])
+            for _, r in summary.iterrows()}
+
+
+def _rate(value: object, label: str) -> None:
+    if isinstance(value, bool) or not isinstance(value, Real) or not 0 <= value <= 1:
+        raise ValueError(f"{label} must be a finite number between 0 and 1")
+
+
+def _validate_summary(summary: pd.DataFrame, suite: str) -> None:
+    columns = {"agent", "defense", "attack", "security_rate", "injection_success_rate", "n_runs"}
+    if not isinstance(summary, pd.DataFrame) or summary.empty or not columns <= set(summary.columns):
+        raise ValueError("scan summary must contain measured cells with all required columns")
+    seen = set()
+    for _, row in summary.iterrows():
+        key = _cell_key(suite, row["agent"], row["defense"], row["attack"])
+        if key in seen:
+            raise ValueError("scan summary contains duplicate cells")
+        seen.add(key)
+        _rate(row["security_rate"], "security_rate")
+        _rate(row["injection_success_rate"], "injection_success_rate")
+        count = row["n_runs"]
+        if isinstance(count, bool) or not isinstance(count, Real) or not math.isfinite(count) or count < 1 or int(count) != count:
+            raise ValueError("n_runs must be a positive integer")
 
 
 # ---------------------------------------------------------------------------
@@ -97,14 +140,20 @@ def evaluate_gate(
     `summary` must have columns: agent, defense, attack, security_rate,
     injection_success_rate, n_runs.
     """
+    gate.validate()
+    if fail_on not in {"error", "warning", "never"}:
+        raise ValueError("fail_on must be error, warning, or never")
+    _validate_summary(summary, suite)
     baseline = load_baseline(gate.baseline) if gate.mode == "regression" else {}
     findings: list[Finding] = []
+    missing_baseline = 0
 
     for _, r in summary.iterrows():
         agent, defense, attack = r["agent"], r["defense"], r["attack"]
         sec = float(r["security_rate"])
         inj = float(r["injection_success_rate"])
         n = int(r["n_runs"])
+        finding_type = "security_threshold"
 
         if gate.mode == "absolute":
             threshold = gate.min_security
@@ -122,9 +171,10 @@ def evaluate_gate(
             key = _cell_key(suite, agent, defense, attack)
             base_sec = baseline.get(key)
             if base_sec is None:
-                # No baseline for this cell → treat as informational, never fail.
-                threshold = float("nan")
-                passed = True
+                missing_baseline += 1
+                finding_type = "baseline_coverage"
+                threshold = None
+                passed = not gate.require_baseline_coverage
                 near = False
                 msg = (f"{agent} × {attack} on {suite}: no baseline cell to compare "
                        f"(security {sec:.0%}). Run --write-baseline on your main branch.")
@@ -147,6 +197,7 @@ def evaluate_gate(
             security_rate=sec, injection_success_rate=inj, n_runs=n,
             threshold=threshold, passed=passed, severity=severity, message=msg,
             baseline_security=base_sec,
+            finding_type=finding_type,
         ))
 
     # Exit-code policy
@@ -158,5 +209,7 @@ def evaluate_gate(
 
     return ScanReport(
         findings=findings, passed=passed, exit_code=exit_code, mode=gate.mode,
-        meta={"suite": suite, "fail_on": fail_on},
+        meta={"suite": suite, "fail_on": fail_on,
+              "baseline_cells_missing": missing_baseline,
+              "baseline_coverage_complete": missing_baseline == 0 if gate.mode == "regression" else None},
     )

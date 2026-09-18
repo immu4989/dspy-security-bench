@@ -112,8 +112,8 @@ def test_regression_missing_baseline_cell_is_informational(tmp_path):
     p = tmp_path / "base.json"
     p.write_text(json.dumps({"security_by_cell": {}}))
     now = _summary([["a", "none", "direct", 0.0, 0.0, 1.0, 5]])
-    rep = evaluate_gate(now, GateSpec(mode="regression", baseline=str(p)), suite="workspace")
-    assert rep.passed  # no baseline to compare → never fails
+    rep = evaluate_gate(now, GateSpec(mode="regression", baseline=str(p), require_baseline_coverage=False), suite="workspace")
+    assert rep.passed  # informational behavior requires an explicit opt-out
     assert "no baseline cell" in rep.findings[0].message
 
 

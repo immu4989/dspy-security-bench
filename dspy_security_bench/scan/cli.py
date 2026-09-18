@@ -181,11 +181,15 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     args = build_parser().parse_args(argv)
 
-    cfg = ScanConfig.load(args.config) if args.config else ScanConfig()
-    cfg = _apply_overrides(cfg, args)
     try:
+        cfg = ScanConfig.load(args.config) if args.config else ScanConfig()
+        cfg = _apply_overrides(cfg, args)
         cfg.validate()
-    except ValueError as e:
+        if cfg.gate.mode == "regression" and not args.write_baseline:
+            from dspy_security_bench.scan.gate import load_baseline
+
+            load_baseline(cfg.gate.baseline)
+    except (OSError, TypeError, ValueError) as e:
         print(f"[scan] config error: {e}", file=sys.stderr)
         return 2
 
@@ -231,14 +235,22 @@ def main(argv: list[str] | None = None) -> int:
         import json
         from pathlib import Path
 
-        from dspy_security_bench.scan.gate import _cell_key
+        from dspy_security_bench.scan.gate import baseline_cells
 
         # Write one combined baseline keyed by suite.
         cells = {}
-        for suite, summary in all_summaries:
-            for _, row in summary.iterrows():
-                cells[_cell_key(suite, row["agent"], row["defense"], row["attack"])] = float(row["security_rate"])
-        Path(args.write_baseline).write_text(json.dumps({"security_by_cell": cells}, indent=2))
+        try:
+            for suite, summary in all_summaries:
+                additions = baseline_cells(summary, suite)
+                if cells.keys() & additions.keys():
+                    raise ValueError("duplicate baseline cells across suites")
+                cells.update(additions)
+            if not cells:
+                raise ValueError("cannot create a baseline without measured cells")
+            Path(args.write_baseline).write_text(json.dumps({"security_by_cell": cells}, indent=2, allow_nan=False))
+        except (OSError, ValueError) as e:
+            print(f"[scan] baseline creation failed: {e}", file=sys.stderr)
+            return 2
         print(f"[scan] wrote baseline ({len(cells)} cells) → {args.write_baseline}")
         return 0
 
@@ -246,14 +258,24 @@ def main(argv: list[str] | None = None) -> int:
     from dspy_security_bench.scan.gate import ScanReport
     combined_findings = []
     worst_exit = 0
-    for suite, summary in all_summaries:
-        rep = evaluate_gate(summary, cfg.gate, suite=suite, fail_on=cfg.fail_on)
-        combined_findings.extend(rep.findings)
-        worst_exit = max(worst_exit, rep.exit_code)
+    missing_baseline = 0
+    try:
+        if not all_summaries:
+            raise ValueError("scan produced no suite summaries")
+        for suite, summary in all_summaries:
+            rep = evaluate_gate(summary, cfg.gate, suite=suite, fail_on=cfg.fail_on)
+            combined_findings.extend(rep.findings)
+            worst_exit = max(worst_exit, rep.exit_code)
+            missing_baseline += rep.meta["baseline_cells_missing"]
+    except (OSError, ValueError) as e:
+        print(f"[scan] gate evaluation failed: {e}", file=sys.stderr)
+        return 2
     passed = worst_exit == 0
     report = ScanReport(
         findings=combined_findings, passed=passed, exit_code=worst_exit,
-        mode=cfg.gate.mode, meta={"suites": cfg.scan.suites, "fail_on": cfg.fail_on},
+        mode=cfg.gate.mode, meta={"suites": cfg.scan.suites, "fail_on": cfg.fail_on,
+            "baseline_cells_missing": missing_baseline,
+            "baseline_coverage_complete": missing_baseline == 0 if cfg.gate.mode == "regression" else None},
     )
 
     config_path = args.config or ".dspy-security-bench.yaml"
