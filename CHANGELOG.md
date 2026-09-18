@@ -10,6 +10,8 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- Tagged releases rerun the offline test suite and Ruff with locked development
+  dependencies before building, inventory-checking, attesting, or publishing.
 - Supplier portfolio IDs reject reserved Windows device names on every platform
   before writing output. The manifest schema also rejects trailing-newline IDs,
   matching runtime validation and keeping generated directory names portable.

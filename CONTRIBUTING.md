@@ -84,6 +84,9 @@ Local `assets/social/` drafts are excluded from source distributions. This is no
 a secret scanner or a proof that tracked content is safe; review the content and
 retain the existing release tests, metadata checks, and attestations. Untracked
 new source files must be deliberately reviewed and added to Git before this check.
+The tag-triggered release job reruns the offline suite and Ruff from locked
+dependencies before building, checking inventory, attesting, and publishing.
+Do not bypass a failed gate by uploading a locally built archive manually.
 
 ## Contributing a RootViewQuorum implementation
 

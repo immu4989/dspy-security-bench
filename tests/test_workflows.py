@@ -158,6 +158,22 @@ def test_release_attests_built_distributions_before_publish():
     assert '--notes-file "docs/releases/$GITHUB_REF_NAME.md"' in workflow
 
 
+def test_release_rechecks_tagged_source_and_archive_inventory_before_attesting():
+    workflow = yaml.safe_load((WORKFLOWS / "release.yml").read_text())
+    job = workflow["jobs"]["build-and-verify"]
+    steps = job["steps"]
+    runs = [step.get("run", "") for step in steps]
+    sync = next(i for i, run in enumerate(runs) if "uv sync --locked --extra dev" in run)
+    tests = next(i for i, run in enumerate(runs) if "uv run --locked --no-sync pytest tests/" in run)
+    build = next(i for i, run in enumerate(runs) if run == "python -m build")
+    inventory = next(i for i, run in enumerate(runs) if "check_distribution_contents.py dist" in run)
+    attest = next(i for i, step in enumerate(steps) if step.get("uses", "").startswith("actions/attest@"))
+    assert sync < tests < build < inventory < attest
+    assert "uv run --locked --no-sync ruff check" in runs[tests]
+    assert not any(step.get("continue-on-error") for step in steps)
+    assert workflow["jobs"]["publish"]["needs"] == "build-and-verify"
+
+
 def test_proofrun_action_preserves_evidence_before_enforcing_the_gate():
     action = ACTION.read_text()
     assert 'name: "DSPy Security Bench ProofRun"' in action
