@@ -109,6 +109,22 @@ are errors (exit 2), even in non-blocking mode. Baselines are validated before
 model invocation. Missing thresholds serialize as JSON `null`, never `NaN`.
 Baseline generation applies the same measurement checks before writing.
 
+New CLI-generated baselines use schema version 2 and bind the resolved task IDs,
+their order, attack-specific injection selections, defenses, stable agent name,
+AgentDojo distribution version, and measurement protocol. `all` is expanded into
+actual IDs for the pin. A different scope is rejected before agent construction,
+even when cell names or aggregate rates happen to match. The model identifier
+is deliberately not pinned when you supply a stable `agent.name`, allowing the
+intended model-upgrade comparison.
+
+Legacy rate-only baselines remain readable but print a warning and report
+`baseline_scope_verified: false`; regenerate them to obtain scope binding.
+Direct `evaluate_gate` callers using a v2 baseline must supply `scan_scope`.
+This digest is not a signature, does not hash every dependency or task source
+file, and does not establish statistical equivalence. Pin your reviewed code,
+environment, evaluator, and inputs separately. Do not overwrite a baseline just
+to make an unexpected scope-change error disappear.
+
 The runner also checks raw observation completeness before aggregation. Missing
 security observations are not treated as resisted attacks, and pandas cannot
 silently exclude missing measurements from the mean. Every requested user/task

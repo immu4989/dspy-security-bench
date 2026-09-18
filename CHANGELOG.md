@@ -56,6 +56,12 @@ several of them changed published numbers.
   when `--force` is supplied.
 
 ### Added
+- Scope-bound scan baselines (CLI schema v2) pin resolved task IDs and ordering,
+  attack-specific injection selections, defenses, stable agent label, AgentDojo
+  version, and the measurement protocol. Scope mismatches stop before model
+  invocation. Legacy rate-only baselines remain readable with an explicit
+  unverified-scope warning and metadata; model upgrades can retain a stable
+  owner-selected agent name without pinning the model identifier.
 - Self-contained, mobile-friendly HTML portfolio reviews with accessible
   finding disclosures, linked full evidence, explicit not-evaluated states,
   bounded previews, and print styles. No JavaScript or remote assets. The whole

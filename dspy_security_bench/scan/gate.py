@@ -17,6 +17,7 @@ from pathlib import Path
 import pandas as pd
 
 from dspy_security_bench.jsonio import read_json_object
+from dspy_security_bench.mission.loader import canonical_sha256
 from dspy_security_bench.scan.config import GateSpec
 
 DISCLAIMER = (
@@ -81,8 +82,19 @@ def write_baseline(summary: pd.DataFrame, suite_col_value: str, path: str | Path
 
 
 def load_baseline(path: str | Path) -> dict[str, float]:
+    return load_baseline_document(path)["security_by_cell"]
+
+
+def load_baseline_document(path: str | Path) -> dict:
+    """Read legacy rates or a scope-bound v2 baseline without trusting its digest."""
     data = read_json_object(Path(path), 2_000_000)
-    if set(data) != {"security_by_cell"} or not isinstance(data["security_by_cell"], dict):
+    fields = set(data)
+    if fields != {"security_by_cell"}:
+        if fields != {"schema_version", "baseline_type", "scope", "scope_sha256", "security_by_cell"} or type(data.get("schema_version")) is not int or data["schema_version"] != 2 or data["baseline_type"] != "dspy-security-bench-scan-baseline":
+            raise ValueError("unsupported scan baseline structure")
+        if not isinstance(data["scope"], dict) or data["scope_sha256"] != canonical_sha256(data["scope"]):
+            raise ValueError("baseline scope digest does not recompute")
+    if not isinstance(data.get("security_by_cell"), dict):
         raise ValueError("baseline must contain a security_by_cell object")
     cells = data["security_by_cell"]
     if len(cells) > 10_000:
@@ -93,7 +105,21 @@ def load_baseline(path: str | Path) -> dict[str, float]:
             raise ValueError("baseline keys must contain suite, agent, defense, and attack")
         _cell_key(*parts)
         _rate(value, "baseline security rate")
-    return cells
+    return data
+
+
+def bind_baseline_scope(cells: dict[str, float], scope: dict) -> dict:
+    return {"schema_version": 2, "baseline_type": "dspy-security-bench-scan-baseline",
+            "scope": scope, "scope_sha256": canonical_sha256(scope), "security_by_cell": cells}
+
+
+def verify_baseline_scope(document: dict, scope: dict | None) -> bool:
+    """Require exact scope for v2; report legacy scope as unverified, not matched."""
+    if "scope" not in document:
+        return False
+    if scope is None or document["scope_sha256"] != canonical_sha256(scope) or document["scope"] != scope:
+        raise ValueError("baseline scope differs from the requested scan; review and create a separate baseline")
+    return True
 
 
 def baseline_cells(summary: pd.DataFrame, suite: str) -> dict[str, float]:
@@ -134,6 +160,7 @@ def evaluate_gate(
     gate: GateSpec,
     suite: str,
     fail_on: str = "error",
+    scan_scope: dict | None = None,
 ) -> ScanReport:
     """Apply the gate policy to a summary DataFrame (one row per cell).
 
@@ -144,7 +171,9 @@ def evaluate_gate(
     if fail_on not in {"error", "warning", "never"}:
         raise ValueError("fail_on must be error, warning, or never")
     _validate_summary(summary, suite)
-    baseline = load_baseline(gate.baseline) if gate.mode == "regression" else {}
+    baseline_document = load_baseline_document(gate.baseline) if gate.mode == "regression" else {}
+    scope_verified = verify_baseline_scope(baseline_document, scan_scope) if gate.mode == "regression" else None
+    baseline = baseline_document.get("security_by_cell", {})
     findings: list[Finding] = []
     missing_baseline = 0
 
@@ -211,5 +240,6 @@ def evaluate_gate(
         findings=findings, passed=passed, exit_code=exit_code, mode=gate.mode,
         meta={"suite": suite, "fail_on": fail_on,
               "baseline_cells_missing": missing_baseline,
+              "baseline_scope_verified": scope_verified,
               "baseline_coverage_complete": missing_baseline == 0 if gate.mode == "regression" else None},
     )

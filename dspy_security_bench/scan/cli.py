@@ -179,6 +179,29 @@ def render_scan_plan(cfg: ScanConfig, plan: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def build_scan_scope(cfg: ScanConfig, plan: list[dict]) -> dict:
+    """Freeze actual task IDs and ordered matrix selections, not model credentials."""
+    from importlib.metadata import version
+
+    from agentdojo.task_suite.load_suites import get_suite
+
+    suites = []
+    for item in plan:
+        suite = get_suite("v1", item["suite"])
+        suites.append({
+            "suite": item["suite"],
+            "user_task_ids": item["user_task_ids"] if item["user_task_ids"] is not None else list(suite.user_tasks),
+            "attacks": [{"attack": attack["attack"], "is_dos_attack": attack["is_dos_attack"],
+                "injection_task_ids": attack["injection_task_ids"] if attack["injection_task_ids"] is not None else list(suite.injection_tasks)}
+                for attack in item["attack_cases"]],
+        })
+    return {"scope_version": 1, "benchmark_version": "v1",
+            "agentdojo_distribution_version": version("agentdojo"),
+            "measurement_protocol": "complete-binary-observations-v1",
+            "agent_name": cfg.agent.resolved_name(),
+            "defenses": list(cfg.scan.defenses), "suites": suites}
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="dspy-security-bench scan",
@@ -221,15 +244,23 @@ def main(argv: list[str] | None = None) -> int:
         cfg = _apply_overrides(cfg, args)
         cfg.validate()
         if cfg.gate.mode == "regression" and not args.write_baseline:
-            from dspy_security_bench.scan.gate import load_baseline
+            from dspy_security_bench.scan.gate import load_baseline_document
 
-            load_baseline(cfg.gate.baseline)
+            baseline_document = load_baseline_document(cfg.gate.baseline)
     except (OSError, TypeError, ValueError) as e:
         print(f"[scan] config error: {e}", file=sys.stderr)
         return 2
 
     try:
         plan = build_scan_plan(cfg)
+        scan_scope = build_scan_scope(cfg, plan)
+        scope_verified = None
+        if cfg.gate.mode == "regression" and not args.write_baseline:
+            from dspy_security_bench.scan.gate import verify_baseline_scope
+
+            scope_verified = verify_baseline_scope(baseline_document, scan_scope)
+            if not scope_verified:
+                print("[scan] warning: legacy baseline has no verified task scope; regenerate it for scope-bound comparisons", file=sys.stderr)
     except Exception as e:
         print(f"[scan] could not plan run: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
@@ -270,7 +301,7 @@ def main(argv: list[str] | None = None) -> int:
         import json
         from pathlib import Path
 
-        from dspy_security_bench.scan.gate import baseline_cells
+        from dspy_security_bench.scan.gate import baseline_cells, bind_baseline_scope
 
         # Write one combined baseline keyed by suite.
         cells = {}
@@ -282,7 +313,7 @@ def main(argv: list[str] | None = None) -> int:
                 cells.update(additions)
             if not cells:
                 raise ValueError("cannot create a baseline without measured cells")
-            Path(args.write_baseline).write_text(json.dumps({"security_by_cell": cells}, indent=2, allow_nan=False))
+            Path(args.write_baseline).write_text(json.dumps(bind_baseline_scope(cells, scan_scope), indent=2, allow_nan=False))
         except (OSError, ValueError) as e:
             print(f"[scan] baseline creation failed: {e}", file=sys.stderr)
             return 2
@@ -298,7 +329,7 @@ def main(argv: list[str] | None = None) -> int:
         if not all_summaries:
             raise ValueError("scan produced no suite summaries")
         for suite, summary in all_summaries:
-            rep = evaluate_gate(summary, cfg.gate, suite=suite, fail_on=cfg.fail_on)
+            rep = evaluate_gate(summary, cfg.gate, suite=suite, fail_on=cfg.fail_on, scan_scope=scan_scope)
             combined_findings.extend(rep.findings)
             worst_exit = max(worst_exit, rep.exit_code)
             missing_baseline += rep.meta["baseline_cells_missing"]
@@ -310,6 +341,7 @@ def main(argv: list[str] | None = None) -> int:
         findings=combined_findings, passed=passed, exit_code=worst_exit,
         mode=cfg.gate.mode, meta={"suites": cfg.scan.suites, "fail_on": cfg.fail_on,
             "baseline_cells_missing": missing_baseline,
+            "baseline_scope_verified": scope_verified,
             "baseline_coverage_complete": missing_baseline == 0 if cfg.gate.mode == "regression" else None},
     )
 
