@@ -148,6 +148,22 @@ Additional injection-task utility runs are listed separately: they can also
 invoke the agent, but are not scored user/injection pairs. Neither number is a
 token-price quote; tool loops, retries, and provider behavior affect actual cost.
 
+For a machine-readable preflight artifact:
+
+```bash
+dspy-security-bench scan --config .dspy-security-bench.yaml \
+  --plan-json scan-plan.json
+```
+
+This command exits without constructing an agent, even without `--plan`. It
+requires a new output file and an existing parent directory. The JSON binds the
+scope and gate settings, records scored/auxiliary counts separately, and labels
+itself as a plan rather than executed evidence. Review labels before sharing.
+Normal scan output paths are checked before execution: JSON and SARIF cannot
+share a file, alias each other, be symbolic links, or overwrite the input config
+or comparison baseline. Explicit `--write-baseline` remains the intentional
+baseline-update path; review changes through version control.
+
 ## 4. GitHub Action
 
 Copy [`examples/injection-scan.yml`](../examples/injection-scan.yml) to

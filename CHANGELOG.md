@@ -60,6 +60,10 @@ several of them changed published numbers.
   when `--force` is supplied.
 
 ### Added
+- `scan --plan-json PATH` writes a deterministic, content-addressed preflight
+  artifact with the resolved scope, gate settings, scored cases, and auxiliary
+  runs, then exits without constructing an agent. Early output checks reject
+  colliding JSON/SARIF paths, aliases, input overwrites, and invalid parents.
 - Scope-bound scan baselines (CLI schema v2) pin resolved task IDs and ordering,
   attack-specific injection selections, defenses, stable agent label, AgentDojo
   version, and the measurement protocol. Scope mismatches stop before model

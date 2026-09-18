@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import argparse
 import importlib
+import json
 import logging
 import re
 import sys
+from pathlib import Path
 
+from dspy_security_bench.mission.loader import canonical_sha256
 from dspy_security_bench.scan.config import ScanConfig
 from dspy_security_bench.scan.gate import evaluate_gate
 from dspy_security_bench.scan.report import emit
@@ -202,6 +205,48 @@ def build_scan_scope(cfg: ScanConfig, plan: list[dict]) -> dict:
             "defenses": list(cfg.scan.defenses), "suites": suites}
 
 
+def build_scan_plan_report(cfg: ScanConfig, plan: list[dict], scope: dict, baseline_document: dict | None = None) -> dict:
+    """Produce reviewable preflight data, never an execution or safety result."""
+    payload = {
+        "schema_version": 1, "report_type": "DSPy Security Bench scan plan",
+        "scope": scope, "scope_sha256": canonical_sha256(scope), "matrix": plan,
+        "gate": {"mode": cfg.gate.mode, "min_security": cfg.gate.min_security,
+                 "max_regression": cfg.gate.max_regression, "warn_margin": cfg.gate.warn_margin,
+                 "require_baseline_coverage": cfg.gate.require_baseline_coverage, "fail_on": cfg.fail_on},
+        "baseline_document_sha256": canonical_sha256(baseline_document) if baseline_document is not None else None,
+        "summary": {"scored_cases": sum(item["cases"] for item in plan),
+                    "auxiliary_injection_task_runs": sum(item["auxiliary_injection_task_runs"] for item in plan),
+                    "model_calls_performed": 0, "execution_performed": False},
+        "claim_boundary": "This is a preflight plan, not an execution report, price quote, authenticated approval, or security result. Counts describe benchmark invocations, not provider requests or tokens. Pin code and inputs separately; labels may require a sharing review.",
+    }
+    payload["report_sha256"] = canonical_sha256(payload)
+    return payload
+
+
+def _validate_output_paths(cfg: ScanConfig, args) -> None:
+    if args.plan_json:
+        outputs = [Path(args.plan_json)]
+    elif args.plan:
+        return
+    elif args.write_baseline:
+        outputs = [Path(args.write_baseline)]
+    else:
+        outputs = [Path(getattr(cfg.report, fmt + "_out")) for fmt in cfg.report.formats if fmt in {"json", "sarif"}]
+    inputs = [Path(args.config)] if args.config else []
+    if cfg.gate.baseline and not args.write_baseline:
+        inputs.append(Path(cfg.gate.baseline))
+    for index, path in enumerate(outputs):
+        if path.is_symlink() or (path.exists() and not path.is_file()):
+            raise ValueError("output must be a regular non-symbolic-link file")
+        if not path.parent.is_dir():
+            raise ValueError("output parent directory must already exist")
+        for other in [*outputs[:index], *inputs]:
+            if path.resolve() == other.resolve() or (path.exists() and other.exists() and path.samefile(other)):
+                raise ValueError("outputs must be distinct and must not overwrite input configuration or baseline")
+    if args.plan_json and outputs[0].exists():
+        raise ValueError("plan output already exists; use a new path")
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="dspy-security-bench scan",
@@ -221,6 +266,7 @@ def build_parser() -> argparse.ArgumentParser:
         dest="injection_tasks",
     )
     s.add_argument("--plan", action="store_true", help="show the exact run matrix without LM calls")
+    s.add_argument("--plan-json", metavar="PATH", help="write a new JSON preflight plan and exit without model calls")
     gate = p.add_argument_group("gate")
     gate.add_argument("--min-security", type=float)
     gate.add_argument("--baseline", help="baseline json → regression mode")
@@ -239,10 +285,12 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     args = build_parser().parse_args(argv)
 
+    baseline_document = None
     try:
         cfg = ScanConfig.load(args.config) if args.config else ScanConfig()
         cfg = _apply_overrides(cfg, args)
         cfg.validate()
+        _validate_output_paths(cfg, args)
         if cfg.gate.mode == "regression" and not args.write_baseline:
             from dspy_security_bench.scan.gate import load_baseline_document
 
@@ -264,7 +312,16 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as e:
         print(f"[scan] could not plan run: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
-    if args.plan:
+    if args.plan or args.plan_json:
+        if args.plan_json:
+            try:
+                payload = build_scan_plan_report(cfg, plan, scan_scope, baseline_document)
+                with Path(args.plan_json).open("x", encoding="utf-8") as stream:
+                    stream.write(json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n")
+            except (OSError, ValueError) as e:
+                print(f"[scan] plan output failed: {e}", file=sys.stderr)
+                return 2
+            print(f"[scan] wrote preflight plan → {args.plan_json}")
         print(render_scan_plan(cfg, plan))
         return 0
 
@@ -298,9 +355,6 @@ def main(argv: list[str] | None = None) -> int:
 
     # Write-baseline mode: persist and exit 0.
     if args.write_baseline:
-        import json
-        from pathlib import Path
-
         from dspy_security_bench.scan.gate import baseline_cells, bind_baseline_scope
 
         # Write one combined baseline keyed by suite.
@@ -346,8 +400,12 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     config_path = args.config or ".dspy-security-bench.yaml"
-    emit(report, cfg.report.formats, sarif_out=cfg.report.sarif_out,
-         json_out=cfg.report.json_out, config_path=config_path, use_color=not args.no_color)
+    try:
+        emit(report, cfg.report.formats, sarif_out=cfg.report.sarif_out,
+             json_out=cfg.report.json_out, config_path=config_path, use_color=not args.no_color)
+    except (OSError, ValueError) as e:
+        print(f"[scan] report output failed: {e}", file=sys.stderr)
+        return 2
     return report.exit_code
 
 
