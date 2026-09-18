@@ -6,26 +6,9 @@
 
 ### Measure whether tool-using AI is robust, grounded, controlled, and authorized
 
-An open **Mission Assurance Commons** for your own agent: privacy-bounded
-operational traces, reproducible security twins, multi-agent authorization
-paths, continuous evidence, signed data-only mission protocols, measured
-mission economics, bounded authorization-race checking, autonomous-collective
-containment evidence, verified cyber-defense remediation, exact cross-sector
-resilience portfolios, executable claim–evidence assurance cases, and reviewable
-OSCAL assessment inputs—now including content-free proof that the evaluation
-process itself preserved holdout, evaluator, monitoring, and safe-exit boundaries.
-Role-separated in-toto/DSSE review statements then make multi-party evidence
-governance inspectable without turning signatures into deployment approvals.
-Witnessed append-only checkpoints make reviewer-key registration, retirement,
-and retrospective compromise visible across trust domains. AssuranceTrustRoot
-then makes bootstrap, policy authority, algorithm choice, expiration, and
-dual-threshold rotation independently verifiable. AssuranceTrustRootChain lets
-stale or intermittently connected clients replay every signed intermediate
-rotation offline while requiring a current final root. TrustRecoveryDrill then
-turns root-compromise preparedness into a content-minimized, role-separated,
-time-bounded tabletop artifact without creating an emergency trust bypass.
-TrustRecoveryAttestation then authenticates every role handoff as a chained
-in-toto/DSSE statement under a separate root-authorized signer policy.
+Test your own AI agent, review supplier disclosures, and turn local evidence
+into reproducible security reviews. For developers, security teams, researchers,
+and public-sector evaluators—not a certification service or deployment approver.
 
 [![PyPI](https://img.shields.io/pypi/v/dspy-security-bench?color=2563EB&label=pypi)](https://pypi.org/project/dspy-security-bench/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -34,6 +17,10 @@ in-toto/DSSE statement under a separate root-authorized signer policy.
 [![AgentDojo](https://img.shields.io/badge/AgentDojo-v1-9333EA.svg)](https://github.com/ethz-spylab/agentdojo)
 [![tests](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/test.yml)
 [![AssuranceLedger CI](https://github.com/immu4989/dspy-security-bench/actions/workflows/assuranceledger.yml/badge.svg)](https://github.com/immu4989/dspy-security-bench/actions/workflows/assuranceledger.yml)
+
+<details>
+<summary>Explore the evidence protocols and integrations</summary>
+
 [![ProofRun](https://img.shields.io/badge/ProofRun-attested%20evidence-8F78FF)](docs/proofrun.md)
 [![TraceProof](https://img.shields.io/badge/TraceProof-local%20OTLP%20evidence-5EEAD4)](docs/traceproof.md)
 [![ValueProof](https://img.shields.io/badge/ValueProof-observed%20mission%20economics-FBBF24)](docs/valueproof.md)
@@ -66,6 +53,8 @@ in-toto/DSSE statement under a separate root-authorized signer policy.
 [![HF trainset](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-trainset%20workspace-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-trainset-workspace)
 [![HF results](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-v0.1%20results-yellow)](https://huggingface.co/datasets/immu4989/dspy-security-bench-v01-results)
 
+</details>
+
 <a href="https://immu4989.github.io/dspy-security-bench/">
   <img src="assets/leaderboard_hero.gif" alt="Animated injection-robustness leaderboard showing model security scores" width="850">
 </a>
@@ -75,6 +64,42 @@ in-toto/DSSE statement under a separate root-authorized signer policy.
 </div>
 
 ---
+
+## Start with the problem you need to solve
+
+| Your task | Start here | What you get |
+| --- | --- | --- |
+| Test your own agent against prompt injection | [Agent integration and CI](#five-minute-ci-quickstart) | Reproducible scans and explicit CI gates; live runs may incur model costs |
+| Review AI suppliers consistently | [Offline supplier portfolio](docs/ai-supplier-portfolio.md) | One owner policy, isolated invalid inputs, linked evidence packs |
+| Combine evidence for an agency or enterprise review | [Assurance case](docs/assurancegraph.md) | Verified claim–evidence graph, HTML, SARIF, and OSCAL assessment inputs |
+| Check changes to models, datasets, or tools | [Dependency and disclosure drift](docs/assurance-control-plane.md) | Source-bound change findings and focused reevaluation needs |
+| Reproduce the model research | [Leaderboard](#-the-leaderboard) and [research pipeline](#research-pipeline-quickstart) | Published methodology, limitations, and reproducible experiments |
+
+### Try a local evidence review
+
+The newer workflows marked **On main** require a source checkout; they are not
+all part of the published v0.19.0 package. Python 3.10+ is required.
+
+```bash
+git clone https://github.com/immu4989/dspy-security-bench.git
+cd dspy-security-bench
+python -m venv .venv
+source .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -e .
+dspy-security-bench assure demo --out-dir artifacts/first-review
+```
+
+Open `artifacts/first-review/index.html` for the review and retain the generated
+JSON evidence. Installation downloads dependencies; the synthetic demo itself
+uses no model API, API key, or network calls. It demonstrates the workflow, not
+the security of your production system. For the published scanner instead:
+`python -m pip install dspy-security-bench`.
+
+[New-user guide](docs/start-here.md) · [Contributing](CONTRIBUTING.md) ·
+[Security policy](SECURITY.md) · [Changelog](CHANGELOG.md)
+
+<details>
+<summary>Full capability catalog: worked examples, protocols, and research milestones</summary>
 
 ## On main: AssuranceGraph — from scattered reports to one reviewable decision case
 
@@ -1215,6 +1240,8 @@ utility regressions are publishable evidence, not results to hide. The dashboard
 keeps harm containment, safe recovery, and clean-utility preservation separate.
 
 [Open the registry, trust model, and submission guide →](docs/control-evidence-registry.md)
+
+</details>
 
 ---
 

@@ -31,6 +31,10 @@ several of them changed published numbers.
   when `--force` is supplied.
 
 ### Added
+- Task-based onboarding at the top of the README and a focused new-user guide.
+  The animated leaderboard remains visible; the detailed capability catalog
+  is expandable. Installation guidance separates main-only workflows from
+  published release commands and clarifies model/network costs.
 - Offline multi-supplier AI disclosure intake: one owner policy, up to 25
   explicitly labeled submissions, isolated invalid-input states, linked
   Markdown review, strict JSON manifests/reports, byte-bound per-supplier
