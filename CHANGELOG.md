@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- SPDX AI license relationship checks recognize concrete license combinations
+  and exact standard None/NoAssertion individuals without network resolution.
+  Abstract license types no longer count, and extra invalid relationships can
+  no longer hide behind one valid relationship. This corrects earlier structural
+  results; regenerate affected reports. It does not assess licensing rights.
 - CycloneDX and SPDX AI import APIs validate component type and relationship
   reference shapes before dictionary/set lookup. A deterministic 1,407-case
   type-mutation corpus checks that malformed input is rejected with a deliberate

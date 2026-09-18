@@ -59,11 +59,19 @@ DATASET_DISCLOSURE_FIELDS = (
     "dataset_sensor",
 )
 LICENSE_TYPES = {
-    "simplelicensing_AnyLicenseInfo",
     "simplelicensing_LicenseExpression",
     "expandedlicensing_CustomLicense",
     "expandedlicensing_IndividualLicensingInfo",
     "expandedlicensing_ListedLicense",
+    "expandedlicensing_ConjunctiveLicenseSet",
+    "expandedlicensing_DisjunctiveLicenseSet",
+    "expandedlicensing_OrLaterOperator",
+    "expandedlicensing_WithAdditionOperator",
+}
+# Exact individual IRIs from the SPDX 3.0.1 specification; no remote resolution.
+LICENSE_INDIVIDUALS = {
+    "https://spdx.org/rdf/3.0.1/terms/Licensing/None",
+    "https://spdx.org/rdf/3.0.1/terms/Licensing/NoAssertion",
 }
 CLAIM_BOUNDARY = (
     "SPDXAIDisclosure maps SPDX 3.0.1 JSON-LD AIPackage and DatasetPackage elements plus "
@@ -79,7 +87,8 @@ LIMITATIONS = (
     "Only the SPDX 3.0.1 global JSON-LD context and compact ai_AIPackage/dataset_DatasetPackage type names are accepted.",
     "The bounded mapper is not a JSON-LD processor and does not perform SPDX JSON Schema, OWL, or SHACL validation.",
     "Disclosure presence does not establish that a value is accurate, current, sufficient, safe, fair, or privacy preserving.",
-    "License-rule checks count only relationships resolved to recognized license element types; they are not legal advice or license analysis.",
+    "License-rule checks count only relationships resolved to recognized concrete license element types or exact standard license individuals; they do not validate license contents, grant usage rights, or provide legal advice.",
+    "None and NoAssertion license individuals are structural disclosures, not affirmative licensing. Additional unresolved or malformed license relationships prevent exactly-one status.",
     "Source and identity hashes minimize copied data but do not provide confidentiality; low-entropy values may be guessable.",
     "Unresolved relationships remain visible review gaps and are never treated as satisfied.",
     "The caller-supplied document is unauthenticated, the AgentBOM remains incomplete, and no network or automatic action is performed.",
@@ -226,6 +235,7 @@ def _parse_spdx_ai(payload: Mapping[str, Any]) -> dict[str, Any]:
         reference: {"hasDeclaredLicense": 0, "hasConcludedLicense": 0}
         for reference in relevant_by_id
     }
+    license_totals = {reference: dict(counts) for reference, counts in license_counts.items()}
     unresolved = 0
     for element in graph:
         if element.get("type") != "Relationship":
@@ -253,6 +263,7 @@ def _parse_spdx_ai(payload: Mapping[str, Any]) -> dict[str, Any]:
                 else:
                     unresolved += 1
         if source in relevant_by_id and relationship in license_counts[str(source)]:
+            license_totals[source][relationship] += 1
             if len(targets) == 1 and _is_license_target(targets[0], all_by_id):
                 license_counts[str(source)][str(relationship)] += 1
     try:
@@ -265,6 +276,7 @@ def _parse_spdx_ai(payload: Mapping[str, Any]) -> dict[str, Any]:
         "components": relevant,
         "edges": sorted(edges),
         "license_counts": license_counts,
+        "license_totals": license_totals,
         "unresolved_references": unresolved,
         "graph_element_count": len(graph),
     }
@@ -353,6 +365,7 @@ def _build_inventory(
                 "status": (
                     "exactly_one_each"
                     if counts == {"hasDeclaredLicense": 1, "hasConcludedLicense": 1}
+                    and parsed["license_totals"][spdx_id] == counts
                     else "owner_review_required"
                 ),
             }
@@ -393,6 +406,12 @@ def _populated(value: object) -> bool:
 
 
 def _is_license_target(target: str, all_by_id: Mapping[str, Mapping[str, Any]]) -> bool:
+    if target in LICENSE_INDIVIDUALS:
+        # A supplied graph definition must not shadow a standard individual with
+        # an incompatible element type.
+        return target not in all_by_id or all_by_id[target].get("type") == (
+            "expandedlicensing_IndividualLicensingInfo"
+        )
     element = all_by_id.get(target)
     return element is not None and element.get("type") in LICENSE_TYPES
 

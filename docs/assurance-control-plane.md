@@ -227,6 +227,17 @@ information. The mapper reports resolved relationship counts per component but
 never copies the license expression or text. This is a structural review aid,
 not legal advice or license compatibility analysis.
 
+Recognized targets include concrete license expressions, licenses, AND/OR sets,
+and license operators, plus the exact SPDX 3.0.1 standard individual IRIs for
+[NoneLicense](https://spdx.github.io/spdx-spec/v3.0.1/model/ExpandedLicensing/Individuals/NoneLicense/)
+and [NoAssertionLicense](https://spdx.github.io/spdx-spec/v3.0.1/model/ExpandedLicensing/Individuals/NoAssertionLicense/).
+These two individuals do **not** establish licensing rights. Abstract class
+names do not count as concrete targets. The mapper checks target identity/type,
+not the contents or members of a license expression/set. An additional invalid
+or unresolved license relationship prevents exactly-one status even when one
+valid relationship is present; the displayed counts remain resolved counts.
+Reports generated before this correction must be regenerated before verification.
+
 Stable privacy-hashed IDs preserve logical component continuity, while a digest
 of the complete source element makes disclosure changes visible to ClaimImpact.
 The separately retained source is required to recompute the report. Raw SPDX

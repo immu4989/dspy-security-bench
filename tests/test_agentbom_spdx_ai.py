@@ -114,6 +114,95 @@ def test_license_relationship_gap_is_visible_without_license_value():
     assert model_check["status"] == "owner_review_required"
 
 
+@pytest.mark.parametrize(
+    "license_type",
+    [
+        "expandedlicensing_ConjunctiveLicenseSet",
+        "expandedlicensing_DisjunctiveLicenseSet",
+        "expandedlicensing_OrLaterOperator",
+        "expandedlicensing_WithAdditionOperator",
+        "expandedlicensing_IndividualLicensingInfo",
+    ],
+)
+def test_concrete_license_targets_are_recognized_without_content_validation(license_type):
+    source = _spdx_ai()
+    license_element = next(
+        x for x in source["@graph"] if x["type"] == "simplelicensing_LicenseExpression"
+    )
+    license_element["type"] = license_type
+    report = build_spdx_ai_import_report(source, inventory_id="license-types")
+    assert report["summary"]["license_relationship_rule_failures"] == 0
+    assert report["summary"]["full_spdx_validation_performed"] is False
+    assert verify_spdx_ai_import_report(report, source) == ()
+
+
+@pytest.mark.parametrize(
+    "license_type",
+    [
+        "simplelicensing_AnyLicenseInfo",
+        "expandedlicensing_License",
+        "expandedlicensing_ExtendableLicense",
+        "software_SoftwarePackage",
+    ],
+)
+def test_abstract_or_nonlicense_types_do_not_satisfy_license_relationships(license_type):
+    source = _spdx_ai()
+    next(x for x in source["@graph"] if x["type"] == "simplelicensing_LicenseExpression")[
+        "type"
+    ] = license_type
+    report = build_spdx_ai_import_report(source, inventory_id="abstract-types")
+    assert report["summary"]["license_relationship_rule_failures"] == 2
+
+
+@pytest.mark.parametrize("individual", ["None", "NoAssertion"])
+def test_exact_license_individuals_resolve_offline_but_not_lookalikes(individual):
+    source = _spdx_ai()
+    target = f"https://spdx.org/rdf/3.0.1/terms/Licensing/{individual}"
+    relation = next(
+        x for x in source["@graph"] if x.get("relationshipType") == "hasDeclaredLicense"
+    )
+    relation["to"] = [target]
+    report = build_spdx_ai_import_report(source, inventory_id="individuals")
+    assert report["summary"]["license_relationship_rule_failures"] == 0
+    assert report["summary"]["network_requests"] == 0
+    relation["to"] = [target + "/"]
+    assert (
+        build_spdx_ai_import_report(source, inventory_id="individuals")["summary"][
+            "license_relationship_rule_failures"
+        ]
+        == 1
+    )
+    relation["to"] = [target]
+    source["@graph"].append({"type": "software_SoftwarePackage", "spdxId": target})
+    assert (
+        build_spdx_ai_import_report(source, inventory_id="individuals")["summary"][
+            "license_relationship_rule_failures"
+        ]
+        == 1
+    )
+
+
+@pytest.mark.parametrize(
+    "targets",
+    [
+        [],
+        ["https://example.invalid/unresolved"],
+        ["https://spdx.org/licenses/CC0-1.0", "https://spdx.org/licenses/CC0-1.0"],
+    ],
+)
+def test_extra_invalid_license_relationship_cannot_be_hidden_by_valid_one(targets):
+    source = _spdx_ai()
+    extra = deepcopy(
+        next(x for x in source["@graph"] if x.get("relationshipType") == "hasDeclaredLicense")
+    )
+    extra["spdxId"] = "https://example.invalid/extra-relation"
+    extra["to"] = targets
+    source["@graph"].append(extra)
+    report = build_spdx_ai_import_report(source, inventory_id="extra-relations")
+    assert report["summary"]["license_relationship_rule_failures"] == 1
+    assert verify_spdx_ai_import_report(report, source) == ()
+
+
 def test_spdx_ai_report_schema_is_strict_and_valid():
     report = build_spdx_ai_import_report(_spdx_ai(), inventory_id="fictional-spdx-ai")
     schema = json.loads(
