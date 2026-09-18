@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 import json
 from collections import defaultdict
 from collections.abc import Mapping
@@ -10,6 +9,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from dspy_security_bench.jsonio import decode_base64_statement
 from dspy_security_bench.ledger.proof import verify_ledger_report
 from dspy_security_bench.mission.loader import canonical_sha256
 
@@ -210,8 +210,7 @@ def verify_rereview_report(
 
 def _predicate(envelope: Any) -> Mapping[str, Any]:
     try:
-        payload = base64.b64decode(envelope["payload"], validate=True)
-        statement = json.loads(payload)
+        _, statement = decode_base64_statement(envelope["payload"])
         predicate = statement["predicate"]
     except (KeyError, TypeError, ValueError, json.JSONDecodeError):
         return {}

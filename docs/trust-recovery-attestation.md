@@ -215,6 +215,11 @@ deployment responsibilities.
 
 ## Integration guidance
 
+Envelope payloads use the shared [strict signed-statement reader](assurancequorum.md#untrusted-statement-parsing):
+1,000,000 decoded bytes, unique JSON member names, finite numbers, valid Unicode,
+and bounded nesting. These input checks precede signature validation; a
+signature never authorizes an ambiguous or malformed statement representation.
+
 - Store attester private keys outside the drill bundle and separate them from
   root-signing keys.
 - Pin `root_sha256` through an independent channel; do not learn it from the

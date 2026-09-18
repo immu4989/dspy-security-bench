@@ -11,6 +11,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from dspy_security_bench.jsonio import decode_base64_statement
 from dspy_security_bench.mission.loader import canonical_sha256
 from dspy_security_bench.quorum.proof import verify_quorum_report
 
@@ -1022,7 +1023,7 @@ def _verify_signature(
 
 def _review_predicate(envelope: Mapping[str, Any]) -> Mapping[str, Any]:
     try:
-        statement = json.loads(base64.b64decode(envelope["payload"], validate=True))
+        _, statement = decode_base64_statement(envelope["payload"])
         predicate = statement["predicate"]
     except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
         raise ValueError("review envelope does not contain a readable predicate") from exc

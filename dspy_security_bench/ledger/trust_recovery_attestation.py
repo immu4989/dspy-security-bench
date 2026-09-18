@@ -11,6 +11,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from dspy_security_bench.jsonio import decode_base64_statement
 from dspy_security_bench.ledger.trust_recovery import (
     EVENT_ROLES,
     ROLE_NAMES,
@@ -674,8 +675,7 @@ def _inspect_envelope(
         errors["TRA002"].append("DSSE envelope must contain exactly one keyid/sig signature")
         signatures = []
     try:
-        payload = base64.b64decode(str(envelope.get("payload", "")), validate=True)
-        statement = json.loads(payload)
+        payload, statement = decode_base64_statement(envelope.get("payload"))
     except (TypeError, ValueError, json.JSONDecodeError):
         errors["TRA002"].append("DSSE payload is not valid base64 JSON")
         return None, errors
@@ -749,7 +749,8 @@ def _inspect_envelope(
         for item in attestation_policy.get("signers", [])
         if isinstance(item, Mapping)
     }
-    signer = authorized.get(actor.get("signer_id"))
+    signer_id = actor.get("signer_id")
+    signer = authorized.get(signer_id) if isinstance(signer_id, str) else None
     if signer is None:
         errors["TRA005"].append("event signer is not attestation-policy authorized")
     else:

@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- Signed review and recovery-attestation payloads use strict JSON decoding with
+  a 1 MB decoded-statement limit and a pre-decode base64 size check. Nested
+  malformed signer IDs, decisions, claims, and reason lists return invalid
+  evidence instead of incidental unhashable-value exceptions. Auxiliary ledger
+  predicate readers apply the same ambiguity checks.
 - Ten additional evidence CLI families and nested AssuranceGraph evidence now
   use the shared strict, byte-bounded JSON reader. Duplicate members, non-finite
   numbers, invalid Unicode, and non-object roots fail consistently before native

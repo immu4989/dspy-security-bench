@@ -175,6 +175,19 @@ a repository-native protocol—not Sigstore identity or Rekor verification.
 
 ## Explicit non-claims
 
+### Untrusted statement parsing
+
+Signed payloads are still untrusted input. Review statements must decode to
+UTF-8 JSON objects within 1,000,000 bytes; the base64 text is bounded before
+decoding. Duplicate members, non-finite numbers, unpaired Unicode surrogates,
+and excessive nesting are rejected before canonical-byte and signature checks.
+Malformed signer, decision, claim, or reason-code shapes yield invalid evidence.
+The same strict decoding applies to ledger predicate inspection and recovery
+attestations. A rejected oversized statement must be reduced and re-signed;
+verification does not truncate or repair signed bytes.
+
+### What verification does not establish
+
 AssuranceQuorum does not establish:
 
 - reviewer legal identity, employment, competence, or independence;

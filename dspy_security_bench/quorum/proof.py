@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from dspy_security_bench.assurance.case import verify_report as verify_assurance_report
+from dspy_security_bench.jsonio import decode_base64_statement
 from dspy_security_bench.mission.loader import canonical_sha256
 
 POLICY_TYPE = "dspy-security-bench-assurance-quorum-policy"
@@ -509,8 +510,7 @@ def verify_review_envelope(
         errors.append("DSSE envelope must contain exactly one keyid/sig signature")
         signatures = []
     try:
-        payload_bytes = base64.b64decode(str(envelope.get("payload", "")), validate=True)
-        statement = json.loads(payload_bytes)
+        payload_bytes, statement = decode_base64_statement(envelope.get("payload"))
     except (TypeError, ValueError, json.JSONDecodeError):
         return None, tuple(dict.fromkeys([*errors, "DSSE payload is not valid base64 JSON"]))
     if _canonical_bytes(statement) != payload_bytes:
@@ -557,7 +557,7 @@ def verify_review_envelope(
         item["signer_id"]: item for item in policy.get("reviewers", []) if isinstance(item, Mapping)
     }
     signer_id = reviewer.get("signer_id")
-    expected_reviewer = authorized.get(signer_id)
+    expected_reviewer = authorized.get(signer_id) if isinstance(signer_id, str) else None
     if expected_reviewer is None:
         errors.append("review signer is not policy-authorized")
     else:
@@ -569,7 +569,7 @@ def verify_review_envelope(
         }
         if dict(reviewer) != expected_identity:
             errors.append("signed reviewer identity does not match policy")
-    if predicate.get("decision") not in DECISIONS:
+    if not isinstance(predicate.get("decision"), str) or predicate["decision"] not in DECISIONS:
         errors.append("review decision is unsupported")
     claims = predicate.get("claim_ids")
     valid_claims = {
@@ -580,8 +580,8 @@ def verify_review_envelope(
     if (
         not isinstance(claims, list)
         or not claims
-        or claims != sorted(set(claims))
         or not all(isinstance(item, str) for item in claims)
+        or claims != sorted(set(claims))
     ):
         errors.append("review claim_ids must be a sorted unique non-empty string list")
         claims = []
@@ -603,6 +603,7 @@ def verify_review_envelope(
     if (
         not isinstance(reasons, list)
         or not reasons
+        or not all(isinstance(item, str) for item in reasons)
         or reasons != sorted(set(reasons))
         or not all(item in REASON_CODES for item in reasons)
     ):
