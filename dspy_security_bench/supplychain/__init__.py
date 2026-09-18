@@ -12,7 +12,9 @@ from dspy_security_bench.supplychain.aibom_drift import (
 from dspy_security_bench.supplychain.aibom_policy import (
     ai_disclosure_policy_report_to_sarif,
     build_ai_disclosure_policy_report,
+    compare_ai_disclosure_policies,
     verify_ai_disclosure_policy_report,
+    verify_ai_policy_change_report,
 )
 from dspy_security_bench.supplychain.mlbom import (
     build_mlbom_import_report,
@@ -48,6 +50,8 @@ __all__ = [
     "verify_ai_disclosure_drift_report",
     "ai_disclosure_policy_report_to_sarif",
     "build_ai_disclosure_policy_report",
+    "compare_ai_disclosure_policies",
+    "verify_ai_policy_change_report",
     "verify_ai_disclosure_policy_report",
     "analyze_change",
     "built_in_inventory",

@@ -296,7 +296,11 @@ def _parse_policy(policy: Mapping[str, Any]) -> dict[str, Any]:
         "spdx",
     }:
         raise ValueError("AI disclosure policy has unsupported or missing fields")
-    if policy.get("schema_version") != 1 or policy.get("policy_type") != POLICY_TYPE:
+    if (
+        type(policy.get("schema_version")) is not int
+        or policy.get("schema_version") != 1
+        or policy.get("policy_type") != POLICY_TYPE
+    ):
         raise ValueError("unsupported AI disclosure policy type")
     if policy.get("policy_version") != POLICY_VERSION:
         raise ValueError(f"AI disclosure policy must use {POLICY_VERSION}")
@@ -337,6 +341,87 @@ def _parse_policy(policy: Mapping[str, Any]) -> dict[str, Any]:
         "cyclonedx": cdx,
         "spdx": spdx,
     }
+
+
+def compare_ai_disclosure_policies(
+    baseline: Mapping[str, Any], candidate: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Expose requirement relaxation separately from changes to supplier evidence."""
+    before, after = _parse_policy(baseline), _parse_policy(candidate)
+    changes = []
+    for standard in ("cyclonedx", "spdx"):
+        for rule in sorted(before[standard]):
+            old, new = before[standard][rule], after[standard][rule]
+            if isinstance(old, list):
+                for field in sorted(set(old) - set(new)):
+                    changes.append(
+                        {
+                            "standard": standard,
+                            "rule": rule,
+                            "field": field,
+                            "change": "requirement_removed",
+                            "relaxation": True,
+                        }
+                    )
+                for field in sorted(set(new) - set(old)):
+                    changes.append(
+                        {
+                            "standard": standard,
+                            "rule": rule,
+                            "field": field,
+                            "change": "requirement_added",
+                            "relaxation": False,
+                        }
+                    )
+            elif old != new:
+                changes.append(
+                    {
+                        "standard": standard,
+                        "rule": rule,
+                        "field": None,
+                        "change": "check_enabled" if new else "check_disabled",
+                        "relaxation": not new,
+                    }
+                )
+    identity_changed = any(before[key] != after[key] for key in ("policy_id", "owner"))
+    relaxations = sum(item["relaxation"] for item in changes)
+    report = {
+        "schema_version": 1,
+        "report_type": "AgentBOM AI disclosure policy change",
+        "protocol_version": "agentbom-ai-policy-change-v1",
+        "baseline_policy_sha256": canonical_sha256(baseline),
+        "candidate_policy_sha256": canonical_sha256(candidate),
+        "changes": changes,
+        "summary": {
+            "status": "review_required"
+            if changes or identity_changed
+            else "requirements_unchanged",
+            "relaxations": relaxations,
+            "strengthenings": len(changes) - relaxations,
+            "policy_identity_changed": identity_changed,
+            "automatic_approvals": 0,
+        },
+        "claim_boundary": (
+            "This comparison describes structural policy edits. The baseline must be pinned and "
+            "retained by the owner independently. No policy owner is authenticated, no edit is "
+            "authorized, and no supplier evidence or regulatory obligation is evaluated."
+        ),
+    }
+    report["report_sha256"] = canonical_sha256(report)
+    return report
+
+
+def verify_ai_policy_change_report(
+    report: Mapping[str, Any], baseline: Mapping[str, Any], candidate: Mapping[str, Any]
+) -> tuple[str, ...]:
+    """Recompute the complete comparison against independently retained policies."""
+    try:
+        expected = compare_ai_disclosure_policies(baseline, candidate)
+        if report != expected:
+            return ("AI policy change report does not recompute exactly",)
+    except (TypeError, ValueError) as exc:
+        return (f"AI policy change report cannot recompute: {exc}",)
+    return ()
 
 
 def _profile(

@@ -314,6 +314,24 @@ accountable organization.
 
 ### Compare disclosure lifecycle change without copying values
 
+Review changes to the requirements themselves before evaluating an upgrade:
+
+```bash
+dspy-security-bench bom compare-ai-policy \
+  --baseline reviewed-policy.json --candidate proposed-policy.json \
+  --out policy-changes.json --fail-on-relaxation
+dspy-security-bench bom verify-ai-policy-change policy-changes.json \
+  --baseline reviewed-policy.json --candidate proposed-policy.json
+```
+
+The comparison reports removed/added fields, disabled/enabled relationship
+checks, and changes to the policy ID or owner. Adding requirements does not
+cancel removals. `--fail-on-relaxation` gates removals and disabled checks;
+`--fail-on-change` also gates additions and ownership changes. Reordering field
+arrays leaves requirements unchanged while retaining both source digests.
+Pin the reviewed baseline in a separately controlled location: comparison
+cannot detect an attacker replacing both input policies or authenticate an owner.
+
 `AIDisclosureDrift v1` compares two policy evaluations under the exact same
 owner policy. Every baseline and candidate import report is first recomputed
 against its retained source. The drift report then classifies structural

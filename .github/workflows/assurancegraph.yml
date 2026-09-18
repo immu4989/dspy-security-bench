@@ -215,6 +215,7 @@ jobs:
           tests/test_agentbom_ai_drift.py
           tests/test_agentbom_intake.py
           tests/test_agentbom_malformed.py
+          tests/test_agentbom_policy_change.py
           tests/test_agentbom_output_paths.py
           tests/test_jsonio.py
           tests/test_probe_contract.py

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/immu4989/dspy-security-bench/schemas/agentbom-ai-policy-change.schema.json",
+  "title": "AI disclosure policy change review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "baseline_policy_sha256", "candidate_policy_sha256", "changes", "summary", "claim_boundary", "report_sha256"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_type": {"const": "AgentBOM AI disclosure policy change"},
+    "protocol_version": {"const": "agentbom-ai-policy-change-v1"},
+    "baseline_policy_sha256": {"$ref": "#/$defs/digest"},
+    "candidate_policy_sha256": {"$ref": "#/$defs/digest"},
+    "report_sha256": {"$ref": "#/$defs/digest"},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "changes": {
+      "type": "array", "maxItems": 53,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["standard", "rule", "field", "change", "relaxation"],
+        "properties": {
+          "standard": {"enum": ["cyclonedx", "spdx"]},
+          "rule": {"enum": ["required_model_fields", "required_ai_fields", "required_dataset_fields", "require_resolved_dataset_references", "require_resolved_ai_relationships", "require_exactly_one_license_relationship_each"]},
+          "field": {"type": ["string", "null"]},
+          "change": {"enum": ["requirement_added", "requirement_removed", "check_enabled", "check_disabled"]},
+          "relaxation": {"type": "boolean"}
+        }
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "relaxations", "strengthenings", "policy_identity_changed", "automatic_approvals"],
+      "properties": {
+        "status": {"enum": ["review_required", "requirements_unchanged"]},
+        "relaxations": {"type": "integer", "minimum": 0, "maximum": 53},
+        "strengthenings": {"type": "integer", "minimum": 0, "maximum": 53},
+        "policy_identity_changed": {"type": "boolean"},
+        "automatic_approvals": {"const": 0}
+      }
+    }
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

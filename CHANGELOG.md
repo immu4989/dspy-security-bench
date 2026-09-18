@@ -26,6 +26,11 @@ several of them changed published numbers.
   when `--force` is supplied.
 
 ### Added
+- AI disclosure policy change review with `bom compare-ai-policy` and exact
+  reverification. Reports distinguish requirement additions and removals,
+  enabled/disabled relationship checks, and policy identity changes. Explicit
+  relaxation/change gates preserve reports for review, and added requirements
+  never cancel removed requirements.
 - One-command AI disclosure intake packs: `bom intake-ai` creates two import
   reports, an owner-policy evaluation, SARIF, a Markdown review, and a byte-bound
   manifest in a fresh directory. `bom verify-ai-intake` reconstructs every file

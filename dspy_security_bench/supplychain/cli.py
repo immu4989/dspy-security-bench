@@ -21,7 +21,9 @@ from dspy_security_bench.supplychain.aibom_drift import (
 from dspy_security_bench.supplychain.aibom_policy import (
     ai_disclosure_policy_report_to_sarif,
     build_ai_disclosure_policy_report,
+    compare_ai_disclosure_policies,
     verify_ai_disclosure_policy_report,
+    verify_ai_policy_change_report,
 )
 from dspy_security_bench.supplychain.intake import verify_intake_pack, write_intake_pack
 from dspy_security_bench.supplychain.mlbom import (
@@ -56,6 +58,20 @@ def main(argv: list[str] | None = None) -> int:
         description="Map local AI-agent dependencies to assurance reevaluation without network access.",
     )
     commands = parser.add_subparsers(dest="command")
+    policy_change = commands.add_parser(
+        "compare-ai-policy", help="review AI disclosure requirement changes"
+    )
+    policy_change.add_argument("--out", required=True)
+    policy_change.add_argument("--force", action="store_true")
+    policy_change.add_argument("--fail-on-relaxation", action="store_true")
+    policy_change.add_argument("--fail-on-change", action="store_true")
+    verify_policy_change = commands.add_parser(
+        "verify-ai-policy-change", help="recompute a policy comparison"
+    )
+    verify_policy_change.add_argument("report")
+    for policy_command in (policy_change, verify_policy_change):
+        policy_command.add_argument("--baseline", required=True)
+        policy_command.add_argument("--candidate", required=True)
     intake = commands.add_parser("intake-ai", help="create a complete AI disclosure review pack")
     intake.add_argument("--out-dir", required=True)
     intake.add_argument("--fail-on-findings", action="store_true")
@@ -211,6 +227,25 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
     try:
+        if args.command in {"compare-ai-policy", "verify-ai-policy-change"}:
+            baseline = _read_json(Path(args.baseline), MAX_INVENTORY_BYTES)
+            candidate = _read_json(Path(args.candidate), MAX_INVENTORY_BYTES)
+            if args.command == "compare-ai-policy":
+                report = compare_ai_disclosure_policies(baseline, candidate)
+                _write_once(Path(args.out), report, args.force)
+                print(f"[bom] {report['summary']['status']}: wrote {args.out}")
+                return int(
+                    (args.fail_on_relaxation and report["summary"]["relaxations"] > 0)
+                    or (
+                        args.fail_on_change
+                        and report["summary"]["status"] != "requirements_unchanged"
+                    )
+                )
+            report = _read_json(Path(args.report), MAX_INVENTORY_BYTES)
+            if errors := verify_ai_policy_change_report(report, baseline, candidate):
+                raise ValueError("; ".join(errors))
+            print(f"[bom] verified AI policy change {args.report}")
+            return 0
         if args.command in {"intake-ai", "verify-ai-intake"}:
             policy = _read_json(Path(args.policy), MAX_INVENTORY_BYTES)
             cdx = _read_json(Path(args.cyclonedx_source), MAX_INVENTORY_BYTES)
