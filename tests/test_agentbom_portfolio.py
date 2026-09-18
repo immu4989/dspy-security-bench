@@ -135,6 +135,30 @@ def test_manifest_is_bounded_and_strict(mutation):
         build_portfolio_artifacts(data, policy(), EXAMPLES)
 
 
+@pytest.mark.parametrize("label", [
+    "con", "prn", "aux", "nul", *[f"com{i}" for i in range(1, 10)],
+    *[f"lpt{i}" for i in range(1, 10)], "case-001\n",
+])
+def test_manifest_and_schema_reject_nonportable_supplier_ids_before_output(tmp_path, label):
+    data = manifest()
+    data["suppliers"][0]["supplier_id"] = label
+    schema = json.loads((ROOT / "dspy_security_bench/schemas/agentbom-ai-portfolio-manifest.schema.json").read_text())
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(data, schema)
+    with pytest.raises(ValueError, match="supplier IDs"):
+        write_portfolio_pack(tmp_path / "pack", data, policy(), EXAMPLES)
+    assert not (tmp_path / "pack").exists()
+
+
+@pytest.mark.parametrize("label", ["case-con", "company-1", "com10", "lpt10", "a" * 64])
+def test_nonreserved_supplier_ids_remain_usable(label):
+    data = manifest()
+    data["suppliers"][0]["supplier_id"] = label
+    schema = json.loads((ROOT / "dspy_security_bench/schemas/agentbom-ai-portfolio-manifest.schema.json").read_text())
+    jsonschema.validate(data, schema)
+    assert f"suppliers/{label}/manifest.json" in build_portfolio_artifacts(data, policy(), EXAMPLES)
+
+
 @pytest.mark.parametrize(
     "mutation",
     ["edited", "edited-html", "missing", "extra", "extra-dir", "symlink", "policy", "manifest"],

@@ -42,6 +42,10 @@ Retain the owner's approved policy independently. Do not let a supplier silently
 replace it; use `bom compare-ai-policy --fail-on-relaxation` when reviewing policy
 updates. Assign each submission a unique lowercase slug, preferably a
 pseudonymous case ID when supplier names are sensitive.
+IDs become directory names, so reserved Windows device names such as `con`,
+`nul`, `com1`, and `lpt1` are rejected on every platform; use `case-con` instead.
+This lets the generated pack be exchanged without those directory-name failures.
+See Microsoft's [file naming rules](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file).
 
 ```json
 {

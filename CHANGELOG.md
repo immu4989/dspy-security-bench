@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- Supplier portfolio IDs reject reserved Windows device names on every platform
+  before writing output. The manifest schema also rejects trailing-newline IDs,
+  matching runtime validation and keeping generated directory names portable.
 - Source distributions exclude local promotional drafts. A release inventory
   gate rejects untracked paths, links, duplicate members, unexpected metadata,
   and missing tracked package resources before any publishing step. This checks

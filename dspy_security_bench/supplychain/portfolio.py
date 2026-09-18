@@ -20,6 +20,10 @@ MAX_SUPPLIERS = 25
 MAX_SOURCE_BYTES = 2_000_000
 MAX_OUTPUT_BYTES = 100_000_000
 _ID = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
+# IDs become directories in review packs exchanged across operating systems.
+_RESERVED_IDS = {"con", "prn", "aux", "nul"} | {
+    f"{prefix}{number}" for prefix in ("com", "lpt") for number in range(1, 10)
+}
 CLAIM_BOUNDARY = (
     "This portfolio evaluates structural disclosures under one supplied owner policy. "
     "Supplier IDs are owner-assigned labels, not authenticated identities. A requirements_met "
@@ -204,9 +208,13 @@ def _parse_manifest(manifest: Mapping[str, Any]) -> list[dict[str, str]]:
             not isinstance(label, str)
             or len(label) > 64
             or not _ID.fullmatch(label)
+            or label in _RESERVED_IDS
             or label in seen
         ):
-            raise ValueError("supplier IDs must be unique lowercase slugs of at most 64 characters")
+            raise ValueError(
+                "supplier IDs must be unique lowercase slugs of at most 64 characters, "
+                "excluding reserved device names"
+            )
         seen.add(label)
         for field in ("cyclonedx_source", "spdx_source"):
             value = entry[field]
