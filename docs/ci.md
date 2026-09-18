@@ -118,6 +118,13 @@ handled separately. These checks detect missing data; they do not prove the
 evaluator's observations are accurate or distinguish every upstream runtime
 failure that AgentDojo itself represents as an outcome.
 
+`--plan` validates supported attack/defense names and rejects duplicate matrix
+selections without constructing an agent. Its scored-case count respects the
+single-injection DoS convention, including when mixed with ordinary attacks.
+Additional injection-task utility runs are listed separately: they can also
+invoke the agent, but are not scored user/injection pairs. Neither number is a
+token-price quote; tool loops, retries, and provider behavior affect actual cost.
+
 ## 4. GitHub Action
 
 Copy [`examples/injection-scan.yml`](../examples/injection-scan.yml) to

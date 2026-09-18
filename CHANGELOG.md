@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- Scan planning validates attack, adaptive-strategy, defense, and unique matrix
+  selections before constructing an agent. Mixed DoS/ordinary plans use actual
+  per-attack injection counts and disclose auxiliary injection-task utility runs
+  separately from scored cases, improving pre-run scope and cost visibility.
 - **Runner evidence correction:** a missing AgentDojo security result no longer
   defaults to a resisted attack. Utility/security keys must agree, observations
   must be booleans, and returned pairs must match the requested matrix (including

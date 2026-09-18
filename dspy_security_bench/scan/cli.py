@@ -104,18 +104,47 @@ def _select_tasks(suite_name: str, requested, *, kind: str) -> list[str] | None:
 
 def build_scan_plan(cfg: ScanConfig) -> list[dict]:
     """Resolve the exact benchmark matrix without building or calling an agent."""
+    from agentdojo.attacks.attack_registry import ATTACKS
+    from agentdojo.task_suite.load_suites import get_suite
+
+    from dspy_security_bench.attacks.adaptive import STRATEGIES, is_adaptive
+    from dspy_security_bench.defenses import DEFENSES
+
+    cfg.validate()
+    for defense in cfg.scan.defenses:
+        if defense not in DEFENSES:
+            raise ValueError(f"unknown defense {defense!r}")
+    attack_kinds = {}
+    for attack in cfg.scan.attacks:
+        if is_adaptive(attack):
+            if attack != "adaptive" and attack.split(":", 1)[1] not in STRATEGIES:
+                raise ValueError(f"unknown adaptive strategy {attack!r}")
+            attack_kinds[attack] = False
+        elif attack not in ATTACKS:
+            raise ValueError(f"unknown attack {attack!r}")
+        else:
+            attack_kinds[attack] = ATTACKS[attack].is_dos_attack
     plan = []
     for suite in cfg.scan.suites:
         users = _select_tasks(suite, cfg.scan.user_tasks, kind="user")
         injections = _select_tasks(suite, cfg.scan.injection_tasks, kind="injection")
         if users is None or injections is None:
-            from agentdojo.task_suite.load_suites import get_suite
             suite_obj = get_suite("v1", suite)
             user_count = len(suite_obj.user_tasks) if users is None else len(users)
             injection_count = len(suite_obj.injection_tasks) if injections is None else len(injections)
         else:
             user_count, injection_count = len(users), len(injections)
-        cases = user_count * injection_count * len(cfg.scan.attacks) * len(cfg.scan.defenses)
+        attack_cases = []
+        for attack, is_dos in attack_kinds.items():
+            count = 1 if is_dos else injection_count
+            attack_cases.append({
+                "attack": attack, "is_dos_attack": is_dos,
+                "injection_tasks": count,
+                "injection_task_ids": [next(iter(get_suite("v1", suite).injection_tasks))] if is_dos else injections,
+                "cases": user_count * count * len(cfg.scan.defenses),
+                "auxiliary_injection_task_runs": 0 if is_dos else count * len(cfg.scan.defenses),
+            })
+        cases = sum(item["cases"] for item in attack_cases)
         plan.append({
             "suite": suite,
             "user_task_ids": users,
@@ -123,6 +152,8 @@ def build_scan_plan(cfg: ScanConfig) -> list[dict]:
             "user_tasks": user_count,
             "injection_tasks": injection_count,
             "cases": cases,
+            "attack_cases": attack_cases,
+            "auxiliary_injection_task_runs": sum(item["auxiliary_injection_task_runs"] for item in attack_cases),
         })
     return plan
 
@@ -132,13 +163,17 @@ def render_scan_plan(cfg: ScanConfig, plan: list[dict]) -> str:
     for item in plan:
         lines.append(
             f"- {item['suite']}: {item['cases']} cases "
-            f"({item['user_tasks']} user × {item['injection_tasks']} injection "
-            f"× {len(cfg.scan.attacks)} attacks × {len(cfg.scan.defenses)} defenses)"
+            f"({item['user_tasks']} user tasks, {len(cfg.scan.attacks)} attacks, "
+            f"{len(cfg.scan.defenses)} defenses; per-attack injection counts below)"
         )
         users = item["user_task_ids"] or ["all"]
         injections = item["injection_task_ids"] or ["all"]
         lines.append(f"  user tasks: {', '.join(users)}")
         lines.append(f"  injection tasks: {', '.join(injections)}")
+        for attack in item["attack_cases"]:
+            suffix = " (DoS single-injection convention)" if attack["is_dos_attack"] else ""
+            lines.append(f"  {attack['attack']}: {attack['cases']} cases, {attack['injection_tasks']} injection tasks{suffix}")
+        lines.append(f"  additional injection-task utility runs: {item['auxiliary_injection_task_runs']}")
     lines.append(f"Total benchmark cases: {sum(item['cases'] for item in plan)}")
     lines.append("No model was called. Actual LLM requests vary with the agent's tool loop.")
     return "\n".join(lines)
