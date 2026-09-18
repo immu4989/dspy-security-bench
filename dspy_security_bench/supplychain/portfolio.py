@@ -13,6 +13,7 @@ from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.mission.loader import canonical_sha256
 from dspy_security_bench.supplychain.aibom_policy import compare_ai_disclosure_policies
 from dspy_security_bench.supplychain.intake import MAX_FILE_BYTES, build_intake_artifacts
+from dspy_security_bench.supplychain.portfolio_html import render_portfolio_html
 
 MANIFEST_TYPE = "dspy-security-bench-ai-supplier-portfolio"
 MAX_SUPPLIERS = 25
@@ -100,6 +101,18 @@ def build_portfolio_artifacts(
     report["report_sha256"] = canonical_sha256(report)
     artifacts["portfolio.json"] = _json_bytes(report)
     artifacts["review.md"] = _review(report).encode("utf-8")
+    evaluations = {
+        row["supplier_id"]: json.loads(
+            artifacts[f"suppliers/{row['supplier_id']}/policy.report.json"]
+        )
+        for row in rows
+        if row["status"] != "input_invalid"
+    }
+    artifacts["review.html"] = render_portfolio_html(report, evaluations).encode("utf-8")
+    if sum(map(len, artifacts.values())) > MAX_OUTPUT_BYTES or any(
+        len(data) > MAX_FILE_BYTES for data in artifacts.values()
+    ):
+        raise ValueError("portfolio artifacts exceed the supported byte budgets")
     return artifacts
 
 

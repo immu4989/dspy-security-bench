@@ -40,6 +40,11 @@ several of them changed published numbers.
   when `--force` is supplied.
 
 ### Added
+- Self-contained, mobile-friendly HTML portfolio reviews with accessible
+  finding disclosures, linked full evidence, explicit not-evaluated states,
+  bounded previews, and print styles. No JavaScript or remote assets. The whole
+  HTML artifact is reproduced by the portfolio verifier, preventing edited
+  presentation text from masquerading as the source-bound review.
 - Task-based onboarding at the top of the README and a focused new-user guide.
   The animated leaderboard remains visible; the detailed capability catalog
   is expandable. Installation guidance separates main-only workflows from

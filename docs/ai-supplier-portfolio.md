@@ -20,8 +20,15 @@ dspy-security-bench bom verify-ai-portfolio artifacts/supplier-portfolio \
   --source-root examples
 ```
 
-Open `artifacts/supplier-portfolio/review.md`. It links to each supplier's
-six-file intake pack. `portfolio.json` records the shared policy digest, each
+Open `artifacts/supplier-portfolio/review.html` for a self-contained visual review,
+or `review.md` for Markdown. Both link to each supplier's
+six-file intake pack. The HTML uses no scripts, remote fonts, analytics, or
+external assets. It includes keyboard-accessible disclosure sections, mobile
+layout, and print styles. Each section previews at most 50 findings and labels
+that limit; linked evidence retains every finding. Print view omits expandable
+previews, so retain the full evidence pack with any printed summary.
+
+`portfolio.json` records the shared policy digest, each
 result, input-manifest digest, summary counts, and per-file hashes. Verification
 rebuilds every file rather than merely trusting those hashes.
 
@@ -60,7 +67,7 @@ sandbox against a local process concurrently replacing files.
 The current workflow requires **both** a supported CycloneDX 1.7 ML-BOM and SPDX
 3.0.1 AI/Dataset source for each submission. It does not infer that components
 across those documents describe the same model. Limits are 25 suppliers,
-2 MB per source, and 100 MB of generated per-supplier artifacts. A malformed
+2 MB per source, 15 MB per generated file, and 100 MB of generated artifacts. A malformed
 common manifest or policy aborts before output creation. An invalid individual
 submission is recorded while other submissions continue.
 

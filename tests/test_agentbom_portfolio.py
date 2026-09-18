@@ -136,7 +136,8 @@ def test_manifest_is_bounded_and_strict(mutation):
 
 
 @pytest.mark.parametrize(
-    "mutation", ["edited", "missing", "extra", "extra-dir", "symlink", "policy", "manifest"]
+    "mutation",
+    ["edited", "edited-html", "missing", "extra", "extra-dir", "symlink", "policy", "manifest"],
 )
 def test_verification_rejects_any_pack_or_input_change(tmp_path, mutation):
     destination = tmp_path / "pack"
@@ -144,6 +145,8 @@ def test_verification_rejects_any_pack_or_input_change(tmp_path, mutation):
     write_portfolio_pack(destination, data, owner_policy, EXAMPLES)
     if mutation == "edited":
         (destination / "review.md").write_text("approved")
+    elif mutation == "edited-html":
+        (destination / "review.html").write_text("approved")
     elif mutation == "missing":
         (destination / "suppliers/fictional-a/review.md").unlink()
     elif mutation == "extra":
