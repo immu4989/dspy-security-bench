@@ -109,6 +109,15 @@ are errors (exit 2), even in non-blocking mode. Baselines are validated before
 model invocation. Missing thresholds serialize as JSON `null`, never `NaN`.
 Baseline generation applies the same measurement checks before writing.
 
+The runner also checks raw observation completeness before aggregation. Missing
+security observations are not treated as resisted attacks, and pandas cannot
+silently exclude missing measurements from the mean. Every requested user/task
+pair must be returned with boolean utility and injection-success outcomes.
+AgentDojo's DoS attack convention intentionally uses one injection task and is
+handled separately. These checks detect missing data; they do not prove the
+evaluator's observations are accurate or distinguish every upstream runtime
+failure that AgentDojo itself represents as an outcome.
+
 ## 4. GitHub Action
 
 Copy [`examples/injection-scan.yml`](../examples/injection-scan.yml) to

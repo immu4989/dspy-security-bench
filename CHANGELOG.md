@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- **Runner evidence correction:** a missing AgentDojo security result no longer
+  defaults to a resisted attack. Utility/security keys must agree, observations
+  must be booleans, and returned pairs must match the requested matrix (including
+  AgentDojo's single-injection DoS convention). Aggregation rejects missing or
+  nonbinary outcomes instead of letting pandas omit them from the rate.
 - **Scan gate behavior change:** missing regression baseline cells now fail by
   default instead of passing without a comparison. An explicit boolean
   `require_baseline_coverage: false` restores informational handling; coverage

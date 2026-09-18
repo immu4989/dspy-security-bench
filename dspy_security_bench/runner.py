@@ -19,7 +19,7 @@ Usage:
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
 import pandas as pd
@@ -76,6 +76,7 @@ def _suite_results_to_rows(
     attack_name: str,
     suite_results: dict,
     defense_name: str = "none",
+    expected_pairs: set[tuple[str, str]] | None = None,
 ) -> list[dict]:
     """Flatten a SuiteResults dict into per-(user_task, injection_task) rows.
 
@@ -89,20 +90,33 @@ def _suite_results_to_rows(
     We invert it here so a higher number is better, consistent with utility.
     """
     rows = []
-    utility = suite_results.get("utility_results", {})
-    security = suite_results.get("security_results", {})
+    if not isinstance(suite_results, Mapping):
+        raise ValueError("benchmark result must contain utility and security mappings")
+    utility = suite_results.get("utility_results")
+    security = suite_results.get("security_results")
+    if not isinstance(utility, Mapping) or not isinstance(security, Mapping):
+        raise ValueError("benchmark result must contain utility and security mappings")
+    if not utility or set(utility) != set(security):
+        raise ValueError("utility and security observations must cover the same nonempty task pairs")
+    for key in utility:
+        if not isinstance(key, tuple) or len(key) != 2 or not all(isinstance(part, str) and part for part in key):
+            raise ValueError("benchmark observation keys must be nonempty user/injection task pairs")
+        if type(utility[key]) is not bool or type(security[key]) is not bool:
+            raise ValueError("benchmark utility and security observations must be booleans")
+    if expected_pairs is not None and set(utility) != expected_pairs:
+        raise ValueError("benchmark observations do not cover the requested task matrix exactly")
 
-    all_keys = set(utility) | set(security)
-    for user_task_id, injection_task_id in sorted(all_keys):
+    for user_task_id, injection_task_id in sorted(utility):
+        key = (user_task_id, injection_task_id)
         rows.append({
             "optimizer": optimizer_name,
             "defense": defense_name,
             "attack": attack_name,
             "user_task_id": user_task_id,
             "injection_task_id": injection_task_id,
-            "utility": int(bool(utility.get((user_task_id, injection_task_id), False))),
-            "injection_succeeded": int(bool(security.get((user_task_id, injection_task_id), False))),
-            "security": int(not bool(security.get((user_task_id, injection_task_id), False))),
+            "utility": int(utility[key]),
+            "injection_succeeded": int(security[key]),
+            "security": int(not security[key]),
         })
     return rows
 
@@ -143,6 +157,9 @@ def evaluate_factories(
     """
     from dspy_security_bench.defenses import get_defense
 
+    if not factories:
+        raise ValueError("at least one agent factory is required")
+    _unique_names(defenses, "defenses")
     suite = get_suite(version, suite_name)
     all_rows: list[dict] = []
 
@@ -202,6 +219,9 @@ def _run_attack_matrix(
     rows: list[dict] = []
     from dspy_security_bench.attacks.adaptive import build_adaptive_attack, is_adaptive
 
+    _unique_names(attacks, "attacks")
+    users = _selected_task_ids(user_task_ids, suite.user_tasks, "user tasks")
+    injections = _selected_task_ids(injection_task_ids, suite.injection_tasks, "injection tasks")
     for attack_name in attacks:
         logger.info(
             f"  running {subject_col}={subject_name} × defense={defense_name} "
@@ -212,6 +232,10 @@ def _run_attack_matrix(
             attack = build_adaptive_attack(attack_name, defense_name, suite, pipeline)
         else:
             attack = load_attack(attack_name, suite, pipeline)
+        # AgentDojo's DoS attacks intentionally use only the first suite
+        # injection task, regardless of the ordinary injection selection.
+        observed_injections = [next(iter(suite.injection_tasks))] if getattr(attack, "is_dos_attack", False) else injections
+        expected_pairs = {(user, injection) for user in users for injection in observed_injections}
         suite_results = benchmark_suite_with_injections(
             agent_pipeline=pipeline,
             suite=suite,
@@ -227,6 +251,7 @@ def _run_attack_matrix(
             attack_name=attack_name,
             suite_results=suite_results,
             defense_name=defense_name,
+            expected_pairs=expected_pairs,
         ):
             # Rename the identity column so agent runs read as `agent`, not
             # `optimizer`, while keeping the flatten helper generic.
@@ -267,6 +292,9 @@ def evaluate_agents(
     from dspy_security_bench.adapters.generic import GenericAgentElement
     from dspy_security_bench.defenses import get_defense
 
+    if not agents:
+        raise ValueError("at least one agent is required")
+    _unique_names(defenses, "defenses")
     suite = get_suite(version, suite_name)
     all_rows: list[dict] = []
 
@@ -298,6 +326,21 @@ def _slug(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
 
 
+def _unique_names(values: Sequence[str], label: str) -> None:
+    if isinstance(values, (str, bytes)) or not isinstance(values, Sequence) or not values or not all(isinstance(value, str) and value for value in values):
+        raise ValueError(f"{label} must be a nonempty sequence of names")
+    if len(set(values)) != len(values):
+        raise ValueError(f"{label} must not contain duplicates")
+
+
+def _selected_task_ids(selected: Sequence[str] | None, available: Mapping, label: str) -> list[str]:
+    values = list(available) if selected is None else selected
+    _unique_names(values, label)
+    if not set(values) <= set(available):
+        raise ValueError(f"{label} contain unknown task IDs")
+    return list(values)
+
+
 def summarize(df: pd.DataFrame) -> pd.DataFrame:
     """Quick aggregation: utility + security rates per group.
 
@@ -309,6 +352,17 @@ def summarize(df: pd.DataFrame) -> pd.DataFrame:
     keys = [subject, "attack"]
     if "defense" in df.columns:
         keys = [subject, "defense", "attack"]
+    required = {*keys, "utility", "security", "injection_succeeded"}
+    if df.empty or not required <= set(df.columns):
+        raise ValueError("benchmark data must contain observations and all measurement columns")
+    for key in keys:
+        if not df[key].map(lambda value: isinstance(value, str) and bool(value)).all():
+            raise ValueError("benchmark group identities must be nonempty strings")
+    for column in ("utility", "security", "injection_succeeded"):
+        if df[column].isna().any() or not df[column].isin([0, 1]).all():
+            raise ValueError("benchmark measurements must be complete binary observations")
+    if not (df["security"].astype(int) + df["injection_succeeded"].astype(int) == 1).all():
+        raise ValueError("security must be the complement of injection_succeeded")
     grouped = df.groupby(keys).agg(
         utility_rate=("utility", "mean"),
         security_rate=("security", "mean"),

@@ -5,6 +5,7 @@ import types
 from unittest.mock import patch
 
 import pandas as pd
+import pytest
 
 from dspy_security_bench.runner import _suite_results_to_rows, evaluate_factories, summarize
 
@@ -48,15 +49,13 @@ def test_security_is_inverse_of_injection_succeeded():
     assert rows[0]["security"] == 0
 
 
-def test_suite_results_with_missing_keys_treated_as_false():
-    """If a (user, injection) combo appears in utility but not security, security defaults to good."""
+def test_suite_results_with_missing_keys_are_not_assumed_secure():
     fake = {
         "utility_results": {("u", "i"): True},
         "security_results": {},  # empty
     }
-    rows = _suite_results_to_rows("opt", "atk", fake)
-    assert rows[0]["injection_succeeded"] == 0
-    assert rows[0]["security"] == 1
+    with pytest.raises(ValueError, match="same nonempty task pairs"):
+        _suite_results_to_rows("opt", "atk", fake)
 
 
 # ---------------------------------------------------------------------------
