@@ -269,6 +269,20 @@ or ATO decision.
 
 ### Owner-authored AI disclosure requirements, not a universal score
 
+For the complete workflow, `bom intake-ai` takes `--policy`,
+`--cyclonedx-source`, `--spdx-source`, and a new `--out-dir`. It creates six
+files: both import reports, the policy evaluation, SARIF, a Markdown review,
+and a manifest binding every artifact. It requires a fresh directory and
+does not overwrite an existing review. Original source documents and the
+policy are retained separately, not copied into the pack. The policy report
+still includes the owner label; review sharing permissions accordingly.
+
+`bom verify-ai-intake PACK_DIR` takes the same three input options and rebuilds
+every byte from them. It rejects altered reports, edited review text, missing
+or extra files, and symbolic links. A manifest that has been edited and
+rehashed cannot make changed content match the original inputs. Verification
+establishes reproducibility; supplier authenticity remains a separate check.
+
 `AIDisclosurePolicy v1` converts an organization's own minimum disclosure
 requirements into deterministic component-level findings. A policy selects any
 of the sixteen CycloneDX model-card fields, six CycloneDX dataset fields,

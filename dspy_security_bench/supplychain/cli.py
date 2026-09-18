@@ -23,6 +23,7 @@ from dspy_security_bench.supplychain.aibom_policy import (
     build_ai_disclosure_policy_report,
     verify_ai_disclosure_policy_report,
 )
+from dspy_security_bench.supplychain.intake import verify_intake_pack, write_intake_pack
 from dspy_security_bench.supplychain.mlbom import (
     build_mlbom_import_report,
     verify_mlbom_import_report,
@@ -55,6 +56,17 @@ def main(argv: list[str] | None = None) -> int:
         description="Map local AI-agent dependencies to assurance reevaluation without network access.",
     )
     commands = parser.add_subparsers(dest="command")
+    intake = commands.add_parser("intake-ai", help="create a complete AI disclosure review pack")
+    intake.add_argument("--out-dir", required=True)
+    intake.add_argument("--fail-on-findings", action="store_true")
+    verify_intake = commands.add_parser(
+        "verify-ai-intake", help="rebuild and verify all intake pack files"
+    )
+    verify_intake.add_argument("pack_dir")
+    for intake_command in (intake, verify_intake):
+        intake_command.add_argument("--policy", required=True)
+        intake_command.add_argument("--cyclonedx-source", required=True)
+        intake_command.add_argument("--spdx-source", required=True)
     describe = commands.add_parser("describe", help="show the frozen AgentBOM protocol")
     describe.add_argument("--json", action="store_true", dest="as_json")
     init = commands.add_parser("init", help="write a fictional editable AgentBOM")
@@ -199,6 +211,18 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
     try:
+        if args.command in {"intake-ai", "verify-ai-intake"}:
+            policy = _read_json(Path(args.policy), MAX_INVENTORY_BYTES)
+            cdx = _read_json(Path(args.cyclonedx_source), MAX_INVENTORY_BYTES)
+            spdx = _read_json(Path(args.spdx_source), MAX_INVENTORY_BYTES)
+            if args.command == "intake-ai":
+                manifest = write_intake_pack(Path(args.out_dir), policy, cdx, spdx)
+                print(f"[bom] {manifest['status']}: wrote six-file review pack {args.out_dir}")
+                return int(args.fail_on_findings and manifest["finding_count"] > 0)
+            if errors := verify_intake_pack(Path(args.pack_dir), policy, cdx, spdx):
+                raise ValueError("; ".join(errors))
+            print(f"[bom] verified every intake artifact in {args.pack_dir}")
+            return 0
         if args.command == "describe":
             if args.as_json:
                 print(json.dumps(protocol_payload(), indent=2, sort_keys=True))

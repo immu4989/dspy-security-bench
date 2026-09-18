@@ -84,6 +84,17 @@ jobs:
         run: >-
           uv run --locked --no-sync dspy-security-bench bom demo
           --out-dir artifacts/agentbom
+      - name: Create and verify the complete supplier disclosure intake pack
+        run: |
+          uv run --locked --no-sync dspy-security-bench bom intake-ai \
+            --policy examples/ai-bom-disclosure-policy.json \
+            --cyclonedx-source examples/cyclonedx-mlbom-1.7.json \
+            --spdx-source examples/spdx-ai-3.0.1.json \
+            --out-dir artifacts/supplier-review
+          uv run --locked --no-sync dspy-security-bench bom verify-ai-intake artifacts/supplier-review \
+            --policy examples/ai-bom-disclosure-policy.json \
+            --cyclonedx-source examples/cyclonedx-mlbom-1.7.json \
+            --spdx-source examples/spdx-ai-3.0.1.json
       - name: Privacy-minimize and reverify fictional SLSA provenance
         run: |
           uv run --locked --no-sync dspy-security-bench bom import-slsa \
@@ -202,6 +213,9 @@ jobs:
           tests/test_agentbom_ai_crosswalk.py
           tests/test_agentbom_ai_policy.py
           tests/test_agentbom_ai_drift.py
+          tests/test_agentbom_intake.py
+          tests/test_agentbom_output_paths.py
+          tests/test_jsonio.py
           tests/test_probe_contract.py
       - name: Upload review surfaces, control evidence, dependency impact, and review pack
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

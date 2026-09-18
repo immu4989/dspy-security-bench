@@ -22,6 +22,12 @@ several of them changed published numbers.
   when `--force` is supplied.
 
 ### Added
+- One-command AI disclosure intake packs: `bom intake-ai` creates two import
+  reports, an owner-policy evaluation, SARIF, a Markdown review, and a byte-bound
+  manifest in a fresh directory. `bom verify-ai-intake` reconstructs every file
+  from separately retained inputs and rejects altered content, missing/extra
+  files, and symbolic links. Optional CI gating preserves the review artifacts
+  while returning a failure for missing requirements.
 - **AgentBOM AIDisclosureDrift v1**, a source-verified lifecycle comparison for
   two AIDisclosurePolicy evaluations under one exact owner policy. It
   distinguishes introduced, worsened, persistent, improved, and resolved

@@ -373,6 +373,25 @@ dspy-security-bench ledger check-capability-lock \
 
 ## On main: Assurance Control Plane — prove containment, then trace change impact
 
+For a first supplier review, generate and verify a complete disclosure pack in
+two commands. Replace the fictional inputs with your own BOMs and policy:
+
+```bash
+dspy-security-bench bom intake-ai \
+  --policy examples/ai-bom-disclosure-policy.json \
+  --cyclonedx-source examples/cyclonedx-mlbom-1.7.json \
+  --spdx-source examples/spdx-ai-3.0.1.json \
+  --out-dir artifacts/supplier-review
+dspy-security-bench bom verify-ai-intake artifacts/supplier-review \
+  --policy examples/ai-bom-disclosure-policy.json \
+  --cyclonedx-source examples/cyclonedx-mlbom-1.7.json \
+  --spdx-source examples/spdx-ai-3.0.1.json
+```
+
+Open `review.md` for findings; use `policy.sarif` for CI integration. The
+fictional example has four expected findings. Add `--fail-on-findings` to the
+first command to return exit code 1 when requirements are missing.
+
 **A clean benchmark cannot tell you whether the sandbox monitor failed, and a
 package diff cannot tell you which safety claims became stale.** ContainmentProof
 keeps eight harmless canary outcomes separate from monitoring and evidence
