@@ -142,6 +142,11 @@ dspy-security-bench bom verify-ai-disclosure \
 The owner must enrich AI-specific components, dependency relationships, claim
 bindings, and completeness before decision use. Import is not attestation.
 
+AgentBOM CLI inputs use bounded UTF-8 JSON parsing. Duplicate member names,
+non-finite numbers, unpaired Unicode surrogates, and nesting beyond 100 levels
+are rejected before evaluation. Error messages omit input member names and
+values. The same reader protects AssuranceLedger CLI evidence and policy inputs.
+
 The SLSA mapper accepts only in-toto Statement v1 with the
 `https://slsa.dev/provenance/v1` predicate and a lowercase SHA-256 identity for
 every mapped subject and resolved dependency. It creates stable privacy-hashed

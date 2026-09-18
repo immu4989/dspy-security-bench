@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- AgentBOM and AssuranceLedger CLI intake rejects duplicate JSON members,
+  non-finite numbers (including exponent overflow), invalid UTF-8, unpaired
+  Unicode surrogates, and excessive nesting. Reads are bounded by bytes and
+  parser diagnostics exclude source keys and values.
 - AI disclosure policies now report document-level missing required fields when
   a required component class has no coverage records. Omitting every dataset
   can no longer bypass the owner's dataset requirements.

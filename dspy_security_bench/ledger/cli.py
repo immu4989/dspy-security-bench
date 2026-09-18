@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.ledger.capabilities import (
     build_capability_manifest,
     verify_capability_manifest,
@@ -1914,12 +1915,7 @@ def _root_view_policy_from_spec(spec: dict[str, Any]) -> dict[str, Any]:
 
 
 def _read_json(path: Path) -> dict[str, Any]:
-    if path.stat().st_size > MAX_JSON_BYTES:
-        raise ValueError(f"input exceeds {MAX_JSON_BYTES} bytes")
-    payload = json.loads(path.read_text())
-    if not isinstance(payload, dict):
-        raise ValueError("JSON root must be an object")
-    return payload
+    return read_json_object(path, MAX_JSON_BYTES)
 
 
 def _write_json(path: Path, payload: Any) -> None:

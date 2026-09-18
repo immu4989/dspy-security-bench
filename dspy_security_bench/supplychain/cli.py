@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.supplychain.aibom_crosswalk import (
     build_ai_bom_crosswalk,
     verify_ai_bom_crosswalk,
@@ -407,12 +408,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _read_json(path: Path, maximum: int) -> dict[str, Any]:
-    if path.stat().st_size > maximum:
-        raise ValueError(f"input exceeds {maximum} bytes")
-    payload = json.loads(path.read_text())
-    if not isinstance(payload, dict):
-        raise ValueError("JSON root must be an object")
-    return payload
+    return read_json_object(path, maximum)
 
 
 def _write_once(path: Path, payload: Any, force: bool) -> None:
