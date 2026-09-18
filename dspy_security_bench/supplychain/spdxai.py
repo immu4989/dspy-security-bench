@@ -203,6 +203,8 @@ def _parse_spdx_ai(payload: Mapping[str, Any]) -> dict[str, Any]:
     relevant_by_id: dict[str, dict[str, Any]] = {}
     for index, element_value in enumerate(graph):
         element = deepcopy(dict(element_value))
+        if not isinstance(element.get("type"), str):
+            raise ValueError("SPDX element type must be a compact string")
         spdx_id = element.get("spdxId")
         if isinstance(spdx_id, str) and spdx_id:
             if len(spdx_id) > MAX_TEXT:
@@ -230,6 +232,10 @@ def _parse_spdx_ai(payload: Mapping[str, Any]) -> dict[str, Any]:
             continue
         relationship = element.get("relationshipType")
         source = element.get("from")
+        if not isinstance(relationship, str) or not relationship:
+            raise ValueError("SPDX Relationship.relationshipType must be a non-empty string")
+        if not isinstance(source, str) or not source:
+            raise ValueError("SPDX Relationship.from must be a non-empty string")
         targets = element.get("to")
         if isinstance(targets, str):
             targets = [targets]

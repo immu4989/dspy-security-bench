@@ -188,6 +188,8 @@ def _parse_mlbom(payload: Mapping[str, Any]) -> dict[str, Any]:
     relevant: list[dict[str, Any]] = []
     by_ref: dict[str, dict[str, Any]] = {}
     for index, component in enumerate(flattened):
+        if not isinstance(component.get("type"), str):
+            raise ValueError("CycloneDX component type must be a string")
         if component.get("type") not in {"machine-learning-model", "data"}:
             continue
         reference = _bounded_text(component.get("bom-ref"), f"ML component {index} bom-ref")
@@ -430,8 +432,12 @@ def _dependency_edges(
             raise ValueError("every CycloneDX dependency must be an object")
         source = item.get("ref")
         targets = item.get("dependsOn", [])
-        if not isinstance(targets, list):
-            raise ValueError("CycloneDX dependsOn must be an array")
+        if not isinstance(source, str) or not source:
+            raise ValueError("CycloneDX dependency ref must be a non-empty string")
+        if not isinstance(targets, list) or not all(
+            isinstance(target, str) and target for target in targets
+        ):
+            raise ValueError("CycloneDX dependsOn must be an array of non-empty strings")
         if source not in by_ref:
             continue
         for target in targets:

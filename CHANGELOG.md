@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Fixed
+- CycloneDX and SPDX AI import APIs validate component type and relationship
+  reference shapes before dictionary/set lookup. A deterministic 1,407-case
+  type-mutation corpus checks that malformed input is rejected with a deliberate
+  validation error or produces an exactly reverifiable report.
 - AgentBOM and AssuranceLedger CLI intake rejects duplicate JSON members,
   non-finite numbers (including exponent overflow), invalid UTF-8, unpaired
   Unicode surrogates, and excessive nesting. Reads are bounded by bytes and
