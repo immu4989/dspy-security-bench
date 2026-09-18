@@ -31,6 +31,11 @@ several of them changed published numbers.
   when `--force` is supplied.
 
 ### Added
+- Offline multi-supplier AI disclosure intake: one owner policy, up to 25
+  explicitly labeled submissions, isolated invalid-input states, linked
+  Markdown review, strict JSON manifests/reports, byte-bound per-supplier
+  evidence, and whole-portfolio reproduction. Input paths are bounded to an
+  explicit source root; no rankings, remote fetching, or supplier authentication.
 - AI disclosure policy change review with `bom compare-ai-policy` and exact
   reverification. Reports distinguish requirement additions and removals,
   enabled/disabled relationship checks, and policy identity changes. Explicit

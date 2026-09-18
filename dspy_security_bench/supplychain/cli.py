@@ -30,6 +30,7 @@ from dspy_security_bench.supplychain.mlbom import (
     build_mlbom_import_report,
     verify_mlbom_import_report,
 )
+from dspy_security_bench.supplychain.portfolio import verify_portfolio_pack, write_portfolio_pack
 from dspy_security_bench.supplychain.proof import (
     MAX_INVENTORY_BYTES,
     analyze_change,
@@ -58,6 +59,19 @@ def main(argv: list[str] | None = None) -> int:
         description="Map local AI-agent dependencies to assurance reevaluation without network access.",
     )
     commands = parser.add_subparsers(dest="command")
+    portfolio = commands.add_parser(
+        "intake-ai-portfolio", help="review multiple suppliers under one policy"
+    )
+    portfolio.add_argument("--out-dir", required=True)
+    portfolio.add_argument("--fail-on-findings", action="store_true")
+    verify_portfolio = commands.add_parser(
+        "verify-ai-portfolio", help="recompute a complete supplier portfolio"
+    )
+    verify_portfolio.add_argument("pack_dir")
+    for portfolio_command in (portfolio, verify_portfolio):
+        portfolio_command.add_argument("--manifest", required=True)
+        portfolio_command.add_argument("--policy", required=True)
+        portfolio_command.add_argument("--source-root", required=True)
     policy_change = commands.add_parser(
         "compare-ai-policy", help="review AI disclosure requirement changes"
     )
@@ -227,6 +241,23 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
     try:
+        if args.command in {"intake-ai-portfolio", "verify-ai-portfolio"}:
+            manifest = _read_json(Path(args.manifest), MAX_INVENTORY_BYTES)
+            policy = _read_json(Path(args.policy), MAX_INVENTORY_BYTES)
+            root = Path(args.source_root)
+            if args.command == "intake-ai-portfolio":
+                report = write_portfolio_pack(Path(args.out_dir), manifest, policy, root)
+                summary = report["summary"]
+                print(
+                    f"[bom] portfolio: {summary['evaluated']}/{summary['suppliers']} evaluated; wrote {args.out_dir}"
+                )
+                if summary["input_invalid"]:
+                    return 2
+                return int(args.fail_on_findings and summary["finding_count"] > 0)
+            if errors := verify_portfolio_pack(Path(args.pack_dir), manifest, policy, root):
+                raise ValueError("; ".join(errors))
+            print(f"[bom] verified portfolio bytes in {args.pack_dir}; this is not approval")
+            return 0
         if args.command in {"compare-ai-policy", "verify-ai-policy-change"}:
             baseline = _read_json(Path(args.baseline), MAX_INVENTORY_BYTES)
             candidate = _read_json(Path(args.candidate), MAX_INVENTORY_BYTES)

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AgentBOM AI supplier portfolio report",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "submission_manifest_sha256", "policy_sha256", "suppliers", "summary", "files", "claim_boundary", "report_sha256"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "report_type": {"const": "AgentBOM AI supplier portfolio"},
+    "protocol_version": {"const": "agentbom-ai-portfolio-v1"},
+    "submission_manifest_sha256": {"$ref": "#/$defs/digest"},
+    "policy_sha256": {"$ref": "#/$defs/digest"},
+    "report_sha256": {"$ref": "#/$defs/digest"},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "suppliers": {
+      "type": "array", "minItems": 1, "maxItems": 25,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["supplier_id", "status", "finding_count", "intake_manifest_sha256", "error_code"],
+        "properties": {
+          "supplier_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 64},
+          "status": {"enum": ["input_invalid", "owner_review_required", "requirements_met"]},
+          "finding_count": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/count"}]},
+          "intake_manifest_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]},
+          "error_code": {"enum": [null, "source_unreadable_or_invalid_json", "unsupported_or_invalid_disclosure"]}
+        },
+        "allOf": [{
+          "if": {"properties": {"status": {"const": "input_invalid"}}},
+          "then": {"properties": {"finding_count": {"type": "null"}, "intake_manifest_sha256": {"type": "null"}, "error_code": {"type": "string"}}},
+          "else": {"properties": {"finding_count": {"type": "integer"}, "intake_manifest_sha256": {"type": "string"}, "error_code": {"type": "null"}}}
+        }]
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["suppliers", "evaluated", "input_invalid", "owner_review_required", "requirements_met", "finding_count", "complete", "automatic_approvals"],
+      "properties": {
+        "suppliers": {"$ref": "#/$defs/supplierCount"},
+        "evaluated": {"$ref": "#/$defs/supplierCount"},
+        "input_invalid": {"$ref": "#/$defs/supplierCount"},
+        "owner_review_required": {"$ref": "#/$defs/supplierCount"},
+        "requirements_met": {"$ref": "#/$defs/supplierCount"},
+        "finding_count": {"$ref": "#/$defs/count"},
+        "complete": {"type": "boolean"},
+        "automatic_approvals": {"type": "integer", "const": 0}
+      }
+    },
+    "files": {
+      "type": "object", "maxProperties": 150,
+      "propertyNames": {"pattern": "^suppliers/[a-z0-9]+(?:-[a-z0-9]+)*/(?:cyclonedx\\.report\\.json|spdx\\.report\\.json|policy\\.report\\.json|policy\\.sarif|review\\.md|manifest\\.json)$"},
+      "additionalProperties": {"$ref": "#/$defs/digest"}
+    }
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "count": {"type": "integer", "minimum": 0, "maximum": 500000},
+    "supplierCount": {"type": "integer", "minimum": 0, "maximum": 25}
+  }
+}

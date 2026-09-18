@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Owner-authored AI supplier portfolio manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "manifest_type", "suppliers"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "manifest_type": {"const": "dspy-security-bench-ai-supplier-portfolio"},
+    "suppliers": {
+      "type": "array", "minItems": 1, "maxItems": 25,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["supplier_id", "cyclonedx_source", "spdx_source"],
+        "properties": {
+          "supplier_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 64},
+          "cyclonedx_source": {"$ref": "#/$defs/path"},
+          "spdx_source": {"$ref": "#/$defs/path"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "path": {"type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?(?:/|$))(?!.*//)[^\\\\\\u0000]+$"}
+  }
+}

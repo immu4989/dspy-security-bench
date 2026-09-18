@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "manifest_type": "dspy-security-bench-ai-supplier-portfolio",
+  "suppliers": [
+    {
+      "supplier_id": "fictional-supplier-a",
+      "cyclonedx_source": "cyclonedx-mlbom-1.7.json",
+      "spdx_source": "spdx-ai-3.0.1.json"
+    },
+    {
+      "supplier_id": "fictional-supplier-b",
+      "cyclonedx_source": "cyclonedx-mlbom-1.7.json",
+      "spdx_source": "spdx-ai-3.0.1.json"
+    }
+  ]
+}

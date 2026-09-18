@@ -294,6 +294,11 @@ or extra files, and symbolic links. A manifest that has been edited and
 rehashed cannot make changed content match the original inputs. Verification
 establishes reproducibility; supplier authenticity remains a separate check.
 
+For multiple submissions under a common policy, the
+[AI supplier portfolio workflow](ai-supplier-portfolio.md) collects these packs
+into a reproducible offline review. A malformed or unavailable submission is
+explicitly not evaluated and cannot appear as a zero-finding pass.
+
 `AIDisclosurePolicy v1` converts an organization's own minimum disclosure
 requirements into deterministic component-level findings. A policy selects any
 of the sixteen CycloneDX model-card fields, six CycloneDX dataset fields,

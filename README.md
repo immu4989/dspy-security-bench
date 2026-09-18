@@ -392,6 +392,12 @@ Open `review.md` for findings; use `policy.sarif` for CI integration. The
 fictional example has four expected findings. Add `--fail-on-findings` to the
 first command to return exit code 1 when requirements are missing.
 
+For a procurement or platform team reviewing several submissions, use
+[`bom intake-ai-portfolio`](docs/ai-supplier-portfolio.md). It evaluates up to
+25 owner-labeled suppliers against one policy, keeps invalid submissions
+separate from disclosure findings, and produces a linked portfolio review plus
+an independently reproducible evidence pack for each evaluated supplier.
+
 **A clean benchmark cannot tell you whether the sandbox monitor failed, and a
 package diff cannot tell you which safety claims became stale.** ContainmentProof
 keeps eight harmless canary outcomes separate from monitoring and evidence
