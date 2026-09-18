@@ -98,6 +98,10 @@ the security of your production system. For the published scanner instead:
 [New-user guide](docs/start-here.md) · [Contributing](CONTRIBUTING.md) ·
 [Security policy](SECURITY.md) · [Changelog](CHANGELOG.md)
 
+Upgrading an existing integration? Read the
+[evidence-integrity migration notes](docs/migration-evidence-integrity.md) before
+regenerating baselines, signed statements, or disclosure packs.
+
 <details>
 <summary>Full capability catalog: worked examples, protocols, and research milestones</summary>
 

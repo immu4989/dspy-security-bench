@@ -60,6 +60,10 @@ several of them changed published numbers.
   when `--force` is supplied.
 
 ### Added
+- Task-first website entry points for scan planning, supplier review, and
+  assurance cases, with explicit source-versus-release availability. Migration
+  guidance explains changed input/gate behavior and how to preserve historical
+  evidence without implying revised published model scores.
 - `scan --plan-json PATH` writes a deterministic, content-addressed preflight
   artifact with the resolved scope, gate settings, scored cases, and auxiliary
   runs, then exits without constructing an agent. Early output checks reject

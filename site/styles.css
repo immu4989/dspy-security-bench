@@ -76,6 +76,21 @@ h1 em, h2 em { color: var(--cyan); font-style: normal; }
 
 .section { width: min(1320px, calc(100% - 48px)); margin: 0 auto; padding: 150px 0; }
 .section-kicker { display: block; margin-bottom: 28px; }
+.start-section { padding-top: 100px; padding-bottom: 100px; border-bottom: 1px solid var(--line); }
+.start-heading { max-width: 820px; }
+.start-heading h2 em { color: var(--cyan); font-style: normal; }
+.start-heading > p { max-width: 640px; color: #b7cbd0; font-size: 17px; line-height: 1.75; margin: 24px 0 36px; }
+.start-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.start-card { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 20px; padding: 30px; background: linear-gradient(145deg, #112b37, #0a1722); }
+.start-role { color: var(--cyan); font-family: var(--mono); font-size: 10px; line-height: 1.6; text-transform: uppercase; letter-spacing: .07em; }
+.start-card h3 { font-size: 25px; letter-spacing: -.035em; line-height: 1.2; margin: 22px 0 10px; }
+.start-card p { color: #b7cbd0; font-size: 14px; line-height: 1.75; margin: 8px 0 24px; flex: 1; }
+.start-card code { display: block; background: #06101a; color: #b4e8de; font: 11px/1.8 var(--mono); padding: 13px; border-radius: 8px; overflow-wrap: anywhere; }
+.start-card a { color: var(--cyan); font-size: 13px; font-weight: 700; margin-top: 24px; text-decoration: underline; text-underline-offset: 4px; }
+.start-card a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 5px; }
+.start-boundary { color: #b7cbd0; font-size: 12px; line-height: 1.8; padding: 24px; border-left: 2px solid var(--amber); background: #0a1722; margin: 24px 0 0; }
+.start-boundary strong { color: var(--amber); }
+@media (max-width: 860px) { .start-grid { grid-template-columns: 1fr; } .start-section { padding-top: 70px; padding-bottom: 70px; } }
 h2 { margin: 0; font-size: clamp(47px, 5.4vw, 80px); line-height: 1.02; letter-spacing: -.065em; font-weight: 600; }
 .thesis { border-bottom: 1px solid var(--line); }
 .thesis-layout { display: grid; grid-template-columns: .84fr 1.16fr; gap: 70px; align-items: center; }

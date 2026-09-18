@@ -27,6 +27,17 @@ from scripts.generate_site_data import (
 SITE = Path(DEFAULT_OUT).parent
 
 
+def test_task_first_entry_points_identify_main_only_workflows():
+    html = (SITE / "index.html").read_text()
+    assert 'href="#start-here"' in html
+    assert 'id="start-here"' in html
+    for guide in ("docs/ci.md", "docs/ai-supplier-portfolio.md", "docs/start-here.md"):
+        assert f"/blob/main/{guide}" in html
+    assert "scan --plan-json scan-plan.json" in html
+    assert "not all in the published v0.19.0 package" in html
+    assert "disclosure checks are not supplier rankings or approvals" in html
+
+
 class _AssetCollector(HTMLParser):
     def __init__(self):
         super().__init__()
