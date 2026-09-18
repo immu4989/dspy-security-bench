@@ -422,6 +422,15 @@ def _write_once(path: Path, payload: Any, force: bool) -> None:
 
 
 def _require_writable_targets(paths: tuple[Path, ...], *, force: bool) -> None:
+    resolved = [path.resolve() for path in paths]
+    if len(set(resolved)) != len(resolved):
+        raise ValueError("output paths must be distinct")
+    for index, path in enumerate(paths):
+        if path.exists() and not path.is_file():
+            raise ValueError(f"output must be a regular file: {path}")
+        for other in paths[:index]:
+            if path.exists() and other.exists() and path.samefile(other):
+                raise ValueError("output paths must not alias the same file")
     if not force and (existing := [str(path) for path in paths if path.exists()]):
         raise FileExistsError(f"output exists (use --force): {', '.join(existing)}")
 

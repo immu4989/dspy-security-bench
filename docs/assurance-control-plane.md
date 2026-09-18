@@ -279,6 +279,12 @@ provides an explicit CI gate; omitting it preserves an observe-and-review flow.
 The committed fictional policy deliberately produces four findings so the
 reference workflow exercises the unfavorable path.
 
+If a component class is absent but the policy requires its fields, evaluation
+records those missing fields against `document`. For example, omitting every
+dataset cannot satisfy required dataset disclosures. This correction also
+means older reports affected by that omission must be regenerated before exact
+verification succeeds.
+
 This project does not choose an organization's requirements. A populated field
 may still be false, stale, incomplete, unsafe, or unfit for the mission. The
 evaluator never processes raw disclosure values, authenticates supplier

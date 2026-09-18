@@ -85,6 +85,38 @@ def test_satisfied_owner_policy_does_not_overclaim():
     assert "does not validate field truth or adequacy" in report["claim_boundary"]
 
 
+def test_absent_dataset_cannot_vacuously_satisfy_dataset_requirements():
+    policy, _, cdx_source, _, spdx_source = _inputs()
+    cdx_source["components"] = []
+    cdx_source["metadata"]["component"]["modelCard"]["modelParameters"]["datasets"] = []
+    spdx_source["@graph"] = [
+        item
+        for item in spdx_source["@graph"]
+        if item.get("type") != "dataset_DatasetPackage" and item.get("type") != "Relationship"
+    ]
+    cdx_report = build_mlbom_import_report(cdx_source, inventory_id="empty-data-cdx")
+    spdx_report = build_spdx_ai_import_report(spdx_source, inventory_id="empty-data-spdx")
+    report = build_ai_disclosure_policy_report(
+        policy, cdx_report, cdx_source, spdx_report, spdx_source
+    )
+    document_fields = {
+        (item["standard"], item["field"])
+        for item in report["findings"]
+        if item["component_id"] == "document" and item["finding_type"] == "missing_required_field"
+    }
+    assert document_fields == {
+        *(("cyclonedx", field) for field in policy["cyclonedx"]["required_dataset_fields"]),
+        *(("spdx", field) for field in policy["spdx"]["required_dataset_fields"]),
+    }
+    assert report["summary"]["status"] == "owner_review_required"
+    assert (
+        verify_ai_disclosure_policy_report(
+            report, policy, cdx_report, cdx_source, spdx_report, spdx_source
+        )
+        == ()
+    )
+
+
 def test_relationship_and_license_gaps_are_separate_review_findings():
     policy, _, cdx_source, _, spdx_source = _inputs()
     changed_cdx = deepcopy(cdx_source)

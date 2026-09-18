@@ -376,6 +376,12 @@ def _evaluate_coverage(
     checks: list[dict[str, Any]],
     findings: list[dict[str, Any]],
 ) -> None:
+    if not records and required_fields:
+        findings.extend(
+            _finding_input(standard, "document", "missing_required_field", field, 1)
+            for field in required_fields
+        )
+        return
     for record in records:
         present = set(record["present_fields"])
         present_required = [field for field in required_fields if field in present]

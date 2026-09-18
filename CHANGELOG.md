@@ -9,6 +9,14 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+### Fixed
+- AI disclosure policies now report document-level missing required fields when
+  a required component class has no coverage records. Omitting every dataset
+  can no longer bypass the owner's dataset requirements.
+- Multi-output AgentBOM commands reject identical paths, resolved aliases,
+  hard links to the same file, and directory targets before writing, including
+  when `--force` is supplied.
+
 ### Added
 - **AgentBOM AIDisclosureDrift v1**, a source-verified lifecycle comparison for
   two AIDisclosurePolicy evaluations under one exact owner policy. It
