@@ -4,6 +4,9 @@
 reviewer needs to check how a scan verdict was derived without accessing provider
 credentials or paying to run the model again.
 
+Upgrading an existing workflow? Read the [migration checklist](scan-upgrade-guide.md)
+before replacing a baseline or changing CI exit-code handling.
+
 ## Try it without credentials
 
 ```bash

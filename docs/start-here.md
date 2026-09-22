@@ -72,6 +72,9 @@ for those workflows; pin a reviewed commit for reproducible organizational use.
 Do not assume a published version contains a command merely because the main
 branch documentation describes it.
 
+Existing scan users should follow the [upgrade checklist](scan-upgrade-guide.md)
+for measurement protocols, retained baselines, reviewed plan pins, and CI gates.
+
 For development, install `python -m pip install -e ".[dev]"` inside your virtual
 environment and run `python -m pytest`. Optional framework and signing extras
 are listed in [pyproject.toml](../pyproject.toml); install only what your chosen
