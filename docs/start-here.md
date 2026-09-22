@@ -6,6 +6,13 @@ protocols; you do not need to adopt them all.
 
 ## Developers: test your agent
 
+For a credential-free introduction **on main**, run
+`dspy-security-bench scan demo --out fictional-scan-review` from a source install.
+Open its `review.html`, then follow the included replay commands. These are
+invented outcomes, not model measurements. The [scan evidence guide](scan-evidence.md)
+then covers capturing real evidence, pinning a reviewed plan, and checking an
+upgrade without paying to rerun its models.
+
 Install the published package with `python -m pip install dspy-security-bench`.
 Run `dspy-security-bench init --agent mypackage:build_agent`, then
 `dspy-security-bench scan --config .dspy-security-bench.yaml --plan` to inspect

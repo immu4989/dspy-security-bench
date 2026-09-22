@@ -91,3 +91,5 @@ jobs:
           tests/test_missionforge.py
           tests/test_defendertwin.py
           tests/test_resiliencegraph.py
+          tests/test_scan_demo.py
+          tests/test_scan_comparison.py

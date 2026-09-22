@@ -297,6 +297,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="dspy-security-bench scan",
         description="Scan a tool-using agent for prompt-injection robustness and gate CI on the result.",
+        epilog="Offline commands: scan demo --out NEW_DIRECTORY; scan verify EVIDENCE; scan compare BEFORE AFTER. Use each command's --help for options.",
     )
     p.add_argument("--config", help="path to a .dspy-security-bench.yaml config")
     g = p.add_argument_group("agent (overrides config)")
@@ -380,7 +381,7 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as e:
         print(f"[scan] could not plan run: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
-    plan_report = build_scan_plan_report(cfg, plan, scan_scope, baseline_document)
+    plan_report = build_scan_plan_report(cfg, plan, scan_scope, baseline_document) if args.plan_json or args.expected_plan_sha256 else None
     if args.expected_plan_sha256 is not None and args.expected_plan_sha256 != plan_report["report_sha256"]:
         print("[scan] reviewed plan mismatch; no agent was constructed. Review a new plan before running.", file=sys.stderr)
         return 2
