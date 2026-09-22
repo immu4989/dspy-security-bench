@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Matched scan comparisons can render a self-contained, script-free HTML review
+  with separate security/utility changes, source-policy context, accessible case
+  tables, print styling, bounded previews, and explicit non-approval boundaries.
 - Execution-checked measurement protocol v2 stops on exceptions escaping task
   execution/evaluation instead of accepting AgentDojo's selected provider-error
   binary fallbacks. Scored and auxiliary tasks are guarded, diagnostics omit

@@ -121,9 +121,15 @@ def main(argv: list[str] | None = None) -> int:
     output = parser.add_mutually_exclusive_group()
     output.add_argument("--json", type=Path, help="write a new comparison report")
     output.add_argument("--verify", type=Path, help="verify a saved report against both retained evidence sources")
+    parser.add_argument("--html", type=Path, help="write a new self-contained offline review page")
     parser.add_argument("--fail-on-regression", action="store_true", help="exit 1 when either new-failure allowance is exceeded")
     args = parser.parse_args(argv)
     try:
+        paths = [path for path in (args.json, args.html) if path is not None]
+        if len({path.resolve() for path in paths}) != len(paths):
+            raise ValueError("comparison outputs must be distinct")
+        if any(path.exists() or path.is_symlink() or not path.parent.is_dir() for path in paths):
+            raise ValueError("comparison outputs require new files in existing directories")
         before, after = read_json_object(args.before, MAX_BYTES), read_json_object(args.after, MAX_BYTES)
         report = compare_scan_evidence(
             before, after, max_new_security_failures=args.max_new_security_failures,
@@ -135,11 +141,19 @@ def main(argv: list[str] | None = None) -> int:
             # CLI thresholds are independent anchors, not read from the untrusted report.
             if canonical_sha256(supplied) != canonical_sha256(report):
                 raise ValueError("saved comparison differs from sources or caller-selected policy")
+        artifacts = {}
         if args.json:
             raw = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
+            artifacts[args.json] = raw
+        if args.html:
+            from dspy_security_bench.scan.compare_html import render_scan_comparison_html
+
+            artifacts[args.html] = render_scan_comparison_html(report).encode("utf-8")
+        for raw in artifacts.values():
             if len(raw) > MAX_BYTES:
                 raise ValueError("comparison exceeds the 50 MB output limit")
-            with args.json.open("xb") as stream:
+        for path, raw in artifacts.items():
+            with path.open("xb") as stream:
                 stream.write(raw)
     except (OSError, ValueError, TypeError) as exc:
         print(f"[scan compare] invalid comparison: {type(exc).__name__}", file=sys.stderr)

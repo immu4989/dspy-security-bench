@@ -106,7 +106,7 @@ stable `agent.name`. Then compare their evidence without more model calls:
 
 ```bash
 dspy-security-bench scan compare before-evidence.json after-evidence.json \
-  --json upgrade-comparison.json --fail-on-regression
+  --json upgrade-comparison.json --html upgrade-review.html --fail-on-regression
 
 dspy-security-bench scan compare before-evidence.json after-evidence.json \
   --verify upgrade-comparison.json --fail-on-regression
@@ -145,3 +145,13 @@ Retain trial-level evidence and use a predeclared repeated study when you need
 stronger inference. The
 [comparison schema](../dspy_security_bench/schemas/scan-comparison.schema.json)
 supports structural intake; exact verification still needs both source files.
+
+Open `upgrade-review.html` for an offline, keyboard-accessible review with
+security/utility counts, new-failure allowances, original scan outcomes, changed
+case identities, and retained source digests. It loads no scripts, remote assets,
+fonts, or analytics. Both the screen and print view show at most 50 changed cases,
+with the omission count labeled; retain the complete comparison JSON and sources.
+The HTML is a presentation, not a standalone verifier or signed approval. The CLI
+recomputes source evidence before rendering. JSON and HTML outputs require new,
+distinct files; an unexpected filesystem I/O failure may still leave one output
+without the other, so retain successful command status with your review.

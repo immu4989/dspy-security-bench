@@ -2,6 +2,7 @@
 
 import json
 from copy import deepcopy
+from html.parser import HTMLParser
 from importlib.resources import files
 
 import jsonschema
@@ -10,6 +11,7 @@ import pytest
 from dspy_security_bench.mission.loader import canonical_sha256
 from dspy_security_bench.scan.cli import main
 from dspy_security_bench.scan.compare import compare_scan_evidence, verify_scan_comparison
+from dspy_security_bench.scan.compare_html import render_scan_comparison_html
 from dspy_security_bench.scan.config import GateSpec
 from dspy_security_bench.scan.evidence import build_scan_evidence, evidence_policy
 
@@ -122,3 +124,73 @@ def test_cli_preserves_failed_comparison_and_enforces_caller_thresholds(tmp_path
     retained = output.read_bytes()
     assert main([*args, "--json", str(output)]) == 2
     assert output.read_bytes() == retained
+
+
+class ReviewParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.tags = []
+
+    def handle_starttag(self, tag, attrs):
+        self.tags.append((tag, dict(attrs)))
+
+
+def test_html_has_offline_accessible_structure_without_executable_content():
+    report = compare_scan_evidence(evidence([1, 0], [1, 1]), evidence([0, 1], [1, 0]))
+    html = render_scan_comparison_html(report)
+    parser = ReviewParser()
+    parser.feed(html)
+    assert not {"script", "img", "iframe", "link", "form"} & {tag for tag, _ in parser.tags}
+    assert ("html", {"lang": "en"}) in parser.tags
+    assert any(tag == "meta" and attrs.get("http-equiv") == "Content-Security-Policy" for tag, attrs in parser.tags)
+    assert any(tag == "div" and attrs.get("role") == "region" and attrs.get("tabindex") == "0" for tag, attrs in parser.tags)
+    assert "New failure" in html and "New success" in html
+    assert "New-failure allowances exceeded" in html
+    assert "@media print" in html
+    assert "statistical significance" in html
+
+
+def test_html_escapes_labels_and_defensively_escapes_unverified_numeric_fields():
+    report = compare_scan_evidence(evidence([1]), evidence([0]))
+    attack = '<img src=x onerror="alert(1)">'
+    report["changed_cases"][0]["user_task_id"] = attack
+    report["summary"]["security"]["new_failures"] = attack
+    report["comparison_policy"]["max_new_utility_failures"] = attack
+    html = render_scan_comparison_html(report)
+    parser = ReviewParser()
+    parser.feed(html)
+    assert "img" not in {tag for tag, _ in parser.tags}
+    assert "&lt;img" in html
+
+
+def test_html_preview_is_bounded_and_labels_omissions():
+    report = compare_scan_evidence(evidence([1] * 52), evidence([0] * 52))
+    html = render_scan_comparison_html(report)
+    parser = ReviewParser()
+    parser.feed(html)
+    assert sum(tag == "tr" for tag, _ in parser.tags) == 51  # header plus 50 cases
+    assert "50 of 52 changed cases" in html
+    assert len(report["changed_cases"]) == 52
+
+
+def test_html_unchanged_failures_stay_visible():
+    html = render_scan_comparison_html(compare_scan_evidence(evidence([0]), evidence([0])))
+    assert "No case outcomes changed" in html
+    assert "Unchanged failures still matter" in html
+    assert "original scan requirements met</dt><dd>No" in html
+
+
+def test_cli_html_and_json_outputs_are_preflighted_together(tmp_path):
+    before, after = tmp_path / "before.json", tmp_path / "after.json"
+    before.write_text(json.dumps(evidence([1])))
+    after.write_text(json.dumps(evidence([0])))
+    output, page = tmp_path / "result.json", tmp_path / "review.html"
+    args = ["compare", str(before), str(after)]
+    assert main([*args, "--json", str(output), "--html", str(output)]) == 2
+    assert not output.exists()
+    assert main([*args, "--json", str(output), "--html", str(page), "--fail-on-regression"]) == 1
+    assert "New-failure allowances exceeded" in page.read_text()
+    retained = page.read_bytes()
+    other = tmp_path / "another.json"
+    assert main([*args, "--json", str(other), "--html", str(page)]) == 2
+    assert not other.exists() and page.read_bytes() == retained
