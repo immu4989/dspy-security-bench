@@ -40,6 +40,14 @@ the distinction between missing evidence and observed injection success.
 
 ## Evidence parsing and signed statements
 
+Native AuthorityTwin, TraceProof, and ScheduleProof checks reject boolean
+schema versions and type-coerced derived outcomes. Authority reports, pairs, and
+cases reject undeclared fields. TraceProof report severities must match their
+frozen rule IDs, even if a modified finding and report have been rehashed, and
+reported trace/span counts must be bounded positive integers. These checks do
+not authenticate observations or reconstruct omitted source traces. Keep your
+original artifacts and fix their producers; do not merely rehash invalid reports.
+
 The shared strict JSON reader is used by AgentBOM, AssuranceLedger, and the
 additional evidence command families listed in the Unreleased changelog.
 Duplicate members, invalid Unicode, non-finite numbers, and excessive nesting

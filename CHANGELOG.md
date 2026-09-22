@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Native verifier mutation coverage now spans nine evidence families. AuthorityTwin,
+  TraceProof, and ScheduleProof reject boolean schema-version aliases; authority
+  reports reject undeclared fields and coerced outcomes. TraceProof binds finding
+  severity to its frozen rule catalog and validates report count types/bounds.
 - AssuranceGraph adds optional `--require-complete-evidence` enforcement for
   evaluate/verify: alternative supporting artifacts cannot hide declared stale,
   invalid, or missing inputs from this gate. Frozen v1 reports remain unchanged.

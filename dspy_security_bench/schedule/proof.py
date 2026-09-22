@@ -145,7 +145,7 @@ def validate_scenario(payload: Mapping[str, Any]) -> tuple[str, ...]:
     }
     if set(payload) != fields:
         errors.append("scenario fields are incomplete or unsupported")
-    if payload.get("schema_version") != 1 or payload.get("scenario_type") != SCENARIO_TYPE:
+    if type(payload.get("schema_version")) is not int or payload.get("schema_version") != 1 or payload.get("scenario_type") != SCENARIO_TYPE:
         errors.append("scenario metadata does not match ScheduleProof v1")
     for field, limit in (("scenario_id", 80), ("title", 160), ("description", 1000)):
         value = payload.get(field)
@@ -329,7 +329,7 @@ def verify_schedule_report(payload: Mapping[str, Any]) -> tuple[str, ...]:
         "disclaimer": DISCLAIMER,
     }
     for field, expected in metadata.items():
-        if payload.get(field) != expected:
+        if type(payload.get(field)) is not type(expected) or payload.get(field) != expected:
             errors.append(f"{field} does not match ScheduleProof v1")
     claimed = payload.get("report_sha256")
     unsigned = dict(payload)
@@ -353,7 +353,7 @@ def verify_schedule_report(payload: Mapping[str, Any]) -> tuple[str, ...]:
         errors.append(f"report cannot recompute: {exc}")
     else:
         for field in sorted(fields - {"report_sha256"}):
-            if payload.get(field) != expected.get(field):
+            if canonical_sha256(payload.get(field)) != canonical_sha256(expected.get(field)):
                 errors.append(f"{field} does not recompute")
     return tuple(dict.fromkeys(errors))
 

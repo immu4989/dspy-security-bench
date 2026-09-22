@@ -157,7 +157,7 @@ def load_redaction_policy(path: str | Path | None) -> tuple[dict[str, Any], str]
     if extra:
         raise ValueError("unsupported redaction policy fields: " + ", ".join(extra))
     merged = {**default_redaction_policy(), **dict(raw)}
-    if merged.get("schema_version") != 1:
+    if type(merged.get("schema_version")) is not int or merged.get("schema_version") != 1:
         raise ValueError("redaction policy schema_version must be 1")
     if not isinstance(merged.get("policy_id"), str) or not merged["policy_id"].strip():
         raise ValueError("redaction policy_id must be non-empty")
@@ -340,7 +340,7 @@ def verify_trace_evidence(payload: Mapping[str, Any]) -> tuple[str, ...]:
     if set(payload) != fields:
         errors.append("evidence fields are incomplete or unsupported")
     if (
-        payload.get("schema_version") != SCHEMA_VERSION
+        type(payload.get("schema_version")) is not int or payload.get("schema_version") != SCHEMA_VERSION
         or payload.get("evidence_type") != EVIDENCE_TYPE
     ):
         errors.append("unsupported TraceProof evidence version or type")
@@ -361,9 +361,9 @@ def verify_trace_evidence(payload: Mapping[str, Any]) -> tuple[str, ...]:
     elif not all(_valid_normalized_span(item) for item in spans):
         errors.append("one or more normalized spans are invalid or contain unsupported fields")
     else:
-        if payload.get("span_count") != len(spans):
+        if type(payload.get("span_count")) is not int or payload.get("span_count") != len(spans):
             errors.append("span_count does not match spans")
-        if payload.get("trace_count") != len({item["trace_id"] for item in spans}):
+        if type(payload.get("trace_count")) is not int or payload.get("trace_count") != len({item["trace_id"] for item in spans}):
             errors.append("trace_count does not match spans")
     summary = payload.get("redaction_summary")
     expected_summary = {
@@ -404,7 +404,7 @@ def verify_trace_report(payload: Mapping[str, Any]) -> tuple[str, ...]:
     }
     if set(payload) != fields:
         errors.append("report fields are incomplete or unsupported")
-    if payload.get("schema_version") != 1 or payload.get("report_type") != REPORT_TYPE:
+    if type(payload.get("schema_version")) is not int or payload.get("schema_version") != 1 or payload.get("report_type") != REPORT_TYPE:
         errors.append("unsupported TraceProof report version or type")
     if payload.get("disclaimer") != DISCLAIMER or payload.get("rules") != rule_catalog():
         errors.append("report metadata or rule catalog does not match TraceProof v1")
@@ -414,8 +414,13 @@ def verify_trace_report(payload: Mapping[str, Any]) -> tuple[str, ...]:
     findings = payload.get("findings")
     if not isinstance(findings, list) or not all(_valid_finding(item) for item in findings):
         errors.append("findings are invalid")
-    elif payload.get("summary") != _report_summary(payload, findings):
+    elif _safe_hash(payload.get("summary")) != _safe_hash(_report_summary(payload, findings)):
         errors.append("summary does not recompute from findings")
+    summary = payload.get("summary")
+    if not isinstance(summary, Mapping) or not all(type(summary.get(key)) is int and 1 <= summary[key] <= MAX_SPANS for key in ("trace_count", "span_count")):
+        errors.append("report trace_count and span_count must be bounded positive integers")
+    elif summary["trace_count"] > summary["span_count"]:
+        errors.append("report trace_count cannot exceed span_count")
     unsigned = dict(payload)
     claimed = unsigned.pop("report_sha256", None)
     if claimed != _safe_hash(unsigned):
@@ -500,7 +505,7 @@ def verify_trace_twin(payload: Mapping[str, Any]) -> tuple[str, ...]:
     }
     if set(payload) != fields:
         errors.append("synthetic twin fields are incomplete or unsupported")
-    if payload.get("schema_version") != 1 or payload.get("pack_type") != TWIN_TYPE:
+    if type(payload.get("schema_version")) is not int or payload.get("schema_version") != 1 or payload.get("pack_type") != TWIN_TYPE:
         errors.append("unsupported synthetic twin version or type")
     if payload.get("disclaimer") != DISCLAIMER:
         errors.append("synthetic twin disclaimer does not match TraceProof v1")
@@ -1105,6 +1110,7 @@ def _valid_normalized_span(value: Any) -> bool:
 
 
 def _valid_finding(value: Any) -> bool:
+    severities = {item["id"]: item["severity"] for item in rule_catalog()}
     fields = {
         "finding_id",
         "rule_id",
@@ -1119,8 +1125,9 @@ def _valid_finding(value: Any) -> bool:
         isinstance(value, Mapping)
         and set(value) == fields
         and isinstance(value.get("finding_id"), str)
-        and value.get("rule_id") in {item["id"] for item in rule_catalog()}
-        and value.get("severity") in {"critical", "high", "medium", "low"}
+        and isinstance(value.get("rule_id"), str)
+        and value.get("rule_id") in severities
+        and value.get("severity") == severities[value["rule_id"]]
         and _pseudonym_digest(value.get("trace_id"))
         and _pseudonym_digest(value.get("span_id"))
         and isinstance(value.get("evidence"), Mapping)
