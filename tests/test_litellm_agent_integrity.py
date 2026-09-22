@@ -90,3 +90,22 @@ def test_reference_agent_rejects_invalid_execution_limits(setting, value):
 @pytest.mark.parametrize("cost", [float("nan"), float("inf"), -1, True, 10**400])
 def test_invalid_cost_metadata_is_not_reported_as_an_estimate(cost):
     assert "estimated_cost_usd" not in _response_usage(SimpleNamespace(_hidden_params={"response_cost": cost}))
+
+
+@pytest.mark.parametrize("initial", [False, True, None])
+@pytest.mark.parametrize("fail", [False, True])
+def test_provider_options_are_request_local_even_when_final_call_fails(monkeypatch, initial, fail):
+    final = RuntimeError("fixture failure") if fail else response(final=True)
+    calls = backend(monkeypatch, [response("{}"), final])
+    provider = sys.modules["litellm"]
+    provider.drop_params = initial
+    tool = BenchTool("act", "fixture", {}, lambda: "executed")
+    agent = LiteLLMFunctionCallingAgent("fixture", max_iters=1)
+    if fail:
+        with pytest.raises(RuntimeError, match="fixture failure"):
+            agent.run("query", [tool])
+    else:
+        assert agent.run("query", [tool]).final_answer == "done"
+    assert len(calls) == 2
+    assert all(call["drop_params"] is True for call in calls)
+    assert provider.drop_params is initial

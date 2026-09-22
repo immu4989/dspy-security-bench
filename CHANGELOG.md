@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- The reference function-calling agent uses request-local LiteLLM parameter
+  compatibility options instead of changing global application state, including
+  on its final-answer path and when a provider raises an error.
 - Release verification now exercises the installed wheel outside the checkout:
   packaged resources, offline scan replay, policy exit codes, tamper rejection,
   and config initialization must succeed before release attestation/publishing.

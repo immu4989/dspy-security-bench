@@ -57,7 +57,6 @@ class LiteLLMFunctionCallingAgent:
         if any(not isinstance(name, str) or not name for name in names) or len(set(names)) != len(names):
             raise ValueError("tool names must be nonempty unique strings")
         import litellm
-        litellm.drop_params = True
 
         tools_by_name = {t.name: t for t in tools}
         tool_specs = [t.openai_schema() for t in tools]
@@ -80,6 +79,7 @@ class LiteLLMFunctionCallingAgent:
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 num_retries=self.num_retries,
+                drop_params=True,
             )
             _merge_usage(usage, _response_usage(resp))
             msg = resp.choices[0].message
@@ -135,6 +135,7 @@ class LiteLLMFunctionCallingAgent:
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 num_retries=self.num_retries,
+                drop_params=True,
             )
             _merge_usage(usage, _response_usage(resp))
             final_answer = resp.choices[0].message.content or ""
