@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Matched scan comparison v1",
+  "description": "Structural intake only; semantic verification requires both retained scan evidence sources.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "report_type", "protocol_version", "before_evidence_sha256", "after_evidence_sha256", "scope_sha256", "source_review", "comparison_policy", "summary", "cells", "changed_cases", "claim_boundary", "comparison_sha256"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "report_type": {"const": "DSPy Security Bench matched scan comparison"},
+    "protocol_version": {"const": "scan-comparison-v1"},
+    "before_evidence_sha256": {"$ref": "#/$defs/digest"},
+    "after_evidence_sha256": {"$ref": "#/$defs/digest"},
+    "scope_sha256": {"$ref": "#/$defs/digest"},
+    "comparison_sha256": {"$ref": "#/$defs/digest"},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "source_review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["gate_policy_changed", "baseline_changed", "before_requirements_met", "after_requirements_met"],
+      "properties": {
+        "gate_policy_changed": {"type": "boolean"}, "baseline_changed": {"type": "boolean"},
+        "before_requirements_met": {"type": "boolean"}, "after_requirements_met": {"type": "boolean"}
+      }
+    },
+    "comparison_policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["max_new_security_failures", "max_new_utility_failures"],
+      "properties": {
+        "max_new_security_failures": {"$ref": "#/$defs/count"},
+        "max_new_utility_failures": {"$ref": "#/$defs/count"}
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["paired_cases", "changed_cases", "security", "utility", "comparison_requirements_met"],
+      "properties": {
+        "paired_cases": {"$ref": "#/$defs/count", "minimum": 1},
+        "changed_cases": {"$ref": "#/$defs/count"},
+        "security": {"$ref": "#/$defs/counts"}, "utility": {"$ref": "#/$defs/counts"},
+        "comparison_requirements_met": {"type": "boolean"}
+      }
+    },
+    "cells": {"type": "array", "minItems": 1, "maxItems": 50000, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["suite", "agent", "defense", "attack", "security", "utility"],
+      "properties": {
+        "suite": {"$ref": "#/$defs/label"}, "agent": {"$ref": "#/$defs/label"},
+        "defense": {"$ref": "#/$defs/label"}, "attack": {"$ref": "#/$defs/label"},
+        "security": {"$ref": "#/$defs/counts"}, "utility": {"$ref": "#/$defs/counts"}
+      }
+    }},
+    "changed_cases": {"type": "array", "maxItems": 100000, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["suite", "agent", "defense", "attack", "user_task_id", "injection_task_id", "before_security", "after_security", "before_utility", "after_utility"],
+      "properties": {
+        "suite": {"$ref": "#/$defs/label"}, "agent": {"$ref": "#/$defs/label"},
+        "defense": {"$ref": "#/$defs/label"}, "attack": {"$ref": "#/$defs/label"},
+        "user_task_id": {"$ref": "#/$defs/label"}, "injection_task_id": {"$ref": "#/$defs/label"},
+        "before_security": {"$ref": "#/$defs/outcome"}, "after_security": {"$ref": "#/$defs/outcome"},
+        "before_utility": {"$ref": "#/$defs/outcome"}, "after_utility": {"$ref": "#/$defs/outcome"}
+      }
+    }}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+    "label": {"type": "string", "minLength": 1, "maxLength": 512},
+    "count": {"type": "integer", "minimum": 0, "maximum": 100000},
+    "outcome": {"type": "integer", "enum": [0, 1]},
+    "counts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["cases", "before_successes", "after_successes", "new_failures", "new_successes", "stable_successes", "stable_failures"],
+      "properties": {
+        "cases": {"$ref": "#/$defs/count", "minimum": 1},
+        "before_successes": {"$ref": "#/$defs/count"}, "after_successes": {"$ref": "#/$defs/count"},
+        "new_failures": {"$ref": "#/$defs/count"}, "new_successes": {"$ref": "#/$defs/count"},
+        "stable_successes": {"$ref": "#/$defs/count"}, "stable_failures": {"$ref": "#/$defs/count"}
+      }
+    }
+  }
+}

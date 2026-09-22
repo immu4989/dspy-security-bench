@@ -328,6 +328,10 @@ def main(argv: list[str] | None = None) -> int:
         from dspy_security_bench.scan.evidence import main as verify_main
 
         return verify_main(argv[1:])
+    if argv and argv[0] == "compare":
+        from dspy_security_bench.scan.compare import main as compare_main
+
+        return compare_main(argv[1:])
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     args = build_parser().parse_args(argv)
 

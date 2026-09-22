@@ -82,3 +82,50 @@ or upload anything.
 Keep historical evidence and the revision that produced it. Exact replay is tied
 to the `scan-evidence-v1` output contract; changes to that contract require a new
 protocol version rather than silently rewriting archived evidence.
+
+## Compare an upgrade case by case
+
+Capture before/after scans under the same task scope, dependency version, and
+stable `agent.name`. Then compare their evidence without more model calls:
+
+```bash
+dspy-security-bench scan compare before-evidence.json after-evidence.json \
+  --json upgrade-comparison.json --fail-on-regression
+
+dspy-security-bench scan compare before-evidence.json after-evidence.json \
+  --verify upgrade-comparison.json --fail-on-regression
+```
+
+The comparator verifies both sources first and requires exactly matched scope
+and case identities. It does not silently drop unmatched cases, relabel agents,
+or compare a different benchmark version. Both source digests are bound into
+the result. Use `--before-sha256` and `--after-sha256` for independently retained
+pins. Use a new output filename; existing files are never overwritten.
+
+For **security and task utility separately**, every cell and the total report
+record newly failing, newly succeeding, still-successful, and still-failing
+cases. Changed-case identities make follow-up review possible without exporting
+the prompts. For example, a 50% → 50% aggregate can conceal one newly failing
+case and one newly succeeding case. The new success does not erase the new
+failure. Likewise, improved injection resistance does not hide lost utility.
+
+`--fail-on-regression` exits 1 if either owner-selected allowance is exceeded:
+`--max-new-security-failures` and `--max-new-utility-failures` both default to 0.
+Without that flag, a valid comparison exits 0; invalid evidence or scope exits 2.
+Failed comparisons are still saved for review. When verifying a saved report,
+supply the same explicit allowances; its embedded policy is not allowed to
+silently override the CLI's choices.
+
+`comparison_requirements_met` only means the new-failure allowances were met.
+Two unchanged, failing scans can meet a no-new-failures comparison. The
+`source_review` block preserves each scan's own requirement outcome and flags
+source gate-policy or baseline changes. Those flags require separate owner
+review; the new-failure gate does not approve or block those changes itself.
+
+This is descriptive pairing, **not a significance test, causal attribution,
+ranking, or model-upgrade approval**. A single stochastic run may change. Cases
+can share users, tools, or attack logic, so they are not assumed independent.
+Retain trial-level evidence and use a predeclared repeated study when you need
+stronger inference. The
+[comparison schema](../dspy_security_bench/schemas/scan-comparison.schema.json)
+supports structural intake; exact verification still needs both source files.

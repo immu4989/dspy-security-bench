@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Matched-case scan comparison reverifies both evidence sources, requires exact
+  scope alignment, and reports newly failing/improving/stable cases separately
+  for security and utility. New failures cannot be canceled by improvements;
+  source policy changes remain visible and caller-pinned allowances gate CI.
 - Minimal scan evidence exports retain binary case outcomes, scope, policy, and
   the preflight baseline snapshot. `scan verify` rejects missing/duplicate cases
   and recomputes verdicts offline, with optional independent digest pinning and
