@@ -53,6 +53,8 @@ def _apply_overrides(cfg: ScanConfig, args) -> ScanConfig:
         cfg.scan.injection_tasks = args.injection_tasks
     if args.min_security is not None:
         cfg.gate.min_security = args.min_security
+    if args.min_utility is not None:
+        cfg.gate.min_utility = args.min_utility
     if args.min_runs is not None:
         cfg.gate.min_runs = args.min_runs
     if args.statistic is not None:
@@ -235,6 +237,8 @@ def build_scan_plan_report(cfg: ScanConfig, plan: list[dict], scope: dict, basel
                     "model_calls_performed": 0, "execution_performed": False},
         "claim_boundary": "This is a preflight plan, not an execution report, price quote, authenticated approval, or security result. Counts describe benchmark invocations, not provider requests or tokens. Pin code and inputs separately; labels may require a sharing review.",
     }
+    if cfg.gate.min_utility is not None:
+        payload["gate"]["min_utility"] = cfg.gate.min_utility
     payload["report_sha256"] = canonical_sha256(payload)
     return payload
 
@@ -317,6 +321,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--expected-plan-sha256", metavar="SHA256", help="require an independently retained v2 plan digest before agent construction")
     gate = p.add_argument_group("gate")
     gate.add_argument("--min-security", type=float)
+    gate.add_argument("--min-utility", type=float, help="optional point-rate floor for task utility under attack, separate from security")
     gate.add_argument("--min-runs", type=int, help="minimum measured observations per cell")
     gate.add_argument("--statistic", choices=["point", "wilson_lower"], help="absolute gate statistic")
     gate.add_argument("--confidence", type=float, help="two-sided Wilson confidence, from 0.5 to 0.9999")

@@ -18,6 +18,7 @@ RULE_ID = "dspy-security-bench/LLM01-prompt-injection"
 COVERAGE_RULE_ID = "dspy-security-bench/missing-baseline-coverage"
 SAMPLE_RULE_ID = "dspy-security-bench/insufficient-sample-coverage"
 UNCERTAINTY_RULE_ID = "dspy-security-bench/uncertainty-threshold"
+UTILITY_RULE_ID = "dspy-security-bench/task-utility-threshold"
 OWASP_URI = "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
 STANDARDS = {
     "OWASP-LLM-Top-10-2025": "LLM01: Prompt Injection",
@@ -48,6 +49,8 @@ def render_terminal(report: ScanReport, use_color: bool = True) -> str:
         base = f"  (base {f.baseline_security:.0%})" if f.baseline_security is not None else ""
         row = f" {mark} {f.agent[:22]:<22} {f.defense[:14]:<14} {f.attack[:22]:<22} {f.security_rate:>8.0%}{base}"
         lines.append(row)
+        if f.utility_rate is not None:
+            lines.append(f"    task utility under attack={f.utility_rate:.2%}; point-rate floor={f.threshold:.2%}")
         if f.security_lower is not None:
             lines.append(f"    n={f.n_runs}; {f.confidence:.2%} Wilson [{f.security_lower:.2%}, {f.security_upper:.2%}]")
     lines.append(" " + "-" * 74)
@@ -89,7 +92,8 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
             continue  # only surface failures in the Security tab
         results.append({
             "ruleId": {"baseline_coverage": COVERAGE_RULE_ID, "sample_coverage": SAMPLE_RULE_ID,
-                       "uncertainty_threshold": UNCERTAINTY_RULE_ID}.get(f.finding_type, RULE_ID),
+                       "uncertainty_threshold": UNCERTAINTY_RULE_ID,
+                       "utility_threshold": UTILITY_RULE_ID}.get(f.finding_type, RULE_ID),
             "level": _SARIF_LEVEL.get(f.severity, "warning"),
             "message": {"text": f.message},
             "locations": [{
@@ -106,6 +110,7 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
                 "security_successes": f.security_successes,
                 "security_lower": f.security_lower, "security_upper": f.security_upper,
                 "confidence": f.confidence, "required_runs": f.required_runs,
+                **({"utility_rate": f.utility_rate} if f.utility_rate is not None else {}),
             },
         })
 
@@ -140,6 +145,11 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
                     "id": UNCERTAINTY_RULE_ID, "name": "UncertaintyThreshold",
                     "shortDescription": {"text": "The Wilson lower bound does not meet the configured threshold"},
                     "fullDescription": {"text": "A binomial sensitivity summary, not guaranteed population coverage or evidence of an observed successful attack."},
+                    "defaultConfiguration": {"level": "error"},
+                }, {
+                    "id": UTILITY_RULE_ID, "name": "TaskUtilityThreshold",
+                    "shortDescription": {"text": "Task completion under attack does not meet the owner-defined floor"},
+                    "fullDescription": {"text": "A separate point-rate task utility requirement, not evidence of injection success or clean-task performance."},
                     "defaultConfiguration": {"level": "error"},
                 }],
             }},

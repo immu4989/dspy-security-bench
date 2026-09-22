@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Optional per-cell `min_utility` point-rate gates keep useful task completion
+  under attack separate from injection resistance, including distinct SARIF
+  findings, reviewed-plan binding, and v2 evidence replay. V1 security-only
+  evidence retains its exact contract and does not inherit a new requirement.
 - Scan-owned construction/execution error messages omit exception payloads that
   may contain private prompts or credentials while retaining phase and class.
 - Release archive checks now compare packaged source and license bytes against

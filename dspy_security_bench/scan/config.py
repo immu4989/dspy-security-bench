@@ -51,8 +51,12 @@ class GateSpec:
     min_runs: int = 1
     statistic: str = "point"           # absolute mode: point | wilson_lower
     confidence: float = 0.95           # two-sided interval confidence
+    min_utility: float | None = None   # optional separate point-rate floor under attack
 
     def validate(self) -> None:
+        if self.min_utility is not None and (isinstance(self.min_utility, bool)
+                or not isinstance(self.min_utility, Real) or not 0 <= self.min_utility <= 1):
+            raise ValueError("config: gate.min_utility must be a finite number between 0 and 1 or null")
         if self.mode not in ("absolute", "regression"):
             raise ValueError("config: gate.mode must be absolute|regression")
         if self.mode == "regression" and not self.baseline:
@@ -106,7 +110,7 @@ class ScanConfig:
         for name, section, allowed in (
             ("agent", agent, {"model", "import", "name"}),
             ("scan", scan, {"suites", "attacks", "defenses", "user_tasks", "injection_tasks"}),
-            ("gate", gate, {"mode", "min_security", "baseline", "max_regression", "warn_margin", "require_baseline_coverage", "min_runs", "statistic", "confidence"}),
+            ("gate", gate, {"mode", "min_security", "baseline", "max_regression", "warn_margin", "require_baseline_coverage", "min_runs", "statistic", "confidence", "min_utility"}),
             ("report", report, {"formats", "sarif_out", "json_out"}),
         ):
             if set(section) - allowed:
@@ -134,6 +138,7 @@ class ScanConfig:
                 min_runs=gate.get("min_runs", 1),
                 statistic=gate.get("statistic", "point"),
                 confidence=gate.get("confidence", 0.95),
+                min_utility=gate.get("min_utility"),
             ),
             report=ReportSpec(
                 formats=report.get("formats", ReportSpec().formats),

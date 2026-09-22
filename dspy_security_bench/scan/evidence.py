@@ -27,7 +27,7 @@ MAX_BYTES = 50_000_000
 IDENTITY_FIELDS = ("suite", "agent", "defense", "attack", "user_task_id", "injection_task_id")
 OUTCOME_FIELDS = ("utility", "security", "injection_succeeded")
 ROW_FIELDS = (*IDENTITY_FIELDS, *OUTCOME_FIELDS)
-POLICY_FIELDS = set(GateSpec.__dataclass_fields__) - {"baseline"} | {"fail_on"}
+POLICY_FIELDS = set(GateSpec.__dataclass_fields__) - {"baseline", "min_utility"} | {"fail_on"}
 CLAIM_BOUNDARY = (
     "This artifact retains declared task identities and binary case outcomes, not prompts, "
     "responses, credentials, or tool logs. Verification checks the declared matrix, counts, "
@@ -95,13 +95,17 @@ def expected_observation_keys(scope: dict) -> set[tuple[str, ...]]:
 def evidence_policy(gate: GateSpec, fail_on: str) -> dict:
     policy = asdict(gate)
     policy.pop("baseline")  # Local/private source paths are not export fields.
+    if policy["min_utility"] is None:
+        policy.pop("min_utility")
     policy["fail_on"] = fail_on
     return policy
 
 
 def _gate(policy: dict, baseline: dict | None) -> GateSpec:
-    if not isinstance(policy, dict) or set(policy) != POLICY_FIELDS:
+    if not isinstance(policy, dict) or set(policy) not in (POLICY_FIELDS, POLICY_FIELDS | {"min_utility"}):
         raise ValueError("evidence policy has missing or unknown fields")
+    if "min_utility" in policy and policy["min_utility"] is None:
+        raise ValueError("utility evidence policy requires a numeric floor")
     settings = {key: value for key, value in policy.items() if key != "fail_on"}
     gate = GateSpec(**settings, baseline="embedded" if baseline is not None else None)
     gate.validate()
@@ -142,9 +146,10 @@ def build_scan_evidence(scope: dict, policy: dict, observations: list[dict], bas
         ).reset_index()
         summaries.append((suite["suite"], cells))
     report = evaluate_scan_summaries(summaries, gate, scope, policy["fail_on"], baseline)
+    evidence_version = 2 if "min_utility" in policy else 1
     payload = {
-        "schema_version": 1, "evidence_type": "dspy-security-bench-scan-evidence",
-        "protocol_version": "scan-evidence-v1", "scope": scope, "policy": policy,
+        "schema_version": evidence_version, "evidence_type": "dspy-security-bench-scan-evidence",
+        "protocol_version": f"scan-evidence-v{evidence_version}", "scope": scope, "policy": policy,
         "baseline": baseline, "observations": ordered, "report": report.to_dict(),
         "claim_boundary": CLAIM_BOUNDARY,
     }

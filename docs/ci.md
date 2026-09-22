@@ -99,6 +99,34 @@ and use `scan verify` to recompute the case matrix and verdict offline. See the
 [scan evidence guide](scan-evidence.md) for privacy limits, digest pins, and the
 distinction between valid recomputation and satisfied requirements.
 
+### Keep task utility separate (on main)
+
+A system that refuses useful work can resist injections without being useful.
+Add an owner-selected utility floor alongside either security gate mode:
+
+```yaml
+gate:
+  mode: absolute
+  min_security: 0.90
+  min_utility: 0.80
+```
+
+The CLI equivalent is `--min-utility 0.80`. The optional floor is disabled by
+default, applies per suite/agent/defense/attack cell, and measures **task completion
+under attack**, not clean-task performance. It always uses the observed point
+rate, even when security uses a Wilson bound. No interval or statistical coverage
+is claimed for this utility floor. Missing or invalid utility measurements are
+errors, not assumed successes. Thresholds are inclusive; a shortfall is an error,
+not downgraded by the security `warn_margin`. `fail_on: never` still retains the
+shortfall while allowing exit 0.
+
+Security cannot compensate for failed utility, or vice versa. The separate
+SARIF rule identifies a utility shortfall without claiming injection success.
+Neither these two rates nor their conjunction proves clean-task utility,
+per-case joint success, or production fitness. Run clean-task controls separately.
+Evidence with this option uses `scan-evidence-v2`; older v1 evidence remains
+replayable unchanged and is not silently assigned a utility requirement.
+
 ### Sample size and uncertainty (on main)
 
 By default the absolute gate compares the observed rate (`statistic: point`).

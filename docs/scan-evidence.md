@@ -138,8 +138,13 @@ authenticate it. The command does not fetch keys, sign files, contact a service,
 or upload anything.
 
 Keep historical evidence and the revision that produced it. Exact replay is tied
-to the `scan-evidence-v1` output contract; changes to that contract require a new
-protocol version rather than silently rewriting archived evidence.
+to its versioned output contract rather than silently rewriting archived evidence.
+Security-only policies keep the frozen `scan-evidence-v1` contract. Setting the
+optional `min_utility` floor produces `scan-evidence-v2`, retaining its additional
+policy field and separate task-utility findings. V1 replay does not infer a new
+utility requirement. Both versions use the same minimal primitive observations
+and can be compared when their exact scopes match; source-policy changes remain
+visible. See [utility gate semantics](ci.md#keep-task-utility-separate-on-main).
 
 ## Compare an upgrade case by case
 
