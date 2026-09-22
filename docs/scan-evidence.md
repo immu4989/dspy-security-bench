@@ -4,6 +4,21 @@
 reviewer needs to check how a scan verdict was derived without accessing provider
 credentials or paying to run the model again.
 
+## Try it without credentials
+
+```bash
+dspy-security-bench scan demo --out fictional-scan-review
+```
+
+Open `fictional-scan-review/review.html` directly in your browser. This creates
+five deterministic teaching files in a **new** directory: two evidence inputs,
+their comparison, an offline HTML review, and a README with replay commands and
+expected exit codes. No model, provider, or network call is made. All six cases
+are invented, clearly labeled, and must not be presented as measured results.
+Unchanged aggregate scores hide one new security failure and one new utility
+failure; the matched-case review exposes both. Existing destinations are refused.
+Unexpected filesystem failures may leave partial output for inspection.
+
 ## Capture and verify
 
 After reviewing the scan plan and authorizing its model/tool use:

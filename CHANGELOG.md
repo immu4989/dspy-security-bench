@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- `scan demo --out NEW_DIRECTORY` provides a deterministic, explicitly fictional
+  offline walkthrough of evidence replay and case-level upgrade review, without
+  credentials, model calls, or overwriting existing review files.
 - Matched scan comparisons can render a self-contained, script-free HTML review
   with separate security/utility changes, source-policy context, accessible case
   tables, print styling, bounded previews, and explicit non-approval boundaries.

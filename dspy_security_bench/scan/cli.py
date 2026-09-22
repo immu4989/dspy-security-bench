@@ -326,6 +326,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "demo":
+        from dspy_security_bench.scan.demo import main as demo_main
+
+        return demo_main(argv[1:])
     if argv and argv[0] == "verify":
         from dspy_security_bench.scan.evidence import main as verify_main
 
