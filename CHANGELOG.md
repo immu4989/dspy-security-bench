@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- V2 preflight plans bind configured agent selection and accept an independently
+  retained `--expected-plan-sha256` before agent construction, detecting scope,
+  threshold, baseline, and selection drift without claiming code provenance.
 - `scan demo --out NEW_DIRECTORY` provides a deterministic, explicitly fictional
   offline walkthrough of evidence replay and case-level upgrade review, without
   credentials, model calls, or overwriting existing review files.

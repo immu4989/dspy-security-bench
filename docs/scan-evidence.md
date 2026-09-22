@@ -21,6 +21,26 @@ Unexpected filesystem failures may leave partial output for inspection.
 
 ## Capture and verify
 
+For an owner-reviewed run, first retain a v2 preflight plan:
+
+```bash
+dspy-security-bench scan --config .dspy-security-bench.yaml --plan-json reviewed-plan.json
+# Independently retain report_sha256 from the reviewed plan, then supply it:
+dspy-security-bench scan --config .dspy-security-bench.yaml \
+  --expected-plan-sha256 "$REVIEWED_PLAN_SHA256" --evidence-json scan-evidence.json
+```
+
+The optional pin rejects changed scope, gate settings, baseline snapshot, or
+agent model/import/name selection **before agent construction**. V2 plans add a
+digest of the configured agent selection, so changing a model behind a stable
+display name changes the plan. Output destinations do not affect its identity.
+V1 plan digests are not accepted as v2 plans; regenerate and review them.
+The pin is not authenticated approval or code provenance: it does not bind
+imported source, dependencies beyond the declared version, environment variables,
+provider-side model changes, or network inputs. Pin those separately. A digest
+of a guessable identifier is not a confidentiality guarantee, and reading the
+pin from an unreviewed plan in the same job defeats the independent review.
+
 After reviewing the scan plan and authorizing its model/tool use:
 
 ```bash

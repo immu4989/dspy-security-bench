@@ -216,7 +216,12 @@ def build_scan_scope(cfg: ScanConfig, plan: list[dict]) -> dict:
 def build_scan_plan_report(cfg: ScanConfig, plan: list[dict], scope: dict, baseline_document: dict | None = None) -> dict:
     """Produce reviewable preflight data, never an execution or safety result."""
     payload = {
-        "schema_version": 1, "report_type": "DSPy Security Bench scan plan",
+        "schema_version": 2, "report_type": "DSPy Security Bench scan plan",
+        "protocol_version": "scan-plan-v2",
+        "agent_selection_sha256": canonical_sha256({
+            "model": cfg.agent.model, "import_path": cfg.agent.import_path,
+            "name": cfg.agent.resolved_name(),
+        }),
         "scope": scope, "scope_sha256": canonical_sha256(scope), "matrix": plan,
         "gate": {"mode": cfg.gate.mode, "min_security": cfg.gate.min_security,
                  "max_regression": cfg.gate.max_regression, "warn_margin": cfg.gate.warn_margin,
@@ -257,6 +262,8 @@ def build_gate_feasibility(cfg: ScanConfig, plan: list[dict]) -> dict:
 
 
 def _validate_output_paths(cfg: ScanConfig, args) -> None:
+    if args.expected_plan_sha256 is not None and not re.fullmatch("[0-9a-f]{64}", args.expected_plan_sha256):
+        raise ValueError("expected plan digest must be 64 lowercase hexadecimal characters")
     if args.evidence_json and (args.plan or args.plan_json or args.write_baseline):
         raise ValueError("evidence export requires a scan, not plan or write-baseline mode")
     if args.plan_json:
@@ -306,6 +313,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     s.add_argument("--plan", action="store_true", help="show the exact run matrix without LM calls")
     s.add_argument("--plan-json", metavar="PATH", help="write a new JSON preflight plan and exit without model calls")
+    s.add_argument("--expected-plan-sha256", metavar="SHA256", help="require an independently retained v2 plan digest before agent construction")
     gate = p.add_argument_group("gate")
     gate.add_argument("--min-security", type=float)
     gate.add_argument("--min-runs", type=int, help="minimum measured observations per cell")
@@ -372,10 +380,14 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as e:
         print(f"[scan] could not plan run: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
+    plan_report = build_scan_plan_report(cfg, plan, scan_scope, baseline_document)
+    if args.expected_plan_sha256 is not None and args.expected_plan_sha256 != plan_report["report_sha256"]:
+        print("[scan] reviewed plan mismatch; no agent was constructed. Review a new plan before running.", file=sys.stderr)
+        return 2
     if args.plan or args.plan_json:
         if args.plan_json:
             try:
-                payload = build_scan_plan_report(cfg, plan, scan_scope, baseline_document)
+                payload = plan_report
                 with Path(args.plan_json).open("x", encoding="utf-8") as stream:
                     stream.write(json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n")
             except (OSError, ValueError) as e:
