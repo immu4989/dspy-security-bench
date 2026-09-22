@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- The website includes a no-install, explicitly fictional six-case scan review.
+  Its HTML and retained JSON are tested against native deterministic generation,
+  showing newly failing cases hidden by unchanged aggregate scores.
 - The reference LiteLLM agent propagates final-answer provider failures instead
   of measuring an empty fallback, rejects malformed tool arguments without
   invoking default actions, and validates loop/retry limits and duplicate tool

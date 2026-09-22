@@ -27,6 +27,16 @@ from scripts.generate_site_data import (
 SITE = Path(DEFAULT_OUT).parent
 
 
+def test_public_scan_walkthrough_matches_native_offline_demo():
+    from dspy_security_bench.scan.demo import build_demo_artifacts
+
+    for name, content in build_demo_artifacts().items():
+        assert (SITE / "scan-review" / name).read_text(encoding="utf-8") == content.rstrip() + "\n"
+    html = (SITE / "index.html").read_text()
+    assert 'href="scan-review/review.html"' in html
+    assert "Fictional example · no installation" in html
+
+
 def test_task_first_entry_points_identify_main_only_workflows():
     html = (SITE / "index.html").read_text()
     assert 'href="#start-here"' in html
