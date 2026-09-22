@@ -45,6 +45,31 @@ Directionality is explicit: higher security/utility rates are better, while
 findings, severity counts, unsafe effects, cost, latency, review time, recovery
 time, and portability rework are lower-is-better.
 
+### Retained agent scans (on main)
+
+Native `scan-evidence-v1` and utility-gated v2 captures are supported as evidence
+kind `scan`. Every capture is replayed before normalization. Snapshots bind the
+exact scope, gate policy, retained baseline, and evidence protocol; metrics keep
+per-cell security and utility rates separate, plus the original requirement
+outcome as 0 or 1. Structured cell identities are hashed into metric keys to
+avoid ambiguous delimiters; this is not a confidentiality guarantee.
+
+```bash
+dspy-security-bench watch baseline before-scan.json --label before --out before-snapshot.json
+dspy-security-bench watch baseline after-scan.json --label after --out after-snapshot.json
+dspy-security-bench watch verify after-snapshot.json --evidence after-scan.json
+dspy-security-bench watch compare before-snapshot.json after-snapshot.json --out scan-drift.json
+```
+
+Controller plans can use `--kind scan` with retained scan evidence. They do not
+execute agents or call providers. Policy/scope changes require review rather
+than being treated as performance improvements. **Within threshold describes
+change, not acceptance**: two unchanged failing scans still have requirements
+equal to 0. Use `scan verify ... --fail-on-shortfalls` for absolute requirements.
+Rate comparisons also cannot detect offsetting case changes. Use
+[`scan compare`](scan-evidence.md) for matched-case new failures; it complements,
+rather than being replaced by, a cross-evidence freshness/drift dashboard.
+
 DefenderTwin snapshots additionally normalize attack-path closure, weakness
 remediation, mission continuity, evidence completeness, trusted-defender gate,
 rollback, introduced risk, and declared disruption into comparable numeric

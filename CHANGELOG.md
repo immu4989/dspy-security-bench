@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Retained scan evidence joins ContinuousProof through native replay, exact
+  scope/policy/baseline identity, and separate per-cell security/utility metrics.
+  Observe-only review does not rerun agents or replace matched-case comparison.
 - ContinuousProof observation envelopes now recompute job identity, freshness,
   reasons, drift, and summary counts; timelines bind exact observation times.
   Rehashed favorable summaries, future-dated evidence, boolean coercions, and

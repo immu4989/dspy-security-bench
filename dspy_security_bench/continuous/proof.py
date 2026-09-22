@@ -237,6 +237,14 @@ def verify_snapshot_source(snapshot: Mapping[str, Any], evidence: Mapping[str, A
 
 
 def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
+    if payload.get("evidence_type") == "dspy-security-bench-scan-evidence":
+        from dspy_security_bench.scan.evidence import verify_scan_evidence
+
+        try:
+            verify_scan_evidence(payload)
+        except (TypeError, ValueError):
+            return "scan", ("scan evidence does not recompute",)
+        return "scan", ()
     report_type = payload.get("report_type")
     if report_type == "AgentGraphTwin / Multi-agent authorization-path assurance":
         from dspy_security_bench.graph.benchmark import verify_graph_report
@@ -307,6 +315,13 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
 
 
 def _identity(payload: Mapping[str, Any]) -> dict[str, Any]:
+    if payload.get("evidence_type") == "dspy-security-bench-scan-evidence":
+        return {
+            "scope_sha256": canonical_sha256(payload["scope"]),
+            "scan_policy_sha256": canonical_sha256(payload["policy"]),
+            "scan_baseline_sha256": canonical_sha256(payload["baseline"]),
+            "scan_protocol_version": payload["protocol_version"],
+        }
     fields = (
         "protocol_sha256",
         "scenario_sha256",
@@ -332,6 +347,19 @@ def _identity(payload: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _comparable_summary(payload: Mapping[str, Any], kind: str) -> Mapping[str, Any]:
+    if kind == "scan":
+        # Hash structured cell identities to avoid delimiter collisions and keep
+        # literal user labels out of metric names. Scope binds the full matrix.
+        cells: dict[str, list] = {}
+        for row in payload["observations"]:
+            cell = canonical_sha256([row[field] for field in ("suite", "agent", "defense", "attack")])
+            cells.setdefault(cell, []).append(row)
+        return {
+            "requirements_met": float(payload["report"]["requirements_met"]),
+            "cells": {key: {axis + "_rate": sum(row[axis] for row in rows) / len(rows)
+                            for axis in ("security", "utility")}
+                      for key, rows in sorted(cells.items())},
+        }
     if kind == "value":
         metrics = payload.get("metrics", {})
         return metrics if isinstance(metrics, Mapping) else {}
