@@ -1,12 +1,14 @@
 """Audit local release archives against Git-tracked source paths, without extraction.
 
-This checks inventory, not content authenticity, secret absence, or reproducibility.
+The CLI checks inventory and source-file byte identity, not authenticity, secret
+absence, build reproducibility, or the semantics of generated package metadata.
 Run from a reviewed checkout after building, before uploading any distributions.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 import stat
 import subprocess
@@ -27,7 +29,32 @@ def _safe_name(name: str) -> bool:
     )
 
 
-def check_archive(path: Path, tracked: set[str], version: str) -> int:
+def _digest(stream) -> str:
+    digest = hashlib.sha256()
+    consumed = 0
+    while chunk := stream.read(1024 * 1024):
+        consumed += len(chunk)
+        if consumed > MAX_EXPANDED_BYTES:
+            raise ValueError("source file exceeds the supported content budget")
+        digest.update(chunk)
+    return digest.hexdigest()
+
+
+def source_digests(root: Path, tracked: set[str]) -> dict[str, str]:
+    """Snapshot reviewed checkout bytes; never follow source-file symlinks."""
+    result = {}
+    for name in sorted(tracked):
+        path = root / name
+        if not _safe_name(name) or path.is_symlink() or not path.is_file():
+            raise ValueError("tracked source must contain safe regular files")
+        if any((root / parent).is_symlink() for parent in Path(name).parents if parent != Path(".")):
+            raise ValueError("tracked source must not traverse symbolic links")
+        with path.open("rb") as stream:
+            result[name] = _digest(stream)
+    return result
+
+
+def check_archive(path: Path, tracked: set[str], version: str, expected_digests: dict[str, str] | None = None) -> int:
     """Reject unexpected members, links, duplicates, and missing package resources."""
     if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_ARCHIVE_BYTES:
         raise ValueError("distribution must be a bounded regular file")
@@ -35,6 +62,12 @@ def check_archive(path: Path, tracked: set[str], version: str) -> int:
     files: set[str] = set()
     seen: set[str] = set()
     expanded = 0
+
+    def verify_content(name: str, stream) -> None:
+        if expected_digests is not None:
+            expected = expected_digests.get(name)
+            if expected is None or _digest(stream) != expected:
+                raise ValueError("distribution source bytes differ from the reviewed checkout")
 
     def accept(name: str, size: int) -> None:
         nonlocal expanded
@@ -58,6 +91,9 @@ def check_archive(path: Path, tracked: set[str], version: str) -> int:
                     raise ValueError("source archive contains a path not tracked by Git")
                 if relative.startswith("assets/social/"):
                     raise ValueError("source archive contains local promotional material")
+                if relative in tracked:
+                    with archive.extractfile(member) as stream:
+                        verify_content(relative, stream)
                 files.add(relative)
         required = {"PKG-INFO", "pyproject.toml", "README.md", "LICENSE", "NOTICE"}
     elif path.name == f"{prefix}-py3-none-any.whl":
@@ -70,11 +106,16 @@ def check_archive(path: Path, tracked: set[str], version: str) -> int:
                     raise ValueError("wheel must contain regular files only")
                 name = member.filename
                 if name.startswith(PACKAGE) and name in tracked:
+                    with archive.open(member) as stream:
+                        verify_content(name, stream)
                     files.add(name)
                 elif name.startswith(info_prefix):
                     relative = name[len(info_prefix):]
                     if relative not in GENERATED_WHEEL | {"licenses/LICENSE", "licenses/NOTICE"}:
                         raise ValueError("wheel contains unexpected generated metadata")
+                    if relative.startswith("licenses/"):
+                        with archive.open(member) as stream:
+                            verify_content(relative.removeprefix("licenses/"), stream)
                     files.add(name)
                 else:
                     raise ValueError("wheel contains an unexpected or untracked path")
@@ -101,6 +142,7 @@ def main(argv: list[str] | None = None) -> int:
         tracked = set(subprocess.check_output(
             ["git", "ls-files", "-z"], cwd=root
         ).decode("utf-8").rstrip("\x00").split("\x00"))
+        expected_digests = source_digests(root, tracked)
         distributions = sorted(args.directory.iterdir())
         # uv creates this exact one-byte marker in its output directory. It is
         # not a distribution; allow no other sidecar or hidden file.
@@ -117,8 +159,8 @@ def main(argv: list[str] | None = None) -> int:
         if suffixes != {".whl", ".gz"}:
             raise ValueError("expected exactly one wheel and one source archive")
         for path in distributions:
-            count = check_archive(path, tracked, version.group(1))
-            print(f"{path.name}: {count} approved inventory paths")
+            count = check_archive(path, tracked, version.group(1), expected_digests)
+            print(f"{path.name}: {count} approved inventory paths; tracked source bytes match checkout")
     except (OSError, ValueError, tarfile.TarError, zipfile.BadZipFile, subprocess.CalledProcessError):
         # Do not echo unexpected archive filenames or private paths from failures.
         print("Distribution inventory check failed; review build inputs and archive membership.")

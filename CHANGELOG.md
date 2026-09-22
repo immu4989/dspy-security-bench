@@ -10,6 +10,8 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Release archive checks now compare packaged source and license bytes against
+  the checkout, rejecting substituted content at otherwise valid member paths.
 - V2 preflight plans bind configured agent selection and accept an independently
   retained `--expected-plan-sha256` before agent construction, detecting scope,
   threshold, baseline, and selection drift without claiming code provenance.

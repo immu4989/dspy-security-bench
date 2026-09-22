@@ -17,8 +17,10 @@ with PyPI Trusted Publishing. No long-lived PyPI token is stored in GitHub.
 1. Move the release notes out of `Unreleased` in `CHANGELOG.md`.
 2. Set `project.version` in `pyproject.toml` and run `uv lock`.
 3. Run `pytest` and `ruff check dspy_security_bench/ tests/`.
-4. Build locally with `uv build` and inspect the artifacts if package data
-   changed.
+4. Build locally with `uv build`, then run
+   `python scripts/check_distribution_contents.py dist`. The guard checks paths,
+   links, duplicates, missing package resources, and exact source-file SHA-256
+   identity against the local checkout without extracting archive members.
 5. If the ProofRun reusable workflow changed, confirm its immutable engine `ref`
    matches the release tag and run the composite-action smoke workflow.
 6. Create and push a matching tag, for example `v0.19.0` for version `0.19.0`.
@@ -31,3 +33,11 @@ permissioned publish job begins. Consumers can verify downloaded artifacts with
 `gh attestation verify FILE -R immu4989/dspy-security-bench`; provenance links a
 file to the workflow and source commit but is not a claim that the package is
 free of vulnerabilities.
+
+The distribution guard compares tracked source bytes in both archives, plus
+wheel license files, to the checkout. This catches substituted code or schemas
+even when the member names look correct. Generated metadata is inventory-checked
+but is not compared to a source file. This is a local build consistency check,
+not independent source authentication, a secret scanner, or a reproducible-build
+claim. Use a reviewed, clean release checkout; attestations establish the
+separate workflow/source association.

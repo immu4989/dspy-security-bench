@@ -18,7 +18,7 @@ TRACKED = {
 }
 
 
-def sdist(tmp_path, *, omit=None, extra=None, kind=tarfile.REGTYPE):
+def sdist(tmp_path, *, omit=None, extra=None, kind=tarfile.REGTYPE, contents=None):
     path = tmp_path / f"{PREFIX}.tar.gz"
     names = sorted(TRACKED | {"PKG-INFO"})
     if omit:
@@ -26,7 +26,9 @@ def sdist(tmp_path, *, omit=None, extra=None, kind=tarfile.REGTYPE):
     with tarfile.open(path, "w:gz") as archive:
         for name in names:
             member = tarfile.TarInfo(f"{PREFIX}/{name}")
-            archive.addfile(member, io.BytesIO())
+            data = (contents or {}).get(name, b"")
+            member.size = len(data)
+            archive.addfile(member, io.BytesIO(data))
         if extra:
             member = tarfile.TarInfo(extra)
             member.type = kind
@@ -35,7 +37,7 @@ def sdist(tmp_path, *, omit=None, extra=None, kind=tarfile.REGTYPE):
     return path
 
 
-def wheel(tmp_path, *, omit=None, extra=None, mode=None):
+def wheel(tmp_path, *, omit=None, extra=None, mode=None, contents=None):
     path = tmp_path / f"{PREFIX}-py3-none-any.whl"
     names = sorted(name for name in TRACKED if name.startswith("dspy_security_bench/"))
     names += [f"{PREFIX}.dist-info/{name}" for name in (
@@ -45,7 +47,7 @@ def wheel(tmp_path, *, omit=None, extra=None, mode=None):
         names.remove(omit)
     with zipfile.ZipFile(path, "w") as archive:
         for name in names:
-            archive.writestr(name, "")
+            archive.writestr(name, (contents or {}).get(name, b""))
         if extra:
             member = zipfile.ZipInfo(extra)
             if mode is not None:
@@ -117,10 +119,50 @@ def test_cli_handles_uv_marker_without_ignoring_arbitrary_files(tmp_path, monkey
     scripts.mkdir()
     monkeypatch.setattr(inventory, "__file__", str(scripts / "check_distribution_contents.py"))
     (tmp_path / "pyproject.toml").write_text('[project]\nversion = "0.19.0"\n')
+    for name in TRACKED - {"pyproject.toml"}:
+        target = tmp_path / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(b"")
     monkeypatch.setattr(inventory.subprocess, "check_output", lambda *a, **k: "\0".join(TRACKED).encode())
     dist = tmp_path / "dist"
     dist.mkdir()
-    sdist(dist)
+    sdist(dist, contents={"pyproject.toml": (tmp_path / "pyproject.toml").read_bytes()})
     wheel(dist)
     (dist / ".gitignore").write_bytes(marker)
     assert inventory.main([str(dist)]) == expected
+
+
+@pytest.mark.parametrize("builder", [sdist, wheel])
+def test_existing_source_path_with_substituted_bytes_is_rejected(tmp_path, builder):
+    import hashlib
+
+    expected = {name: hashlib.sha256(b"").hexdigest() for name in TRACKED}
+    path = builder(tmp_path, contents={"dspy_security_bench/__init__.py": b"unexpected code"})
+    with pytest.raises(ValueError, match="source bytes differ"):
+        check_archive(path, TRACKED, "0.19.0", expected)
+
+
+@pytest.mark.parametrize("builder", [sdist, wheel])
+def test_matching_source_bytes_are_accepted(tmp_path, builder):
+    import hashlib
+
+    expected = {name: hashlib.sha256(b"").hexdigest() for name in TRACKED}
+    assert check_archive(builder(tmp_path), TRACKED, "0.19.0", expected) > 0
+
+
+def test_wheel_license_bytes_are_checked(tmp_path):
+    import hashlib
+
+    expected = {name: hashlib.sha256(b"").hexdigest() for name in TRACKED}
+    path = wheel(tmp_path, contents={f"{PREFIX}.dist-info/licenses/LICENSE": b"wrong license"})
+    with pytest.raises(ValueError, match="source bytes differ"):
+        check_archive(path, TRACKED, "0.19.0", expected)
+
+
+def test_source_snapshot_refuses_symlink_parent(tmp_path):
+    actual = tmp_path / "actual"
+    actual.mkdir()
+    (actual / "file.py").write_text("source")
+    (tmp_path / "link").symlink_to(actual, target_is_directory=True)
+    with pytest.raises(ValueError, match="symbolic links"):
+        inventory.source_digests(tmp_path, {"link/file.py"})
