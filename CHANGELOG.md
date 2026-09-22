@@ -10,6 +10,8 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Scan-owned construction/execution error messages omit exception payloads that
+  may contain private prompts or credentials while retaining phase and class.
 - Release archive checks now compare packaged source and license bytes against
   the checkout, rejecting substituted content at otherwise valid member paths.
 - V2 preflight plans bind configured agent selection and accept an independently

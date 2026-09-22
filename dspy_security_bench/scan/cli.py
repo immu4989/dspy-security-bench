@@ -409,7 +409,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         agent = _resolve_agent(cfg.agent)
     except Exception as e:
-        print(f"[scan] could not build agent: {type(e).__name__}: {e}", file=sys.stderr)
+        print(f"[scan] could not build agent ({type(e).__name__}); exception details withheld from shared diagnostics", file=sys.stderr)
         return 2
 
     agent_name = cfg.agent.resolved_name()
@@ -435,7 +435,7 @@ def main(argv: list[str] | None = None) -> int:
             summary["_suite"] = suite
             all_summaries.append((suite, summary))
     except Exception as e:
-        print(f"[scan] benchmark run failed: {type(e).__name__}: {e}", file=sys.stderr)
+        print(f"[scan] benchmark run failed ({type(e).__name__}); exception details withheld from shared diagnostics", file=sys.stderr)
         return 2
 
     # Write-baseline mode: persist and exit 0.

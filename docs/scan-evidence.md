@@ -107,6 +107,13 @@ an agent/SDK/evaluator remain unobservable here; deliberate AgentDojo abort
 handling retains its environment-based evaluation. Existing raw provider/trace
 logging is outside the content-minimal export guarantee.
 
+Scan-owned diagnostics for agent construction and benchmark execution include
+the failure phase and exception class, but omit exception messages that could
+contain provider requests, credentials, or private tool data. This does not
+silence logs, output, or trace files emitted directly by agents and dependencies.
+Inspect those only within an appropriately controlled environment; do not paste
+unreviewed exception payloads into public CI logs or issues.
+
 V1 evidence remains replayable under its original scope. Matched comparison and
 scope-bound baseline checks reject mixed measurement protocols. The generic and
 DSPy runners require fresh execution rather than trusting legacy AgentDojo cache

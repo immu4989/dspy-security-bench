@@ -109,7 +109,7 @@ def test_execution_error_cli_returns_two_without_publishing_a_gate(monkeypatch, 
     output, evidence = tmp_path / "report.json", tmp_path / "evidence.json"
     assert main(["--agent-model", "fixture", "--json", str(output), "--evidence-json", str(evidence)]) == 2
     assert not output.exists() and not evidence.exists()
-    assert "no binary outcome" in capsys.readouterr().err
+    assert "BenchmarkExecutionError" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("outcome", [None, (True,), (True, 0), (1, False), [True, False], (True, False, True)])
