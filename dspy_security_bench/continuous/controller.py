@@ -9,6 +9,7 @@ from typing import Any
 
 from dspy_security_bench.continuous.proof import (
     SNAPSHOT_TYPE,
+    _finite_number,
     build_evidence_snapshot,
     compare_evidence,
     verify_continuous_proof,
@@ -87,7 +88,7 @@ def verify_plan(payload: Mapping[str, Any]) -> tuple[str, ...]:
     if set(payload) != _PLAN_FIELDS:
         errors.append("observation plan fields are incomplete or unsupported")
     if (
-        payload.get("schema_version") != 1
+        type(payload.get("schema_version")) is not int or payload.get("schema_version") != 1
         or payload.get("controller_type") != PLAN_TYPE
         or payload.get("controller_version") != CONTROLLER_VERSION
         or payload.get("mode") != "observe_only"
@@ -110,13 +111,15 @@ def verify_plan(payload: Mapping[str, Any]) -> tuple[str, ...]:
         _safe(job.get("evidence_ref"), f"{label}.evidence_ref", errors)
         _safe(job.get("expected_evidence_kind"), f"{label}.expected_evidence_kind", errors)
         _timestamp(job.get("last_updated_at"), f"{label}.last_updated_at", errors)
+        if (_is_int(job.get("last_updated_at")) and _is_int(payload.get("evaluation_time"))
+                and job["last_updated_at"] > payload["evaluation_time"]):
+            errors.append(f"{label}.last_updated_at cannot be later than evaluation_time")
         max_age = job.get("max_age_seconds")
         if not _is_int(max_age) or not 1 <= max_age <= 31_536_000:
             errors.append(f"{label}.max_age_seconds must be between 1 and 31536000")
         regression = job.get("max_regression")
         if (
-            isinstance(regression, bool)
-            or not isinstance(regression, (int, float))
+            not _finite_number(regression)
             or regression < 0
         ):
             errors.append(f"{label}.max_regression must be a non-negative number")
@@ -180,8 +183,7 @@ def observe_plan(
                     reasons.append("regression")
         except (OSError, TypeError, ValueError) as exc:
             reasons.append("invalid_evidence")
-            # Bound diagnostic text and avoid source payloads or stack traces.
-            diagnostic = str(exc)[:300]
+            diagnostic = f"invalid evidence ({type(exc).__name__}); details withheld"
         else:
             diagnostic = "verified"
         observations.append(
@@ -197,6 +199,22 @@ def observe_plan(
                 "drift": drift,
             }
         )
+    summary = _observation_summary(plan, observations)
+    report: dict[str, Any] = {
+        "schema_version": 1,
+        "controller_type": OBSERVATION_TYPE,
+        "controller_version": CONTROLLER_VERSION,
+        "mode": "observe_only",
+        "plan": deepcopy(dict(plan)),
+        "summary": summary,
+        "observations": observations,
+        "claim_boundary": DISCLAIMER,
+    }
+    report["observation_sha256"] = canonical_sha256(report)
+    return report
+
+
+def _observation_summary(plan, observations) -> dict:
     policy = plan["owner_policy"]
     review_reasons = {
         "stale": policy["review_on_stale"],
@@ -209,13 +227,7 @@ def observe_plan(
         for observation in observations
         for reason in observation["reasons"]
     )
-    report: dict[str, Any] = {
-        "schema_version": 1,
-        "controller_type": OBSERVATION_TYPE,
-        "controller_version": CONTROLLER_VERSION,
-        "mode": "observe_only",
-        "plan": deepcopy(dict(plan)),
-        "summary": {
+    return {
             "status": "review_required" if review_required else "within_threshold",
             "job_count": len(observations),
             "review_count": sum(item["status"] == "review" for item in observations),
@@ -223,12 +235,7 @@ def observe_plan(
             "invalid_count": sum("invalid_evidence" in item["reasons"] for item in observations),
             "regression_count": sum("regression" in item["reasons"] for item in observations),
             "actions_taken": 0,
-        },
-        "observations": observations,
-        "claim_boundary": DISCLAIMER,
     }
-    report["observation_sha256"] = canonical_sha256(report)
-    return report
 
 
 def verify_observation(
@@ -240,7 +247,7 @@ def verify_observation(
         return tuple(dict.fromkeys(errors))
     expected = observe_plan(plan, evidence_loader)
     for field in sorted(set(expected) - {"observation_sha256"}):
-        if payload.get(field) != expected.get(field):
+        if canonical_sha256(payload.get(field)) != canonical_sha256(expected.get(field)):
             errors.append(f"{field} does not recompute")
     return tuple(dict.fromkeys(errors))
 
@@ -263,7 +270,7 @@ def verify_observation_envelope(payload: Mapping[str, Any]) -> tuple[str, ...]:
     if set(payload) != fields:
         errors.append("observation fields are incomplete or unsupported")
     if (
-        payload.get("schema_version") != 1
+        type(payload.get("schema_version")) is not int or payload.get("schema_version") != 1
         or payload.get("controller_type") != OBSERVATION_TYPE
         or payload.get("controller_version") != CONTROLLER_VERSION
         or payload.get("mode") != "observe_only"
@@ -274,6 +281,8 @@ def verify_observation_envelope(payload: Mapping[str, Any]) -> tuple[str, ...]:
     if not isinstance(plan, Mapping):
         return ("observation plan must be an object",)
     errors.extend(f"plan: {item}" for item in verify_plan(plan))
+    if errors:
+        return tuple(dict.fromkeys(errors))
     summary = payload.get("summary")
     if not isinstance(summary, Mapping) or summary.get("actions_taken") != 0:
         errors.append("observation summary must declare actions_taken equal to zero")
@@ -305,6 +314,8 @@ def verify_observation_envelope(payload: Mapping[str, Any]) -> tuple[str, ...]:
                     f"observations[{index}].snapshot: {item}"
                     for item in verify_continuous_proof(snapshot)
                 )
+                if snapshot.get("proof_type") != SNAPSHOT_TYPE:
+                    errors.append(f"observations[{index}].snapshot must be a snapshot, not a drift report")
                 if snapshot.get("evidence_sha256") != observation.get("evidence_sha256"):
                     errors.append(f"observations[{index}].evidence_sha256 does not match snapshot")
         drift = observation.get("drift")
@@ -316,6 +327,45 @@ def verify_observation_envelope(payload: Mapping[str, Any]) -> tuple[str, ...]:
                     f"observations[{index}].drift: {item}"
                     for item in verify_continuous_proof(drift)
                 )
+        job = plan["jobs"][index]
+        if observation.get("job_id") != job["job_id"] or observation.get("evidence_ref") != job["evidence_ref"]:
+            errors.append(f"observations[{index}] identity does not match its planned job")
+        stale = plan["evaluation_time"] - job["last_updated_at"] > job["max_age_seconds"]
+        reasons = ["stale"] if stale else []
+        expected_drift = None
+        if snapshot is None:
+            reasons.append("invalid_evidence")
+        elif isinstance(snapshot, Mapping) and not verify_continuous_proof(snapshot):
+            if snapshot["evidence_kind"] != job["expected_evidence_kind"]:
+                reasons.append("unexpected_evidence_kind")
+            if job["baseline"] is not None:
+                try:
+                    expected_drift = compare_evidence(job["baseline"], snapshot, max_regression=job["max_regression"])
+                except (TypeError, ValueError):
+                    reasons.append("invalid_evidence")
+                else:
+                    if expected_drift["status"] == "review":
+                        reasons.append("regression")
+        for name, expected in (("stale", stale), ("reasons", sorted(set(reasons))),
+                               ("status", "review" if reasons else "within_threshold"),
+                               ("drift", expected_drift)):
+            try:
+                same = canonical_sha256(observation.get(name)) == canonical_sha256(expected)
+            except (TypeError, ValueError):
+                same = False
+            if not same:
+                errors.append(f"observations[{index}].{name} does not recompute from the plan and snapshot")
+        diagnostic = observation.get("diagnostic")
+        if not isinstance(diagnostic, str) or len(diagnostic) > 300:
+            errors.append(f"observations[{index}].diagnostic must be bounded text")
+        elif "invalid_evidence" not in reasons and diagnostic != "verified":
+            errors.append(f"observations[{index}].diagnostic does not match valid evidence")
+    if not errors:
+        try:
+            if canonical_sha256(summary) != canonical_sha256(_observation_summary(plan, observations)):
+                errors.append("observation summary does not recompute from jobs and owner policy")
+        except (TypeError, ValueError):
+            errors.append("observation summary is not canonical JSON data")
     unsigned = dict(payload)
     claimed = unsigned.pop("observation_sha256", None)
     try:
@@ -390,7 +440,7 @@ def verify_timeline(payload: Mapping[str, Any]) -> tuple[str, ...]:
     if set(payload) != fields:
         errors.append("timeline fields are incomplete or unsupported")
     if (
-        payload.get("schema_version") != 1
+        type(payload.get("schema_version")) is not int or payload.get("schema_version") != 1
         or payload.get("controller_type") != TIMELINE_TYPE
         or payload.get("controller_version") != CONTROLLER_VERSION
         or payload.get("claim_boundary") != DISCLAIMER
@@ -416,7 +466,7 @@ def verify_timeline(payload: Mapping[str, Any]) -> tuple[str, ...]:
         if not isinstance(entry, Mapping) or set(entry) != expected_fields:
             errors.append(f"entries[{index}] fields are incomplete or unsupported")
             continue
-        if entry.get("sequence") != index + 1:
+        if not _is_int(entry.get("sequence")) or entry.get("sequence") != index + 1:
             errors.append(f"entries[{index}].sequence is not contiguous")
         if entry.get("previous_entry_sha256") != previous:
             errors.append(f"entries[{index}].previous_entry_sha256 breaks the chain")
@@ -435,8 +485,11 @@ def verify_timeline(payload: Mapping[str, Any]) -> tuple[str, ...]:
             )
             if entry.get("observation_sha256") != observation.get("observation_sha256"):
                 errors.append(f"entries[{index}].observation_sha256 does not match")
+            observation_plan = observation.get("plan")
+            if not isinstance(observation_plan, Mapping) or observed_at != observation_plan.get("evaluation_time"):
+                errors.append(f"entries[{index}].observed_at does not match the observation evaluation time")
         observation_digest = entry.get("observation_sha256")
-        if observation_digest in observation_digests:
+        if isinstance(observation_digest, str) and observation_digest in observation_digests:
             errors.append(f"entries[{index}].observation_sha256 is replayed")
         elif isinstance(observation_digest, str):
             observation_digests.add(observation_digest)

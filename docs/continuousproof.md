@@ -98,3 +98,17 @@ the full observation, its digest, the prior entry digest, a contiguous sequence,
 and a strictly increasing owner-supplied evaluation time. Duplicate observations
 are rejected. This establishes local tamper evidence;
 it does not authenticate the author or replace external signature trust.
+
+On main, stored observations are also checked against their embedded plan and
+snapshots: job identity, freshness, reasons, status, comparison results, and
+summary counts must recompute. A rehashed favorable summary cannot hide a stale
+job or a regression. Timeline timestamps must equal the embedded observation's
+evaluation time; future-dated evidence timestamps are rejected at planning.
+Controller-owned invalid-input diagnostics retain the exception class, not its
+potentially private message. Direct dependency logging is outside that boundary.
+
+Envelope verification and timeline checking still cannot authenticate the source
+or prove that a declared failure occurred. Use controller `verify` with retained
+evidence when available, and preserve independently pinned artifacts. Existing
+invalid-input observations may need a newly generated source-backed observation
+because diagnostic text is now deliberately withheld; keep historical originals.

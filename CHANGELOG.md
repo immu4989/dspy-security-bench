@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- ContinuousProof observation envelopes now recompute job identity, freshness,
+  reasons, drift, and summary counts; timelines bind exact observation times.
+  Rehashed favorable summaries, future-dated evidence, boolean coercions, and
+  nonfinite controller thresholds are rejected. Failure diagnostics omit values.
 - ContinuousProof rejects changed/empty metric coverage instead of silently
   comparing an intersection, rejects nonfinite thresholds and type-coerced
   verdicts, and supports native source reconstruction via `watch verify
