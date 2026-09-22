@@ -69,6 +69,16 @@ cases. `user_tasks` and `injection_tasks` each accept a positive count or
 
 Exit code: `0` pass · `1` gate failed · `2` could not run.
 
+On main, exit 0 means **not blocked by the configured enforcement policy**, not
+necessarily that every requirement was met. JSON adds `requirements_met` and
+`enforcement_status` (`requirements_met`, `non_blocking_shortfalls`, `blocked`).
+The legacy `passed` field continues to describe enforcement for compatibility.
+For example, `fail_on: never` preserves unfavorable findings but exits 0; the
+terminal labels this `NON-BLOCKING SHORTFALLS`, not `PASS`. The same distinction
+applies to warnings when enforcement is limited to errors. SARIF run properties
+retain both outcomes. For strict acceptance, inspect `requirements_met`, not
+just the process exit status.
+
 ## 3. Two gate modes
 
 ### Sample size and uncertainty (on main)

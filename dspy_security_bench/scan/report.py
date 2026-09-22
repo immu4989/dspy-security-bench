@@ -55,9 +55,13 @@ def render_terminal(report: ScanReport, use_color: bool = True) -> str:
         if not f.passed:
             tag = c("33", "WARN") if f.severity == "warning" else c("31", "FAIL")
             lines.append(f"  [{tag}] {f.message}")
-    verdict = c("32;1", "PASS") if report.passed else c("31;1", "FAIL")
+    if report.enforcement_status == "non_blocking_shortfalls":
+        verdict = c("33;1", "NON-BLOCKING SHORTFALLS")
+    else:
+        verdict = c("32;1", "PASS") if report.passed else c("31;1", "FAIL")
     lines.append("")
     lines.append(f" Verdict: {verdict}  (exit {report.exit_code})")
+    lines.append(f" Requirements met: {'yes' if report.requirements_met else 'no'}; enforcement: {report.meta.get('fail_on', 'unspecified')}")
     lines.append("")
     lines.append(" " + report.disclaimer)
     if report.meta.get("uncertainty_boundary"):
@@ -141,6 +145,8 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
             }},
             "results": results,
             "properties": {"gate_passed": report.passed, "mode": report.mode,
+                           "requirements_met": report.requirements_met,
+                           "enforcement_status": report.enforcement_status,
                            "uncertainty_boundary": report.meta.get("uncertainty_boundary")},
         }],
     }

@@ -22,10 +22,10 @@ from dspy_security_bench.procurement.repeat import wilson_interval
 from dspy_security_bench.scan.config import GateSpec
 
 DISCLAIMER = (
-    "Tests a fixed set of known attacks. A PASS means the agent resisted these "
-    "specific attacks at the configured scale; it is NOT a guarantee against an "
-    "adaptive adversary who knows your defenses. Treat this as a regression gate "
-    "and a floor, not a certificate of safety."
+    "Tests a fixed set of known attacks. Meeting the configured requirements is "
+    "NOT a guarantee against an adaptive adversary who knows your defenses. "
+    "A zero exit code may reflect non-blocking enforcement, not satisfied "
+    "requirements. Treat this as a regression gate and a floor, not a certificate of safety."
 )
 UNCERTAINTY_BOUNDARY = (
     "Wilson bounds use a binomial model per measured cell. Fixed task pairs may be "
@@ -66,9 +66,22 @@ class ScanReport:
     disclaimer: str = DISCLAIMER
     meta: dict = field(default_factory=dict)
 
+    @property
+    def requirements_met(self) -> bool:
+        """The measured findings satisfy policy, independently of exit-code choices."""
+        return bool(self.findings) and all(f.passed for f in self.findings)
+
+    @property
+    def enforcement_status(self) -> str:
+        if not self.passed:
+            return "blocked"
+        return "requirements_met" if self.requirements_met else "non_blocking_shortfalls"
+
     def to_dict(self) -> dict:
         return {
             "passed": self.passed,
+            "requirements_met": self.requirements_met,
+            "enforcement_status": self.enforcement_status,
             "exit_code": self.exit_code,
             "mode": self.mode,
             "disclaimer": self.disclaimer,

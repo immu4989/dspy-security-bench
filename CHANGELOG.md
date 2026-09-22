@@ -17,6 +17,9 @@ several of them changed published numbers.
   this is not population coverage, paired regression inference, or certification.
 
 ### Fixed
+- Scan JSON/SARIF distinguish requirement satisfaction from enforcement success.
+  Non-blocking shortfalls are no longer displayed as a terminal PASS; the legacy
+  `passed` field and exit codes retain their enforcement meaning.
 - Tagged releases rerun the offline test suite and Ruff with locked development
   dependencies before building, inventory-checking, attesting, or publishing.
 - Supplier portfolio IDs reject reserved Windows device names on every platform
