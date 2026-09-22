@@ -16,7 +16,7 @@ from pathlib import Path
 
 from dspy_security_bench.mission.loader import canonical_sha256
 from dspy_security_bench.scan.config import ScanConfig
-from dspy_security_bench.scan.gate import evaluate_gate
+from dspy_security_bench.scan.gate import evaluate_scan_summaries
 from dspy_security_bench.scan.report import emit
 
 log = logging.getLogger("dspy_security_bench.scan")
@@ -255,6 +255,8 @@ def build_gate_feasibility(cfg: ScanConfig, plan: list[dict]) -> dict:
 
 
 def _validate_output_paths(cfg: ScanConfig, args) -> None:
+    if args.evidence_json and (args.plan or args.plan_json or args.write_baseline):
+        raise ValueError("evidence export requires a scan, not plan or write-baseline mode")
     if args.plan_json:
         outputs = [Path(args.plan_json)]
     elif args.plan:
@@ -263,6 +265,8 @@ def _validate_output_paths(cfg: ScanConfig, args) -> None:
         outputs = [Path(args.write_baseline)]
     else:
         outputs = [Path(getattr(cfg.report, fmt + "_out")) for fmt in cfg.report.formats if fmt in {"json", "sarif"}]
+    if args.evidence_json:
+        outputs.append(Path(args.evidence_json))
     inputs = [Path(args.config)] if args.config else []
     if cfg.gate.baseline and not args.write_baseline:
         inputs.append(Path(cfg.gate.baseline))
@@ -276,6 +280,8 @@ def _validate_output_paths(cfg: ScanConfig, args) -> None:
                 raise ValueError("outputs must be distinct and must not overwrite input configuration or baseline")
     if args.plan_json and outputs[0].exists():
         raise ValueError("plan output already exists; use a new path")
+    if args.evidence_json and Path(args.evidence_json).exists():
+        raise ValueError("evidence output already exists; use a new path")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -311,11 +317,17 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--format", nargs="+", choices=["terminal", "json", "sarif"])
     r.add_argument("--sarif", help="write SARIF to this path")
     r.add_argument("--json", help="write JSON to this path")
+    r.add_argument("--evidence-json", metavar="PATH", help="save minimal case evidence to a new file for model-free 'scan verify' replay")
     r.add_argument("--no-color", action="store_true")
     return p
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "verify":
+        from dspy_security_bench.scan.evidence import main as verify_main
+
+        return verify_main(argv[1:])
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     args = build_parser().parse_args(argv)
 
@@ -336,6 +348,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         plan = build_scan_plan(cfg)
         scan_scope = build_scan_scope(cfg, plan)
+        if args.evidence_json:
+            from dspy_security_bench.scan.evidence import expected_observation_keys
+
+            expected_observation_keys(scan_scope)
         scope_verified = None
         if cfg.gate.mode == "regression" and not args.write_baseline:
             from dspy_security_bench.scan.gate import verify_baseline_scope
@@ -375,6 +391,7 @@ def main(argv: list[str] | None = None) -> int:
 
     agent_name = cfg.agent.resolved_name()
     all_summaries = []
+    all_observations = []
     try:
         for item in plan:
             suite = item["suite"]
@@ -387,6 +404,11 @@ def main(argv: list[str] | None = None) -> int:
                 injection_task_ids=item["injection_task_ids"],
             )
             summary = summarize(df)
+            if args.evidence_json:
+                from dspy_security_bench.scan.evidence import ROW_FIELDS
+
+                for row in df.to_dict(orient="records"):
+                    all_observations.append({field: suite if field == "suite" else row[field] for field in ROW_FIELDS})
             summary["_suite"] = suite
             all_summaries.append((suite, summary))
     except Exception as e:
@@ -414,36 +436,21 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[scan] wrote baseline ({len(cells)} cells) → {args.write_baseline}")
         return 0
 
-    # Gate each suite; combine findings.
-    from dspy_security_bench.scan.gate import UNCERTAINTY_BOUNDARY, ScanReport
-    combined_findings = []
-    worst_exit = 0
-    missing_baseline = 0
+    # Reuse the retained baseline snapshot instead of reopening a mutable path.
     try:
-        if not all_summaries:
-            raise ValueError("scan produced no suite summaries")
-        for suite, summary in all_summaries:
-            rep = evaluate_gate(summary, cfg.gate, suite=suite, fail_on=cfg.fail_on, scan_scope=scan_scope)
-            combined_findings.extend(rep.findings)
-            worst_exit = max(worst_exit, rep.exit_code)
-            missing_baseline += rep.meta["baseline_cells_missing"]
+        report = evaluate_scan_summaries(all_summaries, cfg.gate, scan_scope, cfg.fail_on, baseline_document)
     except (OSError, ValueError) as e:
         print(f"[scan] gate evaluation failed: {e}", file=sys.stderr)
         return 2
-    passed = worst_exit == 0
-    report = ScanReport(
-        findings=combined_findings, passed=passed, exit_code=worst_exit,
-        mode=cfg.gate.mode, meta={"suites": cfg.scan.suites, "fail_on": cfg.fail_on,
-            "statistic": cfg.gate.statistic, "min_runs": cfg.gate.min_runs,
-            "confidence": cfg.gate.confidence if cfg.gate.statistic == "wilson_lower" else None,
-            "uncertainty_boundary": UNCERTAINTY_BOUNDARY if cfg.gate.statistic == "wilson_lower" else None,
-            "baseline_cells_missing": missing_baseline,
-            "baseline_scope_verified": scope_verified,
-            "baseline_coverage_complete": missing_baseline == 0 if cfg.gate.mode == "regression" else None},
-    )
 
     config_path = args.config or ".dspy-security-bench.yaml"
     try:
+        if args.evidence_json:
+            from dspy_security_bench.scan.evidence import evidence_policy, write_scan_evidence
+
+            payload = write_scan_evidence(Path(args.evidence_json), scan_scope,
+                                          evidence_policy(cfg.gate, cfg.fail_on), all_observations, baseline_document)
+            print(f"[scan] retained evidence {payload['evidence_sha256']} → {args.evidence_json}")
         emit(report, cfg.report.formats, sarif_out=cfg.report.sarif_out,
              json_out=cfg.report.json_out, config_path=config_path, use_color=not args.no_color)
     except (OSError, ValueError) as e:

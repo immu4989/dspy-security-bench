@@ -17,6 +17,10 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Model-free replay of minimal scan evidence, including exact declared matrix
+  coverage, count-derived verdicts, baseline snapshots, independent digest pins,
+  and explicit separation between self-consistency and execution authenticity.
+
 - Count-backed scan gates with per-cell sample minima, optional two-sided Wilson
   lower bounds, preflight feasibility checks that prevent impossible paid runs,
   and separate sample/uncertainty findings with explicit inference limitations.

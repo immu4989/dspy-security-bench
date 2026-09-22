@@ -113,6 +113,14 @@ def load_baseline(path: str | Path) -> dict[str, float]:
 def load_baseline_document(path: str | Path) -> dict:
     """Read legacy rates or a scope-bound v2 baseline without trusting its digest."""
     data = read_json_object(Path(path), 2_000_000)
+    validate_baseline_document(data)
+    return data
+
+
+def validate_baseline_document(data: dict) -> None:
+    """Validate a retained baseline snapshot without reopening a mutable path."""
+    if not isinstance(data, dict):
+        raise ValueError("baseline must be an object")
     fields = set(data)
     if fields != {"security_by_cell"}:
         if fields != {"schema_version", "baseline_type", "scope", "scope_sha256", "security_by_cell"} or type(data.get("schema_version")) is not int or data["schema_version"] != 2 or data["baseline_type"] != "dspy-security-bench-scan-baseline":
@@ -130,7 +138,6 @@ def load_baseline_document(path: str | Path) -> dict:
             raise ValueError("baseline keys must contain suite, agent, defense, and attack")
         _cell_key(*parts)
         _rate(value, "baseline security rate")
-    return data
 
 
 def bind_baseline_scope(cells: dict[str, float], scope: dict) -> dict:
@@ -194,6 +201,7 @@ def evaluate_gate(
     suite: str,
     fail_on: str = "error",
     scan_scope: dict | None = None,
+    baseline_document: dict | None = None,
 ) -> ScanReport:
     """Apply the gate policy to a summary DataFrame (one row per cell).
 
@@ -208,7 +216,13 @@ def evaluate_gate(
         raise ValueError("Wilson gating requires measured integer security_successes, not rounded rates")
     if gate.statistic == "wilson_lower" and (summary["n_runs"] > 1_000_000_000).any():
         raise ValueError("Wilson gating supports at most one billion observations per cell")
-    baseline_document = load_baseline_document(gate.baseline) if gate.mode == "regression" else {}
+    if gate.mode == "regression":
+        baseline_document = load_baseline_document(gate.baseline) if baseline_document is None else baseline_document
+        validate_baseline_document(baseline_document)
+    else:
+        if baseline_document is not None:
+            raise ValueError("absolute gate does not accept a regression baseline")
+        baseline_document = {}
     scope_verified = verify_baseline_scope(baseline_document, scan_scope) if gate.mode == "regression" else None
     baseline = baseline_document.get("security_by_cell", {})
     findings: list[Finding] = []
@@ -307,4 +321,30 @@ def evaluate_gate(
               "uncertainty_boundary": UNCERTAINTY_BOUNDARY if gate.statistic == "wilson_lower" else None,
               "baseline_scope_verified": scope_verified,
               "baseline_coverage_complete": missing_baseline == 0 if gate.mode == "regression" else None},
+    )
+
+
+def evaluate_scan_summaries(
+    summaries: list[tuple[str, pd.DataFrame]], gate: GateSpec, scope: dict,
+    fail_on: str = "error", baseline_document: dict | None = None,
+) -> ScanReport:
+    """Use one retained baseline snapshot across every suite of a scan."""
+    if not summaries or len({suite for suite, _ in summaries}) != len(summaries):
+        raise ValueError("scan must contain nonempty, unique suite summaries")
+    if gate.mode == "regression" and baseline_document is None:
+        baseline_document = load_baseline_document(gate.baseline)
+    reports = [evaluate_gate(summary, gate, suite, fail_on, scope, baseline_document)
+               for suite, summary in summaries]
+    missing = sum(report.meta["baseline_cells_missing"] for report in reports)
+    code = max(report.exit_code for report in reports)
+    return ScanReport(
+        findings=[finding for report in reports for finding in report.findings],
+        passed=code == 0, exit_code=code, mode=gate.mode,
+        meta={"suites": [suite for suite, _ in summaries], "fail_on": fail_on,
+              "statistic": gate.statistic, "min_runs": gate.min_runs,
+              "confidence": gate.confidence if gate.statistic == "wilson_lower" else None,
+              "uncertainty_boundary": UNCERTAINTY_BOUNDARY if gate.statistic == "wilson_lower" else None,
+              "baseline_cells_missing": missing,
+              "baseline_scope_verified": reports[0].meta["baseline_scope_verified"],
+              "baseline_coverage_complete": missing == 0 if gate.mode == "regression" else None},
     )

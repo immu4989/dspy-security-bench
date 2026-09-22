@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Minimal scan evidence exports retain binary case outcomes, scope, policy, and
+  the preflight baseline snapshot. `scan verify` rejects missing/duplicate cases
+  and recomputes verdicts offline, with optional independent digest pinning and
+  a separate shortfall gate. No prompts, raw tool logs, or credentials are fields;
+  identities still require sharing review, and replay does not authenticate runs.
 - Scanner gates can require a per-cell minimum sample and use an optional
   count-backed two-sided Wilson lower bound. Plans expose best-case feasibility
   and impossible scopes stop before model construction. Sample and uncertainty

@@ -94,6 +94,11 @@ just the process exit status.
 
 ## 3. Two gate modes
 
+For a reviewer who cannot rerun the model, add `--evidence-json scan-evidence.json`
+and use `scan verify` to recompute the case matrix and verdict offline. See the
+[scan evidence guide](scan-evidence.md) for privacy limits, digest pins, and the
+distinction between valid recomputation and satisfied requirements.
+
 ### Sample size and uncertainty (on main)
 
 By default the absolute gate compares the observed rate (`statistic: point`).
