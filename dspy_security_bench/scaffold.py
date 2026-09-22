@@ -1,6 +1,8 @@
 """Project scaffolding for the five-minute CI quickstart."""
 from __future__ import annotations
 
+import json
+import re
 from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
@@ -47,26 +49,52 @@ def initialize_project(
     agent_import: str | None = None,
     include_workflow: bool = True,
     force: bool = False,
+    on_pull_request: bool = False,
 ) -> ScaffoldResult:
     """Create a scan config and optional GitHub Action without overwriting by default."""
-    root = Path(root)
+    root = Path(root).resolve()
+    selected = agent_import if agent_import is not None else model
+    if not isinstance(selected, str) or not selected.strip() or len(selected) > 512 or any(ord(c) < 32 or ord(c) == 127 for c in selected):
+        raise ValueError("agent model/import must be bounded single-line text")
+    if agent_import is not None and not re.fullmatch(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*:[A-Za-z_]\w*", agent_import):
+        raise ValueError("agent import must be a dotted module:callable")
     config_path = root / ".dspy-security-bench.yaml"
     targets = [(config_path, "config.yaml")]
     if include_workflow:
         targets.append((root / ".github/workflows/injection-scan.yml", "github-action.yml"))
 
-    agent_block = f"  import: {agent_import}" if agent_import else f"  model: {model}"
+    agent_block = f"  import: {json.dumps(agent_import)}" if agent_import else f"  model: {json.dumps(model)}"
     created: list[Path] = []
     skipped: list[Path] = []
+    pending: list[tuple[Path, str]] = []
     for path, template_name in targets:
+        cursor = path
+        while cursor != root:
+            if cursor.is_symlink():
+                raise ValueError("refusing to scaffold through a symbolic link")
+            if cursor != path and cursor.exists() and not cursor.is_dir():
+                raise ValueError("scaffold parent must be a directory")
+            cursor = cursor.parent
+        if path.exists() and not path.is_file():
+            raise ValueError("scaffold output must be a regular file")
         if path.exists() and not force:
             skipped.append(path)
             continue
-        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists() and path.stat().st_nlink > 1:
+            raise ValueError("refusing to overwrite a multiply linked scaffold file")
         content = _template(template_name).replace("{{ agent }}", agent_block)
-        content = content.replace("{{ provider env }}", _provider_env(model))
+        provider_env = (_provider_env(model) if agent_import is None else
+                        "          # Add only credentials explicitly required by your agent factory.")
+        content = content.replace("{{ provider env }}", provider_env)
+        if on_pull_request:
+            content = content.replace("  workflow_dispatch:\n", "  workflow_dispatch:\n  pull_request:\n")
         project_install = "          pip install -e .\n" if agent_import else ""
         content = content.replace("{{ project install }}", project_install)
-        path.write_text(content)
+        pending.append((path, content))
+
+    for path, content in pending:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w" if force else "x", encoding="utf-8") as stream:
+            stream.write(content)
         created.append(path)
     return ScaffoldResult(tuple(created), tuple(skipped))

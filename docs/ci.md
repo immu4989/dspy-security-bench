@@ -1,8 +1,9 @@
 # CI gate: catch injection-safety regressions in a PR
 
 `dspy-security-bench scan` runs the injection benchmark against your agent,
-applies a pass/fail policy, and exits non-zero when the agent is unsafe — so
-CI blocks the merge. It renders findings to your terminal, to JSON, and to
+applies an owner-defined policy, and exits non-zero when that policy blocks
+the measured result. Your branch rules determine whether CI blocks a merge.
+It renders findings to your terminal, to JSON, and to
 **SARIF**, which GitHub ingests natively into the Security tab.
 
 The motivating case is a real one this benchmark documented: upgrading a base
@@ -27,8 +28,20 @@ dspy-security-bench init --model openai/gpt-4o-mini
 dspy-security-bench init --agent mypkg.agents:build
 ```
 
-Existing files are never overwritten unless you pass `--force`. You can also
-copy the templates manually:
+On main, the generated workflow starts with `workflow_dispatch` only. Review
+the plan, provider budget, agent tool permissions, and secret access, then run
+it manually from GitHub Actions. Use `init --on-pull-request` to explicitly
+enable automatic PR scans. Do not enable this for untrusted PR code with
+production credentials. Custom agent factories no longer receive a guessed
+OpenAI secret; add only the credentials they actually require.
+
+Existing files are never overwritten unless you pass `--force`. Symlinked
+outputs/parents, non-file outputs, and forced hard-link overwrites are rejected
+before any file is created. Model identifiers are quoted as YAML strings,
+including values such as `null` and names containing `#`; multiline identifiers
+and malformed `module:callable` references are rejected. Preflight is not a
+filesystem sandbox against concurrent local mutation, and an I/O failure can
+still leave a partial scaffold. You can also copy the templates manually:
 
 Copy [`examples/.dspy-security-bench.yaml`](../examples/.dspy-security-bench.yaml)
 to your repo root and point it at your agent — either a model (uses the

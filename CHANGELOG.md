@@ -17,6 +17,10 @@ several of them changed published numbers.
   this is not population coverage, paired regression inference, or certification.
 
 ### Fixed
+- New `init` scaffolds are manual-run by default, with explicit
+  `--on-pull-request` opt-in. YAML identifiers are literal quoted strings,
+  malformed inputs and unsafe output paths fail before writes, forced hard-link
+  overwrites are rejected, and custom factories receive no guessed provider secret.
 - Scan JSON/SARIF distinguish requirement satisfaction from enforcement success.
   Non-blocking shortfalls are no longer displayed as a terminal PASS; the legacy
   `passed` field and exit codes retain their enforcement meaning.

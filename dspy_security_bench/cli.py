@@ -58,16 +58,22 @@ def _init(argv: list[str]) -> int:
     target.add_argument("--agent", help="module:callable returning your agent")
     parser.add_argument("--no-workflow", action="store_true", help="only create the config")
     parser.add_argument("--force", action="store_true", help="overwrite existing generated files")
+    parser.add_argument("--on-pull-request", action="store_true", help="opt into automatic PR scans after reviewing model budget and secrets")
     args = parser.parse_args(argv)
 
     from dspy_security_bench.scaffold import initialize_project
 
-    result = initialize_project(
-        model=args.model,
-        agent_import=args.agent,
-        include_workflow=not args.no_workflow,
-        force=args.force,
-    )
+    try:
+        result = initialize_project(
+            model=args.model,
+            agent_import=args.agent,
+            include_workflow=not args.no_workflow,
+            force=args.force,
+            on_pull_request=args.on_pull_request,
+        )
+    except (OSError, ValueError) as exc:
+        print(f"[init] could not create scaffold: {exc}", file=sys.stderr)
+        return 2
     for path in result.created:
         print(f"[init] created {path}")
     for path in result.skipped:

@@ -1847,6 +1847,9 @@ dspy-security-bench scan --config .dspy-security-bench.yaml
 ```
 
 The generated workflow uploads SARIF findings to GitHub's Security tab. See
+the CI guide for permissions and budgets. **On main**, newly generated workflows
+start manually; `init --on-pull-request` explicitly opts into automatic PR scans.
+Existing workflow files are kept unless you request `--force`. See
 [`docs/ci.md`](docs/ci.md) for absolute and regression gates.
 
 ## Research pipeline quickstart
