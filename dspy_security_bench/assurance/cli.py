@@ -70,9 +70,12 @@ def main(argv: list[str] | None = None) -> int:
     evaluate.add_argument("--oscal-out")
     evaluate.add_argument("--html-out")
     evaluate.add_argument("--fail-on-review", action="store_true")
+    evaluate.add_argument("--require-complete-evidence", action="store_true", help="exit 1 if any declared evidence is invalid, missing, or stale, even when another artifact supports its claim")
     verify = commands.add_parser("verify", help="recompute an AssuranceGraph report offline")
     verify.add_argument("report")
     verify.add_argument("--evidence-root", required=True)
+    verify.add_argument("--fail-on-review", action="store_true")
+    verify.add_argument("--require-complete-evidence", action="store_true")
     federal_pack = commands.add_parser(
         "federal-pack", help="export integrity-verifiable, non-certifying federal review inputs"
     )
@@ -189,16 +192,14 @@ def main(argv: list[str] | None = None) -> int:
             if args.html_out:
                 _write(Path(args.html_out), render_html(report))
             _print_report(report)
-            if args.fail_on_review and report["summary"]["status"] != "profile_evidence_supported":
-                return 1
-            return 0
+            return _review_exit_code(report, args.fail_on_review, args.require_complete_evidence)
         if args.command == "verify":
             report = _read_json(Path(args.report), 2 * MAX_CASE_BYTES)
             errors = verify_report(report, args.evidence_root)
             if errors:
                 raise ValueError("; ".join(errors))
             print(f"[assure] verified {args.report}")
-            return 0
+            return _review_exit_code(report, args.fail_on_review, args.require_complete_evidence)
         if args.command == "federal-pack":
             report = _read_json(Path(args.report), 2 * MAX_CASE_BYTES)
             manifest = export_review_pack(
@@ -384,6 +385,16 @@ def _print_profile(profile: dict[str, Any]) -> None:
     for claim in profile["claims"]:
         print(f"- {claim['claim_id']}: {claim['evidence_kind']} ({claim['criticality']})")
     print(profile["claim_boundary"])
+
+
+def _review_exit_code(report: dict[str, Any], fail_on_review: bool, require_complete: bool) -> int:
+    """Owner-selected CI enforcement without rewriting frozen claim semantics."""
+    summary = report["summary"]
+    gaps = sum(summary[key] for key in ("invalid_evidence", "missing_evidence_files", "stale_evidence_files"))
+    if require_complete and gaps:
+        print(f"[assure] complete-evidence gate not met: {gaps} declared artifacts need review")
+        return 1
+    return int(fail_on_review and summary["status"] != "profile_evidence_supported")
 
 
 def _print_report(report: dict[str, Any]) -> None:

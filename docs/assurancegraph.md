@@ -142,6 +142,27 @@ digest proves content identity, not that external observations are true. A
 supported result means only that the supplied evidence satisfies one profile
 inside the declared boundary.
 
+### Require every declared artifact to be reviewable (on main)
+
+The frozen v1 claim semantics allow alternative evidence: a current supporting
+artifact can support a claim even if a second declared artifact is stale,
+missing, or invalid. Those gaps remain visible in the report. Teams requiring
+complete coverage of **all declared artifacts** can add a separate CI gate:
+
+```bash
+dspy-security-bench assure evaluate assurance-case.json --evidence-root . \
+  --out assurance-report.json --fail-on-review --require-complete-evidence
+dspy-security-bench assure verify assurance-report.json --evidence-root . \
+  --fail-on-review --require-complete-evidence
+```
+
+Either review failure or a declared evidence gap now exits 1; malformed input or
+failed recomputation exits 2. Reports are still written when evaluation exits 1.
+This optional enforcement does not rewrite frozen claim statuses, hashes, or
+profile semantics. Use both flags: complete evidence alone can still violate a
+claim, and a supported claim does not imply every declared artifact is current.
+It covers the declared case only—not omitted, undiscovered, or future evidence.
+
 ## Built-in profiles
 
 | Profile | Required evidence |

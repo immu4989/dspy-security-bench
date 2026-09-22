@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- AssuranceGraph adds optional `--require-complete-evidence` enforcement for
+  evaluate/verify: alternative supporting artifacts cannot hide declared stale,
+  invalid, or missing inputs from this gate. Frozen v1 reports remain unchanged.
 - Retained scan evidence joins ContinuousProof through native replay, exact
   scope/policy/baseline identity, and separate per-cell security/utility metrics.
   Observe-only review does not rerun agents or replace matched-case comparison.

@@ -5,6 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import jsonschema
+import pytest
 
 from dspy_security_bench.assurance.case import (
     CLAIM_BOUNDARY,
@@ -39,6 +40,40 @@ def _write_profile_evidence(root: Path, case: dict, evidence: dict | None = None
         item["expected_sha256"] = canonical_sha256(payload)
         item["owner"] = "test-evidence-owner"
     return seal_case(case)
+
+
+@pytest.mark.parametrize("gap", ["invalid", "missing", "stale"])
+def test_complete_evidence_gate_does_not_let_redundant_support_hide_declared_gaps(tmp_path, gap, capsys):
+    case = _write_profile_evidence(tmp_path, built_in_case("enterprise-agent"))
+    template = next(item for item in case["evidence"] if item["evidence_kind"] == "trace")
+    extra = {**template, "evidence_id": "trace-extra-evidence"}
+    if gap == "invalid":
+        extra["expected_sha256"] = "0" * 64
+    elif gap == "missing":
+        extra["path"] = "evidence/not-present.json"
+    else:
+        extra["observed_at"] -= extra["max_age_seconds"] + 1
+    case["evidence"].append(extra)
+    case = seal_case(case)
+    case_path, output = tmp_path / "case.json", tmp_path / "report.json"
+    case_path.write_text(json.dumps(case))
+    args = ["assure", "evaluate", str(case_path), "--evidence-root", str(tmp_path), "--out", str(output), "--fail-on-review"]
+    # The frozen v1 claim supports alternative current artifacts. Preserve it.
+    assert umbrella_main(args) == 0
+    original = output.read_bytes()
+    assert umbrella_main([*args, "--require-complete-evidence"]) == 1
+    assert output.read_bytes() == original
+    assert "complete-evidence gate not met" in capsys.readouterr().out
+    assert umbrella_main(["assure", "verify", str(output), "--evidence-root", str(tmp_path)]) == 0
+    assert umbrella_main(["assure", "verify", str(output), "--evidence-root", str(tmp_path), "--require-complete-evidence"]) == 1
+
+
+def test_complete_evidence_gate_accepts_current_complete_review(tmp_path):
+    case = _write_profile_evidence(tmp_path, built_in_case("enterprise-agent"))
+    case_path, output = tmp_path / "case.json", tmp_path / "report.json"
+    case_path.write_text(json.dumps(case))
+    assert umbrella_main(["assure", "evaluate", str(case_path), "--evidence-root", str(tmp_path),
+                          "--out", str(output), "--fail-on-review", "--require-complete-evidence"]) == 0
 
 
 def test_every_profile_is_content_addressed_and_has_distinct_evidence_claims():
