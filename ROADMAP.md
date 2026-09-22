@@ -17,6 +17,10 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Count-backed scan gates with per-cell sample minima, optional two-sided Wilson
+  lower bounds, preflight feasibility checks that prevent impossible paid runs,
+  and separate sample/uncertainty findings with explicit inference limitations.
+
 - **AssuranceGraph v1** executable claim–evidence cases with native semantic
   verification, frozen stakeholder profiles, five fail-closed claim outcomes,
   digest/freshness/owner binding, strict schemas, JSON/SARIF/OSCAL/HTML output,

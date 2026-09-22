@@ -53,6 +53,12 @@ def _apply_overrides(cfg: ScanConfig, args) -> ScanConfig:
         cfg.scan.injection_tasks = args.injection_tasks
     if args.min_security is not None:
         cfg.gate.min_security = args.min_security
+    if args.min_runs is not None:
+        cfg.gate.min_runs = args.min_runs
+    if args.statistic is not None:
+        cfg.gate.statistic = args.statistic
+    if args.confidence is not None:
+        cfg.gate.confidence = args.confidence
     if args.baseline:
         cfg.gate.mode, cfg.gate.baseline = "regression", args.baseline
     if args.max_regression is not None:
@@ -212,8 +218,11 @@ def build_scan_plan_report(cfg: ScanConfig, plan: list[dict], scope: dict, basel
         "scope": scope, "scope_sha256": canonical_sha256(scope), "matrix": plan,
         "gate": {"mode": cfg.gate.mode, "min_security": cfg.gate.min_security,
                  "max_regression": cfg.gate.max_regression, "warn_margin": cfg.gate.warn_margin,
+                 "min_runs": cfg.gate.min_runs, "statistic": cfg.gate.statistic,
+                 "confidence": cfg.gate.confidence,
                  "require_baseline_coverage": cfg.gate.require_baseline_coverage, "fail_on": cfg.fail_on},
         "baseline_document_sha256": canonical_sha256(baseline_document) if baseline_document is not None else None,
+        "gate_feasibility": build_gate_feasibility(cfg, plan),
         "summary": {"scored_cases": sum(item["cases"] for item in plan),
                     "auxiliary_injection_task_runs": sum(item["auxiliary_injection_task_runs"] for item in plan),
                     "model_calls_performed": 0, "execution_performed": False},
@@ -221,6 +230,28 @@ def build_scan_plan_report(cfg: ScanConfig, plan: list[dict], scope: dict, basel
     }
     payload["report_sha256"] = canonical_sha256(payload)
     return payload
+
+
+def build_gate_feasibility(cfg: ScanConfig, plan: list[dict]) -> dict:
+    """Detect underpowered scopes without predicting any agent's performance."""
+    from dspy_security_bench.procurement.repeat import wilson_interval
+
+    cells = []
+    for item in plan:
+        for attack in item["attack_cases"]:
+            n = item["user_tasks"] * attack["injection_tasks"]
+            best_lower = wilson_interval(n, n, cfg.gate.confidence).lower if cfg.gate.statistic == "wilson_lower" else None
+            for defense in cfg.scan.defenses:
+                cells.append({
+                    "suite": item["suite"], "attack": attack["attack"], "defense": defense,
+                    "planned_observations": n, "minimum_observations": cfg.gate.min_runs,
+                    "sample_minimum_possible": n >= cfg.gate.min_runs,
+                    "best_case_wilson_lower": best_lower,
+                    "threshold_possible": best_lower is None or best_lower >= cfg.gate.min_security,
+                })
+    return {"all_cells_feasible": all(cell["sample_minimum_possible"] and cell["threshold_possible"] for cell in cells),
+            "cells": cells,
+            "claim_boundary": "Feasibility assumes complete execution and, for Wilson bounds, perfect resistance. It is not an expected outcome, power analysis, execution result, or approval."}
 
 
 def _validate_output_paths(cfg: ScanConfig, args) -> None:
@@ -269,6 +300,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--plan-json", metavar="PATH", help="write a new JSON preflight plan and exit without model calls")
     gate = p.add_argument_group("gate")
     gate.add_argument("--min-security", type=float)
+    gate.add_argument("--min-runs", type=int, help="minimum measured observations per cell")
+    gate.add_argument("--statistic", choices=["point", "wilson_lower"], help="absolute gate statistic")
+    gate.add_argument("--confidence", type=float, help="two-sided Wilson confidence, from 0.5 to 0.9999")
     gate.add_argument("--baseline", help="baseline json → regression mode")
     gate.add_argument("--max-regression", type=float)
     gate.add_argument("--write-baseline", help="run, then write per-cell security to this path and exit 0")
@@ -323,7 +357,13 @@ def main(argv: list[str] | None = None) -> int:
                 return 2
             print(f"[scan] wrote preflight plan → {args.plan_json}")
         print(render_scan_plan(cfg, plan))
+        if not build_gate_feasibility(cfg, plan)["all_cells_feasible"]:
+            print("[scan] warning: this scope cannot satisfy the configured sample minimum or Wilson threshold, even with perfect observed resistance", file=sys.stderr)
         return 0
+
+    if not build_gate_feasibility(cfg, plan)["all_cells_feasible"]:
+        print("[scan] infeasible gate: review task scope, minimum observations, and Wilson threshold using --plan-json before invoking an agent", file=sys.stderr)
+        return 2
 
     from dspy_security_bench.runner import evaluate_agents, summarize
 
@@ -375,7 +415,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     # Gate each suite; combine findings.
-    from dspy_security_bench.scan.gate import ScanReport
+    from dspy_security_bench.scan.gate import UNCERTAINTY_BOUNDARY, ScanReport
     combined_findings = []
     worst_exit = 0
     missing_baseline = 0
@@ -394,6 +434,9 @@ def main(argv: list[str] | None = None) -> int:
     report = ScanReport(
         findings=combined_findings, passed=passed, exit_code=worst_exit,
         mode=cfg.gate.mode, meta={"suites": cfg.scan.suites, "fail_on": cfg.fail_on,
+            "statistic": cfg.gate.statistic, "min_runs": cfg.gate.min_runs,
+            "confidence": cfg.gate.confidence if cfg.gate.statistic == "wilson_lower" else None,
+            "uncertainty_boundary": UNCERTAINTY_BOUNDARY if cfg.gate.statistic == "wilson_lower" else None,
             "baseline_cells_missing": missing_baseline,
             "baseline_scope_verified": scope_verified,
             "baseline_coverage_complete": missing_baseline == 0 if cfg.gate.mode == "regression" else None},

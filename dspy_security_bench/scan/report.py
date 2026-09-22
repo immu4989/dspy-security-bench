@@ -16,6 +16,8 @@ from dspy_security_bench.scan.gate import ScanReport
 # property bag is the extension point if a program needs additional mappings.
 RULE_ID = "dspy-security-bench/LLM01-prompt-injection"
 COVERAGE_RULE_ID = "dspy-security-bench/missing-baseline-coverage"
+SAMPLE_RULE_ID = "dspy-security-bench/insufficient-sample-coverage"
+UNCERTAINTY_RULE_ID = "dspy-security-bench/uncertainty-threshold"
 OWASP_URI = "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
 STANDARDS = {
     "OWASP-LLM-Top-10-2025": "LLM01: Prompt Injection",
@@ -46,6 +48,8 @@ def render_terminal(report: ScanReport, use_color: bool = True) -> str:
         base = f"  (base {f.baseline_security:.0%})" if f.baseline_security is not None else ""
         row = f" {mark} {f.agent[:22]:<22} {f.defense[:14]:<14} {f.attack[:22]:<22} {f.security_rate:>8.0%}{base}"
         lines.append(row)
+        if f.security_lower is not None:
+            lines.append(f"    n={f.n_runs}; {f.confidence:.2%} Wilson [{f.security_lower:.2%}, {f.security_upper:.2%}]")
     lines.append(" " + "-" * 74)
     for f in report.findings:
         if not f.passed:
@@ -56,6 +60,8 @@ def render_terminal(report: ScanReport, use_color: bool = True) -> str:
     lines.append(f" Verdict: {verdict}  (exit {report.exit_code})")
     lines.append("")
     lines.append(" " + report.disclaimer)
+    if report.meta.get("uncertainty_boundary"):
+        lines.append(" " + report.meta["uncertainty_boundary"])
     lines.append("=" * 78)
     return "\n".join(lines)
 
@@ -78,7 +84,8 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
         if f.passed:
             continue  # only surface failures in the Security tab
         results.append({
-            "ruleId": COVERAGE_RULE_ID if f.finding_type == "baseline_coverage" else RULE_ID,
+            "ruleId": {"baseline_coverage": COVERAGE_RULE_ID, "sample_coverage": SAMPLE_RULE_ID,
+                       "uncertainty_threshold": UNCERTAINTY_RULE_ID}.get(f.finding_type, RULE_ID),
             "level": _SARIF_LEVEL.get(f.severity, "warning"),
             "message": {"text": f.message},
             "locations": [{
@@ -92,6 +99,9 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
                 "attack": f.attack, "security_rate": f.security_rate,
                 "injection_success_rate": f.injection_success_rate,
                 "n_runs": f.n_runs,
+                "security_successes": f.security_successes,
+                "security_lower": f.security_lower, "security_upper": f.security_upper,
+                "confidence": f.confidence, "required_runs": f.required_runs,
             },
         })
 
@@ -118,10 +128,20 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
                     "shortDescription": {"text": "No baseline comparison exists for this measured cell"},
                     "fullDescription": {"text": "Missing comparison evidence is a coverage gap, not evidence that prompt injection succeeded."},
                     "defaultConfiguration": {"level": "error"},
+                }, {
+                    "id": SAMPLE_RULE_ID, "name": "InsufficientSampleCoverage",
+                    "shortDescription": {"text": "Measured observations do not meet the owner-defined minimum"},
+                    "defaultConfiguration": {"level": "error"},
+                }, {
+                    "id": UNCERTAINTY_RULE_ID, "name": "UncertaintyThreshold",
+                    "shortDescription": {"text": "The Wilson lower bound does not meet the configured threshold"},
+                    "fullDescription": {"text": "A binomial sensitivity summary, not guaranteed population coverage or evidence of an observed successful attack."},
+                    "defaultConfiguration": {"level": "error"},
                 }],
             }},
             "results": results,
-            "properties": {"gate_passed": report.passed, "mode": report.mode},
+            "properties": {"gate_passed": report.passed, "mode": report.mode,
+                           "uncertainty_boundary": report.meta.get("uncertainty_boundary")},
         }],
     }
     return json.dumps(sarif, indent=2, allow_nan=False)

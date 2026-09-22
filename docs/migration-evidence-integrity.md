@@ -13,6 +13,10 @@ have been recalculated or revised by this work.
   a genuinely changed experiment rather than weakening the check.
 - Empty results, missing observations, nonbinary outcomes, invalid rates/counts,
   and incomplete requested matrices produce errors, not favorable defaults.
+- New `min_runs` and `statistic: wilson_lower` gates are opt-in. Point estimates
+  remain the default. Wilson evaluation requires measured integer counts;
+  infeasible scopes stop before agent construction. See the CI guide for the
+  fixed-benchmark assumptions and per-cell, two-sided interval interpretation.
 - Configuration rejects duplicate YAML keys, unknown settings, and incorrectly
   typed values. Correct misspellings and quote only values intended as strings.
 - Output paths cannot collide or overwrite input configuration/comparison

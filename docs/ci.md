@@ -71,6 +71,53 @@ Exit code: `0` pass · `1` gate failed · `2` could not run.
 
 ## 3. Two gate modes
 
+### Sample size and uncertainty (on main)
+
+By default the absolute gate compares the observed rate (`statistic: point`).
+You can require a minimum number of observations per suite/agent/defense/attack
+cell and opt into the lower endpoint of a **two-sided** Wilson score interval:
+
+```yaml
+gate:
+  mode: absolute
+  min_security: 0.90
+  min_runs: 35
+  statistic: wilson_lower
+  confidence: 0.95
+fail_on: warning
+```
+
+At this confidence level, 5/5 resisted observations have a lower bound near
+56.6%; 35/35 have one near 90.1%. These are binomial sensitivity summaries, not
+guaranteed population coverage: fixed benchmark cases can be dependent and
+unrepresentative. The calculation does not adjust for multiple cells, model
+selection, optional stopping, or adaptive adversaries. Predeclare your scope
+and policy rather than repeatedly extending a run until a bound passes.
+The [NIST statistical handbook](https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm)
+describes the Wilson method. This feature does not turn the scan into a
+statistical certification or a deployment approval.
+
+Use `--plan-json plan.json` to inspect per-cell feasibility before execution.
+An infeasible sample minimum or Wilson threshold produces an execution error
+before an agent is constructed, even if perfect resistance would be observed.
+This check is not a power analysis or a prediction. Adding defenses does not
+increase the observations within another defense's cell. Auxiliary utility
+runs do not count toward its sample size.
+
+`min_runs` defaults to 1 and accepts integers up to one million. `confidence`
+accepts 0.5 through 0.9999; count-backed Wilson evaluation supports at most one
+billion observations per cell. CLI overrides are `--min-runs`, `--statistic`,
+and `--confidence`. Wilson gating is absolute-only: the existing rate-only
+regression baselines do not support a paired or two-sample uncertainty test.
+Missing sample coverage and uncertainty shortfalls have separate SARIF rules;
+neither is mislabeled as an observed successful prompt injection. They are
+errors, not warnings, regardless of `warn_margin`. Explicit `fail_on: never`
+still makes findings non-blocking, but does not bypass infeasible preflight.
+The runner retains integer `security_successes`; Wilson API callers must supply
+these counts, not reverse-engineer them from rounded rates.
+
+### Observed-rate comparisons
+
 **Absolute** — fail if any cell's injection-security is below `min_security`.
 Good for a hard floor ("our agent must resist ≥ 90% of these attacks").
 

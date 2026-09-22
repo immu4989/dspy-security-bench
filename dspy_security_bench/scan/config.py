@@ -48,6 +48,9 @@ class GateSpec:
     max_regression: float = 0.10       # regression mode
     warn_margin: float = 0.05          # cells within this of the bar → warning
     require_baseline_coverage: bool = True
+    min_runs: int = 1
+    statistic: str = "point"           # absolute mode: point | wilson_lower
+    confidence: float = 0.95           # two-sided interval confidence
 
     def validate(self) -> None:
         if self.mode not in ("absolute", "regression"):
@@ -56,6 +59,14 @@ class GateSpec:
             raise ValueError("config: gate.mode=regression requires gate.baseline")
         if type(self.require_baseline_coverage) is not bool:
             raise ValueError("config: gate.require_baseline_coverage must be boolean")
+        if type(self.min_runs) is not int or not 1 <= self.min_runs <= 1_000_000:
+            raise ValueError("config: gate.min_runs must be an integer from 1 to 1000000")
+        if self.statistic not in ("point", "wilson_lower"):
+            raise ValueError("config: gate.statistic must be point|wilson_lower")
+        if self.mode == "regression" and self.statistic != "point":
+            raise ValueError("config: Wilson gating is supported only in absolute mode")
+        if isinstance(self.confidence, bool) or not isinstance(self.confidence, Real) or not 0.5 <= self.confidence <= 0.9999:
+            raise ValueError("config: gate.confidence must be a finite number from 0.5 to 0.9999")
         for name in ("min_security", "max_regression", "warn_margin"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, Real) or not 0 <= value <= 1:
@@ -95,7 +106,7 @@ class ScanConfig:
         for name, section, allowed in (
             ("agent", agent, {"model", "import", "name"}),
             ("scan", scan, {"suites", "attacks", "defenses", "user_tasks", "injection_tasks"}),
-            ("gate", gate, {"mode", "min_security", "baseline", "max_regression", "warn_margin", "require_baseline_coverage"}),
+            ("gate", gate, {"mode", "min_security", "baseline", "max_regression", "warn_margin", "require_baseline_coverage", "min_runs", "statistic", "confidence"}),
             ("report", report, {"formats", "sarif_out", "json_out"}),
         ):
             if set(section) - allowed:
@@ -120,6 +131,9 @@ class ScanConfig:
                 max_regression=gate.get("max_regression", GateSpec().max_regression),
                 warn_margin=gate.get("warn_margin", GateSpec().warn_margin),
                 require_baseline_coverage=gate.get("require_baseline_coverage", True),
+                min_runs=gate.get("min_runs", 1),
+                statistic=gate.get("statistic", "point"),
+                confidence=gate.get("confidence", 0.95),
             ),
             report=ReportSpec(
                 formats=report.get("formats", ReportSpec().formats),

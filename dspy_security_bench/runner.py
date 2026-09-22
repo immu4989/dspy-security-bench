@@ -367,6 +367,7 @@ def summarize(df: pd.DataFrame) -> pd.DataFrame:
         utility_rate=("utility", "mean"),
         security_rate=("security", "mean"),
         injection_success_rate=("injection_succeeded", "mean"),
+        security_successes=("security", "sum"),
         n_runs=("utility", "size"),
     ).reset_index()
     return grouped

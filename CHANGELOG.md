@@ -9,6 +9,13 @@ several of them changed published numbers.
 
 ## [Unreleased]
 
+### Measurement improvements
+- Scanner gates can require a per-cell minimum sample and use an optional
+  count-backed two-sided Wilson lower bound. Plans expose best-case feasibility
+  and impossible scopes stop before model construction. Sample and uncertainty
+  shortfalls have distinct SARIF rules and explicit fixed-benchmark limitations;
+  this is not population coverage, paired regression inference, or certification.
+
 ### Fixed
 - Tagged releases rerun the offline test suite and Ruff with locked development
   dependencies before building, inventory-checking, attesting, or publishing.
