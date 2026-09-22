@@ -27,7 +27,7 @@
         "scope_version": {"type": "integer", "const": 1},
         "benchmark_version": {"const": "v1"},
         "agentdojo_distribution_version": {"$ref": "#/$defs/label"},
-        "measurement_protocol": {"const": "complete-binary-observations-v1"},
+        "measurement_protocol": {"enum": ["complete-binary-observations-v1", "complete-binary-observations-v2"]},
         "agent_name": {"$ref": "#/$defs/label"},
         "defenses": {"$ref": "#/$defs/labels", "maxItems": 50},
         "suites": {"type": "array", "minItems": 1, "maxItems": 20, "items": {

@@ -56,7 +56,7 @@ def expected_observation_keys(scope: dict) -> set[tuple[str, ...]]:
         raise ValueError("unsupported evidence scope fields")
     if (type(scope["scope_version"]) is not int or scope["scope_version"] != 1
             or scope["benchmark_version"] != "v1"
-            or scope["measurement_protocol"] != "complete-binary-observations-v1"
+            or scope["measurement_protocol"] not in {"complete-binary-observations-v1", "complete-binary-observations-v2"}
             or not _label(scope["agentdojo_distribution_version"])
             or not _label(scope["agent_name"]) or not _labels(scope["defenses"], 50)):
         raise ValueError("unsupported evidence scope")

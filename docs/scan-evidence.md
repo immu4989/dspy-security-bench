@@ -63,6 +63,22 @@ Retain the benchmark revision, dependency lockfile, approved input sources, and
 execution provenance separately. Upstream runtime errors already encoded as
 binary outcomes cannot be recovered as separate errors by this format.
 
+New executions use `complete-binary-observations-v2`. A local suite proxy converts
+exceptions escaping task execution or evaluation into a distinct execution error
+before AgentDojo's selected provider-error fallbacks can turn them into binary
+scores. No completed gate or evidence file is emitted for that incomplete scan.
+This covers scored pairs and auxiliary task runs. Exceptions suppressed inside
+an agent/SDK/evaluator remain unobservable here; deliberate AgentDojo abort
+handling retains its environment-based evaluation. Existing raw provider/trace
+logging is outside the content-minimal export guarantee.
+
+V1 evidence remains replayable under its original scope. Matched comparison and
+scope-bound baseline checks reject mixed measurement protocols. The generic and
+DSPy runners require fresh execution rather than trusting legacy AgentDojo cache
+entries whose error state is not verified. This is not a finding that any specific
+published historical model score contained such errors; that requires its retained
+run evidence and original revision.
+
 Anyone can fabricate a new, internally consistent observation set. Therefore
 successful replay is **not authenticated execution**, proof that observations
 are true, a signature verification, or a safety certification. If an owner has

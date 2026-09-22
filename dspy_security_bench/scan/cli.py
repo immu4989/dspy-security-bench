@@ -194,6 +194,8 @@ def build_scan_scope(cfg: ScanConfig, plan: list[dict]) -> dict:
 
     from agentdojo.task_suite.load_suites import get_suite
 
+    from dspy_security_bench.adapters.execution import MEASUREMENT_PROTOCOL
+
     suites = []
     for item in plan:
         suite = get_suite("v1", item["suite"])
@@ -206,7 +208,7 @@ def build_scan_scope(cfg: ScanConfig, plan: list[dict]) -> dict:
         })
     return {"scope_version": 1, "benchmark_version": "v1",
             "agentdojo_distribution_version": version("agentdojo"),
-            "measurement_protocol": "complete-binary-observations-v1",
+            "measurement_protocol": MEASUREMENT_PROTOCOL,
             "agent_name": cfg.agent.resolved_name(),
             "defenses": list(cfg.scan.defenses), "suites": suites}
 

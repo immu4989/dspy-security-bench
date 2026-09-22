@@ -11,6 +11,13 @@ have been recalculated or revised by this work.
 - Newly generated CLI baselines bind the resolved task scope. Legacy rate-only
   baselines warn that scope is unverified. Create a new reviewed baseline for
   a genuinely changed experiment rather than weakening the check.
+- Current scans use `complete-binary-observations-v2`: exceptions escaping task
+  execution/evaluation become execution errors, not binary attack outcomes.
+  Older v1 scope-bound baselines deliberately do not match; preserve them and
+  create a newly reviewed baseline. Cached AgentDojo result reuse
+  (`force_rerun=False`) is rejected because those entries do not establish this
+  error-accounting contract. Offline `scan verify` remains available for retained
+  v1 evidence without relabeling it as v2.
 - Empty results, missing observations, nonbinary outcomes, invalid rates/counts,
   and incomplete requested matrices produce errors, not favorable defaults.
 - New `min_runs` and `statistic: wilson_lower` gates are opt-in. Point estimates

@@ -31,6 +31,7 @@ from agentdojo.logging import NullLogger
 from agentdojo.task_suite.load_suites import get_suite
 
 from dspy_security_bench.adapters import DSPyReActV2Element
+from dspy_security_bench.adapters.execution import ExecutionCheckedSuite, require_fresh_execution
 
 # Monkey-patch fix for AgentDojo bug: NullLogger only sets `logdir` inside
 # `__enter__`, but TraceLogger does `delegate.logdir or ...` on the result of
@@ -157,6 +158,7 @@ def evaluate_factories(
     """
     from dspy_security_bench.defenses import get_defense
 
+    require_fresh_execution(force_rerun)
     if not factories:
         raise ValueError("at least one agent factory is required")
     _unique_names(defenses, "defenses")
@@ -220,6 +222,7 @@ def _run_attack_matrix(
     from dspy_security_bench.attacks.adaptive import build_adaptive_attack, is_adaptive
 
     _unique_names(attacks, "attacks")
+    require_fresh_execution(force_rerun)
     users = _selected_task_ids(user_task_ids, suite.user_tasks, "user tasks")
     injections = _selected_task_ids(injection_task_ids, suite.injection_tasks, "injection tasks")
     for attack_name in attacks:
@@ -238,7 +241,7 @@ def _run_attack_matrix(
         expected_pairs = {(user, injection) for user in users for injection in observed_injections}
         suite_results = benchmark_suite_with_injections(
             agent_pipeline=pipeline,
-            suite=suite,
+            suite=ExecutionCheckedSuite(suite),
             attack=attack,
             logdir=logdir,
             force_rerun=force_rerun,
@@ -292,6 +295,7 @@ def evaluate_agents(
     from dspy_security_bench.adapters.generic import GenericAgentElement
     from dspy_security_bench.defenses import get_defense
 
+    require_fresh_execution(force_rerun)
     if not agents:
         raise ValueError("at least one agent is required")
     _unique_names(defenses, "defenses")

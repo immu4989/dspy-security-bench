@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Execution-checked measurement protocol v2 stops on exceptions escaping task
+  execution/evaluation instead of accepting AgentDojo's selected provider-error
+  binary fallbacks. Scored and auxiliary tasks are guarded, diagnostics omit
+  exception text, and unverified cached outcomes are rejected. Old evidence stays
+  v1; scope-bound baselines/comparisons cannot silently mix measurement protocols.
 - Matched-case scan comparison reverifies both evidence sources, requires exact
   scope alignment, and reports newly failing/improving/stable cases separately
   for security and utility. New failures cannot be canceled by improvements;

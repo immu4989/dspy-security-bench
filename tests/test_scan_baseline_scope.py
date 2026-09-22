@@ -101,6 +101,15 @@ def test_legacy_baseline_does_not_claim_verified_scope():
     assert verify_baseline_scope({"security_by_cell": {}}, scope()) is False
 
 
+def test_execution_checked_protocol_does_not_reuse_older_baseline_scope():
+    current = scope()
+    assert current["measurement_protocol"] == "complete-binary-observations-v2"
+    old = deepcopy(current)
+    old["measurement_protocol"] = "complete-binary-observations-v1"
+    with pytest.raises(ValueError, match="scope differs"):
+        verify_baseline_scope(bind_baseline_scope({}, old), current)
+
+
 def test_changed_scope_cli_stops_before_agent_calls(tmp_path, monkeypatch):
     cfg = config()
     original = build_scan_scope(cfg, build_scan_plan(cfg))
