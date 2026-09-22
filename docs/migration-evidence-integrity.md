@@ -20,6 +20,13 @@ have been recalculated or revised by this work.
   v1 evidence without relabeling it as v2.
 - Empty results, missing observations, nonbinary outcomes, invalid rates/counts,
   and incomplete requested matrices produce errors, not favorable defaults.
+- The built-in LiteLLM agent no longer converts a failed final-answer provider
+  call into an empty answer. That failure propagates to execution accounting.
+  Malformed, duplicate-key, non-object, nonfinite, or oversized tool arguments
+  produce error feedback without executing a tool with substituted defaults.
+  The tool loop can recover on a later valid call; rejected attempts remain
+  identifiable as errors in its trace. Valid tool arguments still execute the
+  supplied callable. This is not a tool sandbox or a full JSON Schema validator.
 - New `min_runs` and `statistic: wilson_lower` gates are opt-in. Point estimates
   remain the default. Wilson evaluation requires measured integer counts;
   infeasible scopes stop before agent construction. See the CI guide for the

@@ -12,11 +12,10 @@ to trust as a baseline. Real deployments will have richer agents; this is the
 from __future__ import annotations
 
 import json
-import logging
+import math
 
 from dspy_security_bench.agents.base import AgentResult, BenchTool, ToolCall
-
-logger = logging.getLogger("dspy_security_bench.agents.litellm_fc")
+from dspy_security_bench.jsonio import decode_json_object
 
 
 class LiteLLMFunctionCallingAgent:
@@ -40,6 +39,12 @@ class LiteLLMFunctionCallingAgent:
         num_retries: int = 5,
         name: str | None = None,
     ):
+        if type(max_iters) is not int or not 1 <= max_iters <= 1000:
+            raise ValueError("max_iters must be an integer from 1 to 1000")
+        if type(max_tokens) is not int or max_tokens < 1:
+            raise ValueError("max_tokens must be a positive integer")
+        if type(num_retries) is not int or not 0 <= num_retries <= 100:
+            raise ValueError("num_retries must be an integer from 0 to 100")
         self.model = model
         self.max_iters = max_iters
         self.temperature = temperature
@@ -48,6 +53,9 @@ class LiteLLMFunctionCallingAgent:
         self.name = name or f"litellm-fc:{model}"
 
     def run(self, query: str, tools: list[BenchTool], *, system_directive: str = "") -> AgentResult:
+        names = [tool.name for tool in tools]
+        if any(not isinstance(name, str) or not name for name in names) or len(set(names)) != len(names):
+            raise ValueError("tool names must be nonempty unique strings")
         import litellm
         litellm.drop_params = True
 
@@ -91,14 +99,18 @@ class LiteLLMFunctionCallingAgent:
 
             for tc in tool_calls:
                 name = tc.function.name
-                raw_args = tc.function.arguments or "{}"
+                raw_args = tc.function.arguments
+                invalid_arguments = False
                 try:
-                    args = json.loads(raw_args) if isinstance(raw_args, str) else (raw_args or {})
-                except json.JSONDecodeError:
+                    args = _parse_tool_arguments(raw_args)
+                except (TypeError, ValueError):
                     args = {}
+                    invalid_arguments = True
 
                 tool = tools_by_name.get(name)
-                if tool is None:
+                if invalid_arguments:
+                    result = "[error] tool arguments must be a bounded, unambiguous JSON object; tool was not executed"
+                elif tool is None:
                     result = f"[error] unknown tool {name!r}"
                 else:
                     # THE load-bearing line: execute the real tool, mutating the
@@ -113,24 +125,31 @@ class LiteLLMFunctionCallingAgent:
                 })
         else:
             # Ran out of iterations. Ask once for a final answer with no tools.
-            try:
-                resp = litellm.completion(
-                    model=self.model,
-                    messages=messages + [{
-                        "role": "user",
-                        "content": "Provide your final answer now, using only what you already know.",
-                    }],
-                    temperature=self.temperature,
-                    max_tokens=self.max_tokens,
-                    num_retries=self.num_retries,
-                )
-                _merge_usage(usage, _response_usage(resp))
-                final_answer = resp.choices[0].message.content or ""
-            except Exception as e:  # pragma: no cover - defensive
-                logger.warning("final-answer call failed: %s", e)
-                final_answer = ""
+            # Provider failure is an execution error, not an empty measured answer.
+            resp = litellm.completion(
+                model=self.model,
+                messages=messages + [{
+                    "role": "user",
+                    "content": "Provide your final answer now, using only what you already know.",
+                }],
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                num_retries=self.num_retries,
+            )
+            _merge_usage(usage, _response_usage(resp))
+            final_answer = resp.choices[0].message.content or ""
 
         return AgentResult(final_answer=final_answer, tool_calls=trace, usage=usage)
+
+
+def _parse_tool_arguments(value) -> dict:
+    if isinstance(value, dict):
+        if any(not isinstance(key, str) for key in value):
+            raise ValueError("tool argument keys must be strings")
+        value = json.dumps(value, allow_nan=False)
+    if not isinstance(value, str) or len(value) > 1_000_000:
+        raise ValueError("tool arguments must be bounded JSON text or an object")
+    return decode_json_object(value.encode("utf-8"), 1_000_000)
 
 
 def _response_usage(response) -> dict[str, int | float]:
@@ -146,7 +165,12 @@ def _response_usage(response) -> dict[str, int | float]:
     hidden = getattr(response, "_hidden_params", None)
     cost = hidden.get("response_cost") if isinstance(hidden, dict) else None
     if isinstance(cost, (int, float)) and not isinstance(cost, bool) and cost >= 0:
-        values["estimated_cost_usd"] = float(cost)
+        try:
+            estimate = float(cost)
+        except OverflowError:
+            estimate = math.inf
+        if math.isfinite(estimate):
+            values["estimated_cost_usd"] = estimate
     return values
 
 

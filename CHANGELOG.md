@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- The reference LiteLLM agent propagates final-answer provider failures instead
+  of measuring an empty fallback, rejects malformed tool arguments without
+  invoking default actions, and validates loop/retry limits and duplicate tool
+  names. Invalid provider cost metadata is omitted rather than treated as known.
 - Optional `limits.max_task_runs` / `--max-task-runs` preflight guards include
   scored and auxiliary benchmark invocations, block excess scope before agent
   construction, and bind the limit in reviewed plan digests. They do not claim
