@@ -185,15 +185,16 @@ class ScanConfig:
         if self.agent.model and self.agent.import_path:
             raise ValueError("config: set only one of agent.model / agent.import")
         for name, value in (("model", self.agent.model), ("import", self.agent.import_path), ("name", self.agent.name)):
-            if value is not None and (not isinstance(value, str) or not value or "|" in value):
-                raise ValueError(f"config: agent.{name} must be a nonempty string without '|'")
+            if value is not None and (not isinstance(value, str) or not 0 < len(value) <= 512
+                                      or not value.isprintable() or "|" in value):
+                raise ValueError(f"config: agent.{name} must be a printable 1-to-512-character string without '|'")
         self.gate.validate()
         if self.fail_on not in ("error", "warning", "never"):
             raise ValueError(f"config: fail_on must be error|warning|never, got {self.fail_on!r}")
         for name in ("suites", "attacks", "defenses"):
             values = getattr(self.scan, name)
-            if not isinstance(values, list) or not values or not all(isinstance(value, str) and value and "|" not in value for value in values):
-                raise ValueError(f"config: scan.{name} must be a nonempty list of names without '|'")
+            if not isinstance(values, list) or not values or not all(isinstance(value, str) and 0 < len(value) <= 512 and value.isprintable() and "|" not in value for value in values):
+                raise ValueError(f"config: scan.{name} must be a nonempty list of printable 1-to-512-character names without '|'")
             if len(set(values)) != len(values):
                 raise ValueError(f"config: scan.{name} must not contain duplicates")
         for name, value in (

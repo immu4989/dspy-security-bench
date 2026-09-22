@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Scan preflight rejects hard-linked output targets and control-bearing or
+  overlong identity labels before execution, preserving unrelated file contents
+  and preventing labels from injecting terminal controls.
 - Optional per-cell `min_utility` point-rate gates keep useful task completion
   under attack separate from injection resistance, including distinct SARIF
   findings, reviewed-plan binding, and v2 evidence replay. V1 security-only

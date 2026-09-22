@@ -80,3 +80,14 @@ def test_plan_json_cannot_replace_input_yaml(tmp_path, monkeypatch):
     original = config.read_bytes()
     assert main(["--config", str(config), "--plan-json", str(config)]) == 2
     assert config.read_bytes() == original
+
+
+@pytest.mark.parametrize("option", ["--json", "--sarif", "--write-baseline"])
+def test_report_writes_do_not_follow_hardlinks_to_unrelated_files(tmp_path, monkeypatch, option):
+    monkeypatch.setattr("dspy_security_bench.scan.cli.build_scan_plan", no_agent)
+    original = tmp_path / "unrelated.txt"
+    original.write_text("preserve unrelated data")
+    target = tmp_path / "output.json"
+    target.hardlink_to(original)
+    assert main(["--agent-model", "fixture", option, str(target)]) == 2
+    assert original.read_text() == "preserve unrelated data"

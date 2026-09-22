@@ -286,6 +286,8 @@ def _validate_output_paths(cfg: ScanConfig, args) -> None:
     for index, path in enumerate(outputs):
         if path.is_symlink() or (path.exists() and not path.is_file()):
             raise ValueError("output must be a regular non-symbolic-link file")
+        if path.exists() and path.stat().st_nlink > 1:
+            raise ValueError("output must not overwrite a hard-linked file")
         if not path.parent.is_dir():
             raise ValueError("output parent directory must already exist")
         for other in [*outputs[:index], *inputs]:

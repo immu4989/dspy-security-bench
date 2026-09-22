@@ -88,3 +88,19 @@ def test_safe_yaml_alias_without_overrides_remains_supported(tmp_path):
     config.validate()
     assert config.scan.attacks == ["direct"]
     assert config.gate.min_security == config.gate.max_regression == 0.9
+
+
+@pytest.mark.parametrize("label", ["agent\nforged verdict", "\x1b[2Jagent", "a" * 513, "\u202eagent", "agent\x00"])
+@pytest.mark.parametrize("section,key", [("agent", "name"), ("agent", "model"), ("scan", "attacks"), ("scan", "defenses"), ("scan", "suites")])
+def test_control_or_unbounded_identity_labels_are_rejected_without_echo(label, section, key):
+    values = {"agent": {"model": "fixture"}}
+    values.setdefault(section, {})[key] = [label] if section == "scan" else label
+    cfg = ScanConfig.from_dict(values)
+    with pytest.raises(ValueError) as caught:
+        cfg.validate()
+    assert label not in str(caught.value)
+
+
+def test_printable_unicode_names_remain_supported():
+    cfg = ScanConfig.from_dict({"agent": {"model": "fixture", "name": "équipe-研究"}})
+    cfg.validate()
