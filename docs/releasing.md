@@ -21,6 +21,13 @@ with PyPI Trusted Publishing. No long-lived PyPI token is stored in GitHub.
    `python scripts/check_distribution_contents.py dist`. The guard checks paths,
    links, duplicates, missing package resources, and exact source-file SHA-256
    identity against the local checkout without extracting archive members.
+   In a disposable environment with locked dependencies, install the built wheel
+   with `uv pip install --python PATH_TO_ENV_PYTHON --no-deps --reinstall dist/*.whl`,
+   then run `PATH_TO_ENV_PYTHON scripts/smoke_installed_package.py`. This checks the
+   installed CLI/resources outside the checkout, including expected policy-fail
+   and tamper-rejection exit codes. It refuses editable/source-tree imports and
+   blocks common Python socket calls; it is not OS network containment or a fresh
+   dependency-resolution test. The release workflow performs this automatically.
 5. If the ProofRun reusable workflow changed, confirm its immutable engine `ref`
    matches the release tag and run the composite-action smoke workflow.
 6. Create and push a matching tag, for example `v0.19.0` for version `0.19.0`.

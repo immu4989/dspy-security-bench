@@ -86,6 +86,15 @@ retain the existing release tests, metadata checks, and attestations. Untracked
 new source files must be deliberately reviewed and added to Git before this check.
 The tag-triggered release job reruns the offline suite and Ruff from locked
 dependencies before building, checking inventory, attesting, and publishing.
+After inventory verification it replaces the editable package with the built
+wheel (keeping locked dependencies), then runs
+`python scripts/smoke_installed_package.py` using that environment's interpreter.
+The smoke runs CLI entry points in isolated Python children from a temporary
+directory, requires imports from that interpreter's site-packages, and checks
+packaged schemas/templates, fictional evidence replay, expected policy-failure
+exit codes, tamper rejection, and initialization. Common Python socket calls are
+blocked to catch accidental network use. This is not an OS sandbox, a fresh
+dependency-resolution test, or coverage of every installed command.
 Do not bypass a failed gate by uploading a locally built archive manually.
 
 ## Contributing a RootViewQuorum implementation

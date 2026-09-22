@@ -167,8 +167,10 @@ def test_release_rechecks_tagged_source_and_archive_inventory_before_attesting()
     tests = next(i for i, run in enumerate(runs) if "uv run --locked --no-sync pytest tests/" in run)
     build = next(i for i, run in enumerate(runs) if run == "python -m build")
     inventory = next(i for i, run in enumerate(runs) if "check_distribution_contents.py dist" in run)
+    installed = next(i for i, run in enumerate(runs) if ".venv/bin/python scripts/smoke_installed_package.py" in run)
     attest = next(i for i, step in enumerate(steps) if step.get("uses", "").startswith("actions/attest@"))
-    assert sync < tests < build < inventory < attest
+    assert sync < tests < build < inventory < installed < attest
+    assert "--no-deps --reinstall dist/*.whl" in runs[installed]
     assert "uv run --locked --no-sync ruff check" in runs[tests]
     assert not any(step.get("continue-on-error") for step in steps)
     assert workflow["jobs"]["publish"]["needs"] == "build-and-verify"

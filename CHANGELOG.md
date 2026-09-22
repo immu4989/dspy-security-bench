@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Release verification now exercises the installed wheel outside the checkout:
+  packaged resources, offline scan replay, policy exit codes, tamper rejection,
+  and config initialization must succeed before release attestation/publishing.
 - The website includes a no-install, explicitly fictional six-case scan review.
   Its HTML and retained JSON are tested against native deterministic generation,
   showing newly failing cases hidden by unchanged aggregate scores.
