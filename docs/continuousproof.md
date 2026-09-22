@@ -15,6 +15,28 @@ numeric metrics, and its own canonical digest. A drift report records identity
 changes, all common metric deltas, directionality, the owner-supplied threshold,
 and whether review is needed.
 
+On main, comparison requires the same **nonempty metric keys** on both sides.
+Removed, added, or entirely missing metrics are not silently dropped; the CLI
+exits 2 and requires a separate review of the changed measurement surface.
+Thresholds must be finite, nonnegative numbers. Preserve historical reports:
+older reports that relied on silently intersecting different metric sets no
+longer verify under the corrected comparison rules.
+
+Snapshot verification alone establishes self-consistency, not source derivation
+or authenticated execution. To re-run native verification and reconstruct the
+snapshot from its retained source:
+
+```bash
+dspy-security-bench watch verify baseline.json --evidence report.json
+```
+
+This rejects a self-rehashed snapshot with edited metrics or identity. The
+`--evidence` option is for snapshots; verify each embedded snapshot against its
+own source before relying on a drift report. Retain sources and independent
+digest pins through your review process. Fabricated but internally consistent
+source evidence is not authenticated by this operation. The watch CLI now uses
+the shared bounded strict JSON reader, including for controller inputs.
+
 Supported source reports are AgentGraphTwin v1/v2, AuthorityTwin,
 MissionPackTwin, IncidentTwin, TraceProof analysis, ScheduleProof,
 CollectiveGuard v1/v2, DefenderTwin, ResilienceGraph, and ValueProof observations.

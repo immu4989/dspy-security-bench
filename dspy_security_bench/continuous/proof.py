@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from typing import Any
 
@@ -77,10 +78,12 @@ def compare_evidence(
         raise ValueError("snapshots use different evidence kinds")
     if isinstance(max_regression, bool) or not isinstance(max_regression, (int, float)):
         raise ValueError("max_regression must be a non-negative number")
-    if max_regression < 0:
+    if not _finite_number(max_regression) or max_regression < 0:
         raise ValueError("max_regression must be a non-negative number")
     before = baseline.get("metrics", {})
     after = candidate.get("metrics", {})
+    if not before or set(before) != set(after):
+        raise ValueError("comparison requires identical nonempty metric coverage; review changed or missing metrics separately")
     common = sorted(set(before) & set(after))
     changes = []
     for metric in common:
@@ -138,7 +141,7 @@ def verify_continuous_proof(payload: Mapping[str, Any]) -> tuple[str, ...]:
             errors.append("proof_sha256 does not match canonical proof content")
     except (TypeError, ValueError):
         errors.append("proof is not canonical JSON data")
-    if payload.get("schema_version") != 1 or payload.get("disclaimer") != DISCLAIMER:
+    if type(payload.get("schema_version")) is not int or payload.get("schema_version") != 1 or payload.get("disclaimer") != DISCLAIMER:
         errors.append("proof metadata does not match ContinuousProof v1")
     if proof_type == SNAPSHOT_TYPE:
         snapshot_fields = {
@@ -165,7 +168,7 @@ def verify_continuous_proof(payload: Mapping[str, Any]) -> tuple[str, ...]:
         if not isinstance(identity, Mapping) or not isinstance(metrics, Mapping):
             errors.append("snapshot identity and metrics must be objects")
         elif not all(
-            isinstance(key, str) and isinstance(value, (int, float)) and not isinstance(value, bool)
+            isinstance(key, str) and _finite_number(value)
             for key, value in metrics.items()
         ):
             errors.append("snapshot metrics must contain numeric values")
@@ -194,10 +197,10 @@ def verify_continuous_proof(payload: Mapping[str, Any]) -> tuple[str, ...]:
     errors.extend(f"baseline: {item}" for item in verify_continuous_proof(baseline))
     errors.extend(f"candidate: {item}" for item in verify_continuous_proof(candidate))
     policy = payload.get("policy")
-    if isinstance(policy, Mapping):
+    if isinstance(policy, Mapping) and set(policy) == {"max_regression", "owner_supplied"} and policy["owner_supplied"] is True:
         try:
             expected = compare_evidence(
-                baseline, candidate, max_regression=float(policy.get("max_regression"))
+                baseline, candidate, max_regression=policy.get("max_regression")
             )
         except (TypeError, ValueError) as exc:
             errors.append(f"drift report cannot recompute: {exc}")
@@ -209,11 +212,28 @@ def verify_continuous_proof(payload: Mapping[str, Any]) -> tuple[str, ...]:
                 "metric_changes",
                 "status",
             ):
-                if payload.get(field) != expected.get(field):
+                if canonical_sha256(payload.get(field)) != canonical_sha256(expected.get(field)):
                     errors.append(f"drift {field} does not recompute")
     else:
         errors.append("drift policy must be an object")
     return tuple(dict.fromkeys(errors))
+
+
+def verify_snapshot_source(snapshot: Mapping[str, Any], evidence: Mapping[str, Any]) -> tuple[str, ...]:
+    """Recompute a snapshot from retained native evidence, not only its own hash.
+
+    This does not authenticate execution or an independently retained digest.
+    """
+    errors = verify_continuous_proof(snapshot)
+    if errors or snapshot.get("proof_type") != SNAPSHOT_TYPE:
+        return errors or ("source verification requires a snapshot",)
+    try:
+        expected = build_evidence_snapshot(evidence, label=snapshot["label"])
+        if canonical_sha256(snapshot) != canonical_sha256(expected):
+            return ("snapshot does not recompute from retained source evidence",)
+    except (TypeError, ValueError):
+        return ("retained source evidence did not pass native verification",)
+    return ()
 
 
 def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
@@ -389,3 +409,12 @@ def _digest(value: Any) -> bool:
         and len(value) == 64
         and all(char in "0123456789abcdef" for char in value)
     )
+
+
+def _finite_number(value: Any) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False

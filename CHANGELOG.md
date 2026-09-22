@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- ContinuousProof rejects changed/empty metric coverage instead of silently
+  comparing an intersection, rejects nonfinite thresholds and type-coerced
+  verdicts, and supports native source reconstruction via `watch verify
+  SNAPSHOT --evidence SOURCE`. Watch intake uses bounded strict JSON.
 - Shared local JSON and signed-statement intake now bounds numeric token length
   before conversion, independently of interpreter-wide integer limit settings.
 - Scan preflight rejects hard-linked output targets and control-bearing or

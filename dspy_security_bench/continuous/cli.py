@@ -7,6 +7,8 @@ import json
 import sys
 from pathlib import Path
 
+from dspy_security_bench.jsonio import read_json_object
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="dspy-security-bench watch")
@@ -22,6 +24,7 @@ def main(argv: list[str] | None = None) -> int:
     compare.add_argument("--out", required=True)
     verify = commands.add_parser("verify", help="verify a snapshot or drift report")
     verify.add_argument("path")
+    verify.add_argument("--evidence", help="recompute a snapshot from retained native source evidence")
     controller = commands.add_parser(
         "controller", help="run the observe-only assurance controller and hash-chained timeline"
     )
@@ -67,6 +70,7 @@ def main(argv: list[str] | None = None) -> int:
         build_evidence_snapshot,
         compare_evidence,
         verify_continuous_proof,
+        verify_snapshot_source,
     )
 
     try:
@@ -81,6 +85,12 @@ def main(argv: list[str] | None = None) -> int:
             errors = verify_continuous_proof(payload)
             if errors:
                 raise ValueError("; ".join(errors))
+            if args.evidence:
+                errors = verify_snapshot_source(payload, _read(args.evidence))
+                if errors:
+                    raise ValueError("; ".join(errors))
+            else:
+                print("[watch] self-consistency only; retained source evidence was not supplied")
             print(f"[watch] verified {args.path}")
             return 0
         candidate = _read(args.candidate)
@@ -94,10 +104,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _read(path: str) -> dict:
-    payload = json.loads(Path(path).read_text())
-    if not isinstance(payload, dict):
-        raise ValueError("JSON root must be an object")
-    return payload
+    return read_json_object(Path(path), 50_000_000)
 
 
 def _write(path: str, payload: dict) -> None:
