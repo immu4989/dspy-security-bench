@@ -10,6 +10,7 @@ from typing import Any
 
 MAX_JSON_DEPTH = 100
 MAX_SIGNED_STATEMENT_BYTES = 1_000_000
+MAX_NUMBER_CHARACTERS = 128
 
 
 def read_json_object(path: Path, maximum: int) -> dict[str, Any]:
@@ -46,7 +47,8 @@ def decode_json_object(raw: bytes, maximum: int) -> dict[str, Any]:
         raise ValueError("JSON input must be UTF-8") from exc
     try:
         payload = json.loads(
-            source, object_pairs_hook=_unique_object, parse_constant=_reject_constant
+            source, object_pairs_hook=_unique_object, parse_constant=_reject_constant,
+            parse_int=_bounded_int, parse_float=_bounded_float,
         )
     except RecursionError as exc:
         raise ValueError("JSON input nesting exceeds the supported limit") from exc
@@ -85,3 +87,18 @@ def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 def _reject_constant(value: str) -> None:
     raise ValueError("JSON numbers must be finite")
+
+
+def _bounded_int(value: str) -> int:
+    if len(value) > MAX_NUMBER_CHARACTERS:
+        raise ValueError(f"JSON numeric tokens must not exceed {MAX_NUMBER_CHARACTERS} characters")
+    return int(value)
+
+
+def _bounded_float(value: str) -> float:
+    if len(value) > MAX_NUMBER_CHARACTERS:
+        raise ValueError(f"JSON numeric tokens must not exceed {MAX_NUMBER_CHARACTERS} characters")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError("JSON numbers must be finite")
+    return result

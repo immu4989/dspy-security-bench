@@ -46,6 +46,17 @@ Duplicate members, invalid Unicode, non-finite numbers, and excessive nesting
 are rejected. This is not a claim that every JSON/YAML parser in the repository
 has been replaced.
 
+Numeric JSON tokens are limited to 128 characters before integer/float conversion,
+including signs, decimal points, and exponent text. This is a local intake limit,
+not a general JSON-standard limit; it preserves ordinary counts and rates while
+rejecting pathological numeric literals independently of interpreter settings.
+The [Python JSON documentation](https://docs.python.org/3/library/json.html)
+describes resource risks from untrusted JSON and the interpreter's integer
+conversion guard. File-byte and nesting limits remain separate. Floating-point
+values retain ordinary Python rounding semantics; this is not decimal-exact
+arithmetic or a complete resource-isolation boundary. Do not edit a signed
+payload to shorten a number—obtain a corrected statement from its owner.
+
 Signed review/recovery statements are limited to 1 MB decoded bytes and must
 be unambiguous UTF-8 JSON objects. An oversized or ambiguous signed statement
 must be corrected and re-signed by its authorized owner; do not mutate the

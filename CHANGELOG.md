@@ -10,6 +10,8 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Shared local JSON and signed-statement intake now bounds numeric token length
+  before conversion, independently of interpreter-wide integer limit settings.
 - Scan preflight rejects hard-linked output targets and control-bearing or
   overlong identity labels before execution, preserving unrelated file contents
   and preventing labels from injecting terminal controls.

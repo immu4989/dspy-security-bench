@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from dspy_security_bench.jsonio import read_json_object
+from dspy_security_bench.jsonio import MAX_NUMBER_CHARACTERS, decode_json_object, read_json_object
 from dspy_security_bench.ledger.cli import _read_json as read_ledger_json
 from dspy_security_bench.supplychain.cli import main
 
@@ -69,3 +69,34 @@ def test_bom_cli_rejects_duplicate_policy_before_creating_output(tmp_path, capsy
     )
     assert not out.exists()
     assert "duplicate member" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("number", [
+    b"9" * 129,
+    b"-" + b"9" * 128,
+    b"0." + b"1" * 127,
+    b"1e" + b"0" * 127,
+    b"-1.0e-" + b"0" * 123,
+])
+def test_numeric_tokens_are_bounded_before_conversion(number):
+    raw = b'{"private-key":' + number + b"}"
+    with pytest.raises(ValueError, match="numeric tokens") as caught:
+        decode_json_object(raw, 1000)
+    assert "private-key" not in str(caught.value)
+    assert number.decode() not in str(caught.value)
+
+
+def test_numeric_boundary_preserves_integer_types_and_normal_floats():
+    digits = b"9" * MAX_NUMBER_CHARACTERS
+    assert decode_json_object(b'{"x":' + digits + b"}", 1000)["x"] == int(digits)
+    assert decode_json_object(b'{"x":-2.5e-3}', 1000)["x"] == -0.0025
+
+
+def test_signed_statement_reader_uses_the_same_numeric_budget():
+    import base64
+
+    from dspy_security_bench.jsonio import decode_base64_statement
+
+    raw = b'{"x":' + b"9" * 129 + b"}"
+    with pytest.raises(ValueError, match="numeric tokens"):
+        decode_base64_statement(base64.b64encode(raw).decode())
