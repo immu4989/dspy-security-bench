@@ -80,6 +80,25 @@ The plan resolves suite-specific task IDs and reports the total benchmark
 cases. `user_tasks` and `injection_tasks` each accept a positive count or
 `"all"`.
 
+On main, add a task-invocation budget before connecting a provider:
+
+```yaml
+limits:
+  max_task_runs: 100
+```
+
+Or use `--max-task-runs 100`. This optional, inclusive bound counts scored
+cases **plus auxiliary injection-task utility runs**, across every suite,
+attack, and defense. Over-budget plans remain inspectable with `--plan` or
+`--plan-json`, but execution and baseline capture stop with exit 2 before agent
+construction—even with `fail_on: never`. The configured budget is included in
+the reviewed plan digest. It is disabled by default and accepts 1–1,000,000.
+
+This is not a provider-request, token, tool-call, wall-time, or dollar limit.
+One task may execute many model/tool calls, including retries. Configure those
+limits with your provider and agent runtime separately. The bound is a preflight
+scope check, not runtime containment or evidence that the task was executed.
+
 Exit code: `0` pass · `1` gate failed · `2` could not run.
 
 On main, exit 0 means **not blocked by the configured enforcement policy**, not

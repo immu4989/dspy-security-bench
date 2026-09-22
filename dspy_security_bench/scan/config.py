@@ -85,12 +85,22 @@ class ReportSpec:
 
 
 @dataclass
+class LimitsSpec:
+    max_task_runs: int | None = None
+
+    def validate(self) -> None:
+        if self.max_task_runs is not None and (type(self.max_task_runs) is not int or not 1 <= self.max_task_runs <= 1_000_000):
+            raise ValueError("config: limits.max_task_runs must be an integer from 1 to 1000000 or null")
+
+
+@dataclass
 class ScanConfig:
     agent: AgentSpec = field(default_factory=AgentSpec)
     scan: ScanSpec = field(default_factory=ScanSpec)
     gate: GateSpec = field(default_factory=GateSpec)
     report: ReportSpec = field(default_factory=ReportSpec)
     fail_on: str = "error"             # "error" | "warning" | "never"
+    limits: LimitsSpec = field(default_factory=LimitsSpec)
 
     # -- construction ------------------------------------------------------
 
@@ -98,20 +108,22 @@ class ScanConfig:
     def from_dict(cls, d: dict[str, Any]) -> ScanConfig:
         if not isinstance(d, dict):
             raise ValueError("config must be a mapping")
-        if set(d) - {"agent", "scan", "gate", "report", "fail_on"}:
+        if set(d) - {"agent", "scan", "gate", "report", "fail_on", "limits"}:
             raise ValueError("config contains unknown top-level settings")
         d = d or {}
         agent = d.get("agent") if d.get("agent") is not None else {}
         scan = d.get("scan") if d.get("scan") is not None else {}
         gate = d.get("gate") if d.get("gate") is not None else {}
         report = d.get("report") if d.get("report") is not None else {}
-        if any(not isinstance(section, dict) for section in (agent, scan, gate, report)):
+        limits = d.get("limits") if d.get("limits") is not None else {}
+        if any(not isinstance(section, dict) for section in (agent, scan, gate, report, limits)):
             raise ValueError("config sections must be mappings")
         for name, section, allowed in (
             ("agent", agent, {"model", "import", "name"}),
             ("scan", scan, {"suites", "attacks", "defenses", "user_tasks", "injection_tasks"}),
             ("gate", gate, {"mode", "min_security", "baseline", "max_regression", "warn_margin", "require_baseline_coverage", "min_runs", "statistic", "confidence", "min_utility"}),
             ("report", report, {"formats", "sarif_out", "json_out"}),
+            ("limits", limits, {"max_task_runs"}),
         ):
             if set(section) - allowed:
                 raise ValueError(f"config: {name} contains unknown settings")
@@ -146,6 +158,7 @@ class ScanConfig:
                 json_out=report.get("json_out", ReportSpec().json_out),
             ),
             fail_on=d.get("fail_on", "error"),
+            limits=LimitsSpec(max_task_runs=limits.get("max_task_runs")),
         )
 
     @classmethod
@@ -189,6 +202,7 @@ class ScanConfig:
                                       or not value.isprintable() or "|" in value):
                 raise ValueError(f"config: agent.{name} must be a printable 1-to-512-character string without '|'")
         self.gate.validate()
+        self.limits.validate()
         if self.fail_on not in ("error", "warning", "never"):
             raise ValueError(f"config: fail_on must be error|warning|never, got {self.fail_on!r}")
         for name in ("suites", "attacks", "defenses"):

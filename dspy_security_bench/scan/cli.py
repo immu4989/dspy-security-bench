@@ -55,6 +55,8 @@ def _apply_overrides(cfg: ScanConfig, args) -> ScanConfig:
         cfg.gate.min_security = args.min_security
     if args.min_utility is not None:
         cfg.gate.min_utility = args.min_utility
+    if args.max_task_runs is not None:
+        cfg.limits.max_task_runs = args.max_task_runs
     if args.min_runs is not None:
         cfg.gate.min_runs = args.min_runs
     if args.statistic is not None:
@@ -239,8 +241,18 @@ def build_scan_plan_report(cfg: ScanConfig, plan: list[dict], scope: dict, basel
     }
     if cfg.gate.min_utility is not None:
         payload["gate"]["min_utility"] = cfg.gate.min_utility
+    if cfg.limits.max_task_runs is not None:
+        payload["execution_budget"] = build_execution_budget(cfg, plan)
     payload["report_sha256"] = canonical_sha256(payload)
     return payload
+
+
+def build_execution_budget(cfg: ScanConfig, plan: list[dict]) -> dict:
+    planned = sum(item["cases"] + item["auxiliary_injection_task_runs"] for item in plan)
+    maximum = cfg.limits.max_task_runs
+    return {"planned_task_runs": planned, "max_task_runs": maximum,
+            "within_budget": maximum is None or planned <= maximum,
+            "claim_boundary": "Counts scored and auxiliary task invocations, not provider requests, tool calls, tokens, time, dollars, or external side effects. Provider and tool budgets require separate controls."}
 
 
 def build_gate_feasibility(cfg: ScanConfig, plan: list[dict]) -> dict:
@@ -321,6 +333,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--plan", action="store_true", help="show the exact run matrix without LM calls")
     s.add_argument("--plan-json", metavar="PATH", help="write a new JSON preflight plan and exit without model calls")
     s.add_argument("--expected-plan-sha256", metavar="SHA256", help="require an independently retained v2 plan digest before agent construction")
+    s.add_argument("--max-task-runs", type=int, help="cap planned scored plus auxiliary task invocations before agent construction")
     gate = p.add_argument_group("gate")
     gate.add_argument("--min-security", type=float)
     gate.add_argument("--min-utility", type=float, help="optional point-rate floor for task utility under attack, separate from security")
@@ -403,10 +416,16 @@ def main(argv: list[str] | None = None) -> int:
                 return 2
             print(f"[scan] wrote preflight plan → {args.plan_json}")
         print(render_scan_plan(cfg, plan))
+        if cfg.limits.max_task_runs is not None:
+            budget = build_execution_budget(cfg, plan)
+            print(f"[scan] task-run budget: {budget['planned_task_runs']} planned / {budget['max_task_runs']} maximum; within_budget={budget['within_budget']}")
         if not build_gate_feasibility(cfg, plan)["all_cells_feasible"]:
             print("[scan] warning: this scope cannot satisfy the configured sample minimum or Wilson threshold, even with perfect observed resistance", file=sys.stderr)
         return 0
 
+    if cfg.limits.max_task_runs is not None and not build_execution_budget(cfg, plan)["within_budget"]:
+        print("[scan] planned scored and auxiliary task runs exceed the configured execution budget; no agent was constructed", file=sys.stderr)
+        return 2
     if not build_gate_feasibility(cfg, plan)["all_cells_feasible"]:
         print("[scan] infeasible gate: review task scope, minimum observations, and Wilson threshold using --plan-json before invoking an agent", file=sys.stderr)
         return 2

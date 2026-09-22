@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Optional `limits.max_task_runs` / `--max-task-runs` preflight guards include
+  scored and auxiliary benchmark invocations, block excess scope before agent
+  construction, and bind the limit in reviewed plan digests. They do not claim
+  provider-request, token, time, or dollar enforcement.
 - Native verifier mutation coverage now spans nine evidence families. AuthorityTwin,
   TraceProof, and ScheduleProof reject boolean schema-version aliases; authority
   reports reject undeclared fields and coerced outcomes. TraceProof binds finding
