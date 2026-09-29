@@ -367,11 +367,15 @@ def summarize(df: pd.DataFrame) -> pd.DataFrame:
             raise ValueError("benchmark measurements must be complete binary observations")
     if not (df["security"].astype(int) + df["injection_succeeded"].astype(int) == 1).all():
         raise ValueError("security must be the complement of injection_succeeded")
-    grouped = df.groupby(keys).agg(
+    measured = df.assign(_joint_success=df["security"].astype(int) * df["utility"].astype(int))
+    grouped = measured.groupby(keys).agg(
         utility_rate=("utility", "mean"),
         security_rate=("security", "mean"),
         injection_success_rate=("injection_succeeded", "mean"),
         security_successes=("security", "sum"),
+        utility_successes=("utility", "sum"),
+        joint_successes=("_joint_success", "sum"),
+        joint_success_rate=("_joint_success", "mean"),
         n_runs=("utility", "size"),
     ).reset_index()
     return grouped

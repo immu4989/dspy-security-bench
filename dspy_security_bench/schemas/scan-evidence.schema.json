@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Minimal scan evidence v1 and utility-gated v2",
+  "title": "Minimal scan evidence v1, utility-gated v2, and joint-gated v3",
   "description": "Structural intake only. Use scan verify for matrix, count, baseline, digest, and verdict recomputation; neither establishes execution authenticity.",
   "type": "object",
   "additionalProperties": false,
@@ -21,7 +21,8 @@
       "type": "integer",
       "enum": [
         1,
-        2
+        2,
+        3
       ]
     },
     "evidence_type": {
@@ -30,7 +31,8 @@
     "protocol_version": {
       "enum": [
         "scan-evidence-v1",
-        "scan-evidence-v2"
+        "scan-evidence-v2",
+        "scan-evidence-v3"
       ]
     },
     "scope": {
@@ -86,8 +88,9 @@
         },
         "policy": {
           "not": {
-            "required": [
-              "min_utility"
+            "anyOf": [
+              {"required": ["min_utility"]},
+              {"required": ["min_joint_success"]}
             ]
           }
         }
@@ -102,10 +105,18 @@
           "const": "scan-evidence-v2"
         },
         "policy": {
+          "not": {"required": ["min_joint_success"]},
           "required": [
             "min_utility"
           ]
         }
+      }
+    },
+    {
+      "properties": {
+        "schema_version": {"const": 3},
+        "protocol_version": {"const": "scan-evidence-v3"},
+        "policy": {"required": ["min_joint_success"]}
       }
     }
   ],
@@ -279,6 +290,11 @@
           "maximum": 1
         },
         "min_utility": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_joint_success": {
           "type": "number",
           "minimum": 0,
           "maximum": 1

@@ -160,6 +160,43 @@ per-case joint success, or production fitness. Run clean-task controls separatel
 Evidence with this option uses `scan-evidence-v2`; older v1 evidence remains
 replayable unchanged and is not silently assigned a utility requirement.
 
+### Require security and utility on the same task pair (on main)
+
+Separate marginal floors are not a joint floor. In five fictional observations,
+three pairs can be both secure and useful, one secure but not useful, and one
+useful but not secure: each marginal rate is 80%, but joint success is only 60%.
+Do not multiply the two marginal rates or assume the outcomes are independent.
+
+```yaml
+gate:
+  min_security: 0.80
+  min_utility: 0.80
+  min_joint_success: 0.70
+```
+
+The CLI equivalent is `--min-joint-success 0.70`. This optional point-rate floor
+counts `security == 1 AND utility == 1` within each observed task pair, then
+divides by that cell's observation count. Each configured requirement must pass
+separately. The joint gate works alongside absolute or regression security
+gates; security Wilson intervals remain a separate statistic. There is no joint
+confidence interval or production-reliability inference.
+
+Missing joint counts fail instead of being estimated from separate averages.
+Direct `evaluate_gate` callers must supply `security_successes`,
+`utility_successes`, `joint_successes`, `utility_rate`, and `joint_success_rate`;
+counts, rates, and feasible marginal overlap must agree. `runner.summarize`
+computes these from complete binary rows without modifying its input frame.
+Unmet joint requirements have their own SARIF rule and error severity, even
+inside the security warning margin. `fail_on: never` may make enforcement
+nonblocking but never changes the measured finding to a pass.
+
+Joint-gated evidence uses `scan-evidence-v3`, with or without a separate utility
+floor. Unused optional settings do not change frozen v1/v2 evidence. The new
+floor is bound into preflight plan pins and study policy identity; review a new
+plan before changing it. Replay derives the conjunction from primitive rows,
+not from a saved joint score. V3 is the **evidence policy format**, independent
+of the separately versioned tool-budgeted measurement protocol.
+
 ### Sample size and uncertainty (on main)
 
 By default the absolute gate compares the observed rate (`statistic: point`).

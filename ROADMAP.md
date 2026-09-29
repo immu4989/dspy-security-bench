@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Optional same-pair secure-and-useful gates, cooperative per-task tool admission
+  limits with scope-bound budgets, strict bounded scan YAML, portable repeated
+  study bundles and safe manifest revisions, and installed-wheel integrity/replay
+  checks support owner-reviewed adoption without adding approval claims.
+
 - Offline fixed-scope scan studies retain all planned trial statuses, native
   source verification, case-level variability, joint secure-and-useful counts,
   repeated-digest groups, and independently pinned plans without statistical

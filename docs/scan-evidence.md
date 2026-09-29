@@ -155,7 +155,11 @@ optional `min_utility` floor produces `scan-evidence-v2`, retaining its addition
 policy field and separate task-utility findings. V1 replay does not infer a new
 utility requirement. Both versions use the same minimal primitive observations
 and can be compared when their exact scopes match; source-policy changes remain
-visible. See [utility gate semantics](ci.md#keep-task-utility-separate-on-main).
+visible. Setting `min_joint_success` produces `scan-evidence-v3` and derives
+same-pair security-AND-utility counts and an additional point-floor finding.
+V3 may include or omit the separate utility floor. Frozen v1/v2 records do not
+gain a new requirement. See [utility gate semantics](ci.md#keep-task-utility-separate-on-main)
+and [joint gating](ci.md#require-security-and-utility-on-the-same-task-pair-on-main).
 
 ## Compare an upgrade case by case
 

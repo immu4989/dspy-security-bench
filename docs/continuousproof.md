@@ -71,12 +71,17 @@ roster. A changed observed subset always requires identity review; absent rates
 remain absent. Controller observations do not execute trials or establish
 independence, and unchanged nonpassing studies are still not approval.
 
-Native `scan-evidence-v1` and utility-gated v2 captures are supported as evidence
+Native `scan-evidence-v1`, utility-gated v2, and joint-gated v3 captures are supported as evidence
 kind `scan`. Every capture is replayed before normalization. Snapshots bind the
 exact scope, gate policy, retained baseline, and evidence protocol; metrics keep
 per-cell security and utility rates separate, plus the original requirement
 outcome as 0 or 1. Structured cell identities are hashed into metric keys to
 avoid ambiguous delimiters; this is not a confidentiality guarantee.
+
+Joint-gated v3 captures additionally retain per-cell joint-success rates. A
+same-marginal decline in secure-and-useful outcomes is therefore visible.
+Moving from older captures to v3 changes the measured metric surface and needs
+separate review, not an implicit comparison that drops the new joint metric.
 
 ```bash
 dspy-security-bench watch baseline before-scan.json --label before --out before-snapshot.json

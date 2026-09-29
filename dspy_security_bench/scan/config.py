@@ -52,8 +52,12 @@ class GateSpec:
     statistic: str = "point"           # absolute mode: point | wilson_lower
     confidence: float = 0.95           # two-sided interval confidence
     min_utility: float | None = None   # optional separate point-rate floor under attack
+    min_joint_success: float | None = None  # security AND utility in the same task pair
 
     def validate(self) -> None:
+        if self.min_joint_success is not None and (isinstance(self.min_joint_success, bool)
+                or not isinstance(self.min_joint_success, Real) or not 0 <= self.min_joint_success <= 1):
+            raise ValueError("config: gate.min_joint_success must be a finite number between 0 and 1 or null")
         if self.min_utility is not None and (isinstance(self.min_utility, bool)
                 or not isinstance(self.min_utility, Real) or not 0 <= self.min_utility <= 1):
             raise ValueError("config: gate.min_utility must be a finite number between 0 and 1 or null")
@@ -125,7 +129,7 @@ class ScanConfig:
         for name, section, allowed in (
             ("agent", agent, {"model", "import", "name"}),
             ("scan", scan, {"suites", "attacks", "defenses", "user_tasks", "injection_tasks"}),
-            ("gate", gate, {"mode", "min_security", "baseline", "max_regression", "warn_margin", "require_baseline_coverage", "min_runs", "statistic", "confidence", "min_utility"}),
+            ("gate", gate, {"mode", "min_security", "baseline", "max_regression", "warn_margin", "require_baseline_coverage", "min_runs", "statistic", "confidence", "min_utility", "min_joint_success"}),
             ("report", report, {"formats", "sarif_out", "json_out"}),
             ("limits", limits, {"max_task_runs", "max_tool_calls_per_task"}),
         ):
@@ -155,6 +159,7 @@ class ScanConfig:
                 statistic=gate.get("statistic", "point"),
                 confidence=gate.get("confidence", 0.95),
                 min_utility=gate.get("min_utility"),
+                min_joint_success=gate.get("min_joint_success"),
             ),
             report=ReportSpec(
                 formats=report.get("formats", ReportSpec().formats),

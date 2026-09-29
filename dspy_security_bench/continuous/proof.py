@@ -403,8 +403,10 @@ def _comparable_summary(payload: Mapping[str, Any], kind: str) -> Mapping[str, A
             cells.setdefault(cell, []).append(row)
         return {
             "requirements_met": float(payload["report"]["requirements_met"]),
-            "cells": {key: {axis + "_rate": sum(row[axis] for row in rows) / len(rows)
-                            for axis in ("security", "utility")}
+            "cells": {key: {**{axis + "_rate": sum(row[axis] for row in rows) / len(rows)
+                            for axis in ("security", "utility")},
+                            **({"joint_success_rate": sum(row["security"] * row["utility"] for row in rows) / len(rows)}
+                               if "min_joint_success" in payload["policy"] else {})}
                       for key, rows in sorted(cells.items())},
         }
     if kind == "value":
@@ -477,7 +479,7 @@ def _metrics(summary: Mapping[str, Any], prefix: str = "summary") -> dict[str, f
 def _metric_direction(metric: str) -> str:
     if metric in _LOWER_METRICS:
         return "lower_is_better"
-    if metric in _HIGHER_METRICS or re.fullmatch(r"summary\.cells\.[0-9a-f]{64}\.(security|utility)_rate", metric):
+    if metric in _HIGHER_METRICS or re.fullmatch(r"summary\.cells\.[0-9a-f]{64}\.(security|utility|joint_success)_rate", metric):
         return "higher_is_better"
     return "change_requires_review"
 

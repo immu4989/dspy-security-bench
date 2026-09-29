@@ -55,6 +55,8 @@ def _apply_overrides(cfg: ScanConfig, args) -> ScanConfig:
         cfg.gate.min_security = args.min_security
     if args.min_utility is not None:
         cfg.gate.min_utility = args.min_utility
+    if args.min_joint_success is not None:
+        cfg.gate.min_joint_success = args.min_joint_success
     if args.max_task_runs is not None:
         cfg.limits.max_task_runs = args.max_task_runs
     if args.max_tool_calls_per_task is not None:
@@ -251,6 +253,8 @@ def build_scan_plan_report(cfg: ScanConfig, plan: list[dict], scope: dict, basel
     }
     if cfg.gate.min_utility is not None:
         payload["gate"]["min_utility"] = cfg.gate.min_utility
+    if cfg.gate.min_joint_success is not None:
+        payload["gate"]["min_joint_success"] = cfg.gate.min_joint_success
     if cfg.limits.max_task_runs is not None:
         payload["execution_budget"] = build_execution_budget(cfg, plan)
     payload["report_sha256"] = canonical_sha256(payload)
@@ -348,6 +352,7 @@ def build_parser() -> argparse.ArgumentParser:
     gate = p.add_argument_group("gate")
     gate.add_argument("--min-security", type=float)
     gate.add_argument("--min-utility", type=float, help="optional point-rate floor for task utility under attack, separate from security")
+    gate.add_argument("--min-joint-success", type=float, help="optional count-backed floor for security AND utility on the same task pair")
     gate.add_argument("--min-runs", type=int, help="minimum measured observations per cell")
     gate.add_argument("--statistic", choices=["point", "wilson_lower"], help="absolute gate statistic")
     gate.add_argument("--confidence", type=float, help="two-sided Wilson confidence, from 0.5 to 0.9999")

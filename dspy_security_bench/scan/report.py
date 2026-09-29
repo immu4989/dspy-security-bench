@@ -19,6 +19,7 @@ COVERAGE_RULE_ID = "dspy-security-bench/missing-baseline-coverage"
 SAMPLE_RULE_ID = "dspy-security-bench/insufficient-sample-coverage"
 UNCERTAINTY_RULE_ID = "dspy-security-bench/uncertainty-threshold"
 UTILITY_RULE_ID = "dspy-security-bench/task-utility-threshold"
+JOINT_RULE_ID = "dspy-security-bench/joint-success-threshold"
 OWASP_URI = "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
 STANDARDS = {
     "OWASP-LLM-Top-10-2025": "LLM01: Prompt Injection",
@@ -51,6 +52,8 @@ def render_terminal(report: ScanReport, use_color: bool = True) -> str:
         lines.append(row)
         if f.utility_rate is not None:
             lines.append(f"    task utility under attack={f.utility_rate:.2%}; point-rate floor={f.threshold:.2%}")
+        if f.joint_success_rate is not None:
+            lines.append(f"    secure AND useful={f.joint_successes}/{f.n_runs} ({f.joint_success_rate:.2%}); joint point-rate floor={f.threshold:.2%}")
         if f.security_lower is not None:
             lines.append(f"    n={f.n_runs}; {f.confidence:.2%} Wilson [{f.security_lower:.2%}, {f.security_upper:.2%}]")
     lines.append(" " + "-" * 74)
@@ -93,7 +96,7 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
         results.append({
             "ruleId": {"baseline_coverage": COVERAGE_RULE_ID, "sample_coverage": SAMPLE_RULE_ID,
                        "uncertainty_threshold": UNCERTAINTY_RULE_ID,
-                       "utility_threshold": UTILITY_RULE_ID}.get(f.finding_type, RULE_ID),
+                       "utility_threshold": UTILITY_RULE_ID, "joint_success_threshold": JOINT_RULE_ID}.get(f.finding_type, RULE_ID),
             "level": _SARIF_LEVEL.get(f.severity, "warning"),
             "message": {"text": f.message},
             "locations": [{
@@ -111,6 +114,8 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
                 "security_lower": f.security_lower, "security_upper": f.security_upper,
                 "confidence": f.confidence, "required_runs": f.required_runs,
                 **({"utility_rate": f.utility_rate} if f.utility_rate is not None else {}),
+                **({"joint_success_rate": f.joint_success_rate, "joint_successes": f.joint_successes}
+                   if f.joint_success_rate is not None else {}),
             },
         })
 
@@ -150,6 +155,11 @@ def render_sarif(report: ScanReport, config_path: str = ".dspy-security-bench.ya
                     "id": UTILITY_RULE_ID, "name": "TaskUtilityThreshold",
                     "shortDescription": {"text": "Task completion under attack does not meet the owner-defined floor"},
                     "fullDescription": {"text": "A separate point-rate task utility requirement, not evidence of injection success or clean-task performance."},
+                    "defaultConfiguration": {"level": "error"},
+                }, {
+                    "id": JOINT_RULE_ID, "name": "JointSuccessThreshold",
+                    "shortDescription": {"text": "Same-pair secure and useful outcomes do not meet the owner-defined floor"},
+                    "fullDescription": {"text": "Count-backed task-pair conjunction, not a product of separate rates, a clean-task score, or population reliability."},
                     "defaultConfiguration": {"level": "error"},
                 }],
             }},

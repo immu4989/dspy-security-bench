@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Optional same-pair joint-success gates prevent separate security and utility
+  rates from hiding disjoint successes. Count-backed conjunctions have distinct
+  findings/SARIF, plan pins, exact v3 evidence replay, study support, and native
+  drift metrics. Defaults preserve historical v1/v2 replay; no independence or
+  joint population-confidence claims are introduced.
 - Release archive auditing now verifies wheel RECORD coverage, SHA-256 digests,
   sizes, package identity, Python compatibility, install tags, and all console
   entry points, with bounded metadata intake and hostile-archive regressions.

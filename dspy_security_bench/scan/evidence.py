@@ -27,7 +27,7 @@ MAX_BYTES = 50_000_000
 IDENTITY_FIELDS = ("suite", "agent", "defense", "attack", "user_task_id", "injection_task_id")
 OUTCOME_FIELDS = ("utility", "security", "injection_succeeded")
 ROW_FIELDS = (*IDENTITY_FIELDS, *OUTCOME_FIELDS)
-POLICY_FIELDS = set(GateSpec.__dataclass_fields__) - {"baseline", "min_utility"} | {"fail_on"}
+POLICY_FIELDS = set(GateSpec.__dataclass_fields__) - {"baseline", "min_utility", "min_joint_success"} | {"fail_on"}
 CLAIM_BOUNDARY = (
     "This artifact retains declared task identities and binary case outcomes, not prompts, "
     "responses, credentials, or tool logs. Verification checks the declared matrix, counts, "
@@ -108,15 +108,19 @@ def evidence_policy(gate: GateSpec, fail_on: str) -> dict:
     policy.pop("baseline")  # Local/private source paths are not export fields.
     if policy["min_utility"] is None:
         policy.pop("min_utility")
+    if policy["min_joint_success"] is None:
+        policy.pop("min_joint_success")
     policy["fail_on"] = fail_on
     return policy
 
 
 def _gate(policy: dict, baseline: dict | None) -> GateSpec:
-    if not isinstance(policy, dict) or set(policy) not in (POLICY_FIELDS, POLICY_FIELDS | {"min_utility"}):
+    if not isinstance(policy, dict) or not POLICY_FIELDS <= set(policy) <= POLICY_FIELDS | {"min_utility", "min_joint_success"}:
         raise ValueError("evidence policy has missing or unknown fields")
     if "min_utility" in policy and policy["min_utility"] is None:
         raise ValueError("utility evidence policy requires a numeric floor")
+    if "min_joint_success" in policy and policy["min_joint_success"] is None:
+        raise ValueError("joint evidence policy requires a numeric floor")
     settings = {key: value for key, value in policy.items() if key != "fail_on"}
     gate = GateSpec(**settings, baseline="embedded" if baseline is not None else None)
     gate.validate()
@@ -149,15 +153,18 @@ def build_scan_evidence(scope: dict, policy: dict, observations: list[dict], bas
     # Aggregate the retained primitive outcomes; never trust saved rates.
     ordered = sorted(observations, key=lambda row: tuple(row[key] for key in IDENTITY_FIELDS))
     frame = pd.DataFrame(ordered)
+    frame["_joint_success"] = frame["security"] * frame["utility"]
     summaries = []
     for suite in scope["suites"]:
         cells = frame[frame["suite"] == suite["suite"]].groupby(["agent", "defense", "attack"]).agg(
             security_rate=("security", "mean"), injection_success_rate=("injection_succeeded", "mean"),
             utility_rate=("utility", "mean"), security_successes=("security", "sum"), n_runs=("security", "size"),
+            utility_successes=("utility", "sum"), joint_successes=("_joint_success", "sum"),
+            joint_success_rate=("_joint_success", "mean"),
         ).reset_index()
         summaries.append((suite["suite"], cells))
     report = evaluate_scan_summaries(summaries, gate, scope, policy["fail_on"], baseline)
-    evidence_version = 2 if "min_utility" in policy else 1
+    evidence_version = 3 if "min_joint_success" in policy else 2 if "min_utility" in policy else 1
     payload = {
         "schema_version": evidence_version, "evidence_type": "dspy-security-bench-scan-evidence",
         "protocol_version": f"scan-evidence-v{evidence_version}", "scope": scope, "policy": policy,
