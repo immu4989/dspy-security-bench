@@ -44,7 +44,35 @@ use your own timestamped change-review/provenance system where needed.
 
 Collect each trial in a separate, owner-authorized execution with the same
 scope, gate policy, and baseline. Keep fresh evidence under the manifest's
-directory. Update only each trial declaration in the manifest, for example:
+directory. Record one outcome into a **new manifest revision**:
+
+```sh
+dspy-security-bench scan study record study-manifest.json \
+  --trial trial-001 --status complete --evidence trial-001.json \
+  --expected-plan-sha256 "$REVIEWED_STUDY_PLAN_SHA256" --out study-revision-1.json
+
+dspy-security-bench scan study record study-revision-1.json \
+  --trial trial-002 --status execution_error \
+  --expected-plan-sha256 "$REVIEWED_STUDY_PLAN_SHA256" --out study-revision-2.json
+```
+
+Paths passed to `--evidence` are relative to the input manifest, not the shell's
+working directory. The new manifest must be alongside the original so all
+relative references retain their meaning. The command verifies every complete
+source against the unchanged plan and computes the new source's digest. It
+does not run an agent or make failing evidence pass. Exit 0 means recording
+succeeded, not that study requirements are met; use `review --fail-on-shortfalls`.
+
+Only a `missing` trial may transition to `complete` or `execution_error`.
+Already-recorded attempts cannot be overwritten, including with identical
+evidence. Preserve errors; any additional attempted run needs a separately
+reviewed plan rather than replacing an unfavorable attempt. Keep previous
+manifest revisions and authorized provenance. This is local bookkeeping, not
+an append-only log, timestamp authority, or proof that every attempt was disclosed.
+Directly edited manifests remain supported and are checked during review, but
+their editing history cannot be reconstructed by this tool.
+
+For integrations that construct manifests directly, a complete declaration is:
 
 ```json
 {"trial_id":"trial-001","status":"complete","evidence":"trial-001.json","evidence_sha256":"<retained canonical evidence digest>"}

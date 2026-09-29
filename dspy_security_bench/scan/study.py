@@ -191,6 +191,11 @@ def _local_source(parent: Path, name: str) -> Path:
 
 def load_study_manifest(path: Path, expected_plan_sha256: str | None = None) -> tuple[dict, list, dict]:
     manifest = read_json_object(path, MAX_BYTES)
+    return _load_manifest_document(manifest, path.resolve().parent, expected_plan_sha256)
+
+
+def _load_manifest_document(manifest: dict, parent: Path,
+                            expected_plan_sha256: str | None = None) -> tuple[dict, list, dict]:
     if (set(manifest) != {"schema_version", "plan", "trials"}
             or type(manifest["schema_version"]) is not int or manifest["schema_version"] != 1):
         raise ValueError("invalid study manifest")
@@ -207,7 +212,7 @@ def load_study_manifest(path: Path, expected_plan_sha256: str | None = None) -> 
         if trial.get("status") == "complete":
             if "evidence" not in trial:
                 raise ValueError("complete trial is missing its source reference")
-            paths[trial.get("trial_id")] = _local_source(path.resolve().parent, trial.pop("evidence"))
+            paths[trial.get("trial_id")] = _local_source(parent, trial.pop("evidence"))
         trials.append(trial)
     _trial_index(plan, trials)
     remaining, evidence = MAX_BYTES, {}
@@ -221,6 +226,36 @@ def load_study_manifest(path: Path, expected_plan_sha256: str | None = None) -> 
     return plan, trials, evidence
 
 
+def record_study_trial(path: Path, trial_id: str, status: str, evidence_path: str | None = None,
+                       expected_plan_sha256: str | None = None) -> dict:
+    """Build a new manifest revision without replacing any recorded attempt.
+
+    Complete inputs are replayed, not executed. The caller must retain the new
+    manifest alongside the original so relative source references remain fixed.
+    """
+    manifest = read_json_object(path, MAX_BYTES)
+    parent = path.resolve().parent
+    plan, trials, sources = _load_manifest_document(manifest, parent, expected_plan_sha256)
+    build_scan_study(plan, trials, sources, expected_plan_sha256)
+    if status not in ("complete", "execution_error") or not _identifier(trial_id):
+        raise ValueError("record requires a planned trial and complete or execution_error status")
+    if (status == "complete") != (evidence_path is not None):
+        raise ValueError("only complete trials require a source evidence path")
+    selected = next((trial for trial in manifest["trials"] if trial["trial_id"] == trial_id), None)
+    if selected is None or selected["status"] != "missing":
+        raise ValueError("record can only fill a planned missing trial; recorded attempts cannot be replaced")
+    selected["status"] = status
+    if status == "complete":
+        source = read_json_object(_local_source(parent, evidence_path), MAX_BYTES)
+        verify_scan_evidence(source)
+        selected.update(evidence=evidence_path, evidence_sha256=source["evidence_sha256"])
+    # Recheck the combined byte limit and every retained source against the
+    # unchanged plan, including the just-added source's retained digest.
+    plan, trials, sources = _load_manifest_document(manifest, parent, expected_plan_sha256)
+    build_scan_study(plan, trials, sources, expected_plan_sha256)
+    return manifest
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="dspy-security-bench scan study", description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -231,6 +266,13 @@ def main(argv: list[str] | None = None) -> int:
     init.add_argument("--study-id", required=True)
     init.add_argument("--trials", type=int, default=3)
     init.add_argument("--out", type=Path, required=True, help="new manifest file; all trials initially missing")
+    record = commands.add_parser("record", help="record one missing trial in a new manifest revision")
+    record.add_argument("manifest", type=Path)
+    record.add_argument("--trial", required=True)
+    record.add_argument("--status", choices=("complete", "execution_error"), required=True)
+    record.add_argument("--evidence", help="relative source path beneath the manifest directory; complete only")
+    record.add_argument("--expected-plan-sha256")
+    record.add_argument("--out", type=Path, required=True, help="new manifest alongside the original")
     review = commands.add_parser("review", help="recompute a repeated study without model calls")
     review.add_argument("manifest", type=Path)
     review.add_argument("--expected-plan-sha256")
@@ -251,13 +293,18 @@ def main(argv: list[str] | None = None) -> int:
                     stream.write(content)
             print("[scan study] fictional teaching files created; open review.html. No model was executed.")
             return 0
-        destination = args.out if args.command == "init" else args.json
+        destination = args.out if args.command in ("init", "record") else args.json
         paths = [path for path in (destination, args.html if args.command == "review" else None) if path]
         if len({path.resolve() for path in paths}) != len(paths):
             raise ValueError("study outputs must be distinct")
         if any(path.exists() or path.is_symlink() or not path.parent.is_dir() for path in paths):
             raise ValueError("study outputs require new files in existing directories")
-        if args.command == "init":
+        if args.command == "record":
+            if args.out.parent.resolve() != args.manifest.resolve().parent:
+                raise ValueError("recorded manifest must stay alongside its original source references")
+            report = record_study_trial(args.manifest, args.trial, args.status, args.evidence,
+                                        args.expected_plan_sha256)
+        elif args.command == "init":
             plan = build_study_plan(read_json_object(args.evidence, MAX_BYTES), args.study_id, args.trials)
             report = {"schema_version": 1, "plan": plan,
                       "trials": [{"trial_id": name, "status": "missing"} for name in plan["trial_ids"]]}
@@ -283,6 +330,10 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, ValueError, TypeError) as exc:
         print(f"[scan study] invalid input or output ({type(exc).__name__}); no successful review", file=sys.stderr)
         return 2
+    if args.command == "record":
+        print("[scan study] new manifest revision recorded; original retained. No model was executed; "
+              "status declarations do not prove execution authenticity.")
+        return 0
     if args.command == "init":
         print(f"[scan study] unexecuted plan {plan['plan_sha256']}; retain independently before collecting trials")
         return 0

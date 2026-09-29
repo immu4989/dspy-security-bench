@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- `scan study record` records one planned missing trial in a new manifest
+  revision, replaying all complete sources and retaining plan identity. It
+  refuses replacement of completed/error attempts, relocated source references,
+  invalid pins, and existing outputs; it is bookkeeping, not an execution log.
 - Installed-wheel release checks exercise repeated-study demo, plan creation,
   exact replay, deterministic HTML, invalid pins, incomplete trials, tampering,
   and strict scan configuration offline. macOS/Windows smoke coverage includes
