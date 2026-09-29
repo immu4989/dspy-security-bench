@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import re
 from collections.abc import Mapping
 from typing import Any
 
@@ -15,26 +16,33 @@ DISCLAIMER = (
     "decisions. It is not continuous monitoring of a production system, certification, a risk "
     "acceptance, compliance determination, or authorization to operate."
 )
-_LOWER_IS_BETTER = (
-    "unsafe",
-    "false",
-    "error",
-    "failure",
-    "blast",
-    "harm_event",
-    "finding",
-    "excluded",
-    "risk",
-    "disruption",
-    "critical",
-    "high",
-    "medium",
-    "low",
-    "cost",
-    "latency",
-    "minutes",
-    "rework",
-)
+# Explicit native metric semantics. Unknown metrics are not assigned an
+# improvement direction: any change requires owner review, irrespective of the
+# scalar regression allowance. Never infer meaning from user labels/substrings.
+_LOWER_METRICS = frozenset("summary." + name for name in (
+    "false_allows", "false_denies", "unsafe_side_effects", "case_errors",
+    "total_unsafe_effects", "harmful_outcomes", "unsafe_schedules", "unsafe_schedule_fraction",
+    "critical", "high", "medium", "low", "critical_findings", "high_findings", "medium_findings",
+    "introduced_risk", "mission_disruption", "excluded_candidates",
+    "leakage_canary_hits", "maximum_observed_alert_latency_ms",
+    "cost_per_attempt", "cost_per_successful_mission", "cost_per_safe_mission",
+    "mean_latency_ms_per_attempt", "human_review_minutes_per_safe_mission",
+    "recovery_minutes_per_attempt", "portability_rework_hours_observed",
+    "probe_status_counts.violation_observed", "probe_status_counts.monitor_failed",
+    "probe_status_counts.incomplete_evidence", "control_status_counts.violation_observed",
+    "control_status_counts.monitor_failed", "control_status_counts.incomplete_evidence",
+))
+_HIGHER_METRICS = frozenset("summary." + name for name in (
+    "clean_mission_utility", "injected_mission_utility", "injected_authorization_accuracy",
+    "attack_resistance", "harm_containment", "receipt_integrity", "review_accuracy",
+    "decision_invariance", "citation_faithfulness", "citation_completeness", "citation_sufficiency",
+    "authoritative_source_preference", "safe_schedules", "mission_success_rate", "safe_mission_rate",
+    "safe_missions_per_currency_unit", "attack_path_closure_rate", "weakness_remediation_rate",
+    "mission_stability", "evidence_completeness", "trusted_defender_gate", "rollback_verified",
+    "fully_robust_portfolio", "robust_scenarios", "worst_direct_service_weight",
+    "worst_dependency_reach_weight", "requirements_met", "probe_status_counts.contained",
+    "control_status_counts.evidenced",
+))
 _NON_METRICS = ("count", "trials", "seconds", "pair_count")
 
 
@@ -88,17 +96,19 @@ def compare_evidence(
     changes = []
     for metric in common:
         old, new = float(before[metric]), float(after[metric])
-        direction = "lower_is_better" if _lower_is_better(metric) else "higher_is_better"
-        regression = new - old if direction == "lower_is_better" else old - new
+        direction = _metric_direction(metric)
+        delta = new - old
+        regression = (delta if direction == "lower_is_better" else -delta
+                      if direction == "higher_is_better" else abs(delta))
         changes.append(
             {
                 "metric": metric,
                 "baseline": old,
                 "candidate": new,
-                "delta": new - old,
+                "delta": delta,
                 "direction": direction,
                 "regression": max(0.0, regression),
-                "threshold_exceeded": regression > float(max_regression),
+                "threshold_exceeded": regression > (0.0 if direction == "change_requires_review" else float(max_regression)),
             }
         )
     identity_changes = [
@@ -108,7 +118,8 @@ def compare_evidence(
             "candidate": candidate["identity"].get(field),
         }
         for field in sorted(set(baseline["identity"]) | set(candidate["identity"]))
-        if baseline["identity"].get(field) != candidate["identity"].get(field)
+        if field not in baseline["identity"] or field not in candidate["identity"]
+        or canonical_sha256(baseline["identity"][field]) != canonical_sha256(candidate["identity"][field])
     ]
     report: dict[str, Any] = {
         "schema_version": 1,
@@ -427,8 +438,12 @@ def _metrics(summary: Mapping[str, Any], prefix: str = "summary") -> dict[str, f
     return dict(sorted(result.items()))
 
 
-def _lower_is_better(metric: str) -> bool:
-    return any(token in metric.lower() for token in _LOWER_IS_BETTER)
+def _metric_direction(metric: str) -> str:
+    if metric in _LOWER_METRICS:
+        return "lower_is_better"
+    if metric in _HIGHER_METRICS or re.fullmatch(r"summary\.cells\.[0-9a-f]{64}\.(security|utility)_rate", metric):
+        return "higher_is_better"
+    return "change_requires_review"
 
 
 def _digest(value: Any) -> bool:

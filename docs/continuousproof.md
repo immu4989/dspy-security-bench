@@ -22,6 +22,22 @@ Thresholds must be finite, nonnegative numbers. Preserve historical reports:
 older reports that relied on silently intersecting different metric sets no
 longer verify under the corrected comparison rules.
 
+Metric directions use an explicit catalog of native metric paths, not substring
+matches. In particular, harmful outcomes, leakage-canary hits, violations,
+monitor failures, and incomplete-evidence counts are adverse increases. Native
+security/utility and completion metrics retain their beneficial direction.
+An unfamiliar metric has direction `change_requires_review`: **any change**
+requires review even if it is smaller than `max_regression`; its `regression`
+field is absolute change magnitude, not an inferred harm score. An unchanged
+unfamiliar metric does not trigger a change finding. The threshold has each
+metric's native units; it is not a normalized risk score.
+
+Identity comparison preserves JSON types and field presence. Boolean `true` is
+not version `1`, and an omitted identity field is not an explicitly null field.
+These direction/identity corrections can change old drift reports and controller
+observations. Retain their original revision and artifacts; recompute from
+retained sources for a new review rather than merely rehashing archived reports.
+
 Snapshot verification alone establishes self-consistency, not source derivation
 or authenticated execution. To re-run native verification and reconstruct the
 snapshot from its retained source:

@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- **Corrected ContinuousProof drift semantics:** native harmful-outcome,
+  leakage-canary, violation, monitor-failure, and incomplete-evidence increases
+  are adverse changes, not improvements. Explicit metric paths replace name
+  substring inference; unfamiliar metric changes require review, and identity
+  comparisons preserve JSON types and field presence. Affected old drift and
+  controller reports need source-backed regeneration, not simple rehashing.
 - Optional per-task supplied-tool admission limits work at the generic Agent
   boundary, including cooperative parallel calls. Exhaustion cannot become a
   completed score when an agent swallows the tool error; late calls are denied

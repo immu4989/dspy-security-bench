@@ -6,18 +6,29 @@ have been recalculated or revised by this work.
 
 ## Scanner behavior changes
 
+ContinuousProof drift direction is now defined by explicit native metric paths.
+Earlier substring inference could classify increases in `harmful_outcomes` or
+`leakage_canary_hits` as improvements. Unknown metric changes now require review
+regardless of the numeric regression allowance. Typed identity and field-presence
+changes also require review. Source snapshots retain their original format, but
+affected drift/controller reports must be regenerated from retained evidence;
+preserve old artifacts and their original tool revision for historical review.
+
 - Missing baseline cells fail by default. Explicitly set
   `gate.require_baseline_coverage: false` only for informational comparisons.
 - Newly generated CLI baselines bind the resolved task scope. Legacy rate-only
   baselines warn that scope is unverified. Create a new reviewed baseline for
   a genuinely changed experiment rather than weakening the check.
-- Current scans use `complete-binary-observations-v2`: exceptions escaping task
+- By default, current scans use `complete-binary-observations-v2`: exceptions escaping task
   execution/evaluation become execution errors, not binary attack outcomes.
   Older v1 scope-bound baselines deliberately do not match; preserve them and
   create a newly reviewed baseline. Cached AgentDojo result reuse
   (`force_rerun=False`) is rejected because those entries do not establish this
   error-accounting contract. Offline `scan verify` remains available for retained
   v1 evidence without relabeling it as v2.
+- Optional supplied-tool admission limits use a distinct v3 measurement scope
+  with the exact per-task limit. See [tool-call budgets](tool-call-budgets.md)
+  before comparing or replacing scope-bound baselines.
 - Empty results, missing observations, nonbinary outcomes, invalid rates/counts,
   and incomplete requested matrices produce errors, not favorable defaults.
 - The built-in LiteLLM agent no longer converts a failed final-answer provider
