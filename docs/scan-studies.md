@@ -12,6 +12,20 @@ reports **descriptive observations only**. It does not implement NIST's
 estimators, assume independent trials, infer pass-at-k probabilities, or assign
 confidence intervals from correlated case counts.
 
+## Try a fictional review first
+
+```sh
+dspy-security-bench scan study demo --out fictional-study
+```
+
+Open `fictional-study/review.html` directly in a browser. It needs no server,
+credentials, remote assets, or model execution. Six deterministic files include
+the local manifest, two source inputs, report JSON, HTML, and replay instructions.
+The five invented trials deliberately include one missing run, one execution
+error, and a repeated source digest. None of these are measured model results.
+Existing destinations are refused; unexpected I/O failures may leave partial
+files for inspection rather than deleting them.
+
 ## Declare a study before collecting its trials
 
 Start with verified pilot evidence from an authorized scan. Derive the scope,
@@ -61,7 +75,7 @@ review; this tool cannot detect attempts that were never disclosed.
 ```sh
 dspy-security-bench scan study review study-manifest.json \
   --expected-plan-sha256 "$REVIEWED_STUDY_PLAN_SHA256" \
-  --json study-review.json --fail-on-shortfalls
+  --json study-review.json --html study-review.html --fail-on-shortfalls
 
 dspy-security-bench scan study review study-manifest.json \
   --expected-plan-sha256 "$REVIEWED_STUDY_PLAN_SHA256" \
@@ -87,6 +101,14 @@ the full report, including its cases, statuses, source digests, and limitations.
 The [schema](../dspy_security_bench/schemas/scan-study.schema.json) supports
 structural intake for reports and its `plan`/`manifest` definitions; it is not a
 substitute for semantic verification.
+
+The optional HTML page prioritizes coverage and missing/error states before
+conditional rates. It shows every trial and up to 50 cases, placing varied and
+failing cases first, with omissions labeled. Retain full JSON for all cases.
+HTML has no scripts, external fonts/assets, or analytics; keyboard-scrollable
+tables and a print layout support offline review. It is a presentation, not a
+verifier. Multiple outputs are preflighted but not a filesystem transaction:
+an unexpected I/O failure can leave a partial output set.
 
 ## Read the results correctly
 

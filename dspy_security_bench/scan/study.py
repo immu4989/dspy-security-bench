@@ -224,6 +224,8 @@ def load_study_manifest(path: Path, expected_plan_sha256: str | None = None) -> 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="dspy-security-bench scan study", description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
+    demo = commands.add_parser("demo", help="write a fictional no-model study walkthrough")
+    demo.add_argument("--out", type=Path, required=True, help="new directory beneath an existing parent")
     init = commands.add_parser("init", help="derive an unexecuted fixed-scope plan from verified pilot evidence")
     init.add_argument("evidence", type=Path)
     init.add_argument("--study-id", required=True)
@@ -235,12 +237,26 @@ def main(argv: list[str] | None = None) -> int:
     output = review.add_mutually_exclusive_group()
     output.add_argument("--json", type=Path, help="new report file")
     output.add_argument("--verify", type=Path, help="retained report to recompute")
+    review.add_argument("--html", type=Path, help="new self-contained offline review page")
     review.add_argument("--fail-on-shortfalls", action="store_true")
     args = parser.parse_args(argv)
     try:
+        if args.command == "demo":
+            from dspy_security_bench.scan.study_demo import build_study_demo_artifacts
+
+            artifacts = build_study_demo_artifacts()
+            args.out.mkdir(parents=False, exist_ok=False)
+            for name, content in artifacts.items():
+                with (args.out / name).open("x", encoding="utf-8") as stream:
+                    stream.write(content)
+            print("[scan study] fictional teaching files created; open review.html. No model was executed.")
+            return 0
         destination = args.out if args.command == "init" else args.json
-        if destination and (destination.exists() or destination.is_symlink() or not destination.parent.is_dir()):
-            raise ValueError("study output requires a new file in an existing directory")
+        paths = [path for path in (destination, args.html if args.command == "review" else None) if path]
+        if len({path.resolve() for path in paths}) != len(paths):
+            raise ValueError("study outputs must be distinct")
+        if any(path.exists() or path.is_symlink() or not path.parent.is_dir() for path in paths):
+            raise ValueError("study outputs require new files in existing directories")
         if args.command == "init":
             plan = build_study_plan(read_json_object(args.evidence, MAX_BYTES), args.study_id, args.trials)
             report = {"schema_version": 1, "plan": plan,
@@ -251,11 +267,18 @@ def main(argv: list[str] | None = None) -> int:
             if args.verify:
                 if canonical_sha256(read_json_object(args.verify, MAX_BYTES)) != canonical_sha256(report):
                     raise ValueError("saved study differs from the retained inputs and plan")
+        artifacts = {}
         if destination:
-            raw = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
+            artifacts[destination] = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
+        if args.command == "review" and args.html:
+            from dspy_security_bench.scan.study_html import render_scan_study_html
+
+            artifacts[args.html] = render_scan_study_html(report).encode("utf-8")
+        for raw in artifacts.values():
             if len(raw) > MAX_BYTES:
                 raise ValueError("study output exceeds 50 MB")
-            with destination.open("xb") as stream:
+        for path, raw in artifacts.items():
+            with path.open("xb") as stream:
                 stream.write(raw)
     except (OSError, ValueError, TypeError) as exc:
         print(f"[scan study] invalid input or output ({type(exc).__name__}); no successful review", file=sys.stderr)

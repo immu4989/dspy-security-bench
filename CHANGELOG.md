@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Repeated-study reviews include a script-free responsive HTML report and a
+  six-file fictional demo with explicit incomplete/error trials, deliberate
+  source reuse, replay commands, and labeled case-preview limits.
 - Offline repeated-scan study reviews bind a fixed scope/policy/baseline and
   complete planned trial roster; missing attempts and execution errors remain
   visible. Native source replay, separate security/utility/joint outcomes,
