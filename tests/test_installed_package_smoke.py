@@ -74,9 +74,18 @@ def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch):
             (directory / "demo/before.json").write_text(json.dumps({"evidence_sha256": "1" * 64}))
         if arguments == ["scan", "verify", "tampered.json"]:
             assert json.loads((directory / "tampered.json").read_text()) == {"evidence_sha256": "0" * 64}
+        if arguments[:3] == ["scan", "study", "demo"]:
+            (directory / "study").mkdir()
+            (directory / "study/study.json").write_text(json.dumps({"summary": {"missing_trials": 1}}))
+            (directory / "study/review.html").write_text("fixture HTML")
+        if "--html" in arguments:
+            (directory / arguments[arguments.index("--html") + 1]).write_text("fixture HTML")
+        if "study/tampered.json" in arguments:
+            assert json.loads((directory / "study/tampered.json").read_text())["summary"]["missing_trials"] == 0
         if arguments[0] == "init":
             (directory / ".dspy-security-bench.yaml").write_text("fictional")
 
     monkeypatch.setattr(smoke, "run_cli", fixture_cli)
     assert smoke.main() == 0
-    assert [expected for _, expected in calls] == [0, 0, 0, 1, 0, 1, 2, 0]
+    assert [expected for _, expected in calls] == [0, 0, 0, 1, 0, 1, 2, 0, 0, 0, 1, 2, 0, 1, 2, 2, 0]
+    assert any("--expected-plan-sha256" in args and expected == 2 for args, expected in calls)

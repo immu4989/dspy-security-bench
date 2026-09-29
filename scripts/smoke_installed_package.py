@@ -43,7 +43,7 @@ entry = [item for item in distribution.entry_points
 if len(entry) != 1 or entry[0].value != "dspy_security_bench.cli:main":
     raise RuntimeError("installed CLI entry point is missing or changed")
 resources = importlib.resources.files("dspy_security_bench")
-for name in ("scan-evidence.schema.json", "scan-comparison.schema.json"):
+for name in ("scan-evidence.schema.json", "scan-comparison.schema.json", "scan-study.schema.json"):
     json.loads(resources.joinpath("schemas", name).read_text(encoding="utf-8"))
 if "workflow_dispatch" not in resources.joinpath("templates", "github-action.yml").read_text(encoding="utf-8"):
     raise RuntimeError("safe workflow template missing from installed wheel")
@@ -78,10 +78,37 @@ def main() -> int:
         evidence["evidence_sha256"] = "0" * 64
         (directory / "tampered.json").write_text(json.dumps(evidence), encoding="utf-8")
         run_cli(directory, ["scan", "verify", "tampered.json"], 2)
+        run_cli(directory, ["scan", "study", "demo", "--out", "study"])
+        run_cli(directory, ["scan", "study", "review", "study/manifest.json",
+                            "--verify", "study/study.json", "--html", "study/replayed.html"])
+        run_cli(directory, ["scan", "study", "review", "study/manifest.json",
+                            "--html", "study/replayed-again.html"])
+        if (directory / "study/replayed.html").read_bytes() != (directory / "study/replayed-again.html").read_bytes():
+            raise RuntimeError("installed study HTML does not replay exactly")
+        run_cli(directory, ["scan", "study", "review", "study/manifest.json",
+                            "--fail-on-shortfalls"], 1)
+        run_cli(directory, ["scan", "study", "review", "study/manifest.json",
+                            "--expected-plan-sha256", "0" * 64], 2)
+        run_cli(directory, ["scan", "study", "init", "demo/before.json", "--study-id", "wheel-smoke",
+                            "--trials", "2", "--out", "planned.json"])
+        run_cli(directory, ["scan", "study", "review", "planned.json", "--fail-on-shortfalls"], 1)
+        study = json.loads((directory / "study/study.json").read_text(encoding="utf-8"))
+        study["summary"]["missing_trials"] = 0
+        (directory / "study/tampered.json").write_text(json.dumps(study), encoding="utf-8")
+        run_cli(directory, ["scan", "study", "review", "study/manifest.json",
+                            "--verify", "study/tampered.json"], 2)
+        # Invalid configuration must exit before the deliberately nonexistent
+        # provider can be imported or contacted, even with fail_on=never.
+        (directory / "invalid.yaml").write_text(
+            "agent: {model: nonexistent/provider}\ngate: {min_security: .nan}\nfail_on: never\n",
+            encoding="utf-8",
+        )
+        run_cli(directory, ["scan", "--config", "invalid.yaml", "--plan"], 2)
         run_cli(directory, ["init", "--no-workflow"])
         if not (directory / ".dspy-security-bench.yaml").is_file():
             raise RuntimeError("installed init did not create its config")
-    print("Installed wheel smoke passed: resources, CLI, offline replay, policy exits, tamper rejection, scaffold.")
+    print("Installed wheel smoke passed: resources, CLI, offline scan/study replay, policy exits, "
+          "plan pins, tamper rejection, strict configuration, scaffold.")
     return 0
 
 

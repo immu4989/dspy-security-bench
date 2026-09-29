@@ -1861,6 +1861,29 @@ Existing workflow files are kept unless you request `--force`. See
 
 ## Research pipeline quickstart
 
+### Review repeatability before trusting a single scan
+
+**On main (not yet in the published v0.19.0 wheel):** an offline repeated-scan
+study keeps the full planned trial roster, including missing attempts and
+execution errors. It separates security, utility, and joint success, flags
+variable case outcomes and reused evidence digests, and recomputes the review
+from retained sources. Try the explicitly fictional, no-API-key demonstration:
+
+```bash
+dspy-security-bench scan study demo --out fictional-study
+# Open fictional-study/review.html locally.
+dspy-security-bench scan study review fictional-study/manifest.json \
+  --verify fictional-study/study.json
+```
+
+See [the study guide](docs/scan-studies.md) for fixed-plan collection and CI
+shortfall exits. These are descriptive observations—not proof of independent
+execution or production reliability. For live scans, optional
+[per-task tool admission limits](docs/tool-call-budgets.md) stop cooperative
+agents from exceeding their supplied-tool budget; they are not a sandbox.
+
+### Run the research pipeline
+
 The full pipeline in Python:
 
 ```python

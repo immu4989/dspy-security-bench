@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Installed-wheel release checks exercise repeated-study demo, plan creation,
+  exact replay, deterministic HTML, invalid pins, incomplete trials, tampering,
+  and strict scan configuration offline. macOS/Windows smoke coverage includes
+  the new study and tool-budget boundaries.
 - Scan YAML intake now bounds nesting, node counts, and numeric literals before
   planning, rejects collection aliases/merges and non-JSON-like value types,
   preserves scalar aliases, and suppresses source excerpts in parser errors.

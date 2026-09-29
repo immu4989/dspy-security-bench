@@ -93,3 +93,7 @@ jobs:
           tests/test_resiliencegraph.py
           tests/test_scan_demo.py
           tests/test_scan_comparison.py
+          tests/test_scan_study.py
+          tests/test_scan_study_html.py
+          tests/test_scan_yaml_limits.py
+          tests/test_agent_tool_budget.py

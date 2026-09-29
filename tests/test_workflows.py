@@ -41,6 +41,16 @@ def test_uv_bootstrap_version_is_explicit():
     assert 'version: "0.12.3"' in workflow
 
 
+def test_platform_smoke_covers_offline_studies_and_scan_boundaries():
+    workflow = yaml.safe_load((WORKFLOWS / "test.yml").read_text())
+    job = workflow["jobs"]["platform-smoke"]
+    assert set(job["strategy"]["matrix"]["os"]) == {"macos-latest", "windows-latest"}
+    commands = "\n".join(step.get("run", "") for step in job["steps"])
+    for module in ("test_scan_study.py", "test_scan_study_html.py", "test_scan_yaml_limits.py",
+                   "test_agent_tool_budget.py"):
+        assert f"tests/{module}" in commands
+
+
 def test_assuranceledger_ci_recomputes_partner_contracts_offline():
     path = WORKFLOWS / "assuranceledger.yml"
     workflow = path.read_text()
