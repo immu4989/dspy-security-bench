@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Scan YAML intake now bounds nesting, node counts, and numeric literals before
+  planning, rejects collection aliases/merges and non-JSON-like value types,
+  preserves scalar aliases, and suppresses source excerpts in parser errors.
+  Existing merge-based configuration must use explicit settings on upgrade.
 - **Corrected ContinuousProof drift semantics:** native harmful-outcome,
   leakage-canary, violation, monitor-failure, and incomplete-evidence increases
   are adverse changes, not improvements. Explicit metric paths replace name

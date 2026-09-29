@@ -168,32 +168,9 @@ class ScanConfig:
 
     @classmethod
     def load(cls, path: str | Path) -> ScanConfig:
-        import yaml
+        from .yaml_config import load_config_yaml
 
-        class UniqueSafeLoader(yaml.SafeLoader):
-            pass
-
-        def mapping(loader, node, deep=False):
-            loader.flatten_mapping(node)
-            result = {}
-            for key_node, value_node in node.value:
-                key = loader.construct_object(key_node, deep=deep)
-                if not isinstance(key, str):
-                    raise ValueError("config mapping keys must be strings")
-                if key in result:
-                    raise ValueError("config contains duplicate YAML keys")
-                result[key] = loader.construct_object(value_node, deep=deep)
-            return result
-
-        UniqueSafeLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, mapping)
-        with Path(path).open("rb") as stream:
-            raw = stream.read(1_000_001)
-        if len(raw) > 1_000_000:
-            raise ValueError("config exceeds 1000000 bytes")
-        try:
-            payload = yaml.load(raw.decode("utf-8"), Loader=UniqueSafeLoader)
-        except (yaml.YAMLError, UnicodeError, RecursionError) as exc:
-            raise ValueError("config must be bounded valid UTF-8 YAML") from exc
+        payload = load_config_yaml(path)
         return cls.from_dict({} if payload is None else payload)
 
     def validate(self) -> None:

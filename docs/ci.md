@@ -14,7 +14,15 @@ that upgrade an improvement. This gate catches it.
 ## 1. Configure
 
 On main, configuration is strict: keys must be known, sections must be mappings,
-and duplicate YAML keys are rejected, including conflicting YAML merge overrides.
+and duplicate YAML keys are rejected. Scan YAML is limited to 1,000,000 UTF-8
+bytes, 50 nested nodes, 10,000 total nodes (including scalar-alias references),
+and 128 characters per numeric literal. Only mapping, sequence, string, boolean,
+null, and finite numeric values are accepted; quote date-like labels as strings.
+Scalar aliases remain supported. Collection aliases and YAML merge keys are
+rejected: replace existing anchors/merges with explicit settings when upgrading.
+These intake limits apply to scan configuration, not every YAML file consumed
+by other repository commands. They are resource bounds, not a sandbox for an
+agent imported by a valid configuration.
 Files must be valid UTF-8 and at most 1 MB. Thresholds must be numeric (not quoted
 strings or booleans), and selection/format lists must be nonempty and unique.
 Misspelled settings fail before a model is constructed rather than falling back

@@ -10,7 +10,6 @@ from dspy_security_bench.scan.config import ScanConfig
         "agent: {model: fixture}\ngate: {min_security: 0.9, min_security: 0}\n",
         "agent: {model: fixture}\ngate: {require_baseline_coverage: true, require_baseline_coverage: false}\n",
         "agent: {model: fixture}\nagent: {model: other}\n",
-        "agent: {model: fixture}\ngate: {<<: {min_security: 0.9}, min_security: 0}\n",
     ],
 )
 def test_duplicate_yaml_settings_are_rejected(tmp_path, yaml):
