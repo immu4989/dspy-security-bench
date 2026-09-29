@@ -18,11 +18,17 @@ __all__ = [
     "ToolCall",
     "apply_system_directive",
     "LiteLLMFunctionCallingAgent",
+    "ToolBudgetAgent",
+    "AgentToolBudgetError",
 ]
 
 
 def __getattr__(name: str):
     """Keep protocol-only and offline tooling free of eager provider imports."""
+    if name in {"ToolBudgetAgent", "AgentToolBudgetError"}:
+        from dspy_security_bench.agents.budget import AgentToolBudgetError, ToolBudgetAgent
+
+        return {"ToolBudgetAgent": ToolBudgetAgent, "AgentToolBudgetError": AgentToolBudgetError}[name]
     if name == "LiteLLMFunctionCallingAgent":
         from dspy_security_bench.agents.litellm_fc import LiteLLMFunctionCallingAgent
 

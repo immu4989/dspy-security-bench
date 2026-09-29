@@ -4,80 +4,377 @@
   "description": "Structural intake only. Use scan verify for matrix, count, baseline, digest, and verdict recomputation; neither establishes execution authenticity.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "evidence_type", "protocol_version", "scope", "policy", "baseline", "observations", "report", "claim_boundary", "evidence_sha256"],
-  "properties": {
-    "schema_version": {"type": "integer", "enum": [1, 2]},
-    "evidence_type": {"const": "dspy-security-bench-scan-evidence"},
-    "protocol_version": {"enum": ["scan-evidence-v1", "scan-evidence-v2"]},
-    "scope": {"$ref": "#/$defs/scope"},
-    "policy": {"$ref": "#/$defs/policy"},
-    "baseline": {"type": ["object", "null"]},
-    "observations": {"type": "array", "minItems": 1, "maxItems": 100000, "items": {"$ref": "#/$defs/observation"}},
-    "report": {"type": "object", "required": ["passed", "requirements_met", "enforcement_status", "exit_code", "mode", "disclaimer", "meta", "findings"]},
-    "claim_boundary": {"type": "string", "minLength": 1},
-    "evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"}
-  },
-  "oneOf": [
-    {"properties": {"schema_version": {"const": 1}, "protocol_version": {"const": "scan-evidence-v1"}, "policy": {"not": {"required": ["min_utility"]}}}},
-    {"properties": {"schema_version": {"const": 2}, "protocol_version": {"const": "scan-evidence-v2"}, "policy": {"required": ["min_utility"]}}}
+  "required": [
+    "schema_version",
+    "evidence_type",
+    "protocol_version",
+    "scope",
+    "policy",
+    "baseline",
+    "observations",
+    "report",
+    "claim_boundary",
+    "evidence_sha256"
   ],
-  "$defs": {
-    "label": {"type": "string", "minLength": 1, "maxLength": 512, "pattern": "^[^|\\u0000-\\u001f\\u007f]+(?![\\s\\S])"},
-    "labels": {"type": "array", "minItems": 1, "maxItems": 1000, "uniqueItems": true, "items": {"$ref": "#/$defs/label"}},
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "enum": [
+        1,
+        2
+      ]
+    },
+    "evidence_type": {
+      "const": "dspy-security-bench-scan-evidence"
+    },
+    "protocol_version": {
+      "enum": [
+        "scan-evidence-v1",
+        "scan-evidence-v2"
+      ]
+    },
     "scope": {
-      "type": "object", "additionalProperties": false,
-      "required": ["scope_version", "benchmark_version", "agentdojo_distribution_version", "measurement_protocol", "agent_name", "defenses", "suites"],
-      "properties": {
-        "scope_version": {"type": "integer", "const": 1},
-        "benchmark_version": {"const": "v1"},
-        "agentdojo_distribution_version": {"$ref": "#/$defs/label"},
-        "measurement_protocol": {"enum": ["complete-binary-observations-v1", "complete-binary-observations-v2"]},
-        "agent_name": {"$ref": "#/$defs/label"},
-        "defenses": {"$ref": "#/$defs/labels", "maxItems": 50},
-        "suites": {"type": "array", "minItems": 1, "maxItems": 20, "items": {
-          "type": "object", "additionalProperties": false,
-          "required": ["suite", "user_task_ids", "attacks"],
-          "properties": {
-            "suite": {"$ref": "#/$defs/label"},
-            "user_task_ids": {"$ref": "#/$defs/labels"},
-            "attacks": {"type": "array", "minItems": 1, "maxItems": 50, "items": {
-              "type": "object", "additionalProperties": false,
-              "required": ["attack", "is_dos_attack", "injection_task_ids"],
-              "properties": {
-                "attack": {"$ref": "#/$defs/label"}, "is_dos_attack": {"type": "boolean"},
-                "injection_task_ids": {"$ref": "#/$defs/labels"}
-              }
-            }}
-          }
-        }}
-      }
+      "$ref": "#/$defs/scope"
     },
     "policy": {
-      "type": "object", "additionalProperties": false,
-      "required": ["mode", "min_security", "max_regression", "warn_margin", "require_baseline_coverage", "min_runs", "statistic", "confidence", "fail_on"],
+      "$ref": "#/$defs/policy"
+    },
+    "baseline": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "$ref": "#/$defs/observation"
+      }
+    },
+    "report": {
+      "type": "object",
+      "required": [
+        "passed",
+        "requirements_met",
+        "enforcement_status",
+        "exit_code",
+        "mode",
+        "disclaimer",
+        "meta",
+        "findings"
+      ]
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+    }
+  },
+  "oneOf": [
+    {
       "properties": {
-        "mode": {"enum": ["absolute", "regression"]},
-        "min_security": {"type": "number", "minimum": 0, "maximum": 1},
-        "min_utility": {"type": "number", "minimum": 0, "maximum": 1},
-        "max_regression": {"type": "number", "minimum": 0, "maximum": 1},
-        "warn_margin": {"type": "number", "minimum": 0, "maximum": 1},
-        "require_baseline_coverage": {"type": "boolean"},
-        "min_runs": {"type": "integer", "minimum": 1, "maximum": 1000000},
-        "statistic": {"enum": ["point", "wilson_lower"]},
-        "confidence": {"type": "number", "minimum": 0.5, "maximum": 0.9999},
-        "fail_on": {"enum": ["error", "warning", "never"]}
+        "schema_version": {
+          "const": 1
+        },
+        "protocol_version": {
+          "const": "scan-evidence-v1"
+        },
+        "policy": {
+          "not": {
+            "required": [
+              "min_utility"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "schema_version": {
+          "const": 2
+        },
+        "protocol_version": {
+          "const": "scan-evidence-v2"
+        },
+        "policy": {
+          "required": [
+            "min_utility"
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^|\\u0000-\\u001f\\u007f]+(?![\\s\\S])"
+    },
+    "labels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/label"
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_version",
+        "benchmark_version",
+        "agentdojo_distribution_version",
+        "measurement_protocol",
+        "agent_name",
+        "defenses",
+        "suites"
+      ],
+      "properties": {
+        "scope_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "benchmark_version": {
+          "const": "v1"
+        },
+        "agentdojo_distribution_version": {
+          "$ref": "#/$defs/label"
+        },
+        "measurement_protocol": {
+          "enum": [
+            "complete-binary-observations-v1",
+            "complete-binary-observations-v2",
+            "tool-budgeted-binary-observations-v3"
+          ]
+        },
+        "agent_name": {
+          "$ref": "#/$defs/label"
+        },
+        "defenses": {
+          "$ref": "#/$defs/labels",
+          "maxItems": 50
+        },
+        "suites": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "suite",
+              "user_task_ids",
+              "attacks"
+            ],
+            "properties": {
+              "suite": {
+                "$ref": "#/$defs/label"
+              },
+              "user_task_ids": {
+                "$ref": "#/$defs/labels"
+              },
+              "attacks": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 50,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "attack",
+                    "is_dos_attack",
+                    "injection_task_ids"
+                  ],
+                  "properties": {
+                    "attack": {
+                      "$ref": "#/$defs/label"
+                    },
+                    "is_dos_attack": {
+                      "type": "boolean"
+                    },
+                    "injection_task_ids": {
+                      "$ref": "#/$defs/labels"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "execution_controls": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "max_tool_calls_per_task"
+          ],
+          "properties": {
+            "max_tool_calls_per_task": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "measurement_protocol": {
+              "const": "tool-budgeted-binary-observations-v3"
+            }
+          },
+          "required": [
+            "execution_controls"
+          ]
+        },
+        {
+          "properties": {
+            "measurement_protocol": {
+              "enum": [
+                "complete-binary-observations-v1",
+                "complete-binary-observations-v2"
+              ]
+            }
+          },
+          "not": {
+            "required": [
+              "execution_controls"
+            ]
+          }
+        }
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "min_security",
+        "max_regression",
+        "warn_margin",
+        "require_baseline_coverage",
+        "min_runs",
+        "statistic",
+        "confidence",
+        "fail_on"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "absolute",
+            "regression"
+          ]
+        },
+        "min_security": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_utility": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_regression": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "warn_margin": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "require_baseline_coverage": {
+          "type": "boolean"
+        },
+        "min_runs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "statistic": {
+          "enum": [
+            "point",
+            "wilson_lower"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 0.9999
+        },
+        "fail_on": {
+          "enum": [
+            "error",
+            "warning",
+            "never"
+          ]
+        }
       }
     },
     "observation": {
-      "type": "object", "additionalProperties": false,
-      "required": ["suite", "agent", "defense", "attack", "user_task_id", "injection_task_id", "utility", "security", "injection_succeeded"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "suite",
+        "agent",
+        "defense",
+        "attack",
+        "user_task_id",
+        "injection_task_id",
+        "utility",
+        "security",
+        "injection_succeeded"
+      ],
       "properties": {
-        "suite": {"$ref": "#/$defs/label"}, "agent": {"$ref": "#/$defs/label"},
-        "defense": {"$ref": "#/$defs/label"}, "attack": {"$ref": "#/$defs/label"},
-        "user_task_id": {"$ref": "#/$defs/label"}, "injection_task_id": {"$ref": "#/$defs/label"},
-        "utility": {"type": "integer", "enum": [0, 1]},
-        "security": {"type": "integer", "enum": [0, 1]},
-        "injection_succeeded": {"type": "integer", "enum": [0, 1]}
+        "suite": {
+          "$ref": "#/$defs/label"
+        },
+        "agent": {
+          "$ref": "#/$defs/label"
+        },
+        "defense": {
+          "$ref": "#/$defs/label"
+        },
+        "attack": {
+          "$ref": "#/$defs/label"
+        },
+        "user_task_id": {
+          "$ref": "#/$defs/label"
+        },
+        "injection_task_id": {
+          "$ref": "#/$defs/label"
+        },
+        "utility": {
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "security": {
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "injection_succeeded": {
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        }
       }
     }
   }

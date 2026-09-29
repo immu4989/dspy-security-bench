@@ -290,7 +290,8 @@
         "measurement_protocol": {
           "enum": [
             "complete-binary-observations-v1",
-            "complete-binary-observations-v2"
+            "complete-binary-observations-v2",
+            "tool-budgeted-binary-observations-v3"
           ]
         },
         "agent_name": {
@@ -346,8 +347,49 @@
               }
             }
           }
+        },
+        "execution_controls": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "max_tool_calls_per_task"
+          ],
+          "properties": {
+            "max_tool_calls_per_task": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          }
         }
-      }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "measurement_protocol": {
+              "const": "tool-budgeted-binary-observations-v3"
+            }
+          },
+          "required": [
+            "execution_controls"
+          ]
+        },
+        {
+          "properties": {
+            "measurement_protocol": {
+              "enum": [
+                "complete-binary-observations-v1",
+                "complete-binary-observations-v2"
+              ]
+            }
+          },
+          "not": {
+            "required": [
+              "execution_controls"
+            ]
+          }
+        }
+      ]
     },
     "plan": {
       "type": "object",

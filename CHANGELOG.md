@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Optional per-task supplied-tool admission limits work at the generic Agent
+  boundary, including cooperative parallel calls. Exhaustion cannot become a
+  completed score when an agent swallows the tool error; late calls are denied
+  after task return, and in-flight callbacks make the task incomplete. The
+  exact limit is pinned in a distinct budgeted measurement scope; defaults and
+  historical replay remain unchanged. This is not cancellation or a sandbox.
 - Repeated-study reviews include a script-free responsive HTML report and a
   six-file fictional demo with explicit incomplete/error trials, deliberate
   source reuse, replay commands, and labeled case-preview limits.

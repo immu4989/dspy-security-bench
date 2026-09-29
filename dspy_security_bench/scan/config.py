@@ -87,10 +87,14 @@ class ReportSpec:
 @dataclass
 class LimitsSpec:
     max_task_runs: int | None = None
+    max_tool_calls_per_task: int | None = None
 
     def validate(self) -> None:
         if self.max_task_runs is not None and (type(self.max_task_runs) is not int or not 1 <= self.max_task_runs <= 1_000_000):
             raise ValueError("config: limits.max_task_runs must be an integer from 1 to 1000000 or null")
+        if self.max_tool_calls_per_task is not None and (type(self.max_tool_calls_per_task) is not int
+                or not 1 <= self.max_tool_calls_per_task <= 10_000):
+            raise ValueError("config: limits.max_tool_calls_per_task must be an integer from 1 to 10000 or null")
 
 
 @dataclass
@@ -123,7 +127,7 @@ class ScanConfig:
             ("scan", scan, {"suites", "attacks", "defenses", "user_tasks", "injection_tasks"}),
             ("gate", gate, {"mode", "min_security", "baseline", "max_regression", "warn_margin", "require_baseline_coverage", "min_runs", "statistic", "confidence", "min_utility"}),
             ("report", report, {"formats", "sarif_out", "json_out"}),
-            ("limits", limits, {"max_task_runs"}),
+            ("limits", limits, {"max_task_runs", "max_tool_calls_per_task"}),
         ):
             if set(section) - allowed:
                 raise ValueError(f"config: {name} contains unknown settings")
@@ -158,7 +162,8 @@ class ScanConfig:
                 json_out=report.get("json_out", ReportSpec().json_out),
             ),
             fail_on=d.get("fail_on", "error"),
-            limits=LimitsSpec(max_task_runs=limits.get("max_task_runs")),
+            limits=LimitsSpec(max_task_runs=limits.get("max_task_runs"),
+                              max_tool_calls_per_task=limits.get("max_tool_calls_per_task")),
         )
 
     @classmethod

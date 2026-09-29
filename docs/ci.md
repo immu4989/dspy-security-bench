@@ -99,6 +99,12 @@ One task may execute many model/tool calls, including retries. Configure those
 limits with your provider and agent runtime separately. The bound is a preflight
 scope check, not runtime containment or evidence that the task was executed.
 
+For a separate, optional per-task supplied-tool admission limit, configure
+`limits.max_tool_calls_per_task` or `--max-tool-calls-per-task`. See
+[tool-call budgets](tool-call-budgets.md) for thread-safe admission, incomplete
+execution semantics, the distinct budgeted measurement scope, and non-sandbox
+limitations. It does not bound provider requests or actions inside a callback.
+
 Exit code: `0` pass · `1` gate failed · `2` could not run.
 
 On main, exit 0 means **not blocked by the configured enforcement policy**, not

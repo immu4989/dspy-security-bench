@@ -57,6 +57,8 @@ def _apply_overrides(cfg: ScanConfig, args) -> ScanConfig:
         cfg.gate.min_utility = args.min_utility
     if args.max_task_runs is not None:
         cfg.limits.max_task_runs = args.max_task_runs
+    if args.max_tool_calls_per_task is not None:
+        cfg.limits.max_tool_calls_per_task = args.max_tool_calls_per_task
     if args.min_runs is not None:
         cfg.gate.min_runs = args.min_runs
     if args.statistic is not None:
@@ -188,6 +190,8 @@ def render_scan_plan(cfg: ScanConfig, plan: list[dict]) -> str:
             lines.append(f"  {attack['attack']}: {attack['cases']} cases, {attack['injection_tasks']} injection tasks{suffix}")
         lines.append(f"  additional injection-task utility runs: {item['auxiliary_injection_task_runs']}")
     lines.append(f"Total benchmark cases: {sum(item['cases'] for item in plan)}")
+    if cfg.limits.max_tool_calls_per_task is not None:
+        lines.append(f"Per-task supplied-tool admission limit: {cfg.limits.max_tool_calls_per_task}; exhaustion is an execution error, not a passing outcome.")
     lines.append("No model was called. Actual LLM requests vary with the agent's tool loop.")
     return "\n".join(lines)
 
@@ -210,11 +214,17 @@ def build_scan_scope(cfg: ScanConfig, plan: list[dict]) -> dict:
                 "injection_task_ids": attack["injection_task_ids"] if attack["injection_task_ids"] is not None else list(suite.injection_tasks)}
                 for attack in item["attack_cases"]],
         })
-    return {"scope_version": 1, "benchmark_version": "v1",
+    scope = {"scope_version": 1, "benchmark_version": "v1",
             "agentdojo_distribution_version": version("agentdojo"),
             "measurement_protocol": MEASUREMENT_PROTOCOL,
             "agent_name": cfg.agent.resolved_name(),
             "defenses": list(cfg.scan.defenses), "suites": suites}
+    if cfg.limits.max_tool_calls_per_task is not None:
+        from dspy_security_bench.agents.budget import TOOL_BUDGET_PROTOCOL
+
+        scope["measurement_protocol"] = TOOL_BUDGET_PROTOCOL
+        scope["execution_controls"] = {"max_tool_calls_per_task": cfg.limits.max_tool_calls_per_task}
+    return scope
 
 
 def build_scan_plan_report(cfg: ScanConfig, plan: list[dict], scope: dict, baseline_document: dict | None = None) -> dict:
@@ -334,6 +344,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--plan-json", metavar="PATH", help="write a new JSON preflight plan and exit without model calls")
     s.add_argument("--expected-plan-sha256", metavar="SHA256", help="require an independently retained v2 plan digest before agent construction")
     s.add_argument("--max-task-runs", type=int, help="cap planned scored plus auxiliary task invocations before agent construction")
+    s.add_argument("--max-tool-calls-per-task", type=int, help="cap supplied-tool invocations in each agent run; not a sandbox or provider-request budget")
     gate = p.add_argument_group("gate")
     gate.add_argument("--min-security", type=float)
     gate.add_argument("--min-utility", type=float, help="optional point-rate floor for task utility under attack, separate from security")
@@ -438,6 +449,10 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         agent = _resolve_agent(cfg.agent)
+        if cfg.limits.max_tool_calls_per_task is not None:
+            from dspy_security_bench.agents.budget import ToolBudgetAgent
+
+            agent = ToolBudgetAgent(agent, cfg.limits.max_tool_calls_per_task)
     except Exception as e:
         print(f"[scan] could not build agent ({type(e).__name__}); exception details withheld from shared diagnostics", file=sys.stderr)
         return 2

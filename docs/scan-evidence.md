@@ -101,7 +101,7 @@ Retain the benchmark revision, dependency lockfile, approved input sources, and
 execution provenance separately. Upstream runtime errors already encoded as
 binary outcomes cannot be recovered as separate errors by this format.
 
-New executions use `complete-binary-observations-v2`. A local suite proxy converts
+By default, new executions use `complete-binary-observations-v2`. A local suite proxy converts
 exceptions escaping task execution or evaluation into a distinct execution error
 before AgentDojo's selected provider-error fallbacks can turn them into binary
 scores. No completed gate or evidence file is emitted for that incomplete scan.
@@ -123,6 +123,14 @@ DSPy runners require fresh execution rather than trusting legacy AgentDojo cache
 entries whose error state is not verified. This is not a finding that any specific
 published historical model score contained such errors; that requires its retained
 run evidence and original revision.
+
+An optional [per-task supplied-tool budget](tool-call-budgets.md) uses
+`tool-budgeted-binary-observations-v3` and retains the exact admission limit in
+`scope.execution_controls`. Changing or removing the limit changes the scope;
+unbudgeted baselines and comparisons are not silently reused. Budget exhaustion
+or returning with an admitted callback still running is incomplete execution,
+not a binary safe outcome. This cooperative wrapper is not a sandbox and cannot
+cancel callbacks or control independent network/tool access.
 
 Anyone can fabricate a new, internally consistent observation set. Therefore
 successful replay is **not authenticated execution**, proof that observations
