@@ -162,6 +162,10 @@ replayable unchanged and is not silently assigned a utility requirement.
 
 ### Require security and utility on the same task pair (on main)
 
+To inspect proposed floors against retained observations without another model
+call, use [offline policy review](scan-policy-review.md). This is post-hoc
+decision analysis, not a new benchmark run or evidence of agent improvement.
+
 Separate marginal floors are not a joint floor. In five fictional observations,
 three pairs can be both secure and useful, one secure but not useful, and one
 useful but not secure: each marginal rate is 80%, but joint success is only 60%.

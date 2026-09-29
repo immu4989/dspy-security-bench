@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Post-hoc scan policy review v1",
+  "description": "Structural intake only. Requires the sibling scan-evidence schema. Native verification replays original and proposed verdicts; the result is not a new execution or evidence of improvement.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "proof_type", "protocol_version", "source_evidence", "source_evidence_sha256", "proposed_policy", "reviewed_report", "summary", "claim_boundary", "review_sha256"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "proof_type": {"const": "dspy-security-bench-scan-policy-review"},
+    "protocol_version": {"const": "scan-policy-review-v1"},
+    "source_evidence": {"$ref": "scan-evidence.schema.json"},
+    "source_evidence_sha256": {"$ref": "#/$defs/digest"},
+    "proposed_policy": {"$ref": "scan-evidence.schema.json#/$defs/policy"},
+    "reviewed_report": {"type": "object"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["observations_reused", "model_calls_performed", "policy_changed", "original_requirements_met", "reviewed_requirements_met", "original_enforcement_status", "reviewed_enforcement_status", "original_shortfall_findings", "reviewed_shortfall_findings"],
+      "properties": {
+        "observations_reused": {"type": "integer", "minimum": 1, "maximum": 100000},
+        "model_calls_performed": {"type": "integer", "const": 0},
+        "policy_changed": {"type": "boolean"},
+        "original_requirements_met": {"type": "boolean"},
+        "reviewed_requirements_met": {"type": "boolean"},
+        "original_enforcement_status": {"$ref": "#/$defs/enforcement"},
+        "reviewed_enforcement_status": {"$ref": "#/$defs/enforcement"},
+        "original_shortfall_findings": {"type": "integer", "minimum": 0},
+        "reviewed_shortfall_findings": {"type": "integer", "minimum": 0}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "review_sha256": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "enforcement": {"enum": ["blocked", "requirements_met", "non_blocking_shortfalls"]}
+  }
+}

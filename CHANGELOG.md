@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Offline policy-only review reuses unchanged retained observations under an
+  explicit proposed gate without paid model calls. Portable artifacts preserve
+  original evidence, both verdicts, native replay, independent pins, and a
+  post-hoc decision-analysis boundary; policy relaxation is not agent improvement.
 - Reference-agent usage totals now require a valid field on every returned
   completion response, including the forced final-answer call. Missing or
   invalid usage and overflowed cost totals stay unknown instead of appearing as

@@ -329,7 +329,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="dspy-security-bench scan",
         description="Scan a tool-using agent for prompt-injection robustness and gate CI on the result.",
-        epilog="Offline commands: scan demo --out NEW_DIRECTORY; scan verify EVIDENCE; scan compare BEFORE AFTER; scan study --help. Use each command's --help for options.",
+        epilog="Offline commands: scan demo --out NEW_DIRECTORY; scan verify EVIDENCE; scan compare BEFORE AFTER; scan study --help; scan policy --help. Use each command's --help for options.",
     )
     p.add_argument("--config", help="path to a .dspy-security-bench.yaml config")
     g = p.add_argument_group("agent (overrides config)")
@@ -371,6 +371,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "policy":
+        from dspy_security_bench.scan.policy_review import main as policy_main
+
+        return policy_main(argv[1:])
     if argv and argv[0] == "study":
         from dspy_security_bench.scan.study import main as study_main
 
