@@ -151,6 +151,11 @@ visible. See [utility gate semantics](ci.md#keep-task-utility-separate-on-main).
 
 ## Compare an upgrade case by case
 
+For repeated executions of one fixed scope and policy, use the
+[study review](scan-studies.md) to retain planned trials, missing runs, execution
+errors, and case-level variability. It does not pool different configurations
+or infer independence from repeated evidence.
+
 Capture before/after scans under the same task scope, dependency version, and
 stable `agent.name`. Then compare their evidence without more model calls:
 

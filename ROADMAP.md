@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Offline fixed-scope scan studies retain all planned trial statuses, native
+  source verification, case-level variability, joint secure-and-useful counts,
+  repeated-digest groups, and independently pinned plans without statistical
+  independence, deployment-reliability, or execution-authentication claims.
+
 - Model-free replay of minimal scan evidence, including exact declared matrix
   coverage, count-derived verdicts, baseline snapshots, independent digest pins,
   and explicit separation between self-consistency and execution authenticity.

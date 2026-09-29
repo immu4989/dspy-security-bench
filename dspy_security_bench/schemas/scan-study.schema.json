@@ -1,0 +1,566 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fixed-scope scan study v1",
+  "description": "Structural intake only. Root validates reports; $defs.plan and $defs.manifest validate intake. Exact semantic replay requires every complete source and independently reviewed plan.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol_version",
+    "report_type",
+    "plan",
+    "trials",
+    "summary",
+    "cases",
+    "repeated_evidence_groups",
+    "claim_boundary",
+    "study_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "protocol_version": {
+      "const": "scan-study-v1"
+    },
+    "report_type": {
+      "const": "DSPy Security Bench fixed-scope scan study"
+    },
+    "plan": {
+      "$ref": "#/$defs/plan"
+    },
+    "trials": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "trial_id",
+              "status",
+              "evidence_sha256",
+              "requirements_met"
+            ],
+            "properties": {
+              "trial_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}(?![\\s\\S])"
+              },
+              "status": {
+                "const": "complete"
+              },
+              "evidence_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+              },
+              "requirements_met": {
+                "type": "boolean"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "trial_id",
+              "status"
+            ],
+            "properties": {
+              "trial_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}(?![\\s\\S])"
+              },
+              "status": {
+                "enum": [
+                  "missing",
+                  "execution_error"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "minItems": 2,
+      "maxItems": 100
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planned_trials",
+        "complete_trials",
+        "missing_trials",
+        "execution_error_trials",
+        "cases_per_trial",
+        "planned_observations",
+        "observed_observations",
+        "completed_trials_meeting_requirements",
+        "all_trials_complete",
+        "study_requirements_met",
+        "security",
+        "utility",
+        "secure_and_useful"
+      ],
+      "properties": {
+        "planned_trials": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "complete_trials": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "missing_trials": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "execution_error_trials": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "cases_per_trial": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "planned_observations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "observed_observations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "completed_trials_meeting_requirements": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "all_trials_complete": {
+          "type": "boolean"
+        },
+        "study_requirements_met": {
+          "type": "boolean"
+        },
+        "security": {
+          "$ref": "#/$defs/summaryAxis"
+        },
+        "utility": {
+          "$ref": "#/$defs/summaryAxis"
+        },
+        "secure_and_useful": {
+          "$ref": "#/$defs/summaryAxis"
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "suite",
+          "agent",
+          "defense",
+          "attack",
+          "user_task_id",
+          "injection_task_id",
+          "security",
+          "utility",
+          "secure_and_useful"
+        ],
+        "properties": {
+          "suite": {
+            "$ref": "#/$defs/label"
+          },
+          "agent": {
+            "$ref": "#/$defs/label"
+          },
+          "defense": {
+            "$ref": "#/$defs/label"
+          },
+          "attack": {
+            "$ref": "#/$defs/label"
+          },
+          "user_task_id": {
+            "$ref": "#/$defs/label"
+          },
+          "injection_task_id": {
+            "$ref": "#/$defs/label"
+          },
+          "security": {
+            "$ref": "#/$defs/caseAxis"
+          },
+          "utility": {
+            "$ref": "#/$defs/caseAxis"
+          },
+          "secure_and_useful": {
+            "$ref": "#/$defs/caseAxis"
+          }
+        }
+      },
+      "minItems": 1,
+      "maxItems": 100000
+    },
+    "repeated_evidence_groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_sha256",
+          "trial_ids"
+        ],
+        "properties": {
+          "evidence_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+          },
+          "trial_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}(?![\\s\\S])"
+            },
+            "minItems": 2,
+            "maxItems": 100,
+            "uniqueItems": true
+          }
+        }
+      },
+      "minItems": 0,
+      "maxItems": 50
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "study_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+    }
+  },
+  "$defs": {
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[^|\\u0000-\\u001f\\u007f]+(?![\\s\\S])"
+    },
+    "labels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/label"
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_version",
+        "benchmark_version",
+        "agentdojo_distribution_version",
+        "measurement_protocol",
+        "agent_name",
+        "defenses",
+        "suites"
+      ],
+      "properties": {
+        "scope_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "benchmark_version": {
+          "const": "v1"
+        },
+        "agentdojo_distribution_version": {
+          "$ref": "#/$defs/label"
+        },
+        "measurement_protocol": {
+          "enum": [
+            "complete-binary-observations-v1",
+            "complete-binary-observations-v2"
+          ]
+        },
+        "agent_name": {
+          "$ref": "#/$defs/label"
+        },
+        "defenses": {
+          "$ref": "#/$defs/labels",
+          "maxItems": 50
+        },
+        "suites": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "suite",
+              "user_task_ids",
+              "attacks"
+            ],
+            "properties": {
+              "suite": {
+                "$ref": "#/$defs/label"
+              },
+              "user_task_ids": {
+                "$ref": "#/$defs/labels"
+              },
+              "attacks": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 50,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "attack",
+                    "is_dos_attack",
+                    "injection_task_ids"
+                  ],
+                  "properties": {
+                    "attack": {
+                      "$ref": "#/$defs/label"
+                    },
+                    "is_dos_attack": {
+                      "type": "boolean"
+                    },
+                    "injection_task_ids": {
+                      "$ref": "#/$defs/labels"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "protocol_version",
+        "study_id",
+        "scope",
+        "policy_sha256",
+        "baseline_sha256",
+        "trial_ids",
+        "plan_sha256"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "protocol_version": {
+          "const": "scan-study-plan-v1"
+        },
+        "study_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}(?![\\s\\S])"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "policy_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "baseline_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "trial_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}(?![\\s\\S])"
+          },
+          "minItems": 2,
+          "maxItems": 100,
+          "uniqueItems": true
+        },
+        "plan_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+        }
+      }
+    },
+    "caseAxis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "successes",
+        "failures",
+        "observed_trials",
+        "observed_rate",
+        "varied"
+      ],
+      "properties": {
+        "successes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "failures": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "observed_trials": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "observed_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "varied": {
+          "type": "boolean"
+        }
+      }
+    },
+    "summaryAxis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "successes",
+        "failures",
+        "observed_rate",
+        "cases_with_observed_failure",
+        "cases_with_varied_outcomes",
+        "cases_successful_in_all_observed_trials"
+      ],
+      "properties": {
+        "successes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "failures": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "observed_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "cases_with_observed_failure": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "cases_with_varied_outcomes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "cases_successful_in_all_observed_trials": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "plan",
+        "trials"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "plan": {
+          "$ref": "#/$defs/plan"
+        },
+        "trials": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "trial_id",
+                  "status",
+                  "evidence_sha256",
+                  "evidence"
+                ],
+                "properties": {
+                  "trial_id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}(?![\\s\\S])"
+                  },
+                  "status": {
+                    "const": "complete"
+                  },
+                  "evidence_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+                  },
+                  "evidence": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1024
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "trial_id",
+                  "status"
+                ],
+                "properties": {
+                  "trial_id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}(?![\\s\\S])"
+                  },
+                  "status": {
+                    "enum": [
+                      "missing",
+                      "execution_error"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "minItems": 2,
+          "maxItems": 100
+        }
+      }
+    }
+  }
+}

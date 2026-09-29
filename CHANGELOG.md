@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Offline repeated-scan study reviews bind a fixed scope/policy/baseline and
+  complete planned trial roster; missing attempts and execution errors remain
+  visible. Native source replay, separate security/utility/joint outcomes,
+  case-level variability, repeated-digest warnings, exact report verification,
+  bounded local manifests, and explicit CI exits avoid treating conditional
+  success rates as independent-trial or population reliability estimates.
 - The reference function-calling agent uses request-local LiteLLM parameter
   compatibility options instead of changing global application state, including
   on its final-answer path and when a provider raises an error.
