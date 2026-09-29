@@ -80,6 +80,14 @@ CI environment intentionally avoids the large optional ML runtime.
 Before publishing a release, build from a reviewed checkout and run
 `python scripts/check_distribution_contents.py dist`. The inventory check rejects
 untracked archive paths, links, duplicate members, and missing package resources.
+For this project's pure-Python wheel profile, it also verifies every `RECORD`
+SHA-256 digest and size, exact file coverage, package name/version/Python floor,
+wheel installation tags, and all four console entry points. These checks follow
+the [PyPA wheel format](https://packaging.python.org/en/latest/specifications/binary-distribution-format/)
+and deliberately require this project's narrower SHA-256, `py3-none-any` profile;
+the script is not a general-purpose validator for arbitrary third-party wheels.
+Generated metadata reads are bounded. This does not validate every metadata
+field, dependency declaration, or dependency's safety.
 Local `assets/social/` drafts are excluded from source distributions. This is not
 a secret scanner or a proof that tracked content is safe; review the content and
 retain the existing release tests, metadata checks, and attestations. Untracked

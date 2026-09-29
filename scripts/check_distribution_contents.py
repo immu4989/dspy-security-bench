@@ -1,19 +1,25 @@
 """Audit local release archives against Git-tracked source paths, without extraction.
 
-The CLI checks inventory and source-file byte identity, not authenticity, secret
-absence, build reproducibility, or the semantics of generated package metadata.
+The CLI checks inventory, source bytes, wheel RECORD, and core release metadata,
+not authenticity, secret absence, dependency safety, or build reproducibility.
 Run from a reviewed checkout after building, before uploading any distributions.
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
+import configparser
+import csv
 import hashlib
+import io
 import re
 import stat
 import subprocess
 import tarfile
 import zipfile
+from email import policy
+from email.parser import BytesParser
 from pathlib import Path
 
 MAX_MEMBERS = 20_000
@@ -21,6 +27,13 @@ MAX_ARCHIVE_BYTES = 100_000_000
 MAX_EXPANDED_BYTES = 500_000_000
 PACKAGE = "dspy_security_bench/"
 GENERATED_WHEEL = {"METADATA", "WHEEL", "RECORD", "entry_points.txt"}
+MAX_METADATA_BYTES = 1_000_000
+EXPECTED_SCRIPTS = {
+    "dspy-security-bench": "dspy_security_bench.cli:main",
+    "dspy-security-bench-scan": "dspy_security_bench.scan.cli:main",
+    "dspy-security-bench-synthesize": "dspy_security_bench.synthesis.generator:_cli",
+    "dspy-security-bench-validate": "dspy_security_bench.synthesis.validator:_cli",
+}
 
 
 def _safe_name(name: str) -> bool:
@@ -38,6 +51,62 @@ def _digest(stream) -> str:
             raise ValueError("source file exceeds the supported content budget")
         digest.update(chunk)
     return digest.hexdigest()
+
+
+def _metadata_bytes(archive: zipfile.ZipFile, name: str) -> bytes:
+    with archive.open(name) as stream:
+        raw = stream.read(MAX_METADATA_BYTES + 1)
+    if len(raw) > MAX_METADATA_BYTES:
+        raise ValueError("generated wheel metadata exceeds the supported limit")
+    return raw
+
+
+def _verify_wheel_record(archive: zipfile.ZipFile, prefix: str) -> None:
+    """This project's wheel profile requires exact SHA-256 records for all files."""
+    record = prefix + "RECORD"
+    try:
+        rows = csv.reader(io.StringIO(_metadata_bytes(archive, record).decode("utf-8"), newline=""), strict=True)
+        declared = {}
+        for row in rows:
+            if len(row) != 3 or not _safe_name(row[0]) or row[0] in declared:
+                raise ValueError("wheel RECORD contains an invalid or duplicate row")
+            declared[row[0]] = row[1:]
+            if len(declared) > MAX_MEMBERS:
+                raise ValueError("wheel RECORD exceeds the supported row limit")
+    except (UnicodeError, csv.Error):
+        raise ValueError("wheel RECORD must be bounded valid UTF-8 CSV") from None
+    if set(declared) != set(archive.namelist()) or declared.get(record) != ["", ""]:
+        raise ValueError("wheel RECORD must cover every member and leave its own hash and size empty")
+    for member in archive.infolist():
+        if member.filename == record:
+            continue
+        with archive.open(member) as stream:
+            digest = base64.urlsafe_b64encode(bytes.fromhex(_digest(stream))).rstrip(b"=").decode("ascii")
+        if declared[member.filename] != ["sha256=" + digest, str(member.file_size)]:
+            raise ValueError("wheel RECORD hash or size does not match its member bytes")
+
+
+def _verify_wheel_metadata(archive: zipfile.ZipFile, prefix: str, version: str) -> None:
+    metadata = BytesParser(policy=policy.default).parsebytes(_metadata_bytes(archive, prefix + "METADATA"))
+    wheel = BytesParser(policy=policy.default).parsebytes(_metadata_bytes(archive, prefix + "WHEEL"))
+    if (metadata.defects or wheel.defects
+            or metadata.get_all("Name") != ["dspy-security-bench"]
+            or metadata.get_all("Version") != [version]
+            or metadata.get_all("Requires-Python") != [">=3.10"]):
+        raise ValueError("wheel package identity or Python compatibility differs from this release")
+    if (wheel.get_all("Wheel-Version") != ["1.0"]
+            or wheel.get_all("Root-Is-Purelib") != ["true"]
+            or wheel.get_all("Tag") != ["py3-none-any"] or wheel.get_all("Build")):
+        raise ValueError("wheel install metadata differs from the supported pure-Python profile")
+    entries = configparser.ConfigParser(interpolation=None, strict=True)
+    entries.optionxform = str
+    try:
+        entries.read_string(_metadata_bytes(archive, prefix + "entry_points.txt").decode("utf-8"))
+    except (UnicodeError, configparser.Error):
+        raise ValueError("wheel entry points must be unambiguous UTF-8 INI") from None
+    if (entries.defaults() or entries.sections() != ["console_scripts"]
+            or dict(entries["console_scripts"]) != EXPECTED_SCRIPTS):
+        raise ValueError("wheel CLI entry points differ from the reviewed commands")
 
 
 def source_digests(root: Path, tracked: set[str]) -> dict[str, str]:
@@ -119,6 +188,10 @@ def check_archive(path: Path, tracked: set[str], version: str, expected_digests:
                     files.add(name)
                 else:
                     raise ValueError("wheel contains an unexpected or untracked path")
+            if not {info_prefix + name for name in GENERATED_WHEEL} <= files:
+                raise ValueError("distribution is missing required wheel metadata")
+            _verify_wheel_record(archive, info_prefix)
+            _verify_wheel_metadata(archive, info_prefix, version)
         required = {info_prefix + name for name in GENERATED_WHEEL}
         required |= {info_prefix + "licenses/" + name for name in ("LICENSE", "NOTICE")}
     else:

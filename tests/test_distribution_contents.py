@@ -1,5 +1,8 @@
 """Release inventory guards use synthetic archives, never extract their contents."""
 
+import base64
+import csv
+import hashlib
 import io
 import stat
 import tarfile
@@ -45,9 +48,25 @@ def wheel(tmp_path, *, omit=None, extra=None, mode=None, contents=None):
     )]
     if omit:
         names.remove(omit)
+    prefix = f"{PREFIX}.dist-info/"
+    data = {
+        prefix + "METADATA": b"Metadata-Version: 2.5\nName: dspy-security-bench\nVersion: 0.19.0\nRequires-Python: >=3.10\n\n",
+        prefix + "WHEEL": b"Wheel-Version: 1.0\nRoot-Is-Purelib: true\nTag: py3-none-any\n\n",
+        prefix + "entry_points.txt": ("[console_scripts]\n" + "\n".join(
+            key + " = " + value for key, value in inventory.EXPECTED_SCRIPTS.items()) + "\n").encode(),
+    }
+    data.update(contents or {})
+    if prefix + "RECORD" not in data:
+        record = io.StringIO(newline="")
+        writer = csv.writer(record)
+        for name in names:
+            payload = data.get(name, b"")
+            digest = base64.urlsafe_b64encode(hashlib.sha256(payload).digest()).rstrip(b"=").decode()
+            writer.writerow([name, "", ""] if name == prefix + "RECORD" else [name, "sha256=" + digest, len(payload)])
+        data[prefix + "RECORD"] = record.getvalue().encode()
     with zipfile.ZipFile(path, "w") as archive:
         for name in names:
-            archive.writestr(name, (contents or {}).get(name, b""))
+            archive.writestr(name, data.get(name, b""))
         if extra:
             member = zipfile.ZipInfo(extra)
             if mode is not None:
@@ -166,3 +185,96 @@ def test_source_snapshot_refuses_symlink_parent(tmp_path):
     (tmp_path / "link").symlink_to(actual, target_is_directory=True)
     with pytest.raises(ValueError, match="symbolic links"):
         inventory.source_digests(tmp_path, {"link/file.py"})
+
+
+@pytest.mark.parametrize("kind", ["missing", "extra", "duplicate", "hash", "size", "empty-hash", "self-hash", "algorithm", "unsafe"])
+def test_wheel_record_must_exactly_bind_every_member(tmp_path, kind):
+    record_path = f"{PREFIX}.dist-info/RECORD"
+    with zipfile.ZipFile(wheel(tmp_path)) as archive:
+        rows = list(csv.reader(io.StringIO(archive.read(record_path).decode())))
+    if kind == "missing":
+        rows.pop(0)
+    elif kind == "extra":
+        rows.append(["not-in-wheel.py", "sha256=unknown", "0"])
+    elif kind == "duplicate":
+        rows.append(rows[0])
+    elif kind == "hash":
+        rows[0][1] = "sha256=" + "0" * 43
+    elif kind == "size":
+        rows[0][2] = "999"
+    elif kind == "empty-hash":
+        rows[0][1] = ""
+    elif kind == "self-hash":
+        next(row for row in rows if row[0] == record_path)[1] = "sha256=not-allowed"
+    elif kind == "algorithm":
+        rows[0][1] = rows[0][1].replace("sha256=", "sha1=")
+    else:
+        rows[0][0] = "../outside.py"
+    result = io.StringIO(newline="")
+    csv.writer(result).writerows(rows)
+    with pytest.raises(ValueError, match="RECORD"):
+        check_archive(wheel(tmp_path, contents={record_path: result.getvalue().encode()}), TRACKED, "0.19.0")
+
+
+@pytest.mark.parametrize("record", [b'"unterminated', b"\xff", b"one,two\n", b"one,two,three,four\n"])
+def test_wheel_record_rejects_ambiguous_csv(tmp_path, record):
+    with pytest.raises(ValueError, match="RECORD"):
+        check_archive(wheel(tmp_path, contents={f"{PREFIX}.dist-info/RECORD": record}), TRACKED, "0.19.0")
+
+
+@pytest.mark.parametrize("header,replacement", [
+    ("Name: dspy-security-bench", "Name: other-project"),
+    ("Name: dspy-security-bench", "Name: dspy-security-bench\nName: dspy-security-bench"),
+    ("Version: 0.19.0", "Version: 0.20.0"),
+    ("Requires-Python: >=3.10", "Requires-Python: >=3.14"),
+])
+def test_rehashed_metadata_cannot_substitute_release_identity(tmp_path, header, replacement):
+    member = f"{PREFIX}.dist-info/METADATA"
+    with zipfile.ZipFile(wheel(tmp_path)) as archive:
+        changed = archive.read(member).decode().replace(header, replacement).encode()
+    with pytest.raises(ValueError, match="identity"):
+        check_archive(wheel(tmp_path, contents={member: changed}), TRACKED, "0.19.0")
+
+
+@pytest.mark.parametrize("header,replacement", [
+    ("Wheel-Version: 1.0", "Wheel-Version: 2.0"),
+    ("Root-Is-Purelib: true", "Root-Is-Purelib: false"),
+    ("Tag: py3-none-any", "Tag: py3-none-win32"),
+    ("Tag: py3-none-any", "Tag: py3-none-any\nTag: py3-none-any"),
+    ("Tag: py3-none-any", "Tag: py3-none-any\nBuild: 1"),
+])
+def test_wheel_install_profile_must_match_its_filename(tmp_path, header, replacement):
+    member = f"{PREFIX}.dist-info/WHEEL"
+    with zipfile.ZipFile(wheel(tmp_path)) as archive:
+        changed = archive.read(member).decode().replace(header, replacement).encode()
+    with pytest.raises(ValueError, match="install metadata"):
+        check_archive(wheel(tmp_path, contents={member: changed}), TRACKED, "0.19.0")
+
+
+@pytest.mark.parametrize("entries", [
+    b"[console_scripts]\ndspy-security-bench = unexpected:run\n",
+    b"[console_scripts]\ndspy-security-bench = first:run\ndspy-security-bench = second:run\n",
+    b"[console_scripts]\n[console_scripts]\n",
+    b"\xff", b"no-section",
+])
+def test_rehashed_entrypoints_cannot_redirect_installed_commands(tmp_path, entries):
+    with pytest.raises(ValueError, match="entry points"):
+        check_archive(wheel(tmp_path, contents={f"{PREFIX}.dist-info/entry_points.txt": entries}), TRACKED, "0.19.0")
+
+
+def test_metadata_resource_limit_is_enforced_before_parsing(tmp_path, monkeypatch):
+    path = wheel(tmp_path)
+    monkeypatch.setattr(inventory, "MAX_METADATA_BYTES", 10)
+    with pytest.raises(ValueError, match="limit"):
+        check_archive(path, TRACKED, "0.19.0")
+
+
+def test_release_script_contract_matches_reviewed_pyproject():
+    import re
+    from pathlib import Path
+
+    project = (Path(__file__).resolve().parents[1] / "pyproject.toml").read_text()
+    section = project.split("[project.scripts]\n", 1)[1].split("\n[", 1)[0]
+    actual = dict(re.findall(r'^([a-z-]+) = "([^"]+)"$', section, re.M))
+    assert actual == inventory.EXPECTED_SCRIPTS
+    assert 'requires-python = ">=3.10"' in project

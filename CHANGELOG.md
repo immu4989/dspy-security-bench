@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Release archive auditing now verifies wheel RECORD coverage, SHA-256 digests,
+  sizes, package identity, Python compatibility, install tags, and all console
+  entry points, with bounded metadata intake and hostile-archive regressions.
 - Portable study bundles retain a deduplicated native source set and exact
   recomputable report without local source paths. Offline recipient verification
   supports independent plan/bundle pins and script-free HTML. ContinuousProof
