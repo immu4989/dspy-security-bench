@@ -98,5 +98,8 @@ jobs:
           tests/test_scan_study_record.py
           tests/test_scan_study_bundle.py
           tests/test_continuous_study.py
+          tests/test_scan_policy_review.py
+          tests/test_scan_policy_html.py
+          tests/test_scan_joint_gate.py
           tests/test_scan_yaml_limits.py
           tests/test_agent_tool_budget.py

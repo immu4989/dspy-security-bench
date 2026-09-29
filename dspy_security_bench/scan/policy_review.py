@@ -80,16 +80,24 @@ def main(argv: list[str] | None = None) -> int:
     review.add_argument("--out", type=Path, required=True, help="new portable policy-review JSON, not scan evidence")
     review.add_argument("--expected-source-sha256")
     review.add_argument("--fail-on-shortfalls", action="store_true")
+    review.add_argument("--html", type=Path, help="new script-free review page")
     verify = commands.add_parser("verify", help="recompute both verdicts from a retained policy review")
     verify.add_argument("path", type=Path)
     verify.add_argument("--expected-source-sha256")
     verify.add_argument("--expected-review-sha256")
     verify.add_argument("--fail-on-shortfalls", action="store_true")
+    verify.add_argument("--html", type=Path, help="new page rendered only after native verification")
     args = parser.parse_args(argv)
     try:
+        destinations = [args.out] if args.command in ("init", "review") else []
+        if args.command != "init" and args.html:
+            destinations.append(args.html)
+        if len({path.resolve() for path in destinations}) != len(destinations):
+            raise ValueError("policy outputs must be distinct")
+        if any(path.exists() or path.is_symlink() or not path.parent.is_dir() for path in destinations):
+            raise ValueError("policy outputs must be new files beneath existing directories")
+        artifacts = {}
         if args.command in ("init", "review"):
-            if args.out.exists() or args.out.is_symlink() or not args.out.parent.is_dir():
-                raise ValueError("policy outputs must be new files beneath an existing directory")
             source = read_json_object(args.source, MAX_BYTES)
             if args.command == "init":
                 verify_scan_evidence(source, args.expected_source_sha256)
@@ -99,13 +107,19 @@ def main(argv: list[str] | None = None) -> int:
                 output = review_scan_policy(source, proposed, args.expected_source_sha256)
                 summary = output["summary"]
             raw = (json.dumps(output, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
-            if len(raw) > MAX_BYTES:
-                raise ValueError("policy review output exceeds 50 MB")
-            with args.out.open("xb") as stream:
-                stream.write(raw)
+            artifacts[args.out] = raw
         else:
             output = read_json_object(args.path, MAX_BYTES)
             summary = verify_policy_review(output, args.expected_source_sha256, args.expected_review_sha256)
+        if args.command != "init" and args.html:
+            from dspy_security_bench.scan.policy_html import render_policy_review_html
+
+            artifacts[args.html] = render_policy_review_html(output).encode("utf-8")
+        if any(len(raw) > MAX_BYTES for raw in artifacts.values()):
+            raise ValueError("policy review output exceeds 50 MB")
+        for path, raw in artifacts.items():
+            with path.open("xb") as stream:
+                stream.write(raw)
     except (OSError, ValueError, TypeError) as exc:
         print(f"[scan policy] invalid input or output ({type(exc).__name__}); no successful review", file=sys.stderr)
         return 2

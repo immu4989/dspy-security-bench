@@ -20,12 +20,21 @@ floors should be omitted, not explicitly null.
 ```sh
 dspy-security-bench scan policy review retained-scan.json \
   --policy proposed-policy.json --expected-source-sha256 "$RETAINED_SCAN_SHA256" \
-  --out policy-review.json --fail-on-shortfalls
+  --out policy-review.json --html policy-review.html --fail-on-shortfalls
 
 dspy-security-bench scan policy verify policy-review.json \
   --expected-source-sha256 "$RETAINED_SCAN_SHA256" \
   --expected-review-sha256 "$RETAINED_REVIEW_SHA256" --fail-on-shortfalls
 ```
+
+The optional HTML opens locally without scripts, remote assets, or a server.
+It puts the post-hoc warning above both verdicts, shows every policy setting,
+and previews up to 50 cell-requirement rows with changed verdicts first and
+omissions labeled. Keyboard-scrollable tables and print styling support review
+on narrow screens. `verify --html NEW_PAGE` can regenerate the same presentation
+only after native verification. Keep the portable JSON for all findings and
+source replay; the HTML itself is not a verifier. Multiple output destinations
+are preflighted together, but writes are not a filesystem transaction.
 
 The source is natively verified. The portable review retains the exact original
 evidence, proposed policy, recomputed report, verdict summary, and a digest. A

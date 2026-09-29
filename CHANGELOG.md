@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Policy-only review has a script-free, responsive HTML handoff with a prominent
+  post-hoc warning, separate original/proposed verdicts, complete setting diffs,
+  labeled finding-preview bounds, and verified replay before page generation.
 - Offline policy-only review reuses unchanged retained observations under an
   explicit proposed gate without paid model calls. Portable artifacts preserve
   original evidence, both verdicts, native replay, independent pins, and a
