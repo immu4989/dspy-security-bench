@@ -257,8 +257,15 @@ def record_study_trial(path: Path, trial_id: str, status: str, evidence_path: st
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in ("bundle", "verify-bundle"):
+        from dspy_security_bench.scan.study_bundle import main as bundle_main
+
+        return bundle_main(argv)
     parser = argparse.ArgumentParser(prog="dspy-security-bench scan study", description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
+    commands.add_parser("bundle", help="export a self-contained, source-verified study bundle")
+    commands.add_parser("verify-bundle", help="recompute a portable bundle without original paths")
     demo = commands.add_parser("demo", help="write a fictional no-model study walkthrough")
     demo.add_argument("--out", type=Path, required=True, help="new directory beneath an existing parent")
     init = commands.add_parser("init", help="derive an unexecuted fixed-scope plan from verified pilot evidence")

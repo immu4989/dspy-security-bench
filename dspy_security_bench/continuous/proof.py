@@ -31,6 +31,7 @@ _LOWER_METRICS = frozenset("summary." + name for name in (
     "probe_status_counts.violation_observed", "probe_status_counts.monitor_failed",
     "probe_status_counts.incomplete_evidence", "control_status_counts.violation_observed",
     "control_status_counts.monitor_failed", "control_status_counts.incomplete_evidence",
+    "study_execution_error_rate",
 ))
 _HIGHER_METRICS = frozenset("summary." + name for name in (
     "clean_mission_utility", "injected_mission_utility", "injected_authorization_accuracy",
@@ -42,6 +43,8 @@ _HIGHER_METRICS = frozenset("summary." + name for name in (
     "fully_robust_portfolio", "robust_scenarios", "worst_direct_service_weight",
     "worst_dependency_reach_weight", "requirements_met", "probe_status_counts.contained",
     "control_status_counts.evidenced",
+    "study_coverage_rate", "study_requirements_met", "study_security_rate",
+    "study_utility_rate", "study_secure_and_useful_rate",
 ))
 _NON_METRICS = ("count", "trials", "seconds", "pair_count")
 
@@ -248,6 +251,14 @@ def verify_snapshot_source(snapshot: Mapping[str, Any], evidence: Mapping[str, A
 
 
 def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
+    if payload.get("proof_type") == "dspy-security-bench-scan-study-bundle":
+        from dspy_security_bench.scan.study_bundle import verify_study_bundle
+
+        try:
+            verify_study_bundle(payload)
+        except (TypeError, ValueError):
+            return "scan-study", ("scan study bundle does not recompute",)
+        return "scan-study", ()
     if payload.get("evidence_type") == "dspy-security-bench-scan-evidence":
         from dspy_security_bench.scan.evidence import verify_scan_evidence
 
@@ -321,11 +332,21 @@ def _verify_evidence(payload: Mapping[str, Any]) -> tuple[str, tuple[str, ...]]:
         "unsupported evidence; use a verified AgentGraphTwin, TraceProof, AuthorityTwin, "
         "MissionPackTwin, IncidentTwin, DefenderTwin, ResilienceGraph, ScheduleProof, "
         "CollectiveGuard, ContainmentProof, EvalIntegrityProof, AgentBOM ClaimImpact, or "
-        "ValueProof report"
+        "ValueProof report, scan evidence, or portable scan study bundle"
     )
 
 
 def _identity(payload: Mapping[str, Any]) -> dict[str, Any]:
+    if payload.get("proof_type") == "dspy-security-bench-scan-study-bundle":
+        study = payload["study"]
+        return {
+            "study_plan_sha256": study["plan"]["plan_sha256"],
+            "study_protocol_version": study["protocol_version"],
+            # New/missing attempts change the observed subset. Never treat a
+            # changed conditional denominator as a like-for-like improvement.
+            "study_completed_trial_ids_sha256": canonical_sha256(
+                [trial["trial_id"] for trial in study["trials"] if trial["status"] == "complete"]),
+        }
     if payload.get("evidence_type") == "dspy-security-bench-scan-evidence":
         return {
             "scope_sha256": canonical_sha256(payload["scope"]),
@@ -358,6 +379,21 @@ def _identity(payload: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _comparable_summary(payload: Mapping[str, Any], kind: str) -> Mapping[str, Any]:
+    if kind == "scan-study":
+        study = payload["study"]
+        summary = study["summary"]
+        return {
+            "study_coverage_rate": summary["complete_trials"] / summary["planned_trials"],
+            "study_execution_error_rate": summary["execution_error_trials"] / summary["planned_trials"],
+            "study_requirements_met": float(summary["study_requirements_met"]),
+            # Reuse is not proof of replay or dependence. A changed count needs
+            # review; no universal better/worse direction is assigned.
+            "study_reused_trial_fraction": sum(len(g["trial_ids"]) - 1 for g in study["repeated_evidence_groups"])
+                / summary["planned_trials"],
+            **{f"study_{axis}_rate": summary[axis]["observed_rate"]
+               for axis in ("security", "utility", "secure_and_useful")
+               if summary[axis]["observed_rate"] is not None},
+        }
     if kind == "scan":
         # Hash structured cell identities to avoid delimiter collisions and keep
         # literal user labels out of metric names. Scope binds the full matrix.

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Portable fixed-scope scan study bundle v1",
+  "description": "Structural validation requires the sibling study and evidence schemas. Native verify-bundle recomputes every source, trial, report, and digest. Neither provides execution authenticity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "proof_type", "protocol_version", "study", "sources", "claim_boundary", "bundle_sha256"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "proof_type": {"const": "dspy-security-bench-scan-study-bundle"},
+    "protocol_version": {"const": "scan-study-bundle-v1"},
+    "study": {"$ref": "scan-study.schema.json"},
+    "sources": {
+      "type": "object",
+      "maxProperties": 100,
+      "propertyNames": {"pattern": "^[0-9a-f]{64}$"},
+      "additionalProperties": {"$ref": "scan-evidence.schema.json"}
+    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

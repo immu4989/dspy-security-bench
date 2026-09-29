@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Portable study bundles retain a deduplicated native source set and exact
+  recomputable report without local source paths. Offline recipient verification
+  supports independent plan/bundle pins and script-free HTML. ContinuousProof
+  snapshots bind the completed-trial roster and distinguish conditional outcomes
+  from coverage; changed subsets cannot silently count as comparable improvements.
 - `scan study record` records one planned missing trial in a new manifest
   revision, replaying all complete sources and retaining plan identity. It
   refuses replacement of completed/error attempts, relocated source references,

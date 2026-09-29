@@ -96,5 +96,7 @@ jobs:
           tests/test_scan_study.py
           tests/test_scan_study_html.py
           tests/test_scan_study_record.py
+          tests/test_scan_study_bundle.py
+          tests/test_continuous_study.py
           tests/test_scan_yaml_limits.py
           tests/test_agent_tool_budget.py

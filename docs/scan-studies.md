@@ -140,6 +140,65 @@ an unexpected I/O failure can leave a partial output set.
 
 ## Read the results correctly
 
+### Share a self-contained, replayable bundle
+
+```sh
+dspy-security-bench scan study bundle study-revision-2.json \
+  --expected-plan-sha256 "$REVIEWED_STUDY_PLAN_SHA256" --out study-bundle.json
+
+# Recipient: no original directory, manifest, network, or model access needed.
+dspy-security-bench scan study verify-bundle study-bundle.json \
+  --expected-plan-sha256 "$REVIEWED_STUDY_PLAN_SHA256" \
+  --expected-bundle-sha256 "$INDEPENDENTLY_RETAINED_BUNDLE_SHA256" \
+  --html verified-review.html --fail-on-shortfalls
+```
+
+The bundle contains the exact study plus each distinct native source once,
+indexed by its evidence digest. All trial declarations remain, including
+repeated sources, missing trials, and errors. Source-file paths are omitted.
+Identifiers and outcomes are **not anonymized**; obtain owner approval before
+sharing. No raw prompts or outputs are introduced by bundling.
+
+Both commands replay all sources and the derived report. Missing/extra sources,
+false summaries, altered limitations, and invalid pins fail verification even
+when outer hashes have been recomputed. Optional independently retained plan
+and bundle pins detect substitution; a hash sent alongside the file on the same
+untrusted channel does not establish authenticity. Bundles are not signed
+attestations or proof of when or whether execution occurred.
+
+Output files must be new. Input/output bundles are limited to 50 MB; a manifest
+whose sources fit the input budget may still produce an oversized bundle after
+including its report. Such an export is refused, never silently truncated.
+`--fail-on-shortfalls` returns 1 for valid but incomplete/nonpassing studies,
+after writing a requested bundle or HTML. Invalid input returns 2. The
+[bundle schema](../dspy_security_bench/schemas/scan-study-bundle.schema.json)
+references the sibling study/evidence schemas; register all three for offline
+structural validation. Native verification is still required.
+
+### Observe study revisions without running agents
+
+Portable bundles are a native `scan-study` kind for ContinuousProof:
+
+```sh
+dspy-security-bench watch baseline study-bundle.json --label reviewed-study \
+  --out study-snapshot.json
+dspy-security-bench watch verify study-snapshot.json --evidence study-bundle.json
+```
+
+Snapshots keep coverage and execution-error fractions separate from conditional
+security, utility, and joint rates. The plan and completed-trial roster are
+identity-bound. Changing the observed subset requires review regardless of
+scalar thresholds. With no complete trials, outcome rates are absent rather
+than fabricated; moving to an observed study changes metric coverage and cannot
+be compared as if both snapshots measured the same quantities. Repeated-source
+changes also require review rather than being called better or worse.
+
+Unchanged evidence can be `within_threshold` while still having unmet study
+requirements. Observe-only status is not approval, a matched-case causal
+comparison, or an independent-execution claim.
+
+### Interpret descriptive outcomes
+
 The report includes planned/complete/missing/error trial counts, observed and
 planned case-trial counts, and per-case successes, failures, observed rates, and
 whether both outcomes occurred. Three axes stay distinct:

@@ -63,6 +63,14 @@ time, and portability rework are lower-is-better.
 
 ### Retained agent scans (on main)
 
+Portable [scan study bundles](scan-studies.md#share-a-self-contained-replayable-bundle)
+are also supported as evidence kind `scan-study`. Native replay requires every
+embedded complete source. Snapshots separate coverage/error fractions from
+conditional outcome rates and bind both the fixed plan and completed-trial
+roster. A changed observed subset always requires identity review; absent rates
+remain absent. Controller observations do not execute trials or establish
+independence, and unchanged nonpassing studies are still not approval.
+
 Native `scan-evidence-v1` and utility-gated v2 captures are supported as evidence
 kind `scan`. Every capture is replayed before normalization. Snapshots bind the
 exact scope, gate policy, retained baseline, and evidence protocol; metrics keep
