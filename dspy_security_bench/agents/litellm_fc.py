@@ -68,7 +68,7 @@ class LiteLLMFunctionCallingAgent:
 
         trace: list[ToolCall] = []
         final_answer = ""
-        usage: dict[str, int | float] = {}
+        usage_reports: list[dict[str, int | float]] = []
 
         for _ in range(self.max_iters):
             resp = litellm.completion(
@@ -81,7 +81,7 @@ class LiteLLMFunctionCallingAgent:
                 num_retries=self.num_retries,
                 drop_params=True,
             )
-            _merge_usage(usage, _response_usage(resp))
+            usage_reports.append(_response_usage(resp))
             msg = resp.choices[0].message
             tool_calls = getattr(msg, "tool_calls", None)
 
@@ -137,10 +137,11 @@ class LiteLLMFunctionCallingAgent:
                 num_retries=self.num_retries,
                 drop_params=True,
             )
-            _merge_usage(usage, _response_usage(resp))
+            usage_reports.append(_response_usage(resp))
             final_answer = resp.choices[0].message.content or ""
 
-        return AgentResult(final_answer=final_answer, tool_calls=trace, usage=usage)
+        return AgentResult(final_answer=final_answer, tool_calls=trace,
+                           usage=_complete_usage(usage_reports))
 
 
 def _parse_tool_arguments(value) -> dict:
@@ -175,6 +176,19 @@ def _response_usage(response) -> dict[str, int | float]:
     return values
 
 
-def _merge_usage(total: dict[str, int | float], addition: dict[str, int | float]) -> None:
-    for key, value in addition.items():
-        total[key] = total.get(key, 0) + value
+def _complete_usage(reports: list[dict[str, int | float]]) -> dict[str, int | float]:
+    """Only sum fields reported validly on every returned completion response.
+
+    A missing field anywhere makes that run-level total unknown. SDK retries,
+    tool costs, and provider-side work absent from responses are not measured.
+    """
+    if not reports:
+        return {}
+    fields = set(reports[0]).intersection(*(set(report) for report in reports[1:]))
+    totals = {}
+    for key in sorted(fields):
+        total = sum(report[key] for report in reports)
+        if isinstance(total, float) and not math.isfinite(total):
+            continue
+        totals[key] = total
+    return totals

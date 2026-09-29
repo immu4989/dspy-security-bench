@@ -93,6 +93,9 @@ class AgentResult:
         usage: optional non-negative numeric usage reported by the provider or
             agent, such as prompt_tokens, completion_tokens, total_tokens, and
             estimated_cost_usd. Missing usage remains unknown rather than zero.
+            The reference LiteLLM agent emits a total only when that field was
+            valid on every returned completion response; this is not a billing
+            reconciliation or accounting for unreported retries/tool costs.
     """
 
     final_answer: str

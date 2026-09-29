@@ -71,7 +71,7 @@ evidence remains replayable and cannot claim this additional control.
 Scope-bound baselines, matched comparisons, and repeated studies require the
 same budgeted protocol **and the same limit**. Do not relabel old evidence or
 delete the control field to make scopes match. Recollect an owner-approved
-baseline if the execution policy changes. The generic `scan-evidence-v1`/v2
+baseline if the execution policy changes. The generic `scan-evidence-v1`/v2/v3
 format version still describes gate serialization, not execution controls.
 
 The source code and runtime implementing a declaration are not authenticated by

@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Reference-agent usage totals now require a valid field on every returned
+  completion response, including the forced final-answer call. Missing or
+  invalid usage and overflowed cost totals stay unknown instead of appearing as
+  complete partial sums. Unreported SDK retries and tool costs remain outside scope.
 - Optional same-pair joint-success gates prevent separate security and utility
   rates from hiding disjoint successes. Count-backed conjunctions have distinct
   findings/SARIF, plan pins, exact v3 evidence replay, study support, and native

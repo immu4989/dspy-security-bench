@@ -93,6 +93,14 @@ Callbacks may be synchronous or asynchronous. Returning `AgentResult` preserves
 an optional tool-call ledger and provider-reported usage; returning text supplies
 only the final answer.
 
+The reference LiteLLM agent reports a run-level token/cost total only if that
+field is valid on **every returned completion response**, including its forced
+final-answer response. Missing/invalid fields and nonfinite accumulated cost
+remain absent, not zero or a partial sum. Other complete fields can still be
+reported. These are provider-reported estimates, not billing reconciliation;
+unreported SDK retries, tool execution costs, and provider-side work are not
+included. Custom agents own the completeness of usage they supply.
+
 ## What doctor checks
 
 `doctor` itself performs no network calls, sends no prompts, and never invokes
