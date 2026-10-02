@@ -188,6 +188,22 @@ and [`CONTRIBUTING.md`](../CONTRIBUTING.md) for the review contract.
 
 ## Interpretation limits
 
+On `main` after v0.19.0, control cards display the confidence level retained in
+each verified estimate and its conditional success/observation counts. Earlier
+cards incorrectly printed “95%” even for non-default confidence levels; regenerate
+those SVGs from the original valid bundles. The interval endpoints and underlying
+evidence are unchanged. No eligible observations remains `N/A`, not a zero rate.
+
+Offline bundle CLI checks print `[INVALID]` when native verification fails and
+`[NOT ELIGIBLE]` when the evidence is valid but does not meet registry admission
+rules. Both return exit 1. `[VERIFIED]` does not establish authenticated execution
+or deployment approval. Control-bundle diagnostics identify the failing section
+without echoing unknown source field names or nested exception text. File paths
+supplied to the CLI are still printed; avoid sensitive filenames in shared logs.
+Review source details in an approved local environment, and use
+[`impact sharing-review`](impact-twin.md#review-retained-content-before-sharing)
+before handing off retained artifacts.
+
 - Results cover repeated executions of five fixed synthetic ProcureBench pairs,
   not all government, commercial, or user workflows.
 - Wilson intervals quantify execution variability for this suite; shared

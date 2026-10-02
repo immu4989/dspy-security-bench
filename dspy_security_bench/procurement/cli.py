@@ -655,7 +655,7 @@ def _control_submission_verify(args) -> int:
             print(f"[INVALID] {path}: {type(exc).__name__}", file=sys.stderr)
             passed = False
             continue
-        marker = "VERIFIED" if result.registry_eligible else "NOT ELIGIBLE"
+        marker = "INVALID" if not result.valid else "VERIFIED" if result.registry_eligible else "NOT ELIGIBLE"
         print(f"[{marker}] {path}")
         for error in result.errors:
             print(f"  error: {error}")
@@ -793,7 +793,7 @@ def _verify(args) -> int:
             print(f"[INVALID] {path}: {type(exc).__name__}", file=sys.stderr)
             passed = False
             continue
-        marker = "VERIFIED" if result.community_eligible else "NOT ELIGIBLE"
+        marker = "INVALID" if not result.valid else "VERIFIED" if result.community_eligible else "NOT ELIGIBLE"
         print(f"[{marker}] {path}")
         for error in result.errors:
             print(f"  error: {error}")

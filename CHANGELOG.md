@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Corrected shareable control cards that mislabeled all Wilson intervals as
+  95%: cards now use each verified estimate's confidence level and show its
+  conditional success/observation counts. Bundle CLI checks distinguish invalid
+  evidence from valid-but-ineligible evidence, and control-bundle diagnostics
+  withhold untrusted field names and nested exception details from shared logs.
 - ControlTwin and repeated-control native replay now distinguish boolean flags,
   integer counts, and real-valued measurements, including nested summaries and
   policy event indexes/approvals. Embedded impact summaries and usage subtotals

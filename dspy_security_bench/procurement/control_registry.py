@@ -107,7 +107,7 @@ def verify_control_submission_bundle(
         allowed_bundle_fields.add("provenance")
     unexpected_bundle_fields = sorted(set(bundle) - allowed_bundle_fields)
     if unexpected_bundle_fields:
-        errors.append("unsupported bundle fields: " + ", ".join(unexpected_bundle_fields))
+        errors.append("unsupported bundle fields; source field names withheld")
 
     claimed_bundle_digest = bundle.get("bundle_sha256")
     unsigned = dict(bundle)
@@ -128,8 +128,8 @@ def verify_control_submission_bundle(
             errors.append("report_sha256 does not match embedded report")
         try:
             warnings.extend(verify_repeat_control_report(report))
-        except (KeyError, TypeError, ValueError) as exc:
-            errors.append(f"embedded RepeatControlTwin report is invalid: {exc}")
+        except (KeyError, TypeError, ValueError):
+            errors.append("embedded RepeatControlTwin report is invalid; source details withheld")
 
     submission = bundle.get("submission")
     if not isinstance(submission, Mapping):
@@ -157,7 +157,7 @@ def verify_control_submission_bundle(
         unexpected_submission_fields = sorted(set(submission) - allowed_submission_fields)
         if unexpected_submission_fields:
             errors.append(
-                "unsupported submission fields: " + ", ".join(unexpected_submission_fields)
+                "unsupported submission fields; source field names withheld"
             )
         if not isinstance(submission.get("notes"), str):
             errors.append("submission.notes must be a string")
@@ -278,10 +278,16 @@ def _metric_svg(x: int, y: int, label: str, estimate: Any, denominator: str) -> 
     if not isinstance(estimate, Mapping):
         rate = "N/A"
         interval = "no eligible observations"
+        sample = denominator
         width = 0
     else:
         rate = f"{float(estimate['rate']):.0%}"
-        interval = f"95% Wilson {float(estimate['lower']):.1%}–{float(estimate['upper']):.1%}"
+        confidence = float(estimate["confidence_level"]) * 100
+        # Avoid rounding a supported interior confidence to a false 0% or 100%.
+        level = ("&lt;0.01" if confidence < 0.01 else
+                 "&gt;99.99" if confidence > 99.99 else f"{confidence:.2f}".rstrip("0").rstrip("."))
+        interval = f"{level}% Wilson {float(estimate['lower']):.1%}–{float(estimate['upper']):.1%}"
+        sample = f"{int(estimate['successes'])}/{int(estimate['observations'])} {denominator}"
         width = round(286 * float(estimate["rate"]), 2)
     return f'''<g transform="translate({x} {y})">
     <rect width="326" height="184" rx="18" fill="#091722" stroke="#97d6d6" stroke-opacity=".14"/>
@@ -290,7 +296,7 @@ def _metric_svg(x: int, y: int, label: str, estimate: Any, denominator: str) -> 
     <rect x="24" y="116" width="286" height="6" rx="3" fill="#19303a"/>
     <rect x="24" y="116" width="{width}" height="6" rx="3" fill="url(#accent)" filter="url(#glow)"/>
     <text x="24" y="146" fill="#9bb0b7" font-family="ui-monospace,monospace" font-size="11">{interval}</text>
-    <text x="24" y="166" fill="#58727a" font-family="ui-sans-serif,system-ui" font-size="10">{denominator}</text>
+    <text x="24" y="166" fill="#58727a" font-family="ui-sans-serif,system-ui" font-size="10">{sample}</text>
   </g>'''
 
 
@@ -349,7 +355,7 @@ def _validate_provenance(
             }
             unexpected = sorted(set(provenance) - github_fields)
             if unexpected:
-                errors.append("unsupported GitHub provenance fields: " + ", ".join(unexpected))
+                errors.append("unsupported GitHub provenance fields; source field names withheld")
             if "action_ref" not in provenance or not isinstance(provenance.get("action_ref"), str):
                 errors.append("provenance.action_ref must be a string")
             if provenance.get("builder_kind") not in {
@@ -385,7 +391,7 @@ def _validate_provenance(
                 set(provenance) - {"provider", "builder_kind", "runner_environment"}
             )
             if unexpected:
-                errors.append("unsupported local provenance fields: " + ", ".join(unexpected))
+                errors.append("unsupported local provenance fields; source field names withheld")
             if provenance.get("builder_kind") != "local_process":
                 errors.append("local provenance requires builder_kind=local_process")
             if provenance.get("runner_environment") != "local":
@@ -433,7 +439,7 @@ def _validate_producer(producer: Any, errors: list[str]) -> None:
     allowed = {"package", "package_version", "python_version", "platform"}
     unexpected = sorted(set(producer) - allowed)
     if unexpected:
-        errors.append("unsupported producer fields: " + ", ".join(unexpected))
+        errors.append("unsupported producer fields; source field names withheld")
     if producer.get("package") != "dspy-security-bench":
         errors.append("producer.package must be dspy-security-bench")
     for field in ("package_version", "python_version", "platform"):

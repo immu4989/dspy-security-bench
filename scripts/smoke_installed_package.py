@@ -131,9 +131,16 @@ def main() -> int:
             raise RuntimeError("inconsistent retained evidence was published as a bundle")
         run_cli(directory, ["impact", "control-demo", "--json", "control.json"])
         run_cli(directory, ["impact", "control-verify", "control.json"])
-        run_cli(directory, ["impact", "control-repeat-demo", "--trials", "2",
+        run_cli(directory, ["impact", "control-repeat-demo", "--trials", "2", "--confidence", "0.8",
                             "--json", "control-repeat.json"])
         run_cli(directory, ["impact", "control-repeat-verify", "control-repeat.json"])
+        run_cli(directory, ["impact", "control-submit", "control-repeat.json", *submission,
+                            "--policy-source", "https://example.com/synthetic-policy",
+                            "--out", "control-bundle.json"])
+        run_cli(directory, ["impact", "control-card", "control-bundle.json", "--out", "control-card.svg"])
+        card = (directory / "control-card.svg").read_text(encoding="utf-8")
+        if card.count("80% Wilson") != 3 or "95% Wilson" in card:
+            raise RuntimeError("installed card does not display its retained confidence level")
         control = json.loads((directory / "control.json").read_text(encoding="utf-8"))
         control["pairs"][0]["policy_events"][0]["index"] = False
         control.pop("report_sha256")
