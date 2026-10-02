@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Corrected procurement usage edge cases: unrepresentable optional cost metadata
+  no longer changes a completed task into an execution error. Overflowing
+  ImpactTwin, RepeatTwin, and repeated-control subtotals remain unknown/null,
+  with matching replay behavior. Existing finite subtotal semantics remain;
+  documentation distinguishes per-field coverage from complete billing totals.
 - Matched scan comparison has an opt-in joint-outcome allowance for newly lost
   secure-and-useful cases. Versioned v2 reports replay conjunctions per case and
   cell, preserve separate security/utility gates, and show joint transitions in

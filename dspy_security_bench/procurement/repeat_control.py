@@ -11,6 +11,7 @@ from typing import Any
 
 from dspy_security_bench.agents import Agent
 from dspy_security_bench.policy import ApprovalHandler, ToolPolicy
+from dspy_security_bench.procurement.benchmark import _reported_total
 from dspy_security_bench.procurement.control_twin import (
     ControlTwinReport,
     run_control_twin,
@@ -584,7 +585,7 @@ def _usage_payload(controls: list[Mapping[str, Any]]) -> dict[str, Any]:
 
     def total(rows: list[Mapping[str, Any]], key: str):
         values = [row[key] for row in rows if isinstance(row.get(key), (int, float))]
-        return sum(values) if values else None
+        return _reported_total(values)
 
     baseline_tokens = total(baseline, "total_tokens")
     controlled_tokens = total(controlled, "total_tokens")

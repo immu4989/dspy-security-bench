@@ -174,6 +174,15 @@ invariance, harm-free outcomes, and trace equivalence, the report includes:
 - case-error counts and elapsed wall-clock time; and
 - token and estimated-cost totals when the agent reports them.
 
+Usage fields are **reported subtotals**, not reconciled billing totals. The
+`reported_cases` count means cases with any usage field; different fields may
+cover different subsets even when every case reports something. Missing fields
+are not imputed as zero. Invalid optional costs (including integers too large
+to represent as finite floats) are omitted without changing task outcomes. An
+overflowing aggregate is `null`, not infinity or zero; explicit zero remains
+known zero. Overflow handling is corrected on main after v0.19.0. These reports
+do not account for unreported retries, external tool costs, or provider charges.
+
 The CLI calls the configured zero-argument factory for every benchmark case,
 so one poisoned execution cannot contaminate a later twin through in-process
 agent memory. The report records `trial_isolation: fresh_agent_per_case`.

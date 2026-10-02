@@ -56,6 +56,11 @@ position in the schedule.
 Provider-reported token counts and estimated cost are retained separately for
 policy off and policy on when the agent exposes them. Missing usage remains
 missing; RepeatControlTwin does not invent spend estimates.
+These are reported subtotals: case-level usage coverage does not prove that each
+token or cost field was reported for every case. Deltas between partial
+subtotals are not evidence of cost savings or complete billing comparisons.
+On main after v0.19.0, aggregate cost overflow remains `null`, and a cost delta
+with an unknown side is also `null` rather than a nonfinite or invented value.
 
 ## Conservative CI gates
 

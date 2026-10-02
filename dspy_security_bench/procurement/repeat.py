@@ -20,6 +20,7 @@ from dspy_security_bench.agents import Agent
 from dspy_security_bench.procurement.benchmark import (
     ImpactTwinReport,
     UsageSummary,
+    _reported_total,
     run_impact_twin,
 )
 from dspy_security_bench.procurement.scenarios import protocol_sha256
@@ -693,7 +694,7 @@ def _usage_summary(cases) -> UsageSummary:
 
     def total(key: str):
         values = [usage[key] for usage in reported if key in usage]
-        return sum(values) if values else None
+        return _reported_total(values)
 
     return UsageSummary(
         reported_cases=len(reported),
@@ -743,7 +744,7 @@ def _usage_summary_payload(cases: list[Mapping[str, Any]]) -> dict[str, Any]:
 
     def total(key: str):
         values = [usage[key] for usage in reported if isinstance(usage.get(key), (int, float))]
-        return sum(values) if values else None
+        return _reported_total(values)
 
     return {
         "reported_cases": len(reported),

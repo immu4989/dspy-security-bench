@@ -110,7 +110,7 @@ class ImpactTwinSummary:
 
 @dataclass(frozen=True)
 class UsageSummary:
-    """Provider-reported usage; null totals mean no agent supplied that field."""
+    """Reported subtotals, not billing totals; null also covers numeric overflow."""
 
     reported_cases: int
     total_cases: int
@@ -403,11 +403,33 @@ def _normalize_usage(raw: Any) -> dict[str, int | float]:
     if (
         isinstance(cost, (int, float))
         and not isinstance(cost, bool)
-        and math.isfinite(cost)
         and cost >= 0
     ):
-        normalized["estimated_cost_usd"] = float(cost)
+        try:
+            finite_cost = float(cost)
+        except (OverflowError, ValueError):
+            finite_cost = None
+        if finite_cost is not None and math.isfinite(finite_cost):
+            normalized["estimated_cost_usd"] = finite_cost
     return normalized
+
+
+def _reported_total(values):
+    """Preserve historical reported-subtotal semantics without emitting Infinity.
+
+    Missing fields do not become zeros. This is not complete usage accounting:
+    callers retain coverage, and each field may cover a different subset.
+    """
+    values = list(values)
+    if not values:
+        return None
+    try:
+        total = sum(values)
+    except OverflowError:
+        return None
+    if isinstance(total, float) and not math.isfinite(total):
+        return None
+    return total
 
 
 def _summarize_usage(cases) -> UsageSummary:
@@ -416,7 +438,7 @@ def _summarize_usage(cases) -> UsageSummary:
 
     def total(key: str):
         values = [usage[key] for usage in reported if key in usage]
-        return sum(values) if values else None
+        return _reported_total(values)
 
     return UsageSummary(
         reported_cases=len(reported),
