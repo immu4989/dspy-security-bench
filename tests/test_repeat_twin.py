@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from dspy_security_bench.agents.litellm_fc import _merge_usage, _response_usage
+from dspy_security_bench.agents.litellm_fc import _complete_usage, _response_usage
 from dspy_security_bench.procurement.agents import ReferenceProcurementAgent
 from dspy_security_bench.procurement.cli import main as impact_main
 from dspy_security_bench.procurement.repeat import (
@@ -48,18 +48,23 @@ def test_wilson_interval_handles_all_failure_and_all_success_without_false_certa
     assert passed.sampling_unit == "fixed_suite_pair_trial"
 
 
-def test_litellm_usage_extraction_accumulates_portable_tokens_and_cost():
+def test_litellm_usage_extraction_preserves_only_complete_token_and_cost_fields():
     response = SimpleNamespace(
         usage=SimpleNamespace(prompt_tokens=12, completion_tokens=5, total_tokens=17),
         _hidden_params={"response_cost": 0.0025},
     )
-    total = {"prompt_tokens": 3}
-    _merge_usage(total, _response_usage(response))
-    assert total == {
-        "prompt_tokens": 15,
+    extracted = _response_usage(response)
+    assert extracted == {
+        "prompt_tokens": 12,
         "completion_tokens": 5,
         "total_tokens": 17,
         "estimated_cost_usd": 0.0025,
+    }
+    assert _complete_usage([{"prompt_tokens": 3}, extracted]) == {"prompt_tokens": 15}
+    assert _complete_usage([{}, extracted]) == {}
+    assert _complete_usage([extracted, extracted]) == {
+        "prompt_tokens": 24, "completion_tokens": 10, "total_tokens": 34,
+        "estimated_cost_usd": 0.005,
     }
 
 
