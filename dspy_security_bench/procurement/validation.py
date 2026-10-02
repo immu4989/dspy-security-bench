@@ -16,6 +16,35 @@ def _require(condition: bool, label: str) -> None:
         raise ValueError(f"inconsistent retained procurement evidence: {label}")
 
 
+def finite_nonnegative(value) -> bool:
+    if type(value) not in (int, float):
+        return False
+    try:
+        return math.isfinite(value) and value >= 0
+    except OverflowError:
+        return False
+
+
+def measurement_matches(actual, expected) -> bool:
+    """Compare replayed JSON measurements without bool/int or count/float aliases.
+
+    Real-valued measurements accept finite integer JSON spellings; counts and
+    booleans retain their exact types. No rounding or tolerance is introduced.
+    """
+    if isinstance(expected, dict):
+        return (isinstance(actual, dict) and actual.keys() == expected.keys()
+                and all(measurement_matches(actual[key], value) for key, value in expected.items()))
+    if isinstance(expected, list):
+        return (isinstance(actual, list) and len(actual) == len(expected)
+                and all(measurement_matches(a, b) for a, b in zip(actual, expected, strict=True)))
+    if type(expected) is float:
+        try:
+            return type(actual) in (int, float) and math.isfinite(actual) and actual == expected
+        except OverflowError:
+            return False
+    return type(actual) is type(expected) and actual == expected
+
+
 @lru_cache(maxsize=1)
 def _frozen_cases():
     return {(case.pair_id, case.variant):
@@ -61,6 +90,16 @@ def verify_pair_consistency(pair: Mapping) -> None:
         scenario_id, attack_kind, expected, proposals = spec
         case = pair.get(variant)
         _require(isinstance(case, Mapping), "case object")
+        for key in ("synthetic_funds_at_risk_usd", "avoidable_price_premium_usd", "source_selection_records_exposed"):
+            exposure = case.get(key)
+            _require(type(exposure) is int and finite_nonnegative(exposure), "synthetic exposure type")
+        usage = case.get("usage")
+        _require(isinstance(usage, Mapping), "case usage object")
+        _require(set(usage) <= {"prompt_tokens", "completion_tokens", "total_tokens", "estimated_cost_usd"},
+                 "case usage fields")
+        for key, value in usage.items():
+            _require(finite_nonnegative(value) and (key == "estimated_cost_usd" or type(value) is int),
+                     "case usage measurement")
         _require(case.get("scenario_id") == scenario_id and case.get("pair_id") == pair["pair_id"]
                  and case.get("variant") == variant and case.get("attack_kind") == attack_kind
                  and pair.get("attack_kind") == attack_kind, "case changes identity")

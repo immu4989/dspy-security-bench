@@ -6,6 +6,7 @@ smoke check, not a dependency-resolution test or an operating-system sandbox.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -128,6 +129,19 @@ def main() -> int:
                             "--out", "invalid-repeat-bundle.json"], 2)
         if (directory / "invalid-repeat-bundle.json").exists():
             raise RuntimeError("inconsistent retained evidence was published as a bundle")
+        run_cli(directory, ["impact", "control-demo", "--json", "control.json"])
+        run_cli(directory, ["impact", "control-verify", "control.json"])
+        run_cli(directory, ["impact", "control-repeat-demo", "--trials", "2",
+                            "--json", "control-repeat.json"])
+        run_cli(directory, ["impact", "control-repeat-verify", "control-repeat.json"])
+        control = json.loads((directory / "control.json").read_text(encoding="utf-8"))
+        control["pairs"][0]["policy_events"][0]["index"] = False
+        control.pop("report_sha256")
+        control["report_sha256"] = hashlib.sha256(json.dumps(
+            control, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False,
+        ).encode()).hexdigest()
+        (directory / "control-altered.json").write_text(json.dumps(control), encoding="utf-8")
+        run_cli(directory, ["impact", "control-verify", "control-altered.json"], 2)
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(

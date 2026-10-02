@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- ControlTwin and repeated-control native replay now distinguish boolean flags,
+  integer counts, and real-valued measurements, including nested summaries and
+  policy event indexes/approvals. Embedded impact summaries and usage subtotals
+  are recomputed in full. Rehashing type-confused evidence no longer makes it
+  valid; native generated report formats and digests remain unchanged.
 - Added offline `impact sharing-review` for RepeatTwin/control reports and
   submission bundles. Native verification precedes a whole-source-bound content
   inventory, with exact replay, optional independent pins, strict JSON intake,

@@ -24,6 +24,7 @@ from dspy_security_bench.procurement.repeat import (
     wilson_interval,
 )
 from dspy_security_bench.procurement.scenarios import protocol_sha256
+from dspy_security_bench.procurement.validation import finite_nonnegative, measurement_matches
 
 
 @dataclass(frozen=True)
@@ -307,6 +308,8 @@ def render_repeat_control_terminal(report: RepeatControlTwinReport) -> str:
 
 def verify_repeat_control_report(payload: Mapping[str, Any]) -> tuple[str, ...]:
     """Recompute all repeated-control statistics and child evidence offline."""
+    if not isinstance(payload, Mapping):
+        raise ValueError("RepeatControlTwin report must be an object")
     claimed_digest = payload.get("report_sha256")
     unsigned = dict(payload)
     unsigned.pop("report_sha256", None)
@@ -324,7 +327,7 @@ def verify_repeat_control_report(payload: Mapping[str, Any]) -> tuple[str, ...]:
         ),
     }
     for field, expected in constants.items():
-        if payload.get(field) != expected:
+        if not measurement_matches(payload.get(field), expected):
             raise ValueError(f"report {field} does not match RepeatControlTwin schema v1")
     confidence = payload.get("confidence_level")
     if (
@@ -345,7 +348,7 @@ def verify_repeat_control_report(payload: Mapping[str, Any]) -> tuple[str, ...]:
         if not isinstance(record, Mapping):
             raise ValueError(f"trial {index} must be an object")
         expected_order = "baseline_first" if index % 2 else "controlled_first"
-        if record.get("trial_number") != index or record.get("execution_order") != expected_order:
+        if not measurement_matches(record.get("trial_number"), index) or record.get("execution_order") != expected_order:
             raise ValueError(f"trial {index} violates the alternating condition schedule")
         control = record.get("control")
         if not isinstance(control, dict):
@@ -357,7 +360,7 @@ def verify_repeat_control_report(payload: Mapping[str, Any]) -> tuple[str, ...]:
         if not isinstance(child_policy, Mapping):
             raise ValueError(f"trial {index} policy identity is missing")
         for field in ("name", "sha256", "document", "approval_handler", "arguments_captured"):
-            if child_policy.get(field) != policy.get(field):
+            if not measurement_matches(policy.get(field), child_policy.get(field)):
                 raise ValueError(f"trial {index} policy.{field} mismatch")
 
     expected_summary, expected_pairs = _recompute(trials, float(confidence))
@@ -365,13 +368,13 @@ def verify_repeat_control_report(payload: Mapping[str, Any]) -> tuple[str, ...]:
     if not isinstance(actual_summary, Mapping):
         raise ValueError("summary must be an object")
     elapsed = actual_summary.get("elapsed_seconds")
-    if not isinstance(elapsed, (int, float)) or isinstance(elapsed, bool) or elapsed < 0:
+    if not finite_nonnegative(elapsed):
         raise ValueError("summary.elapsed_seconds must be non-negative")
     expected_summary["elapsed_seconds"] = elapsed
-    if dict(actual_summary) != expected_summary:
+    if not measurement_matches(dict(actual_summary), expected_summary):
         raise ValueError("summary does not recompute from paired ControlTwin trials")
     actual_pairs = payload.get("pair_summaries")
-    if actual_pairs != expected_pairs:
+    if not measurement_matches(actual_pairs, expected_pairs):
         raise ValueError("pair_summaries do not recompute from paired ControlTwin trials")
     return tuple(dict.fromkeys(warnings))
 

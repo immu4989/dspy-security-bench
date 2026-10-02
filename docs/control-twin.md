@@ -130,6 +130,24 @@ rule/action references, and every aggregate offline:
 dspy-security-bench impact control-verify artifacts/control-twin.json
 ```
 
+On `main` after v0.19.0, native verification explicitly distinguishes JSON
+booleans from numbers and requires integer representations for counts, schema
+versions, and event indexes. For example, `true` is not a valid schema version,
+`5.0` is not a valid count, and `0` is not a policy approval flag. Real-valued
+rates may still use integer numeric spellings such as `1`; no extra rounding
+tolerance is introduced. Policy-event shapes are checked before rule lookup or
+arithmetic, and every embedded ImpactTwin summary field—including reported usage
+subtotals—is recomputed from retained cases. Repeated-control summaries and pair
+summaries apply the same typed comparison recursively.
+
+This corrects older native verification that could accept Python boolean/number
+aliases, or inconsistencies in embedded fields not used by the outer summary.
+Regenerate malformed artifacts from their original measurements instead of
+rehashing them. Valid generated reports retain their format and digest. These
+checks reject internal contradictions; they do not authenticate execution,
+replay environment effects, verify provider billing, or establish that declared
+synthetic exposure amounts are true.
+
 For a stochastic agent, one comparison is not enough. Repeat the full paired
 protocol with alternating condition order, uncertainty bounds, effect-stability
 analysis, and lower-confidence-bound gates:
