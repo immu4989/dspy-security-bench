@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added offline `impact sharing-review` for RepeatTwin/control reports and
+  submission bundles. Native verification precedes a whole-source-bound content
+  inventory, with exact replay, optional independent pins, strict JSON intake,
+  and no-overwrite output. Reviews copy no source text or field paths; they are
+  not secret detection, redaction, publication approval, or registry admission.
 - RepeatTwin and ControlTwin verification now reject contradictory retained
   scoring evidence: mission completion, decision correctness/invariance, harms,
   resistance, frozen case identities, and regenerated BoundaryDiff must agree.

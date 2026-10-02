@@ -270,6 +270,60 @@ bundle bytes to a GitHub workflow, source commit, and hosted runner; see the
 [ProofRun trust model](proofrun.md). That provenance still does not independently
 observe a remote model provider or turn the benchmark into a certification.
 
+## Review retained content before sharing
+
+Available on `main` after v0.19.0: `impact sharing-review` inventories a retained
+RepeatTwin, ControlTwin, or RepeatControlTwin report, or either native submission
+bundle. It runs the relevant native consistency checks locally, without invoking
+an agent, model, or network service. Reference fixtures and other valid but
+registry-ineligible submissions can still be reviewed.
+
+```bash
+dspy-security-bench impact sharing-review submissions/impact/your-agent.json \
+  --out artifacts/sharing-review.json
+
+dspy-security-bench impact sharing-review submissions/impact/your-agent.json \
+  --verify artifacts/sharing-review.json
+```
+
+The review contains fixed-category counts, not source text, dynamic key names,
+paths, or snippets. Categories cover model outputs (`final_answer`), runtime
+errors (`error`), tool `arguments`, submission metadata, provenance metadata, and
+**all other content**. A recognized enclosing category owns its entire subtree.
+Every object key and scalar is counted once; arrays, objects, UTF-8 string/key
+bytes, and nonempty strings are also counted. Duplicated evidence is counted
+again wherever retained. Classification is by field name, not meaning: an
+extension named `final_answer` is counted as model output even outside a case.
+
+Use this as a handoff checklist, not a publication gate:
+
+1. Inspect the original evidence in your approved local review environment,
+   including unknown fields, keys, model responses, errors, tool rationales,
+   policy documents, and provenance/submitter details. A zero in a named category
+   does not establish that sensitive content is absent elsewhere.
+2. Obtain the relevant data owner's approval before public sharing. The review
+   always says `owner_review_required`; exit 0 means inventory/replay succeeded,
+   not that sharing is safe. No secret detection or redaction is performed.
+3. If sensitive content exists, retain the original privately and produce new
+   evidence using approved synthetic inputs and logging settings. Do not edit
+   signed/hashed reports and expect their old verification or attestations to
+   remain valid. `--capture-arguments` being off is not a guarantee that embedded
+   boundary traces or final answers contain no sensitive information.
+4. Replay the review against the exact source selected for handoff. Optionally
+   pass `--source-sha256` with an independently retained **whole canonical JSON**
+   digest. This includes embedded digest fields and is not the report's unsigned
+   `report_sha256`, the bundle's `bundle_sha256`, or a raw-file checksum. Reading
+   a pin from the review being checked does not establish independent trust.
+
+Inputs use bounded, duplicate-free JSON intake (50 MB). Output must be a new
+file in an existing directory; existing files and symlinks are not overwritten.
+Replay reconstructs the entire review, so merely rehashing altered counts or
+changing source text to another value of the same length does not pass.
+Hashes do not redact data or prove execution. Even this content-free inventory's
+counts and source digest can disclose relationships or enable correlation;
+review it too before publishing. Neither native consistency nor this inventory
+is regulatory compliance, registry eligibility, or a deployment authorization.
+
 ## Test a real model
 
 The built-in tool agent accepts any LiteLLM model ID:

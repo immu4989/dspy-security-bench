@@ -115,6 +115,12 @@ def main() -> int:
                             "--out", "repeat-bundle.json"])
         # Reference fixtures intentionally cannot qualify as community results.
         run_cli(directory, ["impact", "verify", "repeat-bundle.json", "--minimum-trials", "2"], 1)
+        run_cli(directory, ["impact", "sharing-review", "repeat-bundle.json",
+                            "--out", "sharing-review.json"])
+        run_cli(directory, ["impact", "sharing-review", "repeat-bundle.json",
+                            "--verify", "sharing-review.json"])
+        run_cli(directory, ["impact", "sharing-review", "repeat-bundle.json",
+                            "--out", "sharing-review.json"], 2)
         repeat = json.loads((directory / "repeat.json").read_text(encoding="utf-8"))
         repeat["trials"][0]["pairs"][0]["causal_evidence"]["recommended_control"]["action"] = "allow"
         (directory / "repeat-altered.json").write_text(json.dumps(repeat), encoding="utf-8")

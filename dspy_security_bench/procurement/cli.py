@@ -32,6 +32,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("describe", help="explain the frozen scenarios and metrics")
 
+    sharing = sub.add_parser(
+        "sharing-review", help="inventory retained content for owner review before sharing"
+    )
+    sharing.add_argument("source", help="native RepeatTwin/control report or submission bundle")
+    sharing.add_argument("--source-sha256", help="independent pin of the WHOLE canonical input")
+    sharing_mode = sharing.add_mutually_exclusive_group(required=True)
+    sharing_mode.add_argument("--out", help="create a new content-free review JSON file")
+    sharing_mode.add_argument("--verify", help="replay an existing review against the source")
+
     manifest = sub.add_parser("manifest", help="print the exact frozen protocol stimulus")
     manifest.add_argument("--out", help="write canonical protocol JSON instead of stdout")
 
@@ -224,6 +233,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "describe":
         print(_description())
         return 0
+    if args.command == "sharing-review":
+        return _sharing_review(args)
     if args.command == "manifest":
         from dspy_security_bench.procurement.scenarios import protocol_manifest
 
@@ -264,6 +275,31 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "run":
         return _run(args)
     return 2
+
+
+def _sharing_review(args) -> int:
+    from dspy_security_bench.procurement.sharing import (
+        create_sharing_review,
+        verify_sharing_review,
+    )
+
+    try:
+        source = _read_evidence(Path(args.source))
+        if args.verify:
+            verify_sharing_review(
+                _read_evidence(Path(args.verify)), source, source_sha256=args.source_sha256,
+            )
+        else:
+            review = create_sharing_review(source, source_sha256=args.source_sha256)
+            # Exclusive creation also rejects existing sources and symlinks.
+            with Path(args.out).open("x", encoding="utf-8") as stream:
+                stream.write(json.dumps(review, indent=2, sort_keys=True) + "\n")
+        print("[impact] sharing review verified; owner review required before publication")
+        print("[impact] secret detection and redaction were not performed; counts are not a safety verdict")
+        return 0
+    except (OSError, ValueError, TypeError, KeyError, IndexError, OverflowError, RecursionError):
+        print("[impact] sharing review failed; check input validity, pin, and output path", file=sys.stderr)
+        return 2
 
 
 def _demo(args) -> int:
