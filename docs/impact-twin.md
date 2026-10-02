@@ -205,6 +205,22 @@ away.
 
 ## Contribute a result by forking the repository
 
+All retained-evidence inputs to `impact explain`, `control-verify`,
+`control-repeat-verify`, `control-submit`, `control-submission-verify`,
+`control-card`, `submit-result`, and `verify` now share bounded JSON intake
+(on main after v0.19.0). Each file must be a UTF-8 JSON object of at most
+50,000,000 bytes. Duplicate keys at any level, nonfinite numbers, lone Unicode
+surrogates, numeric tokens over 128 characters, and nesting over 100 levels are
+rejected before native verification or rendering. Caught exceptions report the
+error class without echoing their source-derived text; input filenames remain
+visible for diagnosis. This is not schema validation or anonymization.
+
+In multi-file `verify` commands, an invalid file still makes the overall command
+fail even when later files are valid. Valid canonical artifacts are unaffected;
+ambiguous files must be recovered from their original producer, not accepted by
+silently choosing the last duplicate member. The size bound is per file, not a
+memory sandbox or a bound on total invocation size.
+
 On main after v0.19.0, native RepeatTwin verification checks measurement types
 before aggregation: task/pair outcomes must be JSON booleans, counts must be
 nonnegative integers (not booleans or floats), numeric usage and elapsed time

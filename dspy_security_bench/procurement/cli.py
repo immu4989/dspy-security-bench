@@ -8,8 +8,16 @@ import json
 import sys
 from pathlib import Path
 
+from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.procurement.agents import ReferenceProcurementAgent
 from dspy_security_bench.procurement.benchmark import render_terminal, run_impact_twin
+
+MAX_EVIDENCE_BYTES = 50_000_000
+
+
+def _read_evidence(path: Path) -> dict:
+    """One bounded, duplicate-free UTF-8 intake boundary for retained evidence."""
+    return read_json_object(path, MAX_EVIDENCE_BYTES)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -376,10 +384,10 @@ def _control_verify(args) -> int:
 
     path = Path(args.report)
     try:
-        payload = json.loads(path.read_text())
+        payload = _read_evidence(path)
         warnings = verify_control_report(payload)
     except (OSError, json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
-        print(f"[impact] invalid ControlTwin report {path}: {exc}", file=sys.stderr)
+        print(f"[impact] invalid ControlTwin report {path}: {type(exc).__name__}", file=sys.stderr)
         return 2
     print(f"[VERIFIED] {path}")
     print(f"  report sha256: {payload['report_sha256']}")
@@ -538,10 +546,10 @@ def _control_repeat_verify(args) -> int:
 
     path = Path(args.report)
     try:
-        payload = json.loads(path.read_text())
+        payload = _read_evidence(path)
         warnings = verify_repeat_control_report(payload)
     except (OSError, json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
-        print(f"[impact] invalid RepeatControlTwin report {path}: {exc}", file=sys.stderr)
+        print(f"[impact] invalid RepeatControlTwin report {path}: {type(exc).__name__}", file=sys.stderr)
         return 2
     print(f"[VERIFIED] {path}")
     print(f"  report sha256: {payload['report_sha256']}")
@@ -574,7 +582,7 @@ def _control_submit(args) -> int:
 
     source = Path(args.report)
     try:
-        report = json.loads(source.read_text())
+        report = _read_evidence(source)
         bundle = create_control_submission_bundle(
             report,
             submitter=args.submitter,
@@ -585,7 +593,7 @@ def _control_submit(args) -> int:
         destination = Path(args.out)
         _write_json(destination, bundle)
     except (OSError, json.JSONDecodeError, ValueError, TypeError) as exc:
-        print(f"[impact] could not create control submission: {exc}", file=sys.stderr)
+        print(f"[impact] could not create control submission: {type(exc).__name__}", file=sys.stderr)
         return 2
     print(f"[impact] wrote content-addressed control evidence {destination}")
     print(f"[impact] bundle sha256: {bundle['bundle_sha256']}")
@@ -605,10 +613,10 @@ def _control_submission_verify(args) -> int:
     for raw_path in args.bundles:
         path = Path(raw_path)
         try:
-            bundle = json.loads(path.read_text())
+            bundle = _read_evidence(path)
             result = verify_control_submission_bundle(bundle, minimum_trials=args.minimum_trials)
         except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
-            print(f"[INVALID] {path}: {exc}", file=sys.stderr)
+            print(f"[INVALID] {path}: {type(exc).__name__}", file=sys.stderr)
             passed = False
             continue
         marker = "VERIFIED" if result.registry_eligible else "NOT ELIGIBLE"
@@ -631,12 +639,12 @@ def _control_card(args) -> int:
     source = Path(args.bundle)
     destination = Path(args.out)
     try:
-        bundle = json.loads(source.read_text())
+        bundle = _read_evidence(source)
         card = render_control_evidence_card_svg(bundle)
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(card)
     except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
-        print(f"[impact] could not render control evidence card: {exc}", file=sys.stderr)
+        print(f"[impact] could not render control evidence card: {type(exc).__name__}", file=sys.stderr)
         return 2
     print(f"[impact] wrote shareable control evidence card {destination}")
     return 0
@@ -647,10 +655,11 @@ def _explain(args) -> int:
 
     path = Path(args.report)
     try:
-        payload = json.loads(path.read_text())
+        payload = _read_evidence(path)
         print(render_evidence_payload(payload))
     except (OSError, json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
-        print(f"[impact] could not explain {path}: {exc}", file=sys.stderr)
+        print(f"[impact] could not explain {path}: {type(exc).__name__}", file=sys.stderr)
+        print("[impact] explain requires schema_version 2 or 3 with retained boundary evidence", file=sys.stderr)
         return 2
     return 0
 
@@ -714,7 +723,7 @@ def _submit_result(args) -> int:
 
     source = Path(args.report)
     try:
-        report = json.loads(source.read_text())
+        report = _read_evidence(source)
         bundle = create_submission_bundle(
             report,
             submitter=args.submitter,
@@ -724,7 +733,7 @@ def _submit_result(args) -> int:
         destination = Path(args.out)
         _write_json(destination, bundle)
     except (OSError, json.JSONDecodeError, ValueError, TypeError) as exc:
-        print(f"[impact] could not create submission: {exc}", file=sys.stderr)
+        print(f"[impact] could not create submission: {type(exc).__name__}", file=sys.stderr)
         return 2
     print(f"[impact] wrote content-addressed submission {destination}")
     print(f"[impact] bundle sha256: {bundle['bundle_sha256']}")
@@ -742,10 +751,10 @@ def _verify(args) -> int:
     for raw_path in args.bundles:
         path = Path(raw_path)
         try:
-            bundle = json.loads(path.read_text())
+            bundle = _read_evidence(path)
             result = verify_submission_bundle(bundle, minimum_trials=args.minimum_trials)
         except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
-            print(f"[INVALID] {path}: {exc}", file=sys.stderr)
+            print(f"[INVALID] {path}: {type(exc).__name__}", file=sys.stderr)
             passed = False
             continue
         marker = "VERIFIED" if result.community_eligible else "NOT ELIGIBLE"

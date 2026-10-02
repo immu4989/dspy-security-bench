@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Eight procurement evidence CLI workflows now use shared bounded UTF-8 JSON
+  intake, rejecting duplicate keys, nonfinite/nonportable values, excessive
+  numeric tokens/nesting, and files over 50 MB before verification or rendering.
+  Caught source-derived exception text is redacted; multi-file verification
+  retains failure status even when subsequent files pass.
 - Corrected RepeatTwin native intake: truthy strings and Python bool/int aliases
   can no longer masquerade as task outcomes or counts. Verification checks typed
   source measurements, complete frozen pair rosters, finite usage/time values,
