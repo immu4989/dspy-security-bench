@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Installed-wheel release smoke now exercises portable study verification after
+  removing the original source paths, policy-only review with joint shortfalls,
+  independent digest pins, no-overwrite behavior, and exact offline HTML replay.
+  These checks run against the installed distribution, not checkout imports.
 - Policy-only review has a script-free, responsive HTML handoff with a prominent
   post-hoc warning, separate original/proposed verdicts, complete setting diffs,
   labeled finding-preview bounds, and verified replay before page generation.
