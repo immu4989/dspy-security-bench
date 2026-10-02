@@ -23,7 +23,7 @@ from dspy_security_bench.procurement.benchmark import (
     _reported_total,
     run_impact_twin,
 )
-from dspy_security_bench.procurement.scenarios import protocol_sha256
+from dspy_security_bench.procurement.scenarios import build_procurement_scenarios, protocol_sha256
 
 ProgressCallback = Callable[[int, int], None]
 
@@ -450,6 +450,10 @@ def verify_submission_bundle(
 
 def validate_repeat_payload(payload: Mapping[str, Any]) -> tuple[str, ...]:
     """Recompute core counts and intervals from raw trials without model calls."""
+    try:
+        _validate_repeat_measurements(payload)
+    except ValueError as exc:
+        return (str(exc),)
     errors: list[str] = []
     if payload.get("schema_version") != 1:
         errors.append("unsupported RepeatTwin schema_version")
@@ -464,6 +468,10 @@ def validate_repeat_payload(payload: Mapping[str, Any]) -> tuple[str, ...]:
         "shared_agent_instance",
     }:
         errors.append("unsupported trial_isolation")
+    if payload.get("statistical_method") != RepeatTwinReport.statistical_method:
+        errors.append("unsupported RepeatTwin statistical_method")
+    if payload.get("inference_scope") != RepeatTwinReport.inference_scope:
+        errors.append("RepeatTwin inference_scope differs from the fixed-suite boundary")
     confidence = payload.get("confidence_level")
     if not isinstance(confidence, (int, float)) or isinstance(confidence, bool) or not 0 < confidence < 1:
         errors.append("confidence_level must be between 0 and 1")
@@ -597,6 +605,99 @@ def validate_repeat_payload(payload: Mapping[str, Any]) -> tuple[str, ...]:
     if summary.get("usage") != expected_usage:
         errors.append("summary.usage does not recompute from trial cases")
     return tuple(errors)
+
+
+def _validate_repeat_measurements(payload: Mapping[str, Any]) -> None:
+    """Validate the exact types consumed by aggregation, without truthiness coercion.
+
+    This is not reexecution or a verifier for every embedded trace field. Reject
+    malformed measurements before permissive Python equality can bless them.
+    Diagnostics use fixed labels, never source values or private identifiers.
+    """
+    def require(condition, label):
+        if not condition:
+            raise ValueError(f"invalid RepeatTwin measurement structure: {label}")
+
+    def count(value):
+        return type(value) is int and value >= 0
+
+    def number(value):
+        if type(value) not in (int, float):
+            return False
+        try:
+            return math.isfinite(value) and value >= 0
+        except OverflowError:
+            return False
+
+    def usage(value, *, summary=False):
+        require(isinstance(value, Mapping), "usage object")
+        fields = {"prompt_tokens", "completion_tokens", "total_tokens", "estimated_cost_usd"}
+        if summary:
+            fields |= {"reported_cases", "total_cases"}
+            require(set(value) == fields, "usage summary fields")
+        else:
+            require(set(value) <= fields, "usage fields")
+        for key, item in value.items():
+            if summary and item is None and key not in {"reported_cases", "total_cases"}:
+                continue
+            require(number(item) if key == "estimated_cost_usd" else count(item), "usage value")
+
+    require(isinstance(payload, Mapping), "report object")
+    require(type(payload.get("schema_version")) is int, "schema version")
+    require(isinstance(payload.get("agent"), str) and bool(payload["agent"]), "agent identity")
+    require(isinstance(payload.get("trial_isolation"), str), "trial isolation")
+    trials = payload.get("trials")
+    require(isinstance(trials, list) and len(trials) >= 2, "trial list")
+    expected_ids = {scenario.pair_id for scenario in build_procurement_scenarios()}
+    for trial in trials:
+        require(isinstance(trial, Mapping), "trial object")
+        require(type(trial.get("schema_version")) is int, "trial schema version")
+        pairs = trial.get("pairs")
+        require(isinstance(pairs, list) and len(pairs) == len(expected_ids), "complete pair matrix")
+        ids = []
+        for pair in pairs:
+            require(isinstance(pair, Mapping), "pair object")
+            require(isinstance(pair.get("pair_id"), str), "pair identity")
+            ids.append(pair["pair_id"])
+            for key in ("attack_resisted", "decision_invariant"):
+                require(type(pair.get(key)) is bool, "pair outcome")
+            causal = pair.get("causal_evidence")
+            require(isinstance(causal, Mapping) and "first_divergence_index" in causal, "causal evidence")
+            divergence = causal["first_divergence_index"]
+            require(divergence is None or count(divergence), "divergence index")
+            event = causal.get("injected_event")
+            require(event is None or (isinstance(event, Mapping) and isinstance(event.get("tool"), str)),
+                    "injected event")
+            for variant in ("clean", "injected"):
+                case = pair.get(variant)
+                require(isinstance(case, Mapping), "case object")
+                require(case.get("pair_id") == pair["pair_id"] and case.get("variant") == variant,
+                        "case identity")
+                require(type(case.get("mission_completed")) is bool, "case outcome")
+                require("error" in case and (case["error"] is None or isinstance(case["error"], str)),
+                        "case error")
+                harms = case.get("prohibited_side_effects")
+                require(isinstance(harms, list) and all(isinstance(item, str) for item in harms), "harm list")
+                usage(case.get("usage"))
+        require(set(ids) == expected_ids, "frozen pair identities")
+    summary = payload.get("summary")
+    require(isinstance(summary, Mapping), "summary object")
+    for key in ("trials", "pair_trials", "case_errors", "unstable_pairs"):
+        require(count(summary.get(key)), "summary count")
+    require(number(summary.get("elapsed_seconds")), "elapsed time")
+    usage(summary.get("usage"), summary=True)
+    pair_summaries = payload.get("pair_summaries")
+    require(isinstance(pair_summaries, list) and len(pair_summaries) == len(expected_ids), "pair summaries")
+    ids = []
+    for item in pair_summaries:
+        require(isinstance(item, Mapping) and isinstance(item.get("pair_id"), str), "pair summary identity")
+        ids.append(item["pair_id"])
+        require(type(item.get("stable_outcome")) is bool, "stable outcome")
+        require(count(item.get("distinct_outcomes")) and count(item.get("error_runs")), "pair counts")
+        outcomes = item.get("outcome_counts")
+        require(isinstance(outcomes, Mapping) and all(isinstance(k, str) and count(v) for k, v in outcomes.items()),
+                "outcome counts")
+    require(set(ids) == expected_ids, "pair summary roster")
 
 
 def canonical_sha256(payload: Mapping[str, Any]) -> str:
@@ -757,16 +858,19 @@ def _usage_summary_payload(cases: list[Mapping[str, Any]]) -> dict[str, Any]:
 
 
 def _estimate_matches(actual: Any, expected: Mapping[str, Any]) -> bool:
-    if not isinstance(actual, Mapping):
+    if not isinstance(actual, Mapping) or set(actual) != set(expected):
         return False
     for key, expected_value in expected.items():
         actual_value = actual.get(key)
         if isinstance(expected_value, float):
-            if not isinstance(actual_value, (int, float)) or not math.isclose(
-                float(actual_value), expected_value, rel_tol=1e-12, abs_tol=1e-12
-            ):
+            if type(actual_value) not in (int, float):
                 return False
-        elif actual_value != expected_value:
+            try:
+                if not math.isclose(float(actual_value), expected_value, rel_tol=1e-12, abs_tol=1e-12):
+                    return False
+            except OverflowError:
+                return False
+        elif type(actual_value) is not type(expected_value) or actual_value != expected_value:
             return False
     return True
 

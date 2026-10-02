@@ -11,14 +11,14 @@
     "trial_isolation", "summary", "pair_summaries", "trials"
   ],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {"type": "integer", "const": 1},
     "report_type": {"const": "RepeatTwin / ProcureBench"},
     "scenario_version": {"const": "procurebench-v1"},
     "protocol_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "agent": {"type": "string", "minLength": 1},
     "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
     "statistical_method": {"const": "pair-trial Wilson score intervals"},
-    "inference_scope": {"type": "string", "minLength": 1},
+    "inference_scope": {"const": "Repeated stochastic executions of five frozen synthetic pairs; intervals do not generalize to unseen tasks, provider revisions, or production loss."},
     "trial_isolation": {"enum": ["fresh_agent_per_case", "shared_agent_instance"]},
     "summary": {"$ref": "#/$defs/summary"},
     "pair_summaries": {
@@ -31,16 +31,61 @@
         "type": "object",
         "required": ["schema_version", "protocol_sha256", "agent", "summary", "pairs"],
         "properties": {
-          "schema_version": {"enum": [2, 3]},
+          "schema_version": {"type": "integer", "enum": [2, 3]},
           "protocol_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
           "agent": {"type": "string"},
           "summary": {"type": "object"},
-          "pairs": {"type": "array", "minItems": 5, "maxItems": 5}
+          "pairs": {"type": "array", "minItems": 5, "maxItems": 5,
+                    "items": {"$ref": "#/$defs/measurement_pair"}}
         }
       }
     }
   },
   "$defs": {
+    "pair_id": {"enum": ["procure-decision-bias", "procure-source-selection-exfiltration",
+      "procure-payment-identity-reroute", "procure-eligibility-tampering", "procure-approval-bypass"]},
+    "count": {"type": "integer", "minimum": 0},
+    "nullable_count": {"type": ["integer", "null"], "minimum": 0},
+    "case_usage": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "prompt_tokens": {"$ref": "#/$defs/count"},
+        "completion_tokens": {"$ref": "#/$defs/count"},
+        "total_tokens": {"$ref": "#/$defs/count"},
+        "estimated_cost_usd": {"type": "number", "minimum": 0}
+      }
+    },
+    "measurement_case": {
+      "type": "object",
+      "required": ["pair_id", "variant", "mission_completed", "error", "prohibited_side_effects", "usage"],
+      "properties": {
+        "pair_id": {"$ref": "#/$defs/pair_id"},
+        "variant": {"enum": ["clean", "injected"]},
+        "mission_completed": {"type": "boolean"},
+        "error": {"type": ["string", "null"]},
+        "prohibited_side_effects": {"type": "array", "items": {"type": "string"}},
+        "usage": {"$ref": "#/$defs/case_usage"}
+      }
+    },
+    "measurement_pair": {
+      "type": "object",
+      "required": ["pair_id", "attack_resisted", "decision_invariant", "clean", "injected", "causal_evidence"],
+      "properties": {
+        "pair_id": {"$ref": "#/$defs/pair_id"},
+        "attack_resisted": {"type": "boolean"},
+        "decision_invariant": {"type": "boolean"},
+        "clean": {"$ref": "#/$defs/measurement_case", "properties": {"variant": {"const": "clean"}}},
+        "injected": {"$ref": "#/$defs/measurement_case", "properties": {"variant": {"const": "injected"}}},
+        "causal_evidence": {
+          "type": "object", "required": ["first_divergence_index"],
+          "properties": {
+            "first_divergence_index": {"$ref": "#/$defs/nullable_count"},
+            "injected_event": {"type": ["object", "null"], "required": ["tool"],
+                               "properties": {"tool": {"type": "string"}}}
+          }
+        }
+      }
+    },
     "rate": {
       "type": "object",
       "additionalProperties": false,
@@ -61,10 +106,19 @@
     },
     "usage": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "reported_cases", "total_cases", "prompt_tokens", "completion_tokens",
         "total_tokens", "estimated_cost_usd"
-      ]
+      ],
+      "properties": {
+        "reported_cases": {"$ref": "#/$defs/count"},
+        "total_cases": {"$ref": "#/$defs/count"},
+        "prompt_tokens": {"$ref": "#/$defs/nullable_count"},
+        "completion_tokens": {"$ref": "#/$defs/nullable_count"},
+        "total_tokens": {"$ref": "#/$defs/nullable_count"},
+        "estimated_cost_usd": {"type": ["number", "null"], "minimum": 0}
+      }
     },
     "summary": {
       "type": "object",
@@ -98,7 +152,7 @@
         "distinct_outcomes", "stable_outcome", "outcome_counts", "error_runs"
       ],
       "properties": {
-        "pair_id": {"type": "string", "minLength": 1},
+        "pair_id": {"$ref": "#/$defs/pair_id"},
         "title": {"type": "string", "minLength": 1},
         "attack_kind": {"type": "string", "minLength": 1},
         "attack_resistance": {"$ref": "#/$defs/rate"},

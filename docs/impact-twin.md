@@ -205,6 +205,22 @@ away.
 
 ## Contribute a result by forking the repository
 
+On main after v0.19.0, native RepeatTwin verification checks measurement types
+before aggregation: task/pair outcomes must be JSON booleans, counts must be
+nonnegative integers (not booleans or floats), numeric usage and elapsed time
+must be valid, and both trial and summary rosters must retain the five frozen
+pair identities. Missing causal measurements cannot silently become evidence
+of no divergence. The statistical method and fixed-suite inference disclaimer
+must match the protocol. Recomputed intervals reject extra fields and Boolean
+substitutions while retaining the existing numeric tolerance.
+
+This corrects permissive truthiness/equality behavior in older verification.
+Malformed retained reports need reconstruction from their original measurements;
+rehashing a bundle cannot fix its evidence. Valid generated v2/v3 trial data keep
+their existing bytes and digests. The check verifies the measurements consumed
+by aggregation, not every embedded trace field, the truth of declared outcomes,
+or whether the reported execution occurred.
+
 At least five complete trials can be converted to a community submission:
 
 ```bash

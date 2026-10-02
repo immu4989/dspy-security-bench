@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Corrected RepeatTwin native intake: truthy strings and Python bool/int aliases
+  can no longer masquerade as task outcomes or counts. Verification checks typed
+  source measurements, complete frozen pair rosters, finite usage/time values,
+  exact inference/method labels, and interval fields before recomputation.
+  Self-rehashed malformed submission bundles remain invalid; valid generated
+  reports retain their existing format and digests.
 - Corrected procurement usage edge cases: unrepresentable optional cost metadata
   no longer changes a completed task into an execution error. Overflowing
   ImpactTwin, RepeatTwin, and repeated-control subtotals remain unknown/null,
