@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Matched scan comparison v1",
+  "title": "Matched scan comparison v1 and optional joint-outcome v2",
   "description": "Structural intake only; semantic verification requires both retained scan evidence sources.",
   "type": "object", "additionalProperties": false,
   "required": ["schema_version", "report_type", "protocol_version", "before_evidence_sha256", "after_evidence_sha256", "scope_sha256", "source_review", "comparison_policy", "summary", "cells", "changed_cases", "claim_boundary", "comparison_sha256"],
   "properties": {
-    "schema_version": {"type": "integer", "const": 1},
+    "schema_version": {"type": "integer", "enum": [1, 2]},
     "report_type": {"const": "DSPy Security Bench matched scan comparison"},
-    "protocol_version": {"const": "scan-comparison-v1"},
+    "protocol_version": {"enum": ["scan-comparison-v1", "scan-comparison-v2"]},
     "before_evidence_sha256": {"$ref": "#/$defs/digest"},
     "after_evidence_sha256": {"$ref": "#/$defs/digest"},
     "scope_sha256": {"$ref": "#/$defs/digest"},
@@ -26,7 +26,8 @@
       "required": ["max_new_security_failures", "max_new_utility_failures"],
       "properties": {
         "max_new_security_failures": {"$ref": "#/$defs/count"},
-        "max_new_utility_failures": {"$ref": "#/$defs/count"}
+        "max_new_utility_failures": {"$ref": "#/$defs/count"},
+        "max_new_joint_failures": {"$ref": "#/$defs/count"}
       }
     },
     "summary": {
@@ -36,6 +37,7 @@
         "paired_cases": {"$ref": "#/$defs/count", "minimum": 1},
         "changed_cases": {"$ref": "#/$defs/count"},
         "security": {"$ref": "#/$defs/counts"}, "utility": {"$ref": "#/$defs/counts"},
+        "secure_and_useful": {"$ref": "#/$defs/counts"},
         "comparison_requirements_met": {"type": "boolean"}
       }
     },
@@ -45,7 +47,8 @@
       "properties": {
         "suite": {"$ref": "#/$defs/label"}, "agent": {"$ref": "#/$defs/label"},
         "defense": {"$ref": "#/$defs/label"}, "attack": {"$ref": "#/$defs/label"},
-        "security": {"$ref": "#/$defs/counts"}, "utility": {"$ref": "#/$defs/counts"}
+        "security": {"$ref": "#/$defs/counts"}, "utility": {"$ref": "#/$defs/counts"},
+        "secure_and_useful": {"$ref": "#/$defs/counts"}
       }
     }},
     "changed_cases": {"type": "array", "maxItems": 100000, "items": {
@@ -60,6 +63,21 @@
       }
     }}
   },
+  "allOf": [{
+    "if": {"properties": {"schema_version": {"const": 1}}},
+    "then": {"properties": {
+      "protocol_version": {"const": "scan-comparison-v1"},
+      "comparison_policy": {"not": {"required": ["max_new_joint_failures"]}},
+      "summary": {"not": {"required": ["secure_and_useful"]}},
+      "cells": {"items": {"not": {"required": ["secure_and_useful"]}}}
+    }},
+    "else": {"properties": {
+      "protocol_version": {"const": "scan-comparison-v2"},
+      "comparison_policy": {"required": ["max_new_joint_failures"]},
+      "summary": {"required": ["secure_and_useful"]},
+      "cells": {"items": {"required": ["secure_and_useful"]}}
+    }}
+  }],
   "$defs": {
     "digest": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
     "label": {"type": "string", "minLength": 1, "maxLength": 512},

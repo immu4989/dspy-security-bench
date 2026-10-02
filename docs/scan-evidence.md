@@ -199,6 +199,41 @@ Failed comparisons are still saved for review. When verifying a saved report,
 supply the same explicit allowances; its embedded policy is not allowed to
 silently override the CLI's choices.
 
+### Gate losses of secure-and-useful outcomes together
+
+An optional third allowance counts cases that previously met **both** binary
+outcomes but no longer do. It uses the conjunction on each matched case, never
+the product of marginal success rates:
+
+```sh
+dspy-security-bench scan compare before.json after.json \
+  --max-new-security-failures 1 --max-new-utility-failures 1 \
+  --max-new-joint-failures 0 \
+  --json joint-review.json --html joint-review.html --fail-on-regression
+
+dspy-security-bench scan compare before.json after.json \
+  --max-new-security-failures 1 --max-new-utility-failures 1 \
+  --max-new-joint-failures 0 --verify joint-review.json
+```
+
+For example, losing security on one previously joint-successful case and utility
+on another creates **two joint failures**, even though each separate allowance
+permits one loss. Improvements elsewhere cannot cancel those losses. Conversely,
+losing security on a case that was already not useful is not a new joint failure;
+the separate security gate still applies. All selected allowances must be met.
+
+Supplying `--max-new-joint-failures` produces **scan-comparison-v2**, with a third
+transition table in the summary and every cell, plus joint transitions in HTML.
+The flag accepts integers from 0 to 100,000. Omission preserves the original v1
+report and digest exactly; there is no implicit joint gate. Both versions replay
+against their original source observations, including older scan evidence that
+already retained both bits. The comparison version is separate from the source
+evidence version. Replaying v2 at the CLI requires the same explicit allowance.
+These are descriptive case transitions, not population estimates or proof that
+a model change caused an outcome.
+
+### Keep original requirements and review limits visible
+
 `comparison_requirements_met` only means the new-failure allowances were met.
 Two unchanged, failing scans can meet a no-new-failures comparison. The
 `source_review` block preserves each scan's own requirement outcome and flags

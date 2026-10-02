@@ -39,22 +39,29 @@ def render_scan_comparison_html(report: dict) -> str:
     review = report["source_review"]
     met = summary["comparison_requirements_met"]
     status = "New-failure allowances met" if met else "New-failure allowances exceeded"
+    has_joint = "secure_and_useful" in summary
+    joint_metric = _metric("Secure and useful together", summary["secure_and_useful"]) if has_joint else ""
+    joint_heading = '<th scope="col">Secure and useful</th>' if has_joint else ""
     changed = report["changed_cases"][:MAX_PREVIEW_CASES]
     rows = []
     for case in changed:
+        joint_cell = (f"<td>{_transition(case['before_security'] * case['before_utility'], case['after_security'] * case['after_utility'])}</td>"
+                      if has_joint else "")
         rows.append(f'''<tr><th scope="row">{_text(case['suite'])}<small>{_text(case['user_task_id'])} / {_text(case['injection_task_id'])}</small></th>
 <td>{_text(case['defense'])}<small>{_text(case['attack'])}</small></td>
 <td>{_transition(case['before_security'], case['after_security'])}</td>
-<td>{_transition(case['before_utility'], case['after_utility'])}</td></tr>''')
+<td>{_transition(case['before_utility'], case['after_utility'])}</td>{joint_cell}</tr>''')
     table = (f'''<div class="table-wrap" role="region" aria-label="Changed cases table" tabindex="0"><table>
 <caption>Changed case preview — {len(changed)} of {_text(summary['changed_cases'])} changed cases. Full case and cell details remain in the comparison JSON.</caption>
-<thead><tr><th scope="col">Suite / case</th><th scope="col">Defense / attack</th><th scope="col">Security</th><th scope="col">Task utility</th></tr></thead>
+<thead><tr><th scope="col">Suite / case</th><th scope="col">Defense / attack</th><th scope="col">Security</th><th scope="col">Task utility</th>{joint_heading}</tr></thead>
 <tbody>{''.join(rows)}</tbody></table></div>''' if changed else
              '<p class="empty">No case outcomes changed. Unchanged failures still matter; inspect the retained scan requirements below.</p>')
     policy_note = ("Source gate policy or baseline changed. Review those changes separately; this comparison gate does not approve them."
                    if review["gate_policy_changed"] or review["baseline_changed"] else
                    "Source gate policies and baseline snapshots are unchanged.")
     policy = report["comparison_policy"]
+    joint_policy = (f'<div><dt>Allowed new secure-and-useful failures</dt><dd>{_text(policy["max_new_joint_failures"])}</dd></div>'
+                    if has_joint else "")
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
@@ -76,11 +83,11 @@ dl{{margin:0}}dl div{{display:flex;justify-content:space-between;gap:20px;paddin
 <header><div class="eyebrow">DSPy Security Bench · offline review</div><h1>Same cases.<br>See what changed.</h1>
 <p class="lede">{_text(summary['paired_cases'])} matched cases. Security and task utility stay separate. Improvements do not erase newly failing cases.</p>
 <p class="status {'failed' if not met else ''}">{status}</p></header>
-<section class="metrics" aria-label="Security and utility outcomes">{_metric('Security resistance', summary['security'])}{_metric('Task utility', summary['utility'])}</section>
+<section class="metrics" aria-label="Security and utility outcomes">{_metric('Security resistance', summary['security'])}{_metric('Task utility', summary['utility'])}{joint_metric}</section>
 <p class="notice">Meeting a no-new-failures policy is not the same as meeting the original scan requirements. This page is descriptive evidence, not statistical significance, authenticated execution, or approval.</p>
 <section class="panel" aria-labelledby="policy"><h2 id="policy">Keep the decision context</h2>
 <dl><div><dt>Allowed new security failures</dt><dd>{_text(policy['max_new_security_failures'])}</dd></div>
-<div><dt>Allowed new utility failures</dt><dd>{_text(policy['max_new_utility_failures'])}</dd></div>
+<div><dt>Allowed new utility failures</dt><dd>{_text(policy['max_new_utility_failures'])}</dd></div>{joint_policy}
 <div><dt>Before: original scan requirements met</dt><dd>{'Yes' if review['before_requirements_met'] else 'No'}</dd></div>
 <div><dt>After: original scan requirements met</dt><dd>{'Yes' if review['after_requirements_met'] else 'No'}</dd></div></dl><p>{policy_note}</p></section>
 <section aria-labelledby="cases"><h2 id="cases">Inspect changed cases</h2>{table}</section>

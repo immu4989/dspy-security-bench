@@ -26,6 +26,11 @@ CLAIM_BOUNDARY = (
     "Shared task cases may be dependent and a single stochastic run can vary. Retain "
     "source evidence and independently pinned digests. Identifiers need sharing review."
 )
+JOINT_CLAIM_BOUNDARY = (
+    CLAIM_BOUNDARY + " Secure-and-useful transitions are computed from the conjunction of "
+    "both binary outcomes on each matched case, not the product of aggregate rates. "
+    "The joint allowance is additional to, not a replacement for, the separate allowances."
+)
 
 
 def _counts() -> dict[str, int]:
@@ -44,12 +49,16 @@ def _observe(counts: dict[str, int], before: int, after: int) -> None:
 def compare_scan_evidence(
     before: dict, after: dict, *, max_new_security_failures: int = 0,
     max_new_utility_failures: int = 0,
+    max_new_joint_failures: int | None = None,
     expected_before_sha256: str | None = None, expected_after_sha256: str | None = None,
 ) -> dict:
     """Reverify both inputs before comparing exactly aligned case outcomes."""
     before_report = verify_scan_evidence(before, expected_before_sha256)
     after_report = verify_scan_evidence(after, expected_after_sha256)
-    for limit in (max_new_security_failures, max_new_utility_failures):
+    limits = [max_new_security_failures, max_new_utility_failures]
+    if max_new_joint_failures is not None:
+        limits.append(max_new_joint_failures)
+    for limit in limits:
         if type(limit) is not int or not 0 <= limit <= MAX_ROWS:
             raise ValueError("new-failure limits must be integers from 0 to 100000")
     if canonical_sha256(before["scope"]) != canonical_sha256(after["scope"]):
@@ -58,15 +67,19 @@ def compare_scan_evidence(
     new = {tuple(row[field] for field in IDENTITY_FIELDS): row for row in after["observations"]}
     if old.keys() != new.keys():
         raise ValueError("comparison requires the same complete case matrix")
-    security, utility = _counts(), _counts()
-    cells = defaultdict(lambda: {"security": _counts(), "utility": _counts()})
+    axes = ("security", "utility") + (("secure_and_useful",) if max_new_joint_failures is not None else ())
+    totals = {axis: _counts() for axis in axes}
+    security, utility = totals["security"], totals["utility"]
+    cells = defaultdict(lambda: {axis: _counts() for axis in axes})
     changed = []
     for key in sorted(old):
         first, second = old[key], new[key]
         group = key[:4]  # suite, agent, defense, attack
-        for axis, total in (("security", security), ("utility", utility)):
-            _observe(total, first[axis], second[axis])
-            _observe(cells[group][axis], first[axis], second[axis])
+        for axis in axes:
+            old_bit = first["security"] * first["utility"] if axis == "secure_and_useful" else first[axis]
+            new_bit = second["security"] * second["utility"] if axis == "secure_and_useful" else second[axis]
+            _observe(totals[axis], old_bit, new_bit)
+            _observe(cells[group][axis], old_bit, new_bit)
         if any(first[axis] != second[axis] for axis in ("security", "utility")):
             changed.append({
                 **dict(zip(IDENTITY_FIELDS, key, strict=True)),
@@ -95,6 +108,15 @@ def compare_scan_evidence(
                   for key, value in sorted(cells.items())],
         "changed_cases": changed, "claim_boundary": CLAIM_BOUNDARY,
     }
+    if max_new_joint_failures is not None:
+        result["schema_version"] = 2
+        result["protocol_version"] = "scan-comparison-v2"
+        result["comparison_policy"]["max_new_joint_failures"] = max_new_joint_failures
+        result["summary"]["secure_and_useful"] = totals["secure_and_useful"]
+        result["summary"]["comparison_requirements_met"] &= (
+            totals["secure_and_useful"]["new_failures"] <= max_new_joint_failures
+        )
+        result["claim_boundary"] = JOINT_CLAIM_BOUNDARY
     result["comparison_sha256"] = canonical_sha256(result)
     return result
 
@@ -103,7 +125,12 @@ def verify_scan_comparison(report: dict, before: dict, after: dict) -> None:
     if not isinstance(report, dict) or not isinstance(report.get("comparison_policy"), dict):
         raise ValueError("comparison report is missing a policy")
     policy = report["comparison_policy"]
-    if set(policy) != {"max_new_security_failures", "max_new_utility_failures"}:
+    fields = {"max_new_security_failures", "max_new_utility_failures"}
+    if type(report.get("schema_version")) is int and report["schema_version"] == 2:
+        fields.add("max_new_joint_failures")
+        if policy.get("max_new_joint_failures") is None:
+            raise ValueError("v2 comparison requires an explicit joint allowance")
+    if set(policy) != fields:
         raise ValueError("invalid comparison policy")
     expected = compare_scan_evidence(before, after, **policy)
     if canonical_sha256(report) != canonical_sha256(expected):
@@ -118,6 +145,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--after-sha256")
     parser.add_argument("--max-new-security-failures", type=int, default=0)
     parser.add_argument("--max-new-utility-failures", type=int, default=0)
+    parser.add_argument("--max-new-joint-failures", type=int,
+                        help="optional additional allowance for cases losing secure-and-useful success")
     output = parser.add_mutually_exclusive_group()
     output.add_argument("--json", type=Path, help="write a new comparison report")
     output.add_argument("--verify", type=Path, help="verify a saved report against both retained evidence sources")
@@ -134,6 +163,7 @@ def main(argv: list[str] | None = None) -> int:
         report = compare_scan_evidence(
             before, after, max_new_security_failures=args.max_new_security_failures,
             max_new_utility_failures=args.max_new_utility_failures,
+            max_new_joint_failures=args.max_new_joint_failures,
             expected_before_sha256=args.before_sha256, expected_after_sha256=args.after_sha256,
         )
         if args.verify:
@@ -160,6 +190,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     summary = report["summary"]
     print(f"[scan compare] {summary['paired_cases']} matched cases; new security failures={summary['security']['new_failures']}; new utility failures={summary['utility']['new_failures']}; comparison_requirements_met={summary['comparison_requirements_met']}")
+    if "secure_and_useful" in summary:
+        print(f"[scan compare] new secure-and-useful failures={summary['secure_and_useful']['new_failures']}; additional joint allowance={args.max_new_joint_failures}")
     if any(report["source_review"][key] for key in ("gate_policy_changed", "baseline_changed")):
         print("[scan compare] source policy/baseline changed; review separately from paired outcomes")
     print("[scan compare] descriptive matched-case evidence, not authenticated execution or statistical significance")

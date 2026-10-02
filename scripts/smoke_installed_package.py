@@ -75,6 +75,13 @@ def main() -> int:
                             "--verify", "demo/comparison.json"])
         run_cli(directory, ["scan", "compare", "demo/before.json", "demo/after.json",
                             "--fail-on-regression"], 1)
+        run_cli(directory, ["scan", "compare", "demo/before.json", "demo/after.json",
+                            "--max-new-joint-failures", "0", "--json", "joint-comparison.json",
+                            "--fail-on-regression"], 1)
+        run_cli(directory, ["scan", "compare", "demo/before.json", "demo/after.json",
+                            "--max-new-joint-failures", "0", "--verify", "joint-comparison.json"])
+        run_cli(directory, ["scan", "compare", "demo/before.json", "demo/after.json",
+                            "--verify", "joint-comparison.json"], 2)
         evidence = json.loads((directory / "demo/before.json").read_text(encoding="utf-8"))
         evidence["evidence_sha256"] = "0" * 64
         (directory / "tampered.json").write_text(json.dumps(evidence), encoding="utf-8")

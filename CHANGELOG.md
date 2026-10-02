@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Matched scan comparison has an opt-in joint-outcome allowance for newly lost
+  secure-and-useful cases. Versioned v2 reports replay conjunctions per case and
+  cell, preserve separate security/utility gates, and show joint transitions in
+  offline HTML. Omission retains v1 reports and digests without changes.
 - Installed-wheel release smoke now exercises portable study verification after
   removing the original source paths, policy-only review with joint shortfalls,
   independent digest pins, no-overwrite behavior, and exact offline HTML replay.
