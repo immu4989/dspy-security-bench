@@ -149,6 +149,13 @@ def main() -> int:
         ).encode()).hexdigest()
         (directory / "control-altered.json").write_text(json.dumps(control), encoding="utf-8")
         run_cli(directory, ["impact", "control-verify", "control-altered.json"], 2)
+        run_cli(directory, ["impact", "review-demo", "--out", "synthetic-handoff"])
+        handoff = directory / "synthetic-handoff"
+        run_cli(handoff, ["impact", "control-repeat-verify", "report.json"])
+        run_cli(handoff, ["impact", "control-submission-verify", "bundle.json"], 1)
+        run_cli(handoff, ["impact", "sharing-review", "bundle.json", "--verify", "sharing-review.json"])
+        run_cli(handoff, ["impact", "control-submission-verify", "invalid-bundle.json"], 1)
+        run_cli(directory, ["impact", "review-demo", "--out", "synthetic-handoff"], 2)
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(

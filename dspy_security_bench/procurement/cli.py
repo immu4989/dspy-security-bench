@@ -32,6 +32,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("describe", help="explain the frozen scenarios and metrics")
 
+    review_demo = sub.add_parser("review-demo", help="create an offline synthetic evidence-review walkthrough")
+    review_demo.add_argument("--out", type=Path, required=True, help="new directory beneath an existing parent")
+
     sharing = sub.add_parser(
         "sharing-review", help="inventory retained content for owner review before sharing"
     )
@@ -235,6 +238,17 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "sharing-review":
         return _sharing_review(args)
+    if args.command == "review-demo":
+        from dspy_security_bench.procurement.review_demo import write_review_demo
+
+        try:
+            write_review_demo(args.out)
+        except (OSError, ValueError, TypeError):
+            print("[impact] could not create review demo; use a new directory under an existing parent", file=sys.stderr)
+            return 2
+        print(f"[impact] synthetic review written to {args.out}; read README.md and view card.svg")
+        print("[impact] no external model was evaluated; do not publish this fixture as supplier evidence")
+        return 0
     if args.command == "manifest":
         from dspy_security_bench.procurement.scenarios import protocol_manifest
 

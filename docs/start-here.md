@@ -51,6 +51,34 @@ determination, or a guarantee of safety. Evidence owners and accountable
 reviewers retain those decisions. Do not upload restricted operational records
 to public issue trackers or evidence registries.
 
+### Practice an evidence handoff without credentials
+
+**On main after v0.19.0**, from a source install:
+
+```bash
+dspy-security-bench impact review-demo --out synthetic-procurement-review
+```
+
+Read `synthetic-procurement-review/README.md` and open `card.svg` in an SVG viewer.
+The new directory contains a native report, a bundle, a content-free sharing
+inventory, and a deliberately invalid bundle whose hashes still match its content.
+The bundled synthetic reference agent is executed locally; no external model,
+credentials, or network service is used. It is not a test of a real supplier.
+
+Follow the four replay commands in the generated README, one at a time. Expected
+exits are **0, 1, 0, 1**: a valid report, a valid-but-registry-ineligible reference
+fixture, a consistent sharing inventory, and invalid typed evidence. A matching
+hash is not enough for native verification; neither successful verification nor
+a sharing inventory authorizes publication. The card uses an explicitly selected
+80% interval and shows conditional sample counts, not a universal assurance level.
+
+The destination must be new, with an existing parent. Generation never overwrites
+existing files; elapsed time and producer metadata mean separate generations can
+have different hashes. Keep each generation's files together. This walkthrough
+does not publish anything. Do not submit its synthetic files to a public registry
+as measured supplier evidence. Continue with the [ControlTwin guide](control-twin.md)
+and [pre-sharing review](impact-twin.md#review-retained-content-before-sharing).
+
 ## Researchers: reproduce, challenge, or extend
 
 Read the [leaderboard](../LEADERBOARD.md),

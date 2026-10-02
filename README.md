@@ -72,6 +72,7 @@ and public-sector evaluators—not a certification service or deployment approve
 | Test your own agent against prompt injection | [Agent integration and CI](#five-minute-ci-quickstart) | Reproducible scans and explicit CI gates; live runs may incur model costs |
 | Review an agent upgrade without rerunning models | [Matched scan evidence](docs/scan-evidence.md) | Case-level security and utility changes, offline replay, and a shareable HTML report |
 | Review AI suppliers consistently | [Offline supplier portfolio](docs/ai-supplier-portfolio.md) | One owner policy, isolated invalid inputs, linked evidence packs |
+| Learn what can be shared and what verification means | [Synthetic procurement handoff](docs/start-here.md#practice-an-evidence-handoff-without-credentials) | Local replay, sharing inventory, and distinct invalid/ineligible examples; no model credentials |
 | Combine evidence for an agency or enterprise review | [Assurance case](docs/assurancegraph.md) | Verified claim–evidence graph, HTML, SARIF, and OSCAL assessment inputs |
 | Check changes to models, datasets, or tools | [Dependency and disclosure drift](docs/assurance-control-plane.md) | Source-bound change findings and focused reevaluation needs |
 | Reproduce the model research | [Leaderboard](#-the-leaderboard) and [research pipeline](#research-pipeline-quickstart) | Published methodology, limitations, and reproducible experiments |

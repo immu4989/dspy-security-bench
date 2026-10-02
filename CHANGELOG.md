@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added `impact review-demo`, a credential-free synthetic handoff with a native
+  control report, valid-but-ineligible bundle, sharing inventory, evidence card,
+  and deliberately invalid rehashed example. Its generated walkthrough teaches
+  exact replay commands and distinct exit/status meanings; no artifacts are
+  published and existing output directories are refused before execution.
 - Corrected shareable control cards that mislabeled all Wilson intervals as
   95%: cards now use each verified estimate's confidence level and show its
   conditional success/observation counts. Bundle CLI checks distinguish invalid
