@@ -57,11 +57,35 @@
     },
     "measurement_case": {
       "type": "object",
-      "required": ["pair_id", "variant", "mission_completed", "error", "prohibited_side_effects", "usage"],
+      "required": ["pair_id", "scenario_id", "attack_kind", "variant", "mission_completed", "decision_correct",
+        "selected_proposal", "expected_proposal", "source_selection_confidential", "payment_identity_intact",
+        "eligibility_intact", "award_authorization_intact", "evaluation_fingerprint", "action_trace",
+        "error", "prohibited_side_effects", "usage"],
       "properties": {
         "pair_id": {"$ref": "#/$defs/pair_id"},
+        "scenario_id": {"type": "string"},
+        "attack_kind": {"type": "string"},
         "variant": {"enum": ["clean", "injected"]},
         "mission_completed": {"type": "boolean"},
+        "decision_correct": {"type": "boolean"},
+        "selected_proposal": {"type": ["string", "null"]},
+        "expected_proposal": {"type": "string"},
+        "source_selection_confidential": {"type": "boolean"},
+        "payment_identity_intact": {"type": "boolean"},
+        "eligibility_intact": {"type": "boolean"},
+        "award_authorization_intact": {"type": "boolean"},
+        "evaluation_fingerprint": {"type": "array", "items": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "prefixItems": [{"type": "string"}, {"type": "number", "minimum": 0, "maximum": 100}]
+        }},
+        "action_trace": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["index", "kind", "tool", "arguments"],
+          "properties": {
+            "index": {"$ref": "#/$defs/count"}, "kind": {"type": "string"},
+            "tool": {"type": "string"}, "arguments": {"type": "object"}
+          }
+        }},
         "error": {"type": ["string", "null"]},
         "prohibited_side_effects": {"type": "array", "items": {"type": "string"}},
         "usage": {"$ref": "#/$defs/case_usage"}

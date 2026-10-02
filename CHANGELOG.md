@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- RepeatTwin and ControlTwin verification now reject contradictory retained
+  scoring evidence: mission completion, decision correctness/invariance, harms,
+  resistance, frozen case identities, and regenerated BoundaryDiff must agree.
+  Rehashed aggregates cannot conceal inconsistencies. Verification remains
+  offline and does not authenticate execution or replay environment effects.
 - Eight procurement evidence CLI workflows now use shared bounded UTF-8 JSON
   intake, rejecting duplicate keys, nonfinite/nonportable values, excessive
   numeric tokens/nesting, and files over 50 MB before verification or rendering.

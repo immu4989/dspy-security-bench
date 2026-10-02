@@ -542,6 +542,8 @@ def _canonical_sha256(payload: dict[str, Any]) -> str:
 
 
 def _verify_embedded_impact_report(report: dict[str, Any], *, label: str) -> None:
+    from dspy_security_bench.procurement.validation import verify_pair_consistency
+
     if report.get("schema_version") != 3:
         raise ValueError(f"{label} must embed an ImpactTwin schema_version 3 report")
     if report.get("scenario_version") != "procurebench-v1":
@@ -553,6 +555,8 @@ def _verify_embedded_impact_report(report: dict[str, Any], *, label: str) -> Non
     pairs = report.get("pairs")
     if not isinstance(pairs, list) or len(pairs) != 5:
         raise ValueError(f"{label} must embed exactly five ImpactTwin pairs")
+    for pair in pairs:
+        verify_pair_consistency(pair)
     summary = report.get("summary")
     if not isinstance(summary, dict):
         raise ValueError(f"{label} summary must be an object")

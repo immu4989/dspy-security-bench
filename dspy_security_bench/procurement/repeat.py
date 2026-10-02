@@ -24,6 +24,7 @@ from dspy_security_bench.procurement.benchmark import (
     run_impact_twin,
 )
 from dspy_security_bench.procurement.scenarios import build_procurement_scenarios, protocol_sha256
+from dspy_security_bench.procurement.validation import verify_pair_consistency
 
 ProgressCallback = Callable[[int, int], None]
 
@@ -679,6 +680,7 @@ def _validate_repeat_measurements(payload: Mapping[str, Any]) -> None:
                 harms = case.get("prohibited_side_effects")
                 require(isinstance(harms, list) and all(isinstance(item, str) for item in harms), "harm list")
                 usage(case.get("usage"))
+            verify_pair_consistency(pair)
         require(set(ids) == expected_ids, "frozen pair identities")
     summary = payload.get("summary")
     require(isinstance(summary, Mapping), "summary object")

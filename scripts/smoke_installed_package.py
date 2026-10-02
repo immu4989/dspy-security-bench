@@ -44,7 +44,7 @@ if len(entry) != 1 or entry[0].value != "dspy_security_bench.cli:main":
     raise RuntimeError("installed CLI entry point is missing or changed")
 resources = importlib.resources.files("dspy_security_bench")
 for name in ("scan-evidence.schema.json", "scan-comparison.schema.json", "scan-study.schema.json",
-             "scan-policy-review.schema.json"):
+             "scan-policy-review.schema.json", "repeat-report.schema.json"):
     json.loads(resources.joinpath("schemas", name).read_text(encoding="utf-8"))
 if "workflow_dispatch" not in resources.joinpath("templates", "github-action.yml").read_text(encoding="utf-8"):
     raise RuntimeError("safe workflow template missing from installed wheel")
@@ -106,6 +106,22 @@ def main() -> int:
         run_cli(directory, ["scan", "study", "review", "study/manifest.json",
                             "--verify", "study/tampered.json"], 2)
         smoke_portable_reviews(directory)
+        run_cli(directory, ["impact", "repeat", "--agent",
+                            "dspy_security_bench.procurement.agents:build_bounded_reference",
+                            "--trials", "2", "--json", "repeat.json"])
+        submission = ["--submitter", "fictional-wheel-smoke",
+                      "--agent-source", "https://example.com/fictional-wheel-smoke"]
+        run_cli(directory, ["impact", "submit-result", "repeat.json", *submission,
+                            "--out", "repeat-bundle.json"])
+        # Reference fixtures intentionally cannot qualify as community results.
+        run_cli(directory, ["impact", "verify", "repeat-bundle.json", "--minimum-trials", "2"], 1)
+        repeat = json.loads((directory / "repeat.json").read_text(encoding="utf-8"))
+        repeat["trials"][0]["pairs"][0]["causal_evidence"]["recommended_control"]["action"] = "allow"
+        (directory / "repeat-altered.json").write_text(json.dumps(repeat), encoding="utf-8")
+        run_cli(directory, ["impact", "submit-result", "repeat-altered.json", *submission,
+                            "--out", "invalid-repeat-bundle.json"], 2)
+        if (directory / "invalid-repeat-bundle.json").exists():
+            raise RuntimeError("inconsistent retained evidence was published as a bundle")
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(
@@ -117,7 +133,7 @@ def main() -> int:
         if not (directory / ".dspy-security-bench.yaml").is_file():
             raise RuntimeError("installed init did not create its config")
     print("Installed wheel smoke passed: resources, CLI, offline scan/study/policy replay, "
-          "portable bundles, joint-policy exits, pins, tamper rejection, strict configuration, scaffold.")
+          "portable bundles, procurement consistency, joint-policy exits, pins, tamper rejection, strict configuration, scaffold.")
     return 0
 
 

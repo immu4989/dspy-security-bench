@@ -78,7 +78,7 @@ def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch):
 
     monkeypatch.setattr(smoke, "run_cli", fixture_cli)
     assert smoke.main() == 0
-    assert len(calls) == 31
+    assert len(calls) == 35
     assert any("--expected-plan-sha256" in args and expected == 2 for args, expected in calls)
     assert any(args[:3] == ["scan", "policy", "review"] and expected == 1 for args, expected in calls)
     assert any(args[:3] == ["scan", "study", "verify-bundle"] and expected == 1 for args, expected in calls)
