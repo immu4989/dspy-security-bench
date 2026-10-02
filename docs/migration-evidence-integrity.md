@@ -104,6 +104,78 @@ evidence and the tool revision that produced it for historical review; never
 silently replace an archived attestation or its pinned digest. Compare old and
 new outcomes and record why they differ.
 
+## Procurement evidence and public review
+
+These changes are **on main after v0.19.0**, not a claim about the published
+package. Preserve your original evidence, signatures, pins, and generating tool
+revision before testing the candidate installation.
+
+| Surface | What changed | Upgrade action |
+| --- | --- | --- |
+| RepeatTwin and control native verification | Boolean/count aliases, contradictory case scoring, altered BoundaryDiff, and inconsistent embedded control summaries are rejected | Replay retained sources; investigate invalid producers instead of merely recomputing hashes |
+| Retained procurement JSON | Duplicate keys, invalid Unicode, nonfinite values, numeric tokens over 128 characters, excessive nesting, and files over 50 MB are rejected | Request unambiguous bounded originals; do not silently rewrite signed evidence |
+| Reported usage | Invalid optional metadata is separated from task outcomes; overflowing subtotals remain unknown | Review per-field coverage; do not treat partial totals or deltas as a billing comparison |
+| Control evidence cards | The retained confidence level and conditional sample counts replace a hard-coded 95% label | Regenerate affected SVGs from valid retained bundles; preserve previously shared versions with a correction note |
+| Bundle CLI status | Invalid evidence prints `INVALID`; valid evidence failing registry rules prints `NOT ELIGIBLE` | Both still exit 1; update parsers that incorrectly treated these as one state |
+| Sharing inventory | A new source-bound inventory can be generated and replayed offline | Review source contents locally; a successful inventory is not permission to publish |
+
+Valid engine-generated report formats and hashes have not been relabeled by the
+typed-verification fixes. Count fields require integer representations; boolean
+flags require booleans. Integer spellings of real-valued rates remain allowed.
+An artifact accepted by an older permissive verifier is not automatically valid
+under the corrected one. A consistent fabrication may still pass: native replay
+does not authenticate execution, replay actual tool effects, validate provider
+billing, or establish the truth of declared synthetic exposure.
+
+### Run the procurement upgrade exercise
+
+From the candidate source installation, in a directory where
+`procurement-upgrade-check` does not already exist, run each command separately:
+
+```sh
+dspy-security-bench impact review-demo --out procurement-upgrade-check
+dspy-security-bench impact control-submission-verify procurement-upgrade-check/bundle.json
+dspy-security-bench impact sharing-review procurement-upgrade-check/bundle.json --verify procurement-upgrade-check/sharing-review.json
+dspy-security-bench impact control-submission-verify procurement-upgrade-check/invalid-bundle.json
+```
+
+Expected exits: **0, 1, 0, 1**. The second command is valid but ineligible reference
+evidence, not a failed execution. The last deliberately has a boolean event index
+despite matching recomputed hashes. It must be invalid. Do not join the commands
+with `&&`: the expected nonzero exits would stop the exercise early. No provider
+credentials or production systems are used, and nothing is published.
+
+Next, copy a small authorized set of **your own retained artifacts** into a private
+review area and run the corresponding native verifier. Keep successful,
+ineligible, and invalid cases separately. Record changed outcomes and their
+explanation before changing organizational pins. Do not post failed artifacts
+to public issues if they contain private model responses, errors, tool arguments,
+policy details, or identifiers.
+
+### Do not interchange the different digests
+
+| Digest | Content it binds |
+| --- | --- |
+| A ControlTwin/RepeatControlTwin report's `report_sha256` | The report without that self-digest field |
+| A submission bundle's `report_sha256` | The complete embedded report, including any embedded self-digest |
+| A submission bundle's `bundle_sha256` | The bundle without that self-digest field |
+| A sharing review's `source_sha256` | The complete canonical input object, including embedded digest fields |
+| A raw-file checksum or signed-file identity | Exact bytes; JSON whitespace can matter |
+
+Use the digest requested by the specific verifier. For
+`impact sharing-review --source-sha256`, retain the whole-source pin independently.
+Copying it from the review being checked does not establish independent trust.
+Editing or redacting source evidence can invalidate signatures and native replay;
+keep originals privately and produce a new authorized artifact when needed.
+
+Matched scan comparisons have a separate opt-in change: supplying
+`--max-new-joint-failures` produces a v2 comparison with an additional
+secure-and-useful allowance. Omitting it preserves v1 comparison output. Replay
+must use the independently selected allowances, including the joint allowance
+for v2; do not infer approval policy from an untrusted report. See the
+[scan evidence guide](scan-evidence.md) and
+[procurement sharing review](impact-twin.md#review-retained-content-before-sharing).
+
 ## Suggested upgrade procedure
 
 1. Pin the currently deployed revision and preserve original evidence and policies.
