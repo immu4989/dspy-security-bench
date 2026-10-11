@@ -164,6 +164,7 @@ def _run(args) -> int:
         render_repeat_terminal,
         run_repeat_twin,
     )
+    from dspy_security_bench.procurement.submission_metadata import prepare_submission_metadata
 
     if args.trials < 2:
         print("[proofrun] --trials must be at least 2", file=sys.stderr)
@@ -175,6 +176,10 @@ def _run(args) -> int:
         print("[proofrun] --min-lower-bound must be between 0 and 1", file=sys.stderr)
         return 2
     try:
+        metadata = prepare_submission_metadata(
+            submitter=args.submitter, agent_source_url=args.agent_source,
+            notes=args.notes, provenance=capture_provenance(),
+        )
         factory = _agent_factory(args)
         report = run_repeat_twin(
             factory(),
@@ -190,7 +195,7 @@ def _run(args) -> int:
             submitter=args.submitter,
             agent_source_url=args.agent_source,
             notes=args.notes,
-            provenance=capture_provenance(),
+            provenance=metadata["provenance"],
         )
         _write_json(Path(args.out), bundle)
         if args.report_out:
@@ -226,6 +231,7 @@ def _control(args) -> int:
         render_repeat_control_terminal,
         run_repeat_control_twin,
     )
+    from dspy_security_bench.procurement.submission_metadata import prepare_submission_metadata
 
     if args.trials < 2:
         print("[proofrun] --trials must be at least 2", file=sys.stderr)
@@ -246,6 +252,11 @@ def _control(args) -> int:
         print("[proofrun] --max-unstable-pairs must be between 0 and 5", file=sys.stderr)
         return 2
     try:
+        metadata = prepare_submission_metadata(
+            submitter=args.submitter, agent_source_url=args.agent_source,
+            notes=args.notes, provenance=capture_provenance(),
+            control=True, policy_source_url=args.policy_source,
+        )
         factory = _agent_factory(args)
         policy = ToolPolicy.load(args.policy)
         approval_handler = (
@@ -269,7 +280,7 @@ def _control(args) -> int:
             agent_source_url=args.agent_source,
             policy_source_url=args.policy_source,
             notes=args.notes,
-            provenance=capture_provenance(),
+            provenance=metadata["provenance"],
         )
         _write_json(Path(args.out), bundle)
         if args.report_out:

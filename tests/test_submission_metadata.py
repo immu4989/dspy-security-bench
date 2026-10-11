@@ -128,3 +128,12 @@ def test_missing_submission_with_github_provenance_does_not_crash(family):
     changed.update(bundle_schema_version=2, submission=None, provenance=capture_provenance(GITHUB_ENV))
     rehash(changed)
     assert not verify(changed).valid
+
+
+def test_unpaired_surrogates_fail_before_canonical_hashing(family):
+    bundle, verify = family
+    changed = deepcopy(bundle)
+    changed["submission"]["notes"] = "PRIVATE\ud800"
+    result = verify(changed)
+    assert not result.valid
+    assert "PRIVATE" not in " ".join(result.errors)

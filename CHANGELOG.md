@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- ProofRun `run` and `control` now validate submission declarations before
+  importing agent factories, loading policies/callbacks, or making model calls.
+  Runner provenance is captured once before execution and reused when packaging.
+  The RepeatTwin/control bundle creators share these checks with native admission,
+  rejecting malformed or nonportable metadata instead of generating unusable
+  evidence. Provenance declarations remain unverified until external attestation.
 - ProofRun generation now rejects existing, colliding, linked, or missing-parent
   output layouts before agent/adapter execution across all five generation
   commands. Exclusive file creation prevents silent bundle/report/card

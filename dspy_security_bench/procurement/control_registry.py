@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 import html
-import platform
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 from urllib.parse import urlparse
 
 from dspy_security_bench.procurement.repeat import canonical_sha256
 from dspy_security_bench.procurement.repeat_control import verify_repeat_control_report
+from dspy_security_bench.procurement.submission_metadata import prepare_submission_metadata
 
 BUNDLE_TYPE = "dspy-security-bench-control-evidence-submission"
 
@@ -39,46 +38,20 @@ def create_control_submission_bundle(
     provenance: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create a provenance-ready bundle around verified repeated-control evidence."""
+    bundle = prepare_submission_metadata(
+        submitter=submitter, agent_source_url=agent_source_url, notes=notes,
+        provenance=provenance, control=True, policy_source_url=policy_source_url,
+    )
     try:
         verify_repeat_control_report(report)
     except (KeyError, TypeError, ValueError) as exc:
         raise ValueError(f"invalid RepeatControlTwin report: {exc}") from exc
-    if not submitter.strip():
-        raise ValueError("submitter must be non-empty")
-    if not _is_https_url(agent_source_url):
-        raise ValueError("agent_source_url must be an https URL")
-    if not _is_https_url(policy_source_url):
-        raise ValueError("policy_source_url must be an https URL")
-
     report_dict = dict(report)
-    provenance_dict = dict(provenance) if provenance is not None else None
-    attestation = (
-        "github_actions_provenance_requested"
-        if provenance_dict and provenance_dict.get("provider") == "github_actions"
-        else "self_attested_content_addressed"
-    )
-    bundle: dict[str, Any] = {
-        "bundle_schema_version": 2 if provenance_dict is not None else 1,
+    bundle.update({
         "bundle_type": BUNDLE_TYPE,
-        "submission": {
-            "submitter": submitter.strip(),
-            "agent_source_url": agent_source_url,
-            "policy_source_url": policy_source_url,
-            "notes": notes.strip(),
-            "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "attestation": attestation,
-        },
-        "producer": {
-            "package": "dspy-security-bench",
-            "package_version": _package_version(),
-            "python_version": platform.python_version(),
-            "platform": platform.platform(),
-        },
         "report_sha256": canonical_sha256(report_dict),
         "report": report_dict,
-    }
-    if provenance_dict is not None:
-        bundle["provenance"] = provenance_dict
+    })
     bundle["bundle_sha256"] = canonical_sha256(bundle)
     return bundle
 
@@ -473,13 +446,6 @@ def _is_https_url(value: Any) -> bool:
 
 def _is_sha(value: str) -> bool:
     return len(value) == 40 and all(character in "0123456789abcdef" for character in value)
-
-
-def _package_version() -> str:
-    try:
-        return version("dspy-security-bench")
-    except PackageNotFoundError:
-        return "unknown"
 
 
 def _svg_text(value: Any, limit: int) -> str:

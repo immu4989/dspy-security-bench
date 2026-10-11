@@ -5,13 +5,10 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import platform
 import time
 from collections import Counter
 from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from importlib.metadata import PackageNotFoundError, version
 from statistics import NormalDist
 from typing import Any
 from urllib.parse import urlparse
@@ -24,6 +21,7 @@ from dspy_security_bench.procurement.benchmark import (
     run_impact_twin,
 )
 from dspy_security_bench.procurement.scenarios import build_procurement_scenarios, protocol_sha256
+from dspy_security_bench.procurement.submission_metadata import prepare_submission_metadata
 from dspy_security_bench.procurement.validation import verify_pair_consistency
 
 ProgressCallback = Callable[[int, int], None]
@@ -278,43 +276,19 @@ def create_submission_bundle(
     against an external signature. Keeping that distinction in the data model
     prevents a workflow URL or checksum from being mistaken for attestation.
     """
+    bundle = prepare_submission_metadata(
+        submitter=submitter, agent_source_url=agent_source_url, notes=notes,
+        provenance=provenance,
+    )
     errors = validate_repeat_payload(report)
     if errors:
         raise ValueError("invalid RepeatTwin report: " + "; ".join(errors))
-    if not submitter.strip():
-        raise ValueError("submitter must be non-empty")
-    if not _is_https_url(agent_source_url):
-        raise ValueError("agent_source_url must be an https URL")
     report_dict = dict(report)
-    report_digest = canonical_sha256(report_dict)
-    package_version = _package_version()
-    provenance_dict = dict(provenance) if provenance is not None else None
-    attestation = (
-        "github_actions_provenance_requested"
-        if provenance_dict and provenance_dict.get("provider") == "github_actions"
-        else "self_attested_content_addressed"
-    )
-    bundle: dict[str, Any] = {
-        "bundle_schema_version": 2 if provenance_dict is not None else 1,
+    bundle.update({
         "bundle_type": "dspy-security-bench-community-submission",
-        "submission": {
-            "submitter": submitter.strip(),
-            "agent_source_url": agent_source_url,
-            "notes": notes.strip(),
-            "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "attestation": attestation,
-        },
-        "producer": {
-            "package": "dspy-security-bench",
-            "package_version": package_version,
-            "python_version": platform.python_version(),
-            "platform": platform.platform(),
-        },
-        "report_sha256": report_digest,
+        "report_sha256": canonical_sha256(report_dict),
         "report": report_dict,
-    }
-    if provenance_dict is not None:
-        bundle["provenance"] = provenance_dict
+    })
     bundle["bundle_sha256"] = canonical_sha256(bundle)
     return bundle
 
@@ -905,10 +879,3 @@ def _is_https_url(value: Any) -> bool:
 
 def _is_sha(value: str) -> bool:
     return len(value) == 40 and all(character in "0123456789abcdef" for character in value)
-
-
-def _package_version() -> str:
-    try:
-        return version("dspy-security-bench")
-    except PackageNotFoundError:
-        return "unknown"
