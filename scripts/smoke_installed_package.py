@@ -193,6 +193,30 @@ def main() -> int:
         run_cli(directory, [*proofrun[:-4], "--out", "collision.json", "--report-out", "collision.json"], 2)
         if (directory / "collision.json").exists():
             raise RuntimeError("ProofRun admitted colliding output files")
+        for command, target in (
+            ("incident", ["--agent", "dspy_security_bench.incident.agents:build_bounded_reference"]),
+            ("source", ["--agent", "dspy_security_bench.mission.agents:build_bounded_source_reference"]),
+            ("authority", ["--reference", "bounded"]),
+        ):
+            source_flag = "--adapter-source" if command == "authority" else "--agent-source"
+            output = f"{command}-bundle.json"
+            run_cli(directory, ["proofrun", command, *target, "--trials", "2",
+                                "--submitter", "fictional-wheel-smoke", source_flag,
+                                "https://example.com/synthetic", "--out", output])
+            decision = json.loads(run_cli(directory, ["proofrun", "verify", output, "--offline", "--json"], 1))
+            if decision["integrity"] != "valid" or decision["eligibility"] != "ineligible":
+                raise RuntimeError("installed reference evidence must be valid but registry-ineligible")
+            bundle = json.loads((directory / output).read_text(encoding="utf-8"))
+            bundle["submission"]["submitter"] = None
+            bundle.pop("bundle_sha256")
+            bundle["bundle_sha256"] = hashlib.sha256(json.dumps(
+                bundle, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False,
+            ).encode()).hexdigest()
+            altered = f"{command}-bad-metadata.json"
+            (directory / altered).write_text(json.dumps(bundle), encoding="utf-8")
+            decision = json.loads(run_cli(directory, ["proofrun", "verify", altered, "--offline", "--json"], 2))
+            if decision["integrity"] != "invalid" or decision["bundle_sha256"] is not None:
+                raise RuntimeError("installed verifier accepted rehashed malformed metadata")
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(

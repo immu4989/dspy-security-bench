@@ -404,11 +404,13 @@ pending” until that digest is in the verified registry.
 
 ## Trust boundary and limitations
 
-### Submission preflight for procurement runs
+### Submission preflight for all five ProofRun families
 
-`proofrun run` and `proofrun control` validate submission metadata before importing
-your agent factory, loading a policy or approval callback, or making model calls.
-Supply a nonblank `--submitter`, credential-free HTTPS `--agent-source`, and, for
+`proofrun run`, `control`, `incident`, `source`, and `authority` validate submission
+metadata before importing your agent/adapter factory, loading a mission pack,
+policy or approval callback, or making model calls.
+Supply a nonblank `--submitter`, credential-free HTTPS `--agent-source`
+(`--adapter-source` for authority), and, for
 control runs, a credential-free HTTPS `--policy-source`. Notes must be portable
 UTF-8 text. Invalid metadata exits 2 without creating output files; diagnostics
 identify contract fields without echoing supplied values.
@@ -421,12 +423,21 @@ retrying. The provenance snapshot is taken once before user code runs and reused
 in the resulting bundle. This is a declaration snapshot, not a trusted execution
 boundary or proof that the agent cannot alter its own process.
 
-The Python `create_submission_bundle` and `create_control_submission_bundle`
-functions enforce the same metadata checks before report replay. Their existing
-schema-v1 (no provenance) and schema-v2 formats are unchanged. This metadata
-preflight currently covers these two procurement families, not the `incident`,
-`source`, or `authority` metadata contracts. It does not guarantee that a later
-model call, report verification, or output write will succeed.
+All five Python bundle creators enforce the same metadata checks before report
+replay. Native bundle verifiers also reject mistyped declarations before hashing
+or replay: booleans/floats are not schema versions, null/numeric submitters are
+not names, run identifiers are ASCII digit strings, and source URLs must not
+contain credentials. Invalid metadata returns an invalid result without echoing
+unknown field names or supplied values. Trial-policy arguments must be integers
+of at least two; invalid caller policies raise `ValueError`.
+
+Existing valid schema-v1 (no provenance) and schema-v2 formats are unchanged.
+Older malformed declarations that were accepted through coercion now fail. Keep
+original evidence for audit; correct declarations and create a new bundle from
+the retained, valid report. Its digest changes, so obtain a new attestation rather
+than reusing the old one. Neither rehashing nor correcting metadata authenticates
+the original execution. Preflight does not guarantee that a later model call,
+report verification, or output write will succeed.
 
 ### What the evidence establishes
 

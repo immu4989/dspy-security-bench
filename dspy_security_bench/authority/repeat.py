@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import platform
 import time
 from collections import Counter
 from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from importlib.metadata import PackageNotFoundError, version
+from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
 
@@ -291,40 +289,21 @@ def create_authority_submission_bundle(
     notes: str = "",
     provenance: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    from dspy_security_bench.procurement.submission_metadata import prepare_submission_metadata
+
+    metadata = prepare_submission_metadata(
+        submitter=submitter, agent_source_url=adapter_source_url, notes=notes,
+        provenance=provenance, source_field="adapter_source_url",
+    )
     errors = verify_repeat_authority_report(report)
     if errors:
         raise ValueError("invalid RepeatAuthorityTwin report: " + "; ".join(errors))
-    if not submitter.strip():
-        raise ValueError("submitter must be non-empty")
-    if not _is_https_url(adapter_source_url):
-        raise ValueError("adapter_source_url must be an https URL")
-    provenance_dict = dict(provenance) if provenance is not None else None
-    attestation = (
-        "github_actions_provenance_requested"
-        if provenance_dict and provenance_dict.get("provider") == "github_actions"
-        else "self_attested_content_addressed"
-    )
     bundle: dict[str, Any] = {
-        "bundle_schema_version": 2 if provenance_dict is not None else 1,
+        **metadata,
         "bundle_type": BUNDLE_TYPE,
-        "submission": {
-            "submitter": submitter.strip(),
-            "adapter_source_url": adapter_source_url,
-            "notes": notes.strip(),
-            "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "attestation": attestation,
-        },
-        "producer": {
-            "package": "dspy-security-bench",
-            "package_version": _package_version(),
-            "python_version": platform.python_version(),
-            "platform": platform.platform(),
-        },
         "report_sha256": canonical_sha256(report),
         "report": dict(report),
     }
-    if provenance_dict is not None:
-        bundle["provenance"] = provenance_dict
     bundle["bundle_sha256"] = canonical_sha256(bundle)
     return bundle
 
@@ -332,12 +311,13 @@ def create_authority_submission_bundle(
 def verify_authority_submission_bundle(
     bundle: Mapping[str, Any], *, minimum_trials: int = 5
 ) -> AuthorityBundleVerification:
-    if (
-        isinstance(minimum_trials, bool)
-        or not isinstance(minimum_trials, int)
-        or minimum_trials < 2
-    ):
+    from dspy_security_bench.procurement.submission_metadata import validate_submission_metadata
+
+    if type(minimum_trials) is not int or minimum_trials < 2:
         raise ValueError("minimum_trials must be an integer of at least 2")
+    metadata_errors = validate_submission_metadata(bundle, control=False, source_field="adapter_source_url")
+    if metadata_errors:
+        return AuthorityBundleVerification(False, False, "self_attested", metadata_errors, (), None)
     errors: list[str] = []
     warnings: list[str] = []
     schema_version = bundle.get("bundle_schema_version")
@@ -548,10 +528,3 @@ def _is_timestamp(value: Any) -> bool:
     except ValueError:
         return False
     return True
-
-
-def _package_version() -> str:
-    try:
-        return version("dspy-security-bench")
-    except PackageNotFoundError:
-        return "unknown"

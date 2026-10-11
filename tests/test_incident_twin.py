@@ -146,12 +146,15 @@ def test_incident_bundle_rejects_unbounded_metadata_fields():
             "provider": "local",
             "builder_kind": "local_process",
             "runner_environment": "local",
-            "unexpected_secret": "must-not-enter-public-evidence",
         },
     )
+    bundle["provenance"]["unexpected_secret"] = "must-not-enter-public-evidence"
+    bundle.pop("bundle_sha256")
+    bundle["bundle_sha256"] = canonical_sha256(bundle)
     result = verify_incident_submission_bundle(bundle, minimum_trials=2)
     assert result.valid is False
     assert any("unsupported local provenance fields" in error for error in result.errors)
+    assert "must-not-enter-public-evidence" not in " ".join(result.errors)
 
 
 def test_reference_bundle_is_explicitly_excluded_from_registry():

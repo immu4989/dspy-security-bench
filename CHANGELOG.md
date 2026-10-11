@@ -10,6 +10,14 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- All five ProofRun families now share typed submission preflight. Incident,
+  source, and authority runs reject invalid declarations before loading user
+  factories or spending evaluation calls, and retain one pre-execution provenance
+  snapshot. Their Python creators and native verifiers reject mistyped versions,
+  identities, credential-bearing URLs, malformed provenance, and nonportable text
+  without copying submitted values into metadata diagnostics. Valid v1/v2 bundles
+  remain supported; malformed legacy declarations must be corrected into new
+  evidence with new digests/attestations, not silently coerced.
 - Dashboard community rows now require full native verification across all nine
   registry families, not just self-consistent outer hashes and plausible summary
   fields. Site generation uses strict JSON intake and the same typed tier-record

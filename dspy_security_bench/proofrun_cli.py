@@ -333,6 +333,7 @@ def _incident(args) -> int:
         create_incident_submission_bundle,
         run_repeat_incident_twin,
     )
+    from dspy_security_bench.procurement.submission_metadata import prepare_submission_metadata
 
     if args.trials < 2:
         print("[proofrun] --trials must be at least 2", file=sys.stderr)
@@ -344,6 +345,11 @@ def _incident(args) -> int:
         print("[proofrun] --min-lower-bound must be between 0 and 1", file=sys.stderr)
         return 2
     try:
+        metadata = prepare_submission_metadata(
+            submitter=args.submitter, agent_source_url=args.agent_source,
+            notes=args.notes, provenance=capture_provenance(),
+            source_field="agent_source_url",
+        )
         report = run_repeat_incident_twin(
             _agent_factory(args),
             trials=args.trials,
@@ -357,7 +363,7 @@ def _incident(args) -> int:
             submitter=args.submitter,
             agent_source_url=args.agent_source,
             notes=args.notes,
-            provenance=capture_provenance(),
+            provenance=metadata["provenance"],
         )
         _write_json(Path(args.out), bundle)
         if args.report_out:
@@ -391,6 +397,7 @@ def _source(args) -> int:
         create_source_submission_bundle,
         run_repeat_mission_pack,
     )
+    from dspy_security_bench.procurement.submission_metadata import prepare_submission_metadata
 
     if args.trials < 2:
         print("[proofrun] --trials must be at least 2", file=sys.stderr)
@@ -402,6 +409,11 @@ def _source(args) -> int:
         print("[proofrun] --min-lower-bound must be between 0 and 1", file=sys.stderr)
         return 2
     try:
+        metadata = prepare_submission_metadata(
+            submitter=args.submitter, agent_source_url=args.agent_source,
+            notes=args.notes, provenance=capture_provenance(),
+            source_field="agent_source_url",
+        )
         pack = load_mission_pack(args.pack)
         report = run_repeat_mission_pack(
             _agent_factory(args),
@@ -417,7 +429,7 @@ def _source(args) -> int:
             submitter=args.submitter,
             agent_source_url=args.agent_source,
             notes=args.notes,
-            provenance=capture_provenance(),
+            provenance=metadata["provenance"],
         )
         _write_json(Path(args.out), bundle)
         if args.report_out:
@@ -450,6 +462,7 @@ def _authority(args) -> int:
         create_authority_submission_bundle,
         run_repeat_authority_twin,
     )
+    from dspy_security_bench.procurement.submission_metadata import prepare_submission_metadata
 
     if args.trials < 2:
         print("[proofrun] --trials must be at least 2", file=sys.stderr)
@@ -461,6 +474,11 @@ def _authority(args) -> int:
         print("[proofrun] --min-lower-bound must be between 0 and 1", file=sys.stderr)
         return 2
     try:
+        metadata = prepare_submission_metadata(
+            submitter=args.submitter, agent_source_url=args.adapter_source,
+            notes=args.notes, provenance=capture_provenance(),
+            source_field="adapter_source_url",
+        )
         report = run_repeat_authority_twin(
             _authority_adapter_factory(args),
             trials=args.trials,
@@ -474,7 +492,7 @@ def _authority(args) -> int:
             submitter=args.submitter,
             adapter_source_url=args.adapter_source,
             notes=args.notes,
-            provenance=capture_provenance(),
+            provenance=metadata["provenance"],
         )
         _write_json(Path(args.out), bundle)
         if args.report_out:

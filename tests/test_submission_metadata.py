@@ -4,6 +4,22 @@ from copy import deepcopy
 
 import pytest
 
+from dspy_security_bench.authority.repeat import (
+    create_authority_submission_bundle,
+    run_repeat_authority_twin,
+    verify_authority_submission_bundle,
+)
+from dspy_security_bench.incident.repeat import (
+    create_incident_submission_bundle,
+    run_repeat_incident_twin,
+    verify_incident_submission_bundle,
+)
+from dspy_security_bench.mission.loader import load_mission_pack
+from dspy_security_bench.mission.repeat import (
+    create_source_submission_bundle,
+    run_repeat_mission_pack,
+    verify_source_submission_bundle,
+)
 from dspy_security_bench.procurement.agents import build_vulnerable_reference
 from dspy_security_bench.procurement.control_registry import (
     create_control_submission_bundle,
@@ -17,16 +33,29 @@ from dspy_security_bench.procurement.repeat import (
 )
 from dspy_security_bench.procurement.repeat_control import run_repeat_control_twin
 from dspy_security_bench.proofrun import capture_provenance
+from tests.test_authoritytwin import build_community_authority_adapter
 from tests.test_control_twin import _procurement_policy
+from tests.test_incident_twin import build_community_incident_agent
+from tests.test_missionforge import build_community_source_agent
 from tests.test_proofrun import GITHUB_ENV
 
 
-@pytest.fixture(scope="module", params=["repeat", "control"])
+@pytest.fixture(scope="module", params=["repeat", "control", "incident", "source", "authority"])
 def family(request):
     metadata = {"submitter": "synthetic", "agent_source_url": "https://example.com/agent"}
     if request.param == "repeat":
         report = run_repeat_twin(build_vulnerable_reference(), trials=2).to_dict()
         return create_submission_bundle(report, **metadata), verify_submission_bundle
+    if request.param == "incident":
+        report = run_repeat_incident_twin(build_community_incident_agent, trials=2).to_dict()
+        return create_incident_submission_bundle(report, **metadata), verify_incident_submission_bundle
+    if request.param == "source":
+        report = run_repeat_mission_pack(build_community_source_agent, load_mission_pack("source-twin"), trials=2).to_dict()
+        return create_source_submission_bundle(report, **metadata), verify_source_submission_bundle
+    if request.param == "authority":
+        report = run_repeat_authority_twin(build_community_authority_adapter, trials=2).to_dict()
+        metadata["adapter_source_url"] = metadata.pop("agent_source_url")
+        return create_authority_submission_bundle(report, **metadata), verify_authority_submission_bundle
     report = run_repeat_control_twin(build_vulnerable_reference, _procurement_policy(), trials=2).to_dict()
     return create_control_submission_bundle(
         report, **metadata, policy_source_url="https://example.com/policy",
@@ -66,6 +95,8 @@ def test_rehashed_metadata_rejected_without_copying_source_content(family, mutat
     bundle, verify = family
     changed = deepcopy(bundle)
     mutate(changed)
+    if "adapter_source_url" in changed["submission"] and "agent_source_url" in changed["submission"]:
+        changed["submission"]["adapter_source_url"] = changed["submission"].pop("agent_source_url")
     rehash(changed)
     result = verify(changed)
     assert result.valid is False

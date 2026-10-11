@@ -1,4 +1,4 @@
-"""Typed, source-redacted admission checks shared by procurement bundle families.
+"""Typed, source-redacted admission checks shared by ProofRun bundle families.
 
 Metadata remains a declaration, not authenticated provenance. These checks run
 before native replay so malformed containers cannot reach lookups or coercions.
@@ -24,7 +24,8 @@ def _https_reference(value) -> bool:
         return False
 
 
-def validate_submission_metadata(bundle, *, control: bool) -> tuple[str, ...]:
+def validate_submission_metadata(bundle, *, control: bool, source_field: str = "agent_source_url") -> tuple[str, ...]:
+    _check_source_field(source_field, control)
     errors = []
     if not isinstance(bundle, Mapping):
         return ("submission bundle must be an object",)
@@ -49,11 +50,16 @@ def validate_submission_metadata(bundle, *, control: bool) -> tuple[str, ...]:
     for field in ("report_sha256", "bundle_sha256"):
         if not isinstance(bundle.get(field), str) or re.fullmatch(r"[a-f0-9]{64}", bundle[field]) is None:
             errors.append(f"{field} must be lowercase SHA-256")
-    errors.extend(_validate_envelope(bundle, control=control))
+    errors.extend(_validate_envelope(bundle, control=control, source_field=source_field))
     return tuple(errors)
 
 
-def _validate_envelope(bundle, *, control: bool) -> tuple[str, ...]:
+def _check_source_field(source_field, control):
+    if source_field not in ("agent_source_url", "adapter_source_url") or (control and source_field != "agent_source_url"):
+        raise ValueError("unsupported submission source field")
+
+
+def _validate_envelope(bundle, *, control: bool, source_field: str = "agent_source_url") -> tuple[str, ...]:
     """Check declarations without a report or placeholder content hashes."""
     errors = []
     version = bundle.get("bundle_schema_version")
@@ -69,7 +75,7 @@ def _validate_envelope(bundle, *, control: bool) -> tuple[str, ...]:
         return True
 
     submission = bundle.get("submission")
-    required = {"submitter", "agent_source_url", "notes", "created_at", "attestation"}
+    required = {"submitter", source_field, "notes", "created_at", "attestation"}
     if control:
         required.add("policy_source_url")
     if shape(submission, required, "submission"):
@@ -77,7 +83,7 @@ def _validate_envelope(bundle, *, control: bool) -> tuple[str, ...]:
             value = submission.get(field)
             if not isinstance(value, str) or (field != "notes" and not value.strip()):
                 errors.append(f"submission.{field} must be a string" + ("" if field == "notes" else " and non-empty"))
-        for field in ("agent_source_url", "policy_source_url") if control else ("agent_source_url",):
+        for field in (source_field, "policy_source_url") if control else (source_field,):
             if not _https_reference(submission.get(field)):
                 errors.append(f"submission.{field} must be an https URL without credentials")
         stamp = submission.get("created_at")
@@ -165,7 +171,7 @@ def _validate_envelope(bundle, *, control: bool) -> tuple[str, ...]:
 
 def prepare_submission_metadata(
     *, submitter, agent_source_url, notes="", provenance=None,
-    control: bool = False, policy_source_url=None,
+    control: bool = False, policy_source_url=None, source_field: str = "agent_source_url",
 ) -> dict:
     """Build validated declarations before evaluation; no execution is attested.
 
@@ -173,6 +179,7 @@ def prepare_submission_metadata(
     Provenance is copied, so later mutations to the input cannot change it.
     Validation errors name only fixed contract fields, never supplied values.
     """
+    _check_source_field(source_field, control)
     if provenance is not None and not isinstance(provenance, Mapping):
         raise ValueError("provenance metadata must be an object")
     provenance_copy = dict(provenance) if provenance is not None else None
@@ -187,7 +194,7 @@ def prepare_submission_metadata(
         package_version = "unknown"
     submission = {
         "submitter": submitter.strip() if isinstance(submitter, str) else submitter,
-        "agent_source_url": agent_source_url,
+        source_field: agent_source_url,
         "notes": notes.strip() if isinstance(notes, str) else notes,
         "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "attestation": attestation,
@@ -204,7 +211,7 @@ def prepare_submission_metadata(
     }
     if provenance_copy is not None:
         envelope["provenance"] = provenance_copy
-    errors = _validate_envelope(envelope, control=control)
+    errors = _validate_envelope(envelope, control=control, source_field=source_field)
     if errors:
         raise ValueError("invalid submission metadata: " + "; ".join(errors))
     return envelope
