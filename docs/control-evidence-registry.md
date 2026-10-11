@@ -204,6 +204,14 @@ Review source details in an approved local environment, and use
 [`impact sharing-review`](impact-twin.md#review-retained-content-before-sharing)
 before handing off retained artifacts.
 
+Admission checks metadata before replaying nested reports. Both procurement
+bundle families require typed submitter/producer fields, explicit supported
+provenance shapes, and credential-free HTTPS reference URLs. They reject unknown
+envelope fields and malformed schema versions even when all hashes have been
+recomputed. These are structural checks, not identity verification or secret
+detection; use external signature verification for provenance and owner review
+for publication. See the [migration checklist](migration-evidence-integrity.md#procurement-evidence-and-public-review).
+
 - Results cover repeated executions of five fixed synthetic ProcureBench pairs,
   not all government, commercial, or user workflows.
 - Wilson intervals quantify execution variability for this suite; shared

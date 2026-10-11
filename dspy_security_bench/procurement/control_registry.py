@@ -87,6 +87,13 @@ def verify_control_submission_bundle(
     bundle: Mapping[str, Any], *, minimum_trials: int = 5
 ) -> ControlSubmissionVerification:
     """Verify bundle identity, nested evidence, provenance claims, and admission rules."""
+    from dspy_security_bench.procurement.submission_metadata import validate_submission_metadata
+
+    if type(minimum_trials) is not int or minimum_trials < 2:
+        raise ValueError("minimum_trials must be an integer of at least 2")
+    metadata_errors = validate_submission_metadata(bundle, control=True)
+    if metadata_errors:
+        return ControlSubmissionVerification(False, False, "self_attested", metadata_errors, (), None)
     errors: list[str] = []
     warnings: list[str] = []
     schema_version = bundle.get("bundle_schema_version")

@@ -122,6 +122,17 @@ def main() -> int:
                             "--verify", "sharing-review.json"])
         run_cli(directory, ["impact", "sharing-review", "repeat-bundle.json",
                             "--out", "sharing-review.json"], 2)
+        invalid_metadata = json.loads((directory / "repeat-bundle.json").read_text(encoding="utf-8"))
+        invalid_metadata["producer"]["python_version"] = False
+        invalid_metadata.pop("bundle_sha256")
+        invalid_metadata["bundle_sha256"] = hashlib.sha256(json.dumps(
+            invalid_metadata, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False,
+        ).encode()).hexdigest()
+        (directory / "invalid-metadata.json").write_text(json.dumps(invalid_metadata), encoding="utf-8")
+        run_cli(directory, ["impact", "sharing-review", "invalid-metadata.json",
+                            "--out", "invalid-metadata-review.json"], 2)
+        if (directory / "invalid-metadata-review.json").exists():
+            raise RuntimeError("invalid submission metadata was admitted to a verified review")
         repeat = json.loads((directory / "repeat.json").read_text(encoding="utf-8"))
         repeat["trials"][0]["pairs"][0]["causal_evidence"]["recommended_control"]["action"] = "allow"
         (directory / "repeat-altered.json").write_text(json.dumps(repeat), encoding="utf-8")

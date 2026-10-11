@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- RepeatTwin and control submission admission now share typed metadata checks
+  before nested replay: exact required fields, integer bundle versions, string
+  producer/submitter declarations, UTC timestamps, bounded-shape provenance,
+  and HTTPS references without embedded credentials. Rehashed malformed
+  envelopes fail closed with source-redacted diagnostics; declared provenance
+  remains unverified, and caller minimum-trial policies are no longer coerced.
 - Added `impact review-demo`, a credential-free synthetic handoff with a native
   control report, valid-but-ineligible bundle, sharing inventory, evidence card,
   and deliberately invalid rehashed example. Its generated walkthrough teaches

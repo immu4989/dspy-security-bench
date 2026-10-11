@@ -122,6 +122,15 @@ revision before testing the candidate installation.
 Valid engine-generated report formats and hashes have not been relabeled by the
 typed-verification fixes. Count fields require integer representations; boolean
 flags require booleans. Integer spellings of real-valued rates remain allowed.
+Submission envelopes now also require their declared metadata fields and reject
+unknown fields. A numeric submitter or producer value is not coerced to text;
+bundle schema versions must be integers, timestamps must be UTC strings ending
+in `Z`, and GitHub run/repository identifiers must be ASCII-digit strings.
+Reference URLs must be HTTPS, have a host and valid port, and contain neither
+embedded credentials nor raw whitespace. This checks structure, not whether a
+site is trustworthy, reachable, or authoritative. It does not detect secrets in
+otherwise valid metadata. The native API's `minimum_trials` must be an integer
+of at least two; command-line defaults remain unchanged.
 An artifact accepted by an older permissive verifier is not automatically valid
 under the corrected one. A consistent fabrication may still pass: native replay
 does not authenticate execution, replay actual tool effects, validate provider
