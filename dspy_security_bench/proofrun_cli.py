@@ -136,6 +136,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.command is None:
         parser.print_help()
         return 0
+    if args.command in {"run", "control", "incident", "source", "authority"}:
+        try:
+            _preflight_outputs(args)
+        except (OSError, ValueError):
+            print("[proofrun] output preflight failed: use distinct new files under existing directories; "
+                  "symlinks and existing files are not allowed", file=sys.stderr)
+            return 2
     if args.command == "run":
         return _run(args)
     if args.command == "control":
@@ -269,8 +276,7 @@ def _control(args) -> int:
             _write_json(Path(args.report_out), report.to_dict())
         if args.card_out:
             card_path = Path(args.card_out)
-            card_path.parent.mkdir(parents=True, exist_ok=True)
-            card_path.write_text(render_control_evidence_card_svg(bundle))
+            _write_text(card_path, render_control_evidence_card_svg(bundle))
     except Exception as exc:
         print(f"[proofrun] control failed: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 2
@@ -598,6 +604,33 @@ def _resolve_callable(reference: str):
     return callback
 
 
+def _checked_output(path: Path) -> Path:
+    """Validate an owner-selected destination without creating or replacing data."""
+    absolute = Path(path.absolute())
+    if any(parent.is_symlink() for parent in (absolute, *absolute.parents)):
+        raise ValueError("output paths must not traverse symlinks")
+    if absolute.exists() or not absolute.parent.is_dir():
+        raise ValueError("outputs require new files in existing directories")
+    return absolute.resolve()
+
+
+def _preflight_outputs(args) -> None:
+    """Fail before user factories, model calls, or evidence generation."""
+    paths = [_checked_output(Path(value)) for value in (
+        getattr(args, "out", None), getattr(args, "report_out", None), getattr(args, "card_out", None),
+    ) if value is not None]
+    if len(set(paths)) != len(paths):
+        raise ValueError("output destinations must be distinct")
+
+
+def _write_text(path: Path, content: str) -> None:
+    # Recheck after execution and exclusively create: an output that appeared
+    # since preflight must never be truncated. Multi-file writes are not atomic.
+    _checked_output(path)
+    with path.open("x", encoding="utf-8") as stream:
+        stream.write(content)
+
+
 def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    content = json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n"
+    _write_text(path, content)

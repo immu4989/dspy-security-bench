@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- ProofRun generation now rejects existing, colliding, linked, or missing-parent
+  output layouts before agent/adapter execution across all five generation
+  commands. Exclusive file creation prevents silent bundle/report/card
+  replacement; nonfinite JSON fails before writing. Earlier partial outputs
+  remain inspectable on later failures; this is not an atomic output transaction.
 - RepeatTwin and control submission admission now share typed metadata checks
   before nested replay: exact required fields, integer bundle versions, string
   producer/submitter declarations, UTC timestamps, bounded-shape provenance,

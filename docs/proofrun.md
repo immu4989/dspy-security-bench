@@ -221,6 +221,31 @@ Online verification rejects self-hosted-runner attestations by default. A
 reviewer can opt in with `--allow-self-hosted-runner`, but should separately
 evaluate that runner's trust and isolation.
 
+### Preserve generated evidence
+
+**On main after v0.19.0**, every ProofRun generation command (`run`, `control`,
+`incident`, `source`, and `authority`) requires distinct new output files beneath
+existing directories. This covers `--out`, `--report-out`, and `--card-out` where
+supported. Create your artifact directory first. Existing files, directories in
+place of files, hard-linked files, dangling links, and paths traversing symlinks
+are rejected before any user agent/adapter factory runs. On systems where `/tmp`
+is a symlink, use its real directory path or a directory in your checkout.
+
+This intentionally replaces earlier overwrite behavior: assigning the same path
+to a bundle and standalone report could silently replace the bundle, and reusing
+an output could destroy retained evidence. Use a new run-specific directory or
+filenames; do not overwrite evidence that has already been pinned or signed.
+An output-layout failure exits 2 and performs no model or adapter execution.
+
+Writes recheck paths and exclusively create files after execution, protecting
+an existing final destination even if it appeared after preflight. JSON output
+rejects nonfinite numbers before opening the destination. Multi-file output is
+**not atomic**: if a later write fails, earlier files remain for inspection.
+Preflight is not a reservation, a writable-disk guarantee, a budget estimate,
+or protection against a hostile process replacing parent directories during
+execution. Use a private, stable output directory. A late storage failure can
+still occur after model costs have been incurred.
+
 For policy-effectiveness evidence, use `proofrun control`. The bundle and card
 are written before any configured statistical gate is enforced:
 

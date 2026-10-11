@@ -167,6 +167,19 @@ def main() -> int:
         run_cli(handoff, ["impact", "sharing-review", "bundle.json", "--verify", "sharing-review.json"])
         run_cli(handoff, ["impact", "control-submission-verify", "invalid-bundle.json"], 1)
         run_cli(directory, ["impact", "review-demo", "--out", "synthetic-handoff"], 2)
+        proofrun = ["proofrun", "run", "--agent",
+                    "dspy_security_bench.procurement.agents:build_bounded_reference",
+                    "--trials", "2", *submission,
+                    "--out", "proofrun-bundle.json", "--report-out", "proofrun-report.json"]
+        run_cli(directory, proofrun)
+        retained = {name: (directory / name).read_bytes()
+                    for name in ("proofrun-bundle.json", "proofrun-report.json")}
+        run_cli(directory, proofrun, 2)
+        if any((directory / name).read_bytes() != content for name, content in retained.items()):
+            raise RuntimeError("ProofRun replaced retained evidence")
+        run_cli(directory, [*proofrun[:-4], "--out", "collision.json", "--report-out", "collision.json"], 2)
+        if (directory / "collision.json").exists():
+            raise RuntimeError("ProofRun admitted colliding output files")
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(

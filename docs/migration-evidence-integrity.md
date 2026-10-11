@@ -187,6 +187,15 @@ for v2; do not infer approval policy from an untrusted report. See the
 
 ## Suggested upgrade procedure
 
+ProofRun generation now refuses existing or colliding output destinations before
+agent/adapter construction across all five generation commands. Create parent
+directories yourself and use new run-specific filenames for the bundle, optional
+standalone report, and card. Symlink traversal is refused, and exclusive final
+creation prevents truncating a destination created after preflight. This is a
+deliberate change from implicit parent creation and overwrite behavior; see
+[ProofRun output preservation](proofrun.md#preserve-generated-evidence) for race,
+partial-output, and storage-failure limits.
+
 1. Pin the currently deployed revision and preserve original evidence and policies.
 2. Review the [Unreleased changelog](../CHANGELOG.md#unreleased) and these behavior changes.
 3. Install the candidate in a separate virtual environment and run offline fixtures.
