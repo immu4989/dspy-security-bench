@@ -63,18 +63,20 @@ def test_smoke_cannot_succeed_by_importing_checkout():
     assert "smoke requires the wheel installed" in result.stderr
 
 
-def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch):
+def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch, capsys):
     from dspy_security_bench.cli import main
 
     calls = []
 
     def fixture_cli(directory, arguments, expected=0):
+        capsys.readouterr()
         calls.append((arguments, expected))
         # Execute the real offline CLI here to keep smoke fixtures and expected
         # verdicts honest. Separate tests above enforce installed-child isolation.
         with monkeypatch.context() as scoped:
             scoped.chdir(directory)
             assert main(arguments) == expected
+        return capsys.readouterr().out
 
     monkeypatch.setattr(smoke, "run_cli", fixture_cli)
     assert smoke.main() == 0

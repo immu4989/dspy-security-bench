@@ -11,6 +11,7 @@ import pytest
 
 import dspy_security_bench.proofrun as proof
 import dspy_security_bench.proofrun_cli as cli
+import dspy_security_bench.proofrun_review as reviews
 from dspy_security_bench.authority.repeat import (
     create_authority_submission_bundle,
     run_repeat_authority_twin,
@@ -65,7 +66,7 @@ def family(request):
     b'{"PRIVATE":' + b"[" * 105 + b"0" + b"]" * 105 + b"}",
 ])
 def test_invalid_intake_never_reaches_online_verification(raw, tmp_path, monkeypatch, capsys):
-    monkeypatch.setattr(cli, "verify_github_attestation", lambda *a, **k: pytest.fail("invalid input reached gh"))
+    monkeypatch.setattr(reviews, "verify_github_attestation", lambda *a, **k: pytest.fail("invalid input reached gh"))
     path = tmp_path / "input.json"
     path.write_bytes(raw)
     assert cli.main(["verify", str(path)]) == 2
@@ -84,8 +85,8 @@ def test_snapshot_reader_retains_exact_noncanonical_bytes(tmp_path):
 
 
 def test_size_limit_before_native_or_online_verification(tmp_path, monkeypatch):
-    monkeypatch.setattr(cli, "MAX_BUNDLE_BYTES", 16)
-    monkeypatch.setattr(cli, "verify_github_attestation", lambda *a, **k: pytest.fail("oversized input reached gh"))
+    monkeypatch.setattr(reviews, "MAX_BUNDLE_BYTES", 16)
+    monkeypatch.setattr(reviews, "verify_github_attestation", lambda *a, **k: pytest.fail("oversized input reached gh"))
     path = tmp_path / "input.json"
     path.write_bytes(b'{"padding":"' + b"x" * 20 + b'"}')
     assert cli.main(["verify", str(path)]) == 2
@@ -245,7 +246,7 @@ def test_matching_certificate_can_follow_other_verified_attestations(attested, m
     ["--expected-file-sha256", "A" * 64],
 ])
 def test_invalid_review_policy_is_rejected_before_input_read(options, monkeypatch, capsys):
-    monkeypatch.setattr(cli, "read_json_snapshot", lambda *a: pytest.fail("invalid policy reached file read"))
+    monkeypatch.setattr(reviews, "read_json_snapshot", lambda *a: pytest.fail("invalid policy reached file read"))
     assert cli.main(["verify", "not-read.json", *options]) == 2
     assert "PRIVATE" not in capsys.readouterr().err
 

@@ -3,19 +3,15 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import importlib
 import json
-import re
 import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from dspy_security_bench.jsonio import read_json_snapshot
-from dspy_security_bench.proofrun import capture_provenance, verify_github_attestation
-
-MAX_BUNDLE_BYTES = 50_000_000
+from dspy_security_bench.proofrun import capture_provenance
+from dspy_security_bench.proofrun_review import ReviewPolicy, render_review, review_bundle
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -121,6 +117,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     verify = commands.add_parser("verify", help="recompute a bundle and verify GitHub provenance")
     verify.add_argument("bundle")
+    verify.add_argument("--json", action="store_true", help="emit one source-redacted machine-readable review decision")
     verify.add_argument("--attestation-repo", help="owner/repository; defaults to bundle metadata")
     verify.add_argument("--minimum-trials", type=int, default=5)
     verify.add_argument("--expected-file-sha256", help="independent SHA-256 pin for exact input bytes")
@@ -508,97 +505,18 @@ def _authority(args) -> int:
 
 
 def _verify(args) -> int:
-    path = Path(args.bundle)
-    if args.minimum_trials < 2:
-        print("[INVALID] --minimum-trials must be at least 2", file=sys.stderr)
-        return 2
-    pin = args.expected_file_sha256
-    if pin is not None and re.fullmatch(r"[a-f0-9]{64}", pin) is None:
-        print("[INVALID] --expected-file-sha256 must be 64 lowercase hexadecimal characters", file=sys.stderr)
-        return 2
-    try:
-        raw, bundle = read_json_snapshot(path, MAX_BUNDLE_BYTES)
-        file_digest = hashlib.sha256(raw).hexdigest()
-        if pin is not None and pin != file_digest:
-            print("[INVALID] input file SHA-256 does not match the independent pin", file=sys.stderr)
-            return 2
-        bundle_type = bundle.get("bundle_type")
-        if bundle_type == "dspy-security-bench-control-evidence-submission":
-            from dspy_security_bench.procurement.control_registry import (
-                verify_control_submission_bundle,
-            )
-
-            integrity = verify_control_submission_bundle(bundle, minimum_trials=args.minimum_trials)
-            eligible = integrity.registry_eligible
-            eligibility_label = "Control registry eligibility"
-        elif bundle_type == "dspy-security-bench-incident-evidence-submission":
-            from dspy_security_bench.incident.repeat import (
-                verify_incident_submission_bundle,
-            )
-
-            integrity = verify_incident_submission_bundle(
-                bundle, minimum_trials=args.minimum_trials
-            )
-            eligible = integrity.community_eligible
-            eligibility_label = "Incident registry eligibility"
-        elif bundle_type == "dspy-security-bench-source-evidence-submission":
-            from dspy_security_bench.mission.repeat import verify_source_submission_bundle
-
-            integrity = verify_source_submission_bundle(bundle, minimum_trials=args.minimum_trials)
-            eligible = integrity.community_eligible
-            eligibility_label = "Source registry eligibility"
-        elif bundle_type == "dspy-security-bench-authority-evidence-submission":
-            from dspy_security_bench.authority.repeat import (
-                verify_authority_submission_bundle,
-            )
-
-            integrity = verify_authority_submission_bundle(
-                bundle, minimum_trials=args.minimum_trials
-            )
-            eligible = integrity.community_eligible
-            eligibility_label = "Authority registry eligibility"
-        elif bundle_type == "dspy-security-bench-community-submission":
-            from dspy_security_bench.procurement.repeat import verify_submission_bundle
-
-            integrity = verify_submission_bundle(bundle, minimum_trials=args.minimum_trials)
-            eligible = integrity.community_eligible
-            eligibility_label = "Leaderboard eligibility"
-        else:
-            raise ValueError("unsupported bundle type")
-    except (OSError, TypeError, ValueError, KeyError, AttributeError, OverflowError, RecursionError) as exc:
-        print(f"[INVALID] bundle intake or verification failed ({type(exc).__name__}); source details withheld", file=sys.stderr)
-        return 2
-
-    print(f"Input snapshot sha256: {file_digest}")
-    print(f"Integrity: {'valid' if integrity.valid else 'INVALID'}")
-    print(f"{eligibility_label}: {'yes' if eligible else 'no'}")
-    print(f"Offline evidence tier: {integrity.evidence_tier}")
-    if not integrity.valid:
-        print("  error: bundle failed native verification; source-derived details withheld")
-        return 2
-    for warning in integrity.warnings:
-        print(f"  note: {warning}")
-    if not eligible:
-        return 1
-    if args.offline:
-        return 0
-
-    attestation = verify_github_attestation(
-        path,
-        bundle,
-        repository=args.attestation_repo,
+    review = review_bundle(Path(args.bundle), policy=ReviewPolicy(
+        minimum_trials=args.minimum_trials, offline=args.offline,
+        expected_file_sha256=args.expected_file_sha256,
+        attestation_repository=args.attestation_repo,
         require_trusted_builder=args.require_trusted_builder,
-        deny_self_hosted=not args.allow_self_hosted_runner,
-        bundle_bytes=raw,
-    )
-    print(f"Cryptographic evidence tier: {attestation.evidence_tier}")
-    if attestation.run_url:
-        print(f"Workflow run: {attestation.run_url}")
-    for error in attestation.errors:
-        print(f"  error: {error}")
-    for warning in attestation.warnings:
-        print(f"  note: {warning}")
-    return 0 if attestation.verified else 1
+        allow_self_hosted_runner=args.allow_self_hosted_runner,
+    ))
+    if args.json:
+        print(json.dumps(review, sort_keys=True, indent=2, allow_nan=False))
+    else:
+        print(render_review(review), file=sys.stderr if review["exit_code"] == 2 else sys.stdout)
+    return review["exit_code"]
 
 
 def _agent_factory(args):

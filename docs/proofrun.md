@@ -263,6 +263,77 @@ attestation was not verified; `2` means invalid evidence, malformed input/policy
 pin mismatch, or native verification failure. Earlier versions returned `1` for
 some invalid native bundles. Offline success does not authenticate provenance.
 
+### Machine-readable review decisions (on main)
+
+Use the source checkout for this unreleased interface. `--json` emits exactly one
+JSON object on stdout for a successfully parsed CLI request, including invalid
+input and negative-verdict cases. Exit status is unchanged. Argument-parser errors
+(such as a missing bundle argument) still use normal CLI stderr output.
+
+```bash
+dspy-security-bench proofrun verify supplier-bundle.json --offline --json \
+  --minimum-trials 5 --expected-file-sha256 "$EXPECTED_FILE_SHA256"
+```
+
+For a service or intake pipeline, call the same implementation without parsing
+terminal prose:
+
+```python
+from pathlib import Path
+from dspy_security_bench.proofrun_review import ReviewPolicy, review_bundle
+
+decision = review_bundle(
+    Path("supplier-bundle.json"),
+    policy=ReviewPolicy(minimum_trials=5, offline=True),
+)
+if decision["exit_code"] != 0:
+    print("Review required:", decision["reason_code"])
+else:
+    print("Offline checks passed; provenance was not authenticated.")
+```
+
+The [packaged JSON Schema](../dspy_security_bench/schemas/proofrun-review.schema.json)
+defines schema-v1 output, including required nullable fields and allowed verdict
+combinations. Consumers should check `schema_version` and `exit_code`, not only
+the presence of a bundle digest. Keep nonzero exit codes when piping CLI output
+(for example, enable your shell's `pipefail` behavior).
+
+| Outcome | Integrity | Eligibility | Provenance | Exit |
+| --- | --- | --- | --- | --- |
+| Offline checks pass | valid | eligible | not_checked | 0 |
+| Online checks pass | valid | eligible | verified | 0 |
+| Valid but insufficient for registry | valid | ineligible | not_checked | 1 |
+| Signature/identity requirements not established | valid | eligible | unverified | 1 |
+| Invalid policy, input, pin, or evidence | invalid or not_checked | not_checked | not_checked | 2 |
+
+An online lookup is attempted only after native validity and eligibility pass.
+Unverified provenance includes failed checks and unavailable external services;
+it is not a claim that a signature is necessarily fraudulent. An offline review
+cannot be combined with `--require-trusted-builder`: that contradictory policy
+now exits 2, because offline replay cannot authenticate the builder.
+
+Decisions include the exact `input_file_sha256`, and `bundle_sha256` only when
+native validity is established. They record the installed package version and
+review policy. An explicit `--attestation-repo` is represented by SHA-256 of the
+exact repository string's UTF-8 bytes in `policy.expected_repository_sha256`;
+null means no explicit repository constraint. That hash is an informational policy
+fingerprint, not an identity check. Keep the original repository setting in your
+private pipeline configuration if you need to repeat an online lookup.
+
+Submission notes, source URLs, repository names, file paths, provider outputs,
+and raw exceptions are omitted. Hashes can still correlate known inputs, so this
+projection is not anonymization or publication approval. Offline output is
+deterministic for identical bytes, policy, and installed verifier. Online output
+may change with availability or trust state and should be refreshed as needed.
+No timestamp, self-signature, or claim of independent reproduction is invented.
+
+The review document itself is unsigned. A well-formed document can be forged;
+schema validation is not evidence verification. Rerun `review_bundle` against
+the retained original bundle and your intended policy instead of trusting a
+supplier-provided decision JSON. `review_is_attestation` and
+`execution_reproduced` remain false, even when the underlying bundle's GitHub
+provenance was verified.
+
 ### Preserve generated evidence
 
 **On main after v0.19.0**, every ProofRun generation command (`run`, `control`,

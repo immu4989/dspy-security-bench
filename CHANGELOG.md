@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added `proofrun verify --json` and the `proofrun_review.review_bundle` Python
+  API for CI and vendor-intake workflows across five evidence families. One
+  shared decision model separates native integrity, eligibility, and online
+  provenance; includes exact input/canonical bundle hashes and bounded reason
+  codes; and omits source text, paths, and raw diagnostics. A packaged schema
+  rejects contradictory status combinations. Offline trusted-builder requirements
+  now fail as invalid policy rather than silently skipping that requirement.
 - ProofRun review now binds native verification and GitHub attestation to the
   same exact-byte snapshot, with strict bounded JSON intake and optional
   `--expected-file-sha256` transport pins across all five evidence families.

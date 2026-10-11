@@ -45,7 +45,7 @@ if len(entry) != 1 or entry[0].value != "dspy_security_bench.cli:main":
     raise RuntimeError("installed CLI entry point is missing or changed")
 resources = importlib.resources.files("dspy_security_bench")
 for name in ("scan-evidence.schema.json", "scan-comparison.schema.json", "scan-study.schema.json",
-             "scan-policy-review.schema.json", "repeat-report.schema.json"):
+             "scan-policy-review.schema.json", "repeat-report.schema.json", "proofrun-review.schema.json"):
     json.loads(resources.joinpath("schemas", name).read_text(encoding="utf-8"))
 if "workflow_dispatch" not in resources.joinpath("templates", "github-action.yml").read_text(encoding="utf-8"):
     raise RuntimeError("safe workflow template missing from installed wheel")
@@ -53,7 +53,7 @@ raise SystemExit(entry[0].load()(sys.argv[1:]))
 '''
 
 
-def run_cli(directory: Path, arguments: list[str], expected: int = 0) -> None:
+def run_cli(directory: Path, arguments: list[str], expected: int = 0) -> str:
     result = subprocess.run(
         [sys.executable, "-I", "-c", BOOTSTRAP, *arguments],
         cwd=directory, capture_output=True, text=True, timeout=60, check=False,
@@ -63,6 +63,7 @@ def run_cli(directory: Path, arguments: list[str], expected: int = 0) -> None:
             f"installed CLI {arguments[:2]!r}: expected exit {expected}, got {result.returncode}\n"
             f"{result.stdout}\n{result.stderr}"
         )
+    return result.stdout
 
 
 def main() -> int:
@@ -117,8 +118,12 @@ def main() -> int:
         # Reference fixtures intentionally cannot qualify as community results.
         run_cli(directory, ["impact", "verify", "repeat-bundle.json", "--minimum-trials", "2"], 1)
         file_pin = hashlib.sha256((directory / "repeat-bundle.json").read_bytes()).hexdigest()
-        run_cli(directory, ["proofrun", "verify", "repeat-bundle.json", "--offline",
-                            "--expected-file-sha256", file_pin], 1)
+        decision = json.loads(run_cli(directory, ["proofrun", "verify", "repeat-bundle.json", "--offline", "--json",
+                            "--expected-file-sha256", file_pin], 1))
+        if (decision["exit_code"] != 1 or decision["reason_code"] != "not_eligible"
+                or decision["input_file_sha256"] != file_pin or decision["provenance"] != "not_checked"
+                or decision["review_is_attestation"] is not False):
+            raise RuntimeError("installed structured review confused evidence eligibility with authentication")
         run_cli(directory, ["proofrun", "verify", "repeat-bundle.json", "--offline",
                             "--expected-file-sha256", "0" * 64], 2)
         (directory / "ambiguous-bundle.json").write_text('{"private":1,"private":2}', encoding="utf-8")
