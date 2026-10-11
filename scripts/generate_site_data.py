@@ -10,8 +10,17 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import json
 from pathlib import Path
+
+from dspy_security_bench.jsonio import read_json_object
+from dspy_security_bench.procurement.registry_metadata import (
+    attestation_record_errors,
+    registry_shape,
+    reproduction_record_errors,
+)
+from dspy_security_bench.proofrun_review import FAMILIES
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS_DIR = ROOT / "leaderboard/results"
@@ -327,8 +336,6 @@ def build_payload(
 def _defense_evidence_results(submissions_dir: Path) -> list[dict]:
     """Expose only privacy-bounded, content-addressed remediation evidence."""
 
-    from dspy_security_bench.defend.evidence import verify_evidence_bundle
-
     results = []
     prohibited = (
         '"prompt"',
@@ -340,14 +347,12 @@ def _defense_evidence_results(submissions_dir: Path) -> list[dict]:
         '"exploit_payload"',
         '"live_target"',
     )
-    for path in sorted(submissions_dir.glob("*.json")):
-        bundle = json.loads(path.read_text())
+    for path, bundle in _submission_bundles(submissions_dir):
         if not isinstance(bundle, dict):
             continue
         if bundle.get("bundle_type") != "dspy-security-bench-defense-evidence":
             continue
-        verification = verify_evidence_bundle(bundle)
-        if not verification.community_eligible:
+        if not _native_eligible(bundle, "dspy-security-bench-defense-evidence"):
             continue
         unsigned = dict(bundle)
         claimed = unsigned.pop("bundle_sha256", None)
@@ -389,8 +394,9 @@ def _collective_evidence_results(submissions_dir: Path) -> list[dict]:
     """Expose only content-addressed v2 bundles with the frozen privacy boundary."""
 
     results = []
-    for path in sorted(submissions_dir.glob("*.json")):
-        bundle = json.loads(path.read_text())
+    for path, bundle in _submission_bundles(submissions_dir):
+        if not _native_eligible(bundle, "dspy-security-bench-collective-submission"):
+            continue
         if bundle.get("bundle_type") != "dspy-security-bench-collective-submission":
             continue
         unsigned = dict(bundle)
@@ -442,8 +448,9 @@ def _causal_evidence_results(submissions_dir: Path) -> list[dict]:
     """Build compact rows after dependency-free digest and privacy checks."""
 
     results = []
-    for path in sorted(submissions_dir.glob("*.json")):
-        bundle = json.loads(path.read_text())
+    for path, bundle in _submission_bundles(submissions_dir):
+        if not _native_eligible(bundle, "dspy-security-bench-causal-submission"):
+            continue
         if bundle.get("bundle_type") != "dspy-security-bench-causal-submission":
             continue
         unsigned = dict(bundle)
@@ -485,17 +492,10 @@ def _proofrun_results(
     reproductions_path: Path,
     attestations_path: Path,
 ) -> list[dict]:
-    reproduced = {}
-    if reproductions_path.is_file():
-        registry = json.loads(reproductions_path.read_text())
-        reproduced = registry.get("reproductions", {})
-    attestations = {}
-    if attestations_path.is_file():
-        registry = json.loads(attestations_path.read_text())
-        attestations = registry.get("attestations", {})
+    reproduced = _registry_records(reproductions_path, "reproductions")
+    attestations = _registry_records(attestations_path, "attestations")
     results = []
-    for path in sorted(submissions_dir.glob("*.json")):
-        bundle = json.loads(path.read_text())
+    for path, bundle in _submission_bundles(submissions_dir):
         if not _site_eligible(bundle):
             continue
         report = bundle.get("report", {})
@@ -543,8 +543,7 @@ def _control_evidence_results(
     reproduced = _registry_records(reproductions_path, "reproductions")
     attestations = _registry_records(attestations_path, "attestations")
     results = []
-    for path in sorted(submissions_dir.glob("*.json")):
-        bundle = json.loads(path.read_text())
+    for path, bundle in _submission_bundles(submissions_dir):
         if not _site_control_eligible(bundle):
             continue
         report = bundle["report"]
@@ -603,8 +602,7 @@ def _incident_evidence_results(
     reproduced = _registry_records(reproductions_path, "reproductions")
     attestations = _registry_records(attestations_path, "attestations")
     results = []
-    for path in sorted(submissions_dir.glob("*.json")):
-        bundle = json.loads(path.read_text())
+    for path, bundle in _submission_bundles(submissions_dir):
         if not _site_incident_eligible(bundle):
             continue
         report = bundle["report"]
@@ -652,8 +650,7 @@ def _source_evidence_results(
     reproduced = _registry_records(reproductions_path, "reproductions")
     attestations = _registry_records(attestations_path, "attestations")
     results = []
-    for path in sorted(submissions_dir.glob("*.json")):
-        bundle = json.loads(path.read_text())
+    for path, bundle in _submission_bundles(submissions_dir):
         if not _site_source_eligible(bundle):
             continue
         report = bundle["report"]
@@ -705,8 +702,7 @@ def _authority_evidence_results(
     reproduced = _registry_records(reproductions_path, "reproductions")
     attestations = _registry_records(attestations_path, "attestations")
     results = []
-    for path in sorted(submissions_dir.glob("*.json")):
-        bundle = json.loads(path.read_text())
+    for path, bundle in _submission_bundles(submissions_dir):
         if not _site_authority_eligible(bundle):
             continue
         report = bundle["report"]
@@ -752,8 +748,7 @@ def _authority_evidence_results(
 def _trace_evidence_results(submissions_dir: Path) -> list[dict]:
     """Build public TraceProof rows from CI-admitted privacy-bounded bundles."""
     results = []
-    for path in sorted(submissions_dir.glob("*.json")):
-        bundle = json.loads(path.read_text())
+    for path, bundle in _submission_bundles(submissions_dir):
         if not _site_trace_eligible(bundle):
             continue
         evidence = bundle["evidence"]
@@ -786,23 +781,42 @@ def _trace_evidence_results(submissions_dir: Path) -> list[dict]:
 
 
 def _registry_records(path: Path, key: str) -> dict:
-    if not path.is_file():
+    if not _ordinary_input(path):
         return {}
-    payload = json.loads(path.read_text())
-    records = payload.get(key, {})
-    return records if isinstance(records, dict) else {}
+    try:
+        payload = read_json_object(path, 5_000_000)
+    except (OSError, ValueError):
+        return {}
+    return payload[key] if registry_shape(payload, key) else {}
+
+
+def _ordinary_input(path: Path) -> bool:
+    return path.is_file() and not any(item.is_symlink() for item in (path, *path.parents))
+
+
+def _submission_bundles(directory: Path):
+    if any(item.is_symlink() for item in (directory, *directory.parents)):
+        return
+    for path in sorted(directory.glob("*.json")):
+        if not _ordinary_input(path):
+            continue
+        try:
+            yield path, read_json_object(path, 50_000_000)
+        except (OSError, ValueError):
+            continue
 
 
 def _evidence_tier(digest: str, provenance: dict, attestations: dict, reproduced: dict) -> str:
+    provenance = provenance if isinstance(provenance, dict) else {}
     tier = (
         "github_attestation_unverified"
         if provenance.get("provider") == "github_actions"
         else "self_attested"
     )
     verified = attestations.get(digest, {})
-    if verified.get("evidence_tier") in {"github_attested", "trusted_builder"}:
+    if not attestation_record_errors(verified, provenance):
         tier = verified["evidence_tier"]
-    if digest in reproduced:
+    if digest in reproduced and not reproduction_record_errors(reproduced[digest]):
         tier = "maintainer_reproduced"
     return tier
 
@@ -821,231 +835,53 @@ def _lower(estimate: dict | None) -> float:
     return float(estimate.get("lower", 0)) if estimate else -1.0
 
 
-def _site_eligible(bundle: dict) -> bool:
-    """Apply dependency-free admission checks; submission CI performs full recomputation."""
-    claimed = bundle.get("bundle_sha256")
-    unsigned = dict(bundle)
-    unsigned.pop("bundle_sha256", None)
+def _native_eligible(bundle, bundle_type: str) -> bool:
+    """Full offline native admission; no model calls or signature lookup."""
+    if not isinstance(bundle, dict) or bundle.get("bundle_type") != bundle_type:
+        return False
+    structural = {
+        "dspy-security-bench-traceproof-community-evidence": ("dspy_security_bench.trace.evidence", "verify_trace_submission_bundle"),
+        "dspy-security-bench-causal-submission": ("dspy_security_bench.causal.registry", "verify_causal_submission_bundle"),
+        "dspy-security-bench-collective-submission": ("dspy_security_bench.collective.registry", "verify_collective_submission_bundle"),
+        "dspy-security-bench-defense-evidence": ("dspy_security_bench.defend.evidence", "verify_evidence_bundle"),
+    }
+    if bundle_type in FAMILIES:
+        module_name, function_name, eligibility_field, _ = FAMILIES[bundle_type]
+    else:
+        module_name, function_name = structural[bundle_type]
+        eligibility_field = "community_eligible"
+    # Missing verifier dependencies are build errors, not a reason to silently
+    # drop all rows. Data-derived verifier failures only reject that input.
+    verify = getattr(importlib.import_module(module_name), function_name)
     try:
-        encoded = json.dumps(
-            unsigned,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        ).encode()
-    except (TypeError, ValueError):
+        result = verify(bundle)
+        return not result.errors and getattr(result, "valid", True) and getattr(result, eligibility_field)
+    except (TypeError, ValueError, KeyError, AttributeError, OverflowError, RecursionError):
         return False
-    if claimed != hashlib.sha256(encoded).hexdigest():
-        return False
-    report = bundle.get("report")
-    if not isinstance(report, dict):
-        return False
-    trials = report.get("trials")
-    return (
-        isinstance(trials, list)
-        and len(trials) >= 5
-        and report.get("trial_isolation") == "fresh_agent_per_case"
-        and not str(report.get("agent", "")).startswith("reference-")
-    )
+
+
+def _site_eligible(bundle: dict) -> bool:
+    return _native_eligible(bundle, "dspy-security-bench-community-submission")
 
 
 def _site_control_eligible(bundle: dict) -> bool:
-    """Apply safe display checks; submission CI performs complete recomputation."""
-    if bundle.get("bundle_type") != "dspy-security-bench-control-evidence-submission":
-        return False
-    claimed = bundle.get("bundle_sha256")
-    unsigned = dict(bundle)
-    unsigned.pop("bundle_sha256", None)
-    try:
-        encoded = json.dumps(
-            unsigned,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        ).encode()
-    except (TypeError, ValueError):
-        return False
-    if claimed != hashlib.sha256(encoded).hexdigest():
-        return False
-    report = bundle.get("report")
-    if not isinstance(report, dict):
-        return False
-    policy = report.get("policy")
-    trials = report.get("trials")
-    return (
-        isinstance(policy, dict)
-        and policy.get("arguments_captured") is False
-        and isinstance(trials, list)
-        and len(trials) >= 5
-        and report.get("trial_isolation") == "fresh_agent_per_case_and_condition"
-        and not str(report.get("agent", "")).startswith("reference-")
-        and _control_runtime_errors(report) == 0
-    )
+    return _native_eligible(bundle, "dspy-security-bench-control-evidence-submission")
 
 
 def _site_incident_eligible(bundle: dict) -> bool:
-    """Apply safe display checks; submission CI performs complete recomputation."""
-    if bundle.get("bundle_type") != "dspy-security-bench-incident-evidence-submission":
-        return False
-    claimed = bundle.get("bundle_sha256")
-    unsigned = dict(bundle)
-    unsigned.pop("bundle_sha256", None)
-    try:
-        encoded = json.dumps(
-            unsigned,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        ).encode()
-    except (TypeError, ValueError):
-        return False
-    if claimed != hashlib.sha256(encoded).hexdigest():
-        return False
-    report = bundle.get("report")
-    if not isinstance(report, dict):
-        return False
-    summary = report.get("summary")
-    trials = report.get("trials")
-    submission = bundle.get("submission")
-    return (
-        isinstance(summary, dict)
-        and isinstance(submission, dict)
-        and isinstance(trials, list)
-        and len(trials) >= 5
-        and report.get("trial_isolation") == "fresh_agent_per_case"
-        and not str(report.get("agent", "")).startswith("reference-")
-        and summary.get("case_errors") == 0
-    )
+    return _native_eligible(bundle, "dspy-security-bench-incident-evidence-submission")
 
 
 def _site_source_eligible(bundle: dict) -> bool:
-    """Apply safe display checks; submission CI performs complete recomputation."""
-    if bundle.get("bundle_type") != "dspy-security-bench-source-evidence-submission":
-        return False
-    claimed = bundle.get("bundle_sha256")
-    unsigned = dict(bundle)
-    unsigned.pop("bundle_sha256", None)
-    try:
-        encoded = json.dumps(
-            unsigned,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        ).encode()
-    except (TypeError, ValueError):
-        return False
-    if claimed != hashlib.sha256(encoded).hexdigest():
-        return False
-    report = bundle.get("report")
-    if not isinstance(report, dict):
-        return False
-    summary = report.get("summary")
-    trials = report.get("trials")
-    submission = bundle.get("submission")
-    return (
-        isinstance(summary, dict)
-        and isinstance(submission, dict)
-        and isinstance(trials, list)
-        and len(trials) >= 5
-        and report.get("trial_isolation") == "fresh_agent_per_case"
-        and not str(report.get("agent", "")).startswith("reference-")
-        and summary.get("case_errors") == 0
-    )
+    return _native_eligible(bundle, "dspy-security-bench-source-evidence-submission")
 
 
 def _site_authority_eligible(bundle: dict) -> bool:
-    """Apply safe display checks; submission CI performs complete recomputation."""
-    if bundle.get("bundle_type") != "dspy-security-bench-authority-evidence-submission":
-        return False
-    claimed = bundle.get("bundle_sha256")
-    unsigned = dict(bundle)
-    unsigned.pop("bundle_sha256", None)
-    try:
-        encoded = json.dumps(
-            unsigned,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        ).encode()
-    except (TypeError, ValueError):
-        return False
-    if claimed != hashlib.sha256(encoded).hexdigest():
-        return False
-    report = bundle.get("report")
-    if not isinstance(report, dict):
-        return False
-    summary = report.get("summary")
-    trials = report.get("trials")
-    submission = bundle.get("submission")
-    return (
-        isinstance(summary, dict)
-        and isinstance(submission, dict)
-        and isinstance(trials, list)
-        and len(trials) >= 5
-        and report.get("trial_isolation") == "fresh_adapter_per_case"
-        and not str(report.get("adapter", "")).startswith("reference-")
-        and summary.get("case_errors") == 0
-    )
+    return _native_eligible(bundle, "dspy-security-bench-authority-evidence-submission")
 
 
 def _site_trace_eligible(bundle: dict) -> bool:
-    """Apply safe display checks; submission CI performs complete recomputation."""
-    if bundle.get("bundle_type") != "dspy-security-bench-traceproof-community-evidence":
-        return False
-    claimed = bundle.get("bundle_sha256")
-    unsigned = dict(bundle)
-    unsigned.pop("bundle_sha256", None)
-    try:
-        encoded = json.dumps(
-            unsigned,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        ).encode()
-    except (TypeError, ValueError):
-        return False
-    if claimed != hashlib.sha256(encoded).hexdigest():
-        return False
-    evidence = bundle.get("evidence")
-    report = bundle.get("report")
-    submission = bundle.get("submission")
-    provenance = bundle.get("provenance")
-    if not all(isinstance(item, dict) for item in (evidence, report, submission)):
-        return False
-    summary = report.get("summary")
-    spans = evidence.get("spans")
-    return (
-        evidence.get("evidence_type") == "traceproof-normalized-trace"
-        and report.get("report_type") == "TraceProof / Privacy-bounded agent trace analysis"
-        and report.get("source_evidence_sha256") == evidence.get("evidence_sha256")
-        and isinstance(summary, dict)
-        and isinstance(spans, list)
-        and summary.get("span_count") == len(spans)
-        and isinstance(submission.get("runtime"), str)
-        and bool(submission.get("runtime", "").strip())
-        and provenance == {"provider": "self_attested", "evidence_tier": "self_attested"}
-    )
-
-
-def _control_runtime_errors(report: dict) -> int:
-    total = 0
-    for record in report.get("trials", []):
-        control = record.get("control", {}) if isinstance(record, dict) else {}
-        for condition in ("baseline", "controlled"):
-            impact = control.get(condition, {}) if isinstance(control, dict) else {}
-            for pair in impact.get("pairs", []) if isinstance(impact, dict) else []:
-                if not isinstance(pair, dict):
-                    continue
-                for case_name in ("clean", "injected"):
-                    case = pair.get(case_name)
-                    total += bool(isinstance(case, dict) and case.get("error"))
-    return total
+    return _native_eligible(bundle, "dspy-security-bench-traceproof-community-evidence")
 
 
 def main() -> int:

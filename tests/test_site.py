@@ -862,7 +862,7 @@ def test_site_presents_missionforge_source_twin_and_grounding_ledger():
     assert "safeSourceResultUrl" in script
 
 
-def test_source_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_path):
+def test_source_registry_rejects_selfhashed_partial_evidence(tmp_path):
     submissions = tmp_path / "source"
     submissions.mkdir()
     estimate = {"rate": 0.8, "lower": 0.6, "upper": 0.9}
@@ -900,8 +900,7 @@ def test_source_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_path
     attestations.write_text('{"schema_version": 1, "attestations": {}}')
 
     rows = _source_evidence_results(submissions, reproductions, attestations)
-    assert rows[0]["evidenceTier"] == "github_attestation_unverified"
-    assert rows[0]["faithfulness"]["lower"] == 0.6
+    assert rows == []
 
     attestations.write_text(
         json.dumps(
@@ -912,10 +911,10 @@ def test_source_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_path
         )
     )
     rows = _source_evidence_results(submissions, reproductions, attestations)
-    assert rows[0]["evidenceTier"] == "trusted_builder"
+    assert rows == []
 
 
-def test_incident_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_path):
+def test_incident_registry_rejects_selfhashed_partial_evidence(tmp_path):
     submissions = tmp_path / "incident"
     submissions.mkdir()
     bundle = {
@@ -951,8 +950,7 @@ def test_incident_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_pa
     attestations.write_text('{"schema_version": 1, "attestations": {}}')
 
     rows = _incident_evidence_results(submissions, reproductions, attestations)
-    assert rows[0]["evidenceTier"] == "github_attestation_unverified"
-    assert rows[0]["attackResistance"]["lower"] == 0.6
+    assert rows == []
 
     attestations.write_text(
         json.dumps(
@@ -963,7 +961,7 @@ def test_incident_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_pa
         )
     )
     rows = _incident_evidence_results(submissions, reproductions, attestations)
-    assert rows[0]["evidenceTier"] == "trusted_builder"
+    assert rows == []
 
 
 def test_site_has_basic_keyboard_and_landmark_accessibility_contract():
@@ -978,7 +976,7 @@ def test_site_has_basic_keyboard_and_landmark_accessibility_contract():
     assert menu["aria-expanded"] == "false"
 
 
-def test_control_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_path):
+def test_control_registry_rejects_selfhashed_partial_evidence(tmp_path):
     submissions = tmp_path / "control"
     submissions.mkdir()
     bundle = {
@@ -1023,8 +1021,7 @@ def test_control_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_pat
     attestations.write_text('{"schema_version": 1, "attestations": {}}')
 
     rows = _control_evidence_results(submissions, reproductions, attestations)
-    assert rows[0]["evidenceTier"] == "github_attestation_unverified"
-    assert rows[0]["containment"]["lower"] == 0.6
+    assert rows == []
 
     attestations.write_text(
         json.dumps(
@@ -1035,7 +1032,7 @@ def test_control_registry_rows_only_upgrade_tiers_from_reviewed_registry(tmp_pat
         )
     )
     rows = _control_evidence_results(submissions, reproductions, attestations)
-    assert rows[0]["evidenceTier"] == "trusted_builder"
+    assert rows == []
 
 
 def test_site_never_upgrades_a_claimed_attestation_without_registry_verification(
@@ -1086,7 +1083,7 @@ def test_site_never_upgrades_a_claimed_attestation_without_registry_verification
         )
     )
     rows = _proofrun_results(submissions, reproductions, attestations)
-    assert rows[0]["evidenceTier"] == "trusted_builder"
+    assert rows[0]["evidenceTier"] == "github_attestation_unverified"
 
 
 def test_site_escapes_untrusted_community_fields_before_rendering():

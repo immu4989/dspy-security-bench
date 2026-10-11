@@ -519,3 +519,31 @@ still required before publishing either registry.
 Use a stable, trusted checkout for CI. These checks reject static linked inputs;
 they are not an OS sandbox, an atomic snapshot of an entire checkout, or protection
 against malicious code modifying files concurrently under the same user account.
+
+### Dashboard publication gate (on main)
+
+Every community-evidence row is now admitted by its full native verifier before
+projection into the dashboard. A self-rehashed aggregate with missing or
+contradictory trials is not sufficient. Strict JSON intake rejects malformed
+files and linked inputs; the standalone renderer skips those rows. Malformed
+attestation/reproduction records cannot upgrade a tier, and local provenance
+cannot receive a GitHub-attested label. CI and site rendering share the same
+typed registry-record checks.
+
+The Pages workflow runs the complete submission/registry gate **before** data
+generation and artifact upload. Unlike the standalone renderer's safe omission
+behavior, an invalid submission or registry makes publication fail. GitHub claims
+must pass online verification during this gate; local registry eligibility alone
+never enters its authenticated-bundle map. Both submission CI and Pages provide
+the normal workflow token only to this verification step, with `contents: read`
+and `attestations: read`. The Pages build has no write/OIDC permission; Pages
+configuration and deployment use a separate job with the required Pages/OIDC
+write permissions. No personal token is stored in the repository.
+
+The renderer remains offline and needs only Python's standard library and
+PyYAML, not model-provider SDKs. Reading a structurally valid registry record
+locally is not itself cryptographic authentication: publish through the gate,
+using a reviewed verifier/workflow implementation. Maintainer reproduction
+records still require human review and do not cause independent execution.
+Tests exercise malformed metadata and simulated verification responses; a local
+test pass does not assert that a live GitHub deployment or signature lookup ran.

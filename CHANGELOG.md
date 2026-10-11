@@ -10,6 +10,14 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Dashboard community rows now require full native verification across all nine
+  registry families, not just self-consistent outer hashes and plausible summary
+  fields. Site generation uses strict JSON intake and the same typed tier-record
+  rules as submission CI. Pages publication now requires the full submission gate
+  before generating/uploading data; its build uses read-only permissions, with
+  Pages/OIDC writes isolated to deployment. Live attestation checks use the normal
+  workflow token only in the verification step. Existing committed site data
+  remains unchanged; no new verified results or scores were invented.
 - Community-submission CI now applies strict bounded JSON intake to all nine
   submission directories and both tier registries, refuses linked/non-file
   inputs, enforces directory/type matching, and continues after malformed files

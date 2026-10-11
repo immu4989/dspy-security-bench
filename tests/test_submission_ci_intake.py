@@ -7,6 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from dspy_security_bench.procurement.repeat import create_submission_bundle
+from dspy_security_bench.proofrun import TRUSTED_BUILDER_WORKFLOW
 from scripts import validate_impact_submissions as intake
 from tests.test_proofrun import _proof_bundle
 
@@ -48,7 +49,7 @@ def attestation_record(bundle):
         "evidence_tier": "trusted_builder", "verified_by": "synthetic-reviewer",
         "verified_at": "2026-10-10T12:00:00Z", "run_url": bundle["provenance"]["run_url"],
         "source_commit": bundle["provenance"]["commit_sha"],
-        "signer_workflow": intake.TRUSTED_BUILDER_WORKFLOW,
+        "signer_workflow": TRUSTED_BUILDER_WORKFLOW,
     }
 
 

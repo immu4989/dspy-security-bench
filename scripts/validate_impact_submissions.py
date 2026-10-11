@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
 from pathlib import Path
 
 from dspy_security_bench.authority.repeat import BUNDLE_TYPE as AUTHORITY_BUNDLE_TYPE
@@ -26,9 +25,13 @@ from dspy_security_bench.procurement.control_registry import (
 from dspy_security_bench.procurement.control_registry import (
     verify_control_submission_bundle,
 )
+from dspy_security_bench.procurement.registry_metadata import (
+    attestation_record_errors,
+    registry_shape,
+    reproduction_record_errors,
+)
 from dspy_security_bench.procurement.repeat import verify_submission_bundle
-from dspy_security_bench.procurement.submission_metadata import _https_reference
-from dspy_security_bench.proofrun import TRUSTED_BUILDER_WORKFLOW, verify_github_attestation
+from dspy_security_bench.proofrun import verify_github_attestation
 from dspy_security_bench.trace.evidence import BUNDLE_TYPE as TRACE_BUNDLE_TYPE
 from dspy_security_bench.trace.evidence import verify_trace_submission_bundle
 
@@ -156,7 +159,7 @@ def _validate_attestations(root: Path, authenticated_bundles: dict[str, dict]) -
     except INTAKE_ERRORS:
         print("[INVALID] submissions/attestations.json: invalid input; source details withheld")
         return True
-    if not _registry_shape(registry, "attestations"):
+    if not registry_shape(registry, "attestations"):
         print("[INVALID] submissions/attestations.json: unsupported registry shape")
         return True
     failed = False
@@ -171,44 +174,8 @@ def _validate_attestations(root: Path, authenticated_bundles: dict[str, dict]) -
             print(f"[INVALID] attestation {digest}: no cryptographically accepted bundle")
             failed = True
             continue
-        if not isinstance(record, dict):
-            print(f"[INVALID] attestation {digest}: metadata must be an object")
-            failed = True
-            continue
-        required = (
-            "evidence_tier",
-            "verified_by",
-            "verified_at",
-            "run_url",
-            "source_commit",
-            "signer_workflow",
-        )
-        if set(record) != set(required) or any(not isinstance(record.get(field), str) or not record[field].strip() for field in required):
-            print(f"[INVALID] attestation {digest}: missing, unsupported, or mistyped metadata")
-            failed = True
-            continue
-        if not _utc_timestamp(record["verified_at"]) or not _https_reference(record["run_url"]):
-            print(f"[INVALID] attestation {digest}: invalid timestamp or run URL")
-            failed = True
-        expected_tier = (
-            "trusted_builder"
-            if provenance.get("builder_kind") == "dspy_security_bench_reusable_workflow"
-            else "github_attested"
-        )
-        comparisons = {
-            "evidence_tier": expected_tier,
-            "run_url": provenance.get("run_url"),
-            "source_commit": provenance.get("commit_sha"),
-        }
-        for field, expected in comparisons.items():
-            if record.get(field) != expected:
-                print(f"[INVALID] attestation {digest}: {field} does not match bundle")
-                failed = True
-        if (
-            expected_tier == "trusted_builder"
-            and record.get("signer_workflow") != TRUSTED_BUILDER_WORKFLOW
-        ):
-            print(f"[INVALID] attestation {digest}: unexpected trusted signer workflow")
+        for error in attestation_record_errors(record, provenance):
+            print(f"[INVALID] attestation {digest}: {error}")
             failed = True
     return failed
 
@@ -220,7 +187,7 @@ def _validate_reproductions(root: Path, accepted_digests: set[str]) -> bool:
     except INTAKE_ERRORS:
         print("[INVALID] submissions/reproductions.json: invalid input; source details withheld")
         return True
-    if not _registry_shape(registry, "reproductions"):
+    if not registry_shape(registry, "reproductions"):
         print("[INVALID] submissions/reproductions.json: unsupported registry shape")
         return True
     failed = False
@@ -232,37 +199,14 @@ def _validate_reproductions(root: Path, accepted_digests: set[str]) -> bool:
         if digest not in accepted_digests:
             print(f"[INVALID] reproduction {digest}: no accepted submission has this digest")
             failed = True
-        if not isinstance(reproduction, dict):
-            print(f"[INVALID] reproduction {digest}: metadata must be an object")
-            failed = True
-            continue
-        required = ("reproduced_by", "run_url", "created_at")
-        if set(reproduction) != set(required) or any(not isinstance(reproduction.get(field), str) or not reproduction[field].strip() for field in required):
-            print(f"[INVALID] reproduction {digest}: missing, unsupported, or mistyped metadata")
-            failed = True
-            continue
-        if not _utc_timestamp(reproduction["created_at"]) or not _https_reference(reproduction["run_url"]):
-            print(f"[INVALID] reproduction {digest}: invalid timestamp or run URL")
+        for error in reproduction_record_errors(reproduction):
+            print(f"[INVALID] reproduction {digest}: {error}")
             failed = True
     return failed
 
 
-def _registry_shape(registry: dict, key: str) -> bool:
-    return (set(registry) == {"schema_version", key} and type(registry.get("schema_version")) is int
-            and registry["schema_version"] == 1 and isinstance(registry.get(key), dict))
-
-
 def _is_digest(value) -> bool:
     return isinstance(value, str) and re.fullmatch(r"[a-f0-9]{64}", value) is not None
-
-
-def _utc_timestamp(value) -> bool:
-    if not isinstance(value, str) or not value.endswith("Z") or "T" not in value:
-        return False
-    try:
-        return datetime.fromisoformat(value[:-1] + "+00:00").utcoffset() == timezone.utc.utcoffset(None)
-    except ValueError:
-        return False
 
 
 if __name__ == "__main__":
