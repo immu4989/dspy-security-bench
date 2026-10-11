@@ -10,6 +10,14 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- ProofRun review now binds native verification and GitHub attestation to the
+  same exact-byte snapshot, with strict bounded JSON intake and optional
+  `--expected-file-sha256` transport pins across all five evidence families.
+  Invalid evidence now exits 2 (previously sometimes 1); valid-but-ineligible
+  or unauthenticated evidence exits 1. Temporary signature-check copies are
+  cleaned up, source/process diagnostics are withheld, and malformed GitHub
+  responses fail closed. Multiple verified attestations are checked for a
+  matching certificate rather than depending on response order.
 - ProofRun `run` and `control` now validate submission declarations before
   importing agent factories, loading policies/callbacks, or making model calls.
   Runner provenance is captured once before execution and reused when packaging.

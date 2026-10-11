@@ -116,6 +116,13 @@ def main() -> int:
                             "--out", "repeat-bundle.json"])
         # Reference fixtures intentionally cannot qualify as community results.
         run_cli(directory, ["impact", "verify", "repeat-bundle.json", "--minimum-trials", "2"], 1)
+        file_pin = hashlib.sha256((directory / "repeat-bundle.json").read_bytes()).hexdigest()
+        run_cli(directory, ["proofrun", "verify", "repeat-bundle.json", "--offline",
+                            "--expected-file-sha256", file_pin], 1)
+        run_cli(directory, ["proofrun", "verify", "repeat-bundle.json", "--offline",
+                            "--expected-file-sha256", "0" * 64], 2)
+        (directory / "ambiguous-bundle.json").write_text('{"private":1,"private":2}', encoding="utf-8")
+        run_cli(directory, ["proofrun", "verify", "ambiguous-bundle.json", "--offline"], 2)
         run_cli(directory, ["impact", "sharing-review", "repeat-bundle.json",
                             "--out", "sharing-review.json"])
         run_cli(directory, ["impact", "sharing-review", "repeat-bundle.json",
@@ -129,6 +136,7 @@ def main() -> int:
             invalid_metadata, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False,
         ).encode()).hexdigest()
         (directory / "invalid-metadata.json").write_text(json.dumps(invalid_metadata), encoding="utf-8")
+        run_cli(directory, ["proofrun", "verify", "invalid-metadata.json", "--offline"], 2)
         run_cli(directory, ["impact", "sharing-review", "invalid-metadata.json",
                             "--out", "invalid-metadata-review.json"], 2)
         if (directory / "invalid-metadata-review.json").exists():

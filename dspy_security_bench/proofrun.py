@@ -6,10 +6,16 @@ import json
 import os
 import shutil
 import subprocess
+import tempfile
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+from dspy_security_bench.jsonio import decode_json_object, read_json_snapshot
+
+MAX_BUNDLE_BYTES = 50_000_000
+MAX_ATTESTATION_RESPONSE_BYTES = 5_000_000
 
 TRUSTED_BUILDER_WORKFLOW = (
     "immu4989/dspy-security-bench/.github/workflows/proofrun.yml"
@@ -74,8 +80,16 @@ def verify_github_attestation(
     repository: str | None = None,
     require_trusted_builder: bool = False,
     deny_self_hosted: bool = True,
+    bundle_bytes: bytes | None = None,
 ) -> AttestationResult:
-    """Verify an exact bundle with ``gh attestation verify`` and enforce runner claims."""
+    """Verify a private exact-byte snapshot with gh and enforce certificate claims.
+
+    ``bundle_bytes`` lets a caller bind native replay to the same input read.
+    Without it, read the file once and require its decoded content to match
+    ``bundle``. This function authenticates provenance, not report semantics.
+    """
+    if not isinstance(bundle, Mapping):
+        return _failed("bundle must be an object")
     provenance = bundle.get("provenance")
     if not isinstance(provenance, Mapping) or provenance.get("provider") != "github_actions":
         return AttestationResult(
@@ -88,6 +102,26 @@ def verify_github_attestation(
             errors=("bundle does not declare GitHub Actions provenance",),
             warnings=(),
         )
+
+    identity_fields = ("repository", "commit_sha", "ref", "run_url", "builder_kind", "runner_environment")
+    if any(not isinstance(provenance.get(field), str) or not provenance[field].strip() for field in identity_fields):
+        return _failed("GitHub provenance requires non-empty string identity claims")
+    if provenance["builder_kind"] not in ("caller_workflow", "dspy_security_bench_reusable_workflow"):
+        return _failed("unsupported provenance.builder_kind")
+    if provenance["runner_environment"] not in ("github-hosted", "self-hosted"):
+        return _failed("unsupported provenance.runner_environment")
+    try:
+        if bundle_bytes is None:
+            raw, decoded = read_json_snapshot(bundle_path, MAX_BUNDLE_BYTES)
+        else:
+            raw = bundle_bytes
+            decoded = decode_json_object(raw, MAX_BUNDLE_BYTES)
+        # Python equality aliases bool/int and int/float. Compare typed JSON.
+        options = {"sort_keys": True, "separators": (",", ":"), "allow_nan": False}
+        if json.dumps(decoded, **options) != json.dumps(bundle, **options):
+            return _failed("bundle claims do not match the input snapshot")
+    except (OSError, TypeError, ValueError, RecursionError):
+        return _failed("could not read a matching strict JSON snapshot; source details withheld")
 
     claimed_repository = str(provenance.get("repository", ""))
     expected_repository = repository or claimed_repository
@@ -108,7 +142,7 @@ def verify_github_attestation(
         "gh",
         "attestation",
         "verify",
-        str(bundle_path),
+        "",  # Replaced by the private snapshot path immediately before execution.
         "--repo",
         expected_repository,
         "--format",
@@ -126,28 +160,25 @@ def verify_github_attestation(
         command.extend(["--source-ref", source_ref])
 
     try:
-        completed = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=60,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return _failed(f"could not execute GitHub attestation verification: {exc}")
+        with tempfile.TemporaryDirectory(prefix="proofrun-verify-") as temporary:
+            snapshot = Path(temporary) / "bundle.json"
+            snapshot.write_bytes(raw)
+            command[3] = str(snapshot)
+            completed = subprocess.run(
+                command, capture_output=True, text=True, check=False, timeout=60,
+            )
+    except (OSError, subprocess.TimeoutExpired, UnicodeError):
+        return _failed("could not execute GitHub attestation verification; process details withheld")
     if completed.returncode:
-        detail = (completed.stderr or completed.stdout).strip()
-        return _failed(f"GitHub attestation verification failed: {detail}")
+        return _failed("GitHub attestation verification failed; process output withheld")
     try:
-        results = json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        return _failed(f"GitHub CLI returned invalid verification JSON: {exc}")
+        response = b'{"results":' + completed.stdout.encode("utf-8") + b'}'
+        results = decode_json_object(response, MAX_ATTESTATION_RESPONSE_BYTES)["results"]
+    except (TypeError, ValueError, AttributeError):
+        return _failed("GitHub CLI returned invalid verification JSON; source details withheld")
     if not isinstance(results, list) or not results:
         return _failed("GitHub CLI returned no verified attestations")
 
-    certificate = results[0].get("verificationResult", {}).get("signature", {}).get("certificate", {})
-    if not isinstance(certificate, Mapping):
-        return _failed("verified attestation did not include certificate claims")
     expected_source = f"https://github.com/{expected_repository}"
     errors = []
     comparisons = {
@@ -156,36 +187,43 @@ def verify_github_attestation(
         "sourceRepositoryRef": source_ref,
         "runnerEnvironment": provenance.get("runner_environment"),
     }
-    for field, expected in comparisons.items():
-        if expected and certificate.get(field) != expected:
-            errors.append(f"certificate {field} does not match the bundle claim")
     expected_run = str(provenance.get("run_url", ""))
-    actual_run = str(certificate.get("runInvocationURI", ""))
-    if expected_run and actual_run.rstrip("/") != expected_run.rstrip("/"):
-        errors.append("certificate runInvocationURI does not match provenance.run_url")
-    if errors:
+    for result in results:
+        certificate = result
+        for key in ("verificationResult", "signature", "certificate"):
+            certificate = certificate.get(key) if isinstance(certificate, Mapping) else None
+        if not isinstance(certificate, Mapping):
+            errors.append("verified attestation did not include certificate claims")
+            continue
+        mismatches = [f"certificate {field} does not match the bundle claim"
+                      for field, expected in comparisons.items() if certificate.get(field) != expected]
+        actual_run = certificate.get("runInvocationURI")
+        if not isinstance(actual_run, str) or actual_run.rstrip("/") != expected_run.rstrip("/"):
+            mismatches.append("certificate runInvocationURI does not match provenance.run_url")
+        if mismatches:
+            errors.extend(mismatches)
+            continue
         return AttestationResult(
-            verified=False,
-            evidence_tier="github_attestation_unverified",
+            verified=True,
+            evidence_tier="trusted_builder" if trusted_builder else "github_attested",
             repository=expected_repository,
             signer_workflow=signer_workflow,
-            source_commit=commit_sha or None,
-            run_url=expected_run or None,
-            errors=tuple(errors),
-            warnings=(),
+            source_commit=commit_sha,
+            run_url=expected_run,
+            errors=(),
+            warnings=(
+                "provenance authenticates the workflow and exact bytes; it does not make model-provider outputs independently observable",
+            ),
         )
-
     return AttestationResult(
-        verified=True,
-        evidence_tier="trusted_builder" if trusted_builder else "github_attested",
+        verified=False,
+        evidence_tier="github_attestation_unverified",
         repository=expected_repository,
         signer_workflow=signer_workflow,
-        source_commit=commit_sha or None,
-        run_url=expected_run or actual_run or None,
-        errors=(),
-        warnings=(
-            "provenance authenticates the workflow and exact bytes; it does not make model-provider outputs independently observable",
-        ),
+        source_commit=commit_sha,
+        run_url=expected_run,
+        errors=tuple(dict.fromkeys(errors)),
+        warnings=(),
     )
 
 

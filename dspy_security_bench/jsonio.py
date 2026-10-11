@@ -19,11 +19,16 @@ def read_json_object(path: Path, maximum: int) -> dict[str, Any]:
     Diagnostics intentionally exclude source keys and values, which may contain
     private identifiers. This reader does not authenticate or validate a schema.
     """
+    return read_json_snapshot(path, maximum)[1]
+
+
+def read_json_snapshot(path: Path, maximum: int) -> tuple[bytes, dict[str, Any]]:
+    """Return the exact bounded bytes and their strict interpretation from one read."""
     if type(maximum) is not int or maximum < 1:
         raise ValueError("maximum JSON input size must be a positive integer")
     with path.open("rb") as stream:
         raw = stream.read(maximum + 1)
-    return decode_json_object(raw, maximum)
+    return raw, decode_json_object(raw, maximum)
 
 
 def decode_base64_statement(value: object) -> tuple[bytes, dict[str, Any]]:

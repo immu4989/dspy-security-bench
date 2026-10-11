@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib
 import json
+import re
 import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from dspy_security_bench.jsonio import read_json_snapshot
 from dspy_security_bench.proofrun import capture_provenance, verify_github_attestation
+
+MAX_BUNDLE_BYTES = 50_000_000
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -118,6 +123,7 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("bundle")
     verify.add_argument("--attestation-repo", help="owner/repository; defaults to bundle metadata")
     verify.add_argument("--minimum-trials", type=int, default=5)
+    verify.add_argument("--expected-file-sha256", help="independent SHA-256 pin for exact input bytes")
     verify.add_argument(
         "--offline", action="store_true", help="skip cryptographic provenance lookup"
     )
@@ -503,8 +509,19 @@ def _authority(args) -> int:
 
 def _verify(args) -> int:
     path = Path(args.bundle)
+    if args.minimum_trials < 2:
+        print("[INVALID] --minimum-trials must be at least 2", file=sys.stderr)
+        return 2
+    pin = args.expected_file_sha256
+    if pin is not None and re.fullmatch(r"[a-f0-9]{64}", pin) is None:
+        print("[INVALID] --expected-file-sha256 must be 64 lowercase hexadecimal characters", file=sys.stderr)
+        return 2
     try:
-        bundle = json.loads(path.read_text())
+        raw, bundle = read_json_snapshot(path, MAX_BUNDLE_BYTES)
+        file_digest = hashlib.sha256(raw).hexdigest()
+        if pin is not None and pin != file_digest:
+            print("[INVALID] input file SHA-256 does not match the independent pin", file=sys.stderr)
+            return 2
         bundle_type = bundle.get("bundle_type")
         if bundle_type == "dspy-security-bench-control-evidence-submission":
             from dspy_security_bench.procurement.control_registry import (
@@ -540,24 +557,28 @@ def _verify(args) -> int:
             )
             eligible = integrity.community_eligible
             eligibility_label = "Authority registry eligibility"
-        else:
+        elif bundle_type == "dspy-security-bench-community-submission":
             from dspy_security_bench.procurement.repeat import verify_submission_bundle
 
             integrity = verify_submission_bundle(bundle, minimum_trials=args.minimum_trials)
             eligible = integrity.community_eligible
             eligibility_label = "Leaderboard eligibility"
-    except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
-        print(f"[INVALID] {path}: {exc}", file=sys.stderr)
+        else:
+            raise ValueError("unsupported bundle type")
+    except (OSError, TypeError, ValueError, KeyError, AttributeError, OverflowError, RecursionError) as exc:
+        print(f"[INVALID] bundle intake or verification failed ({type(exc).__name__}); source details withheld", file=sys.stderr)
         return 2
 
+    print(f"Input snapshot sha256: {file_digest}")
     print(f"Integrity: {'valid' if integrity.valid else 'INVALID'}")
     print(f"{eligibility_label}: {'yes' if eligible else 'no'}")
     print(f"Offline evidence tier: {integrity.evidence_tier}")
-    for error in integrity.errors:
-        print(f"  error: {error}")
+    if not integrity.valid:
+        print("  error: bundle failed native verification; source-derived details withheld")
+        return 2
     for warning in integrity.warnings:
         print(f"  note: {warning}")
-    if not integrity.valid or not eligible:
+    if not eligible:
         return 1
     if args.offline:
         return 0
@@ -568,6 +589,7 @@ def _verify(args) -> int:
         repository=args.attestation_repo,
         require_trusted_builder=args.require_trusted_builder,
         deny_self_hosted=not args.allow_self_hosted_runner,
+        bundle_bytes=raw,
     )
     print(f"Cryptographic evidence tier: {attestation.evidence_tier}")
     if attestation.run_url:

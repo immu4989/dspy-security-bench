@@ -221,6 +221,48 @@ Online verification rejects self-hosted-runner attestations by default. A
 reviewer can opt in with `--allow-self-hosted-runner`, but should separately
 evaluate that runner's trust and isolation.
 
+### Verify one exact input snapshot
+
+All five bundle families use bounded strict JSON intake: at most 50,000,000
+bytes, a UTF-8 object root, no duplicate members, no nonfinite numbers or
+unpaired Unicode surrogates, and bounded nesting/numeric tokens. Unsupported
+bundle types and malformed native evidence fail closed. Public diagnostics
+withhold source-derived exception text and external process output.
+
+Verification prints `Input snapshot sha256`, the SHA-256 of the exact file bytes
+read once. To compare a handoff against a digest obtained through an independent
+trusted channel, use:
+
+```bash
+dspy-security-bench proofrun verify proofrun.json --offline \
+  --expected-file-sha256 "$EXPECTED_FILE_SHA256"
+```
+
+The pin is **not** the JSON `bundle_sha256` field: whitespace changes the file
+digest but not the canonical bundle digest. A digest copied from the same
+untrusted handoff supplies no independent authentication.
+
+Online verification passes a private temporary copy of those original bytes to
+`gh attestation verify`, then removes it, including on process failures. It does
+not reopen the input path after native verification. The verdict describes that
+snapshot, not whatever a concurrent writer might later put at the original
+path. This prevents path-replacement drift between checks; it is not isolation
+from malicious software running as the same OS user.
+
+GitHub CLI remains responsible for cryptographic signature and artifact-digest
+verification. ProofRun additionally requires a matching certificate's repository,
+commit, ref, runner, and workflow-run claims. It accepts a matching verified
+attestation even if earlier returned attestations do not match. Statement text
+alone never supplies these identity checks; see the
+[GitHub CLI verification contract](https://cli.github.com/manual/gh_attestation_verify).
+Tests use simulated GitHub responses, not live signing or a live trust service.
+
+Review exit codes are now consistent: `0` means native-valid and eligible (plus
+verified provenance for online mode); `1` means valid but ineligible, or online
+attestation was not verified; `2` means invalid evidence, malformed input/policy,
+pin mismatch, or native verification failure. Earlier versions returned `1` for
+some invalid native bundles. Offline success does not authenticate provenance.
+
 ### Preserve generated evidence
 
 **On main after v0.19.0**, every ProofRun generation command (`run`, `control`,
