@@ -74,11 +74,11 @@ inputs:
     required: false
     default: ""
   output:
-    description: "Attested bundle path"
+    description: "New workspace-relative bundle file; missing parent directories are created"
     required: false
     default: "proofrun.json"
   card-output:
-    description: "Shareable SVG path for control evidence"
+    description: "New workspace-relative SVG file for control evidence; missing parents are created"
     required: false
     default: "proofrun-control.svg"
   artifact-name:
@@ -179,12 +179,16 @@ runs:
         PROOFRUN_ACTION_REF: ${{ github.action_ref }}
         PROOFRUN_RUNNER_ENVIRONMENT: ${{ runner.environment }}
       run: |
+        python "$GITHUB_ACTION_PATH/scripts/proofrun_action_paths.py"
         submitter="$PROOFRUN_SUBMITTER"
         agent_source="$PROOFRUN_AGENT_SOURCE"
         if [[ -z "$submitter" ]]; then submitter="@$GITHUB_ACTOR"; fi
         if [[ -z "$agent_source" ]]; then
           agent_source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
         fi
+        # Preserve a completed experiment even when its statistical gate exits 1.
+        # Preflight/runtime errors (exit 2) must never authorize stale artifacts.
+        set +e
         if [[ "$PROOFRUN_EVIDENCE_KIND" == "impact" ]]; then
           dspy-security-bench proofrun run \
             --agent "$PROOFRUN_AGENT" \
@@ -256,10 +260,15 @@ runs:
           echo "evidence-kind must be impact, control, incident, source, or authority" >&2
           exit 2
         fi
+        run_status=$?
+        if [[ "$run_status" == 0 || "$run_status" == 1 ]]; then
+          echo "evidence-ready=true" >> "$GITHUB_OUTPUT"
+        fi
+        exit "$run_status"
 
     - name: Inspect generated bundle
       id: bundle
-      if: always()
+      if: always() && steps.run.outputs.evidence-ready == 'true'
       shell: bash
       env:
         PROOFRUN_OUTPUT: ${{ inputs.output }}
@@ -292,7 +301,7 @@ runs:
         name: ${{ inputs.artifact-name }}
         path: |
           ${{ inputs.output }}
-          ${{ inputs.card-output }}
+          ${{ inputs.evidence-kind == 'control' && inputs.card-output || '' }}
         if-no-files-found: error
 
     - name: Enforce ProofRun gate after preserving evidence

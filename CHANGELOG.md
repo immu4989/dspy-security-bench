@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Fixed the composite-action integration with strict output preflight: nested
+  artifact directories are prepared safely, without replacing files or following
+  linked paths. Publication now requires the current experiment to complete;
+  rejected retained files cannot be re-attested/uploaded merely because they
+  exist. Statistical gate failures still preserve new evidence. Non-control
+  runs no longer upload stale control cards. Regression tests execute the actual
+  action shell across all five families, including failed gates and invalid input.
 - All five ProofRun families now share typed submission preflight. Incident,
   source, and authority runs reject invalid declarations before loading user
   factories or spending evaluation calls, and retain one pre-execution provenance

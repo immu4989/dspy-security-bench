@@ -80,7 +80,13 @@ def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch, cap
 
     monkeypatch.setattr(smoke, "run_cli", fixture_cli)
     assert smoke.main() == 0
-    assert len(calls) == 59
+    assert len(calls) == 68
+    for family in ("incident", "source", "authority"):
+        assert any(args[:2] == ["proofrun", family] and expected == 0 for args, expected in calls)
+        assert any(args[:3] == ["proofrun", "verify", f"{family}-bundle.json"] and expected == 1
+                   for args, expected in calls)
+        assert any(args[:3] == ["proofrun", "verify", f"{family}-bad-metadata.json"] and expected == 2
+                   for args, expected in calls)
     assert any("--expected-file-sha256" in args and expected == 2 for args, expected in calls)
     assert any("--expected-plan-sha256" in args and expected == 2 for args, expected in calls)
     assert any(args[:3] == ["scan", "policy", "review"] and expected == 1 for args, expected in calls)

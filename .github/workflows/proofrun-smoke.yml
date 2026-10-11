@@ -11,6 +11,8 @@ on:
       - "dspy_security_bench/proofrun.py"
       - "dspy_security_bench/proofrun_cli.py"
       - "scripts/proofrun_action_metadata.py"
+      - "scripts/proofrun_action_paths.py"
+      - "tests/test_proofrun_action_execution.py"
       - "dspy_security_bench/procurement/**"
       - "dspy_security_bench/incident/**"
       - "dspy_security_bench/mission/**"

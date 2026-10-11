@@ -174,6 +174,20 @@ the adapter contract, threat model, registry, and interpretation limits.
 
 ## Flexible path: the composite action
 
+The composite action creates missing parent directories for its `output` and
+control-only `card-output` inputs. Use new, literal workspace-relative filenames
+(for example `artifacts/run-001/evidence.json`); existing files, symlinks, parent
+traversal, glob patterns, and colliding bundle/card paths are rejected before
+evaluation. The standalone CLI still requires pre-existing parent directories.
+
+Only an experiment completing with exit 0 (gate passed) or 1 (gate failed) enables
+artifact inspection, upload, and optional attestation. Exit 2 preflight/runtime
+errors do not authorize publishing a retained file from an earlier invocation.
+Failed statistical gates still preserve their new evidence before the action
+fails. Non-control runs never upload a leftover control card. These checks are
+not a sandbox against evaluated code running in the same job; use the isolated
+reusable workflow for the stronger execution/attestation separation.
+
 Use the action when an existing job needs custom setup before evaluation:
 
 ```yaml
