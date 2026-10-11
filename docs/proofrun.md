@@ -473,3 +473,49 @@ dspy-security-bench proofrun verify submissions/source/your-agent.json
 
 Use only synthetic inputs. Never include customer records, private prompts,
 credentials, production tool outputs, or restricted acquisition information.
+
+### Public registry intake boundaries (on main)
+
+`python scripts/validate_impact_submissions.py` checks the nine committed
+submission categories (`impact`, `control`, `incident`, `source`, `authority`,
+`trace`, `causal`, `collective`, and `defense`) and both tier-metadata registries.
+It invokes each category's native verifier and refuses a bundle filed under a
+different type. This broader registry check is distinct from the five-family
+ProofRun review CLI/API described above.
+
+CI reads strict UTF-8 JSON objects and rejects duplicate keys, nonfinite numbers,
+unpaired surrogates, excessive nesting/numeric tokens, symlinks in input paths,
+and non-regular files. Limits are 1,000 submission candidates, 50 MB per bundle,
+250 MB of discovered aggregate file sizes, and 5 MB per tier registry (decimal
+bytes). Count/aggregate overflow rejects the batch; malformed individual inputs
+do not prevent later candidates from being checked. Any rejected candidate or
+registry entry makes the script exit 1; complete acceptance exits 0.
+
+Safe relative filenames identify failures; source field names, values, malformed
+filenames, and raw native/process diagnostics are withheld. GitHub attestation
+lookup happens only after native validity and eligibility pass, and consumes the
+same original byte snapshot. The script prints cryptographic acceptance only
+after that lookup succeeds. It requires an already configured GitHub CLI identity
+for online checks; no credentials or additional permissions are created by intake.
+
+`submissions/attestations.json` references only bundles cryptographically accepted
+during this run—not merely local valid/eligible results. Its exact root fields
+are `schema_version` (integer 1) and `attestations`. Each lowercase SHA-256 key
+maps to exactly six nonempty string fields: `evidence_tier`, `verified_by`,
+`verified_at`, `run_url`, `source_commit`, and `signer_workflow`. UTC timestamps
+ending in `Z` and credential-free HTTPS run URLs are required. Tier, commit,
+and run URL must match the authenticated bundle; the trusted-builder workflow
+must match the project's fixed workflow identity. Caller-workflow signer labels
+and human reviewer names remain maintainer declarations, not additional identity
+proofs.
+
+`submissions/reproductions.json` has exact root fields `schema_version` (integer
+1) and `reproductions`. Each accepted bundle digest maps to exactly three
+nonempty strings: `reproduced_by`, `run_url`, and `created_at`, with the same
+URL/time rules. This validates linkage and record structure; it does not perform
+or independently authenticate the claimed reproduction. Maintainer review is
+still required before publishing either registry.
+
+Use a stable, trusted checkout for CI. These checks reject static linked inputs;
+they are not an OS sandbox, an atomic snapshot of an entire checkout, or protection
+against malicious code modifying files concurrently under the same user account.

@@ -10,6 +10,14 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Community-submission CI now applies strict bounded JSON intake to all nine
+  submission directories and both tier registries, refuses linked/non-file
+  inputs, enforces directory/type matching, and continues after malformed files
+  with an overall failure. Only native-valid eligible evidence reaches GitHub
+  verification, using the original byte snapshot. Attestation registry entries
+  now require a separately authenticated bundle; typed records can no longer
+  turn locally accepted evidence into a cryptographic tier through null/string
+  coercion. Registry metadata remains an owner-reviewed declaration.
 - Added `proofrun verify --json` and the `proofrun_review.review_bundle` Python
   API for CI and vendor-intake workflows across five evidence families. One
   shared decision model separates native integrity, eligibility, and online
