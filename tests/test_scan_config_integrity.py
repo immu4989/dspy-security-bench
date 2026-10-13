@@ -50,6 +50,7 @@ def test_unknown_or_wrongly_typed_configuration_does_not_silently_default(value)
         b"agent: !!python/object:private-value {}",
         b"x" * 1_000_001,
     ],
+    ids=["malformed-yaml", "invalid-utf8", "unsafe-tag", "oversized-config"],
 )
 def test_loader_errors_do_not_echo_source_contents(tmp_path, raw):
     path = tmp_path / "config.yaml"
@@ -89,7 +90,8 @@ def test_safe_yaml_alias_without_overrides_remains_supported(tmp_path):
     assert config.gate.min_security == config.gate.max_regression == 0.9
 
 
-@pytest.mark.parametrize("label", ["agent\nforged verdict", "\x1b[2Jagent", "a" * 513, "\u202eagent", "agent\x00"])
+@pytest.mark.parametrize("label", ["agent\nforged verdict", "\x1b[2Jagent", "a" * 513, "\u202eagent", "agent\x00"],
+                         ids=["newline", "escape", "oversized", "bidi-control", "nul"])
 @pytest.mark.parametrize("section,key", [("agent", "name"), ("agent", "model"), ("scan", "attacks"), ("scan", "defenses"), ("scan", "suites")])
 def test_control_or_unbounded_identity_labels_are_rejected_without_echo(label, section, key):
     values = {"agent": {"model": "fixture"}}

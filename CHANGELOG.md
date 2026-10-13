@@ -10,6 +10,14 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Bounded pytest parameter IDs prevent adversarial fixture contents from becoming
+  megabyte-sized verbose log lines or inherited environment values. Stress cases
+  retain their full inputs and descriptive IDs; automatic byte/long/control-text
+  and large-integer labels use short fingerprints, and oversized explicit IDs
+  fail collection before execution. Real subprocess regressions cover verbose
+  logs, JUnit, and environment propagation. CI adds slow-test durations, Linux
+  thread-stack diagnostics, and a 20-minute job budget after an oversized test
+  name coincided with two roughly 13-minute log stalls in a completed job.
 - Added `proofrun snapshot-collection` for exact-byte evidence handoff under a
   mandatory independent plan pin. All required artifacts are admitted before
   output creation; the command preserves original bytes and policies, rejects

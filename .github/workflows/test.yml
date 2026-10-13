@@ -10,6 +10,7 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -34,6 +35,7 @@ jobs:
         run: >-
           uv run --locked --no-sync pytest tests/ -v --tb=short
           --junitxml=pytest-results.xml
+          --durations=20 --durations-min=1.0 -o faulthandler_timeout=120
 
       - name: Expose failed test diagnostics
         if: failure()
@@ -45,6 +47,7 @@ jobs:
 
   platform-smoke:
     name: ${{ matrix.os }} smoke
+    timeout-minutes: 20
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -79,6 +82,7 @@ jobs:
           tests/test_scan_yaml_limits.py
           tests/test_agent_tool_budget.py
           tests/test_pytest_diagnostics.py
+          tests/test_pytest_ids.py
           tests/test_structural_review.py
           tests/test_proofrun_collection.py
           tests/test_proofrun_plan_diff.py
@@ -90,6 +94,7 @@ jobs:
           tests/test_bounded_process.py
           tests/test_proofrun_verification_intake.py
           --junitxml=platform-smoke-results.xml
+          --durations=20 --durations-min=1.0
       - name: Expose failed platform test diagnostics
         if: failure()
         run: python scripts/report_pytest_failures.py platform-smoke-results.xml
