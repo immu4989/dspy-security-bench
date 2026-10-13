@@ -17,6 +17,10 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Source-redacted JUnit output connects individual and collection evidence reviews
+  to existing CI test-report consumers, preserving failure/error distinctions,
+  missing requirements, unique input/policy identities, and original exit codes.
+
 - Required evidence-collection review with owner-selected per-artifact policies,
   expected bundle types, independent plan/file byte pins, explicit missing and
   unreviewed outcomes, bounded local intake, and source-redacted aggregate decisions.

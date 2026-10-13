@@ -194,6 +194,10 @@ For handoffs with several required artifacts, retain an owner-reviewed
 independent file hash, then run `proofrun verify-collection`. Missing entries and
 failed reviews must not be removed merely to obtain an aggregate pass.
 
+Both review commands accept `--junit` for CI consumers. Retain reports on failed
+runs, keep the command's nonzero status, and do not mark unreviewed required
+artifacts as skipped. See [JUnit integration](docs/proofrun.md#junit-results-for-existing-ci-on-main).
+
 ## Submitting your agent's ProofRun result
 
 The recommended path is the versioned reusable workflow in

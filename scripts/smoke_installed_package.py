@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from xml.etree import ElementTree as ET
 
 BOOTSTRAP = r'''
 import importlib.metadata
@@ -220,6 +221,7 @@ def main() -> int:
                 raise RuntimeError("installed verifier accepted rehashed malformed metadata")
         smoke_structural_reviews(directory)
         smoke_collection_reviews(directory)
+        smoke_junit_reviews(directory)
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(
@@ -298,6 +300,20 @@ def smoke_collection_reviews(directory: Path) -> None:
     result = json.loads(run_cli(directory, ["proofrun", "verify-collection", path.name, "--json"], 2))
     if result["summary"]["invalid"] != 1 or result["summary"]["passed"] != 2:
         raise RuntimeError("installed collection omitted missing evidence or skipped later entries")
+
+
+def smoke_junit_reviews(directory: Path) -> None:
+    for path, code in (("collective-bundle.json", 0), ("trace-bundle.json", 1), ("missing.json", 2)):
+        source = run_cli(directory, ["proofrun", "verify", path, "--structural", "--offline", "--junit"], code)
+        suite = ET.fromstring(source).find("testsuite")
+        if (suite.get("tests") != "1" or suite.get("failures") != str(int(code == 1))
+                or suite.get("errors") != str(int(code == 2))):
+            raise RuntimeError("installed JUnit presentation changed an individual evidence verdict")
+    for options, required in (([], "3"), (["--expected-plan-file-sha256", "0" * 64], "1")):
+        source = run_cli(directory, ["proofrun", "verify-collection", "collection-plan.json", "--junit", *options], 2)
+        suite = ET.fromstring(source).find("testsuite")
+        if suite.get("tests") != required or suite.get("errors") != "1" or suite.get("skipped") != "0":
+            raise RuntimeError("installed JUnit presentation hid missing required evidence or plan rejection")
 
 
 def smoke_portable_reviews(directory: Path) -> None:

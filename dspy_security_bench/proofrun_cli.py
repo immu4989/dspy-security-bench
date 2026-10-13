@@ -117,7 +117,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     verify = commands.add_parser("verify", help="recompute a bundle and verify GitHub provenance")
     verify.add_argument("bundle")
-    verify.add_argument("--json", action="store_true", help="emit one source-redacted machine-readable review decision")
+    output_format = verify.add_mutually_exclusive_group()
+    output_format.add_argument("--json", action="store_true", help="emit one source-redacted machine-readable review decision")
+    output_format.add_argument("--junit", action="store_true", help="emit source-redacted JUnit XML for CI; preserve the native exit code")
     verify.add_argument("--attestation-repo", help="owner/repository; defaults to bundle metadata")
     review_kind = verify.add_mutually_exclusive_group()
     review_kind.add_argument("--minimum-trials", type=int, default=5, help="minimum repeated trials (default: 5)")
@@ -135,7 +137,9 @@ def build_parser() -> argparse.ArgumentParser:
     collection = commands.add_parser("verify-collection", help="review every required entry in an owner-controlled evidence plan")
     collection.add_argument("plan", help="local JSON plan; referenced files must be beneath its directory")
     collection.add_argument("--expected-plan-file-sha256", help="independent SHA-256 pin for exact plan bytes")
-    collection.add_argument("--json", action="store_true", help="emit one source-redacted collection decision")
+    collection_format = collection.add_mutually_exclusive_group()
+    collection_format.add_argument("--json", action="store_true", help="emit one source-redacted collection decision")
+    collection_format.add_argument("--junit", action="store_true", help="emit one JUnit testcase per required entry, or an invalid-plan error")
     return parser
 
 
@@ -170,6 +174,10 @@ def main(argv: list[str] | None = None) -> int:
         result = review_collection(Path(args.plan), expected_plan_file_sha256=args.expected_plan_file_sha256)
         if args.json:
             print(json.dumps(result, sort_keys=True, indent=2, allow_nan=False))
+        elif args.junit:
+            from dspy_security_bench.proofrun_junit import render_collection_junit
+
+            print(render_collection_junit(result, scope=args.plan))
         else:
             print(render_collection(result), file=sys.stderr if result["exit_code"] == 2 else sys.stdout)
         return result["exit_code"]
@@ -547,6 +555,10 @@ def _verify(args) -> int:
     ))
     if args.json:
         print(json.dumps(review, sort_keys=True, indent=2, allow_nan=False))
+    elif args.junit:
+        from dspy_security_bench.proofrun_junit import render_review_junit
+
+        print(render_review_junit(review, scope=args.bundle))
     else:
         print(render_review(review), file=sys.stderr if review["exit_code"] == 2 else sys.stdout)
     return review["exit_code"]

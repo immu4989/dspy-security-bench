@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Individual and collection ProofRun reviews now export source-redacted JUnit
+  XML via `--junit`. Unmet eligibility/provenance remains a failure; invalid or
+  unreviewed evidence remains an error. Invalid plans produce an error testcase,
+  not an empty successful suite. Fingerprinted input/policy/scope identities
+  prevent distinct results from collapsing under duplicate test names. CI recipes
+  preserve native exit codes and retain failed-run reports; no execution times,
+  independent reproductions, or deployment approvals are invented.
 - Added `proofrun verify-collection` for owner-planned multi-artifact intake across
   all nine registry families. Required entries bind expected bundle types, exact
   file hashes, and explicit review policies; an optional independent plan pin
