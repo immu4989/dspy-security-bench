@@ -51,6 +51,20 @@ a pipe or final-component link, first materialize an authorized ordinary local
 copy and retain any independently approved exact-byte hash for verification.
 Collection reviews additionally apply their documented relative-path checks.
 
+## Online verifier process boundary
+
+ProofRun limits GitHub CLI stdout during collection, discards stderr, closes
+stdin, and rejects collection overflow or timeout without accepting partial
+certificates. It closes its pipes and kills/reaps the direct child before
+removing the private exact-byte snapshot. The collector supports Python callers
+already using an event loop without replacing their event-loop policy.
+
+This is resource-bounded output collection, not executable isolation: a trusted
+local GitHub CLI still uses the caller's normally configured credentials and
+network access. It does not constrain child memory/CPU, contain descendants, or
+guarantee operating-system spawn/reap latency. Use approved executables and OS
+containment for those requirements. See [ProofRun](docs/proofrun.md) for limits.
+
 ## TraceProof data handling
 
 TraceProof processes OTLP JSON offline and uses a deny-by-default allowlist, but

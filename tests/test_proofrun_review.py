@@ -101,8 +101,8 @@ def test_invalid_python_policy_is_typed_and_source_redacted(change, monkeypatch,
 @pytest.mark.parametrize("authenticated", [False, True])
 def test_online_json_distinguishes_authentication_from_integrity(attested, authenticated, monkeypatch, capsys, schema):
     path, _, _, certificate = attested
-    monkeypatch.setattr(proof.subprocess, "run", lambda *a, **k: SimpleNamespace(
-        returncode=0 if authenticated else 1, stdout=json.dumps([certificate]), stderr="PRIVATE",
+    monkeypatch.setattr(proof, "run_bounded", lambda *a, **k: SimpleNamespace(
+        returncode=0 if authenticated else 1, stdout=json.dumps([certificate]).encode("utf-8"), stderr="PRIVATE",
     ))
     assert cli.main(["verify", str(path), "--json", "--require-trusted-builder"]) == (0 if authenticated else 1)
     output = capsys.readouterr()

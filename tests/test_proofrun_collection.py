@@ -249,9 +249,9 @@ def test_online_authentication_uses_the_pinned_exact_bytes(attested, tmp_path, s
 
     def gh(command, **kwargs):
         assert Path(command[3]).read_bytes() == expected == raw
-        return SimpleNamespace(returncode=0, stdout=json.dumps([certificate]), stderr="private")
+        return SimpleNamespace(returncode=0, stdout=json.dumps([certificate]).encode("utf-8"), stderr="private")
 
-    monkeypatch.setattr(proof.subprocess, "run", gh)
+    monkeypatch.setattr(proof, "run_bounded", gh)
     result = collection.review_collection(path)
     check(result, schemas)
     assert result["exit_code"] == 0

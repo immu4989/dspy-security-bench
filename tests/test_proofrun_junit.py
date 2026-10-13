@@ -74,7 +74,7 @@ def run_single(bundle, mode, structural, tmp_path, capsys, monkeypatch):
     # A valid self-attested repeated bundle may use the normal verifier, but
     # there must never be a real subprocess/network call in this test.
     import dspy_security_bench.proofrun as proof
-    monkeypatch.setattr(proof.subprocess, "run", lambda *a, **k: pytest.fail("self-attested JUnit review reached gh"))
+    monkeypatch.setattr(proof, "run_bounded", lambda *a, **k: pytest.fail("self-attested JUnit review reached gh"))
     assert cli.main(["verify", str(path), "--junit", *options]) == code
     captured = capsys.readouterr()
     assert captured.err == ""
@@ -178,8 +178,8 @@ def test_authenticated_online_review_remains_a_pass_not_an_execution_claim(attes
     import dspy_security_bench.proofrun as proof
 
     path, _, _, certificate = attested
-    monkeypatch.setattr(proof.subprocess, "run", lambda *a, **k: SimpleNamespace(
-        returncode=0, stdout=json.dumps([certificate]), stderr="PRIVATE",
+    monkeypatch.setattr(proof, "run_bounded", lambda *a, **k: SimpleNamespace(
+        returncode=0, stdout=json.dumps([certificate]).encode("utf-8"), stderr="PRIVATE",
     ))
     assert cli.main(["verify", str(path), "--require-trusted-builder", "--junit"]) == 0
     captured = capsys.readouterr()

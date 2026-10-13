@@ -141,9 +141,9 @@ def test_github_attestation_verifier_enforces_trusted_builder_and_certificate_cl
 
     def fake_run(command, **kwargs):
         calls.append(command)
-        return SimpleNamespace(returncode=0, stdout=json.dumps(payload), stderr="")
+        return SimpleNamespace(returncode=0, stdout=json.dumps(payload).encode("utf-8"), stderr="")
 
-    monkeypatch.setattr("dspy_security_bench.proofrun.subprocess.run", fake_run)
+    monkeypatch.setattr("dspy_security_bench.proofrun.run_bounded", fake_run)
     result = verify_github_attestation(path, bundle, require_trusted_builder=True)
     assert result.verified is True
     assert result.evidence_tier == "trusted_builder"
@@ -175,9 +175,9 @@ def test_github_attestation_verifier_rejects_claim_mismatch(tmp_path, monkeypatc
     ]
     monkeypatch.setattr("dspy_security_bench.proofrun.shutil.which", lambda _: "/usr/bin/gh")
     monkeypatch.setattr(
-        "dspy_security_bench.proofrun.subprocess.run",
+        "dspy_security_bench.proofrun.run_bounded",
         lambda *args, **kwargs: SimpleNamespace(
-            returncode=0, stdout=json.dumps(payload), stderr=""
+            returncode=0, stdout=json.dumps(payload).encode("utf-8"), stderr=""
         ),
     )
     result = verify_github_attestation(path, bundle)

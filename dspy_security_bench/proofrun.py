@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from dspy_security_bench.jsonio import decode_json_object, read_json_snapshot
+from dspy_security_bench.processio import BoundedProcessError, run_bounded
 
 MAX_BUNDLE_BYTES = 50_000_000
 MAX_ATTESTATION_RESPONSE_BYTES = 5_000_000
@@ -164,15 +165,17 @@ def verify_github_attestation(
             snapshot = Path(temporary) / "bundle.json"
             snapshot.write_bytes(raw)
             command[3] = str(snapshot)
-            completed = subprocess.run(
-                command, capture_output=True, text=True, check=False, timeout=60,
+            completed = run_bounded(
+                command, maximum_stdout=MAX_ATTESTATION_RESPONSE_BYTES, timeout=60,
             )
-    except (OSError, subprocess.TimeoutExpired, UnicodeError):
+    except BoundedProcessError:
+        return _failed("GitHub attestation verifier exceeded a process collection boundary; output withheld")
+    except (OSError, subprocess.TimeoutExpired, UnicodeError, RuntimeError):
         return _failed("could not execute GitHub attestation verification; process details withheld")
     if completed.returncode:
         return _failed("GitHub attestation verification failed; process output withheld")
     try:
-        response = b'{"results":' + completed.stdout.encode("utf-8") + b'}'
+        response = b'{"results":' + completed.stdout + b'}'
         results = decode_json_object(response, MAX_ATTESTATION_RESPONSE_BYTES)["results"]
     except (TypeError, ValueError, AttributeError):
         return _failed("GitHub CLI returned invalid verification JSON; source details withheld")

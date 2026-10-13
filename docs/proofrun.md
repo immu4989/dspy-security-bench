@@ -237,7 +237,7 @@ evaluate that runner's trust and isolation.
 
 ### Verify one exact input snapshot
 
-All five bundle families use bounded strict JSON intake: at most 50,000,000
+All nine registered bundle families use bounded strict JSON intake: at most 50,000,000
 bytes, a UTF-8 object root, no duplicate members, no nonfinite numbers or
 unpaired Unicode surrogates, and bounded nesting/numeric tokens. Unsupported
 bundle types and malformed native evidence fail closed. Public diagnostics
@@ -270,6 +270,24 @@ attestation even if earlier returned attestations do not match. Statement text
 alone never supplies these identity checks; see the
 [GitHub CLI verification contract](https://cli.github.com/manual/gh_attestation_verify).
 Tests use simulated GitHub responses, not live signing or a live trust service.
+
+Online collection is bounded independently of JSON parsing. The verifier retains
+at most 5,000,001 stdout bytes (the final byte detects overflow), plus transport
+chunks and a bounded returned copy; stderr is discarded, not retained or spooled
+to disk. Stdin is closed so an unattended review cannot answer an interactive
+prompt. Strict UTF-8 decoding does not depend on the machine's text encoding.
+The strict JSON response limit remains 5,000,000 bytes including its internal
+object wrapper. Oversized, malformed, unsuccessful, or incomplete output never
+upgrades provenance, even if a valid-looking certificate appears in a prefix.
+
+A 60-second collection deadline closes pipes and kills/reaps the direct verifier
+child on timeout; overflow and caller interruption use the same cleanup. A
+descendant retaining stdout cannot extend pipe collection beyond that deadline.
+OS process creation and reaping may take longer; this is not a hard real-time
+guarantee. Child/descendant CPU, memory, network access, credentials, and process
+trees are not sandboxed. Use an organization-approved GitHub CLI installation
+and runner containment. Authenticate through your normal GitHub CLI workflow
+before verification; these checks never acquire or repurpose credentials.
 
 Review exit codes are now consistent: `0` means native-valid and eligible (plus
 verified provenance for online mode); `1` means valid but ineligible, or online

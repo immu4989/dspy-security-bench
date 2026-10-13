@@ -51,6 +51,19 @@ for name in ("scan-evidence.schema.json", "scan-comparison.schema.json", "scan-s
     json.loads(resources.joinpath("schemas", name).read_text(encoding="utf-8"))
 if "workflow_dispatch" not in resources.joinpath("templates", "github-action.yml").read_text(encoding="utf-8"):
     raise RuntimeError("safe workflow template missing from installed wheel")
+if sys.argv[1:] == ["--version"]:
+    from dspy_security_bench.processio import BoundedProcessError, run_bounded
+    result = run_bounded([sys.executable, "-I", "-c", "import os; os.write(1, b'[]')"],
+                         maximum_stdout=2, timeout=5)
+    if result.returncode != 0 or result.stdout != b"[]":
+        raise RuntimeError("installed bounded collector changed exact stdout")
+    try:
+        run_bounded([sys.executable, "-I", "-c", "import os; os.write(1, b'x' * 10000)"],
+                    maximum_stdout=20, timeout=5)
+    except BoundedProcessError:
+        pass
+    else:
+        raise RuntimeError("installed bounded collector accepted overflow")
 raise SystemExit(entry[0].load()(sys.argv[1:]))
 '''
 

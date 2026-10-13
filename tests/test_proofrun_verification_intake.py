@@ -3,6 +3,7 @@
 import hashlib
 import json
 import subprocess
+import sys
 from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
@@ -166,11 +167,12 @@ def test_native_and_online_verdicts_use_same_snapshot_when_source_changes(attest
         assert snapshot != path
         assert snapshot.read_bytes() == raw
         assert kwargs["timeout"] == 60
+        assert kwargs["maximum_stdout"] == proof.MAX_ATTESTATION_RESPONSE_BYTES
         assert "--deny-self-hosted-runners" in command
-        return SimpleNamespace(returncode=0, stdout=json.dumps([result]), stderr="")
+        return SimpleNamespace(returncode=0, stdout=json.dumps([result]).encode("utf-8"), stderr="")
 
     monkeypatch.setattr(repeat, "verify_submission_bundle", verify_then_replace)
-    monkeypatch.setattr(proof.subprocess, "run", execute)
+    monkeypatch.setattr(proof, "run_bounded", execute)
     assert cli.main(["verify", str(path), "--expected-file-sha256", hashlib.sha256(raw).hexdigest()]) == 0
     assert snapshots and not snapshots[0].exists()
     assert path.read_bytes() == b'{"replaced":true}'
@@ -189,7 +191,7 @@ def test_attestation_api_rejects_claims_different_from_file(attested, difference
         changed["type_probe"] = True
     else:
         changed["bundle_schema_version"] = 2.0
-    monkeypatch.setattr(proof.subprocess, "run", lambda *a, **k: pytest.fail("mismatched snapshot reached gh"))
+    monkeypatch.setattr(proof, "run_bounded", lambda *a, **k: pytest.fail("mismatched snapshot reached gh"))
     result = proof.verify_github_attestation(path, changed)
     assert not result.verified
     assert "PRIVATE" not in " ".join(result.errors)
@@ -203,13 +205,13 @@ def test_attestation_api_rejects_claims_different_from_file(attested, difference
 ])
 def test_malformed_gh_response_is_unverified_not_exception(attested, payload, monkeypatch):
     path, _, bundle, _ = attested
-    monkeypatch.setattr(proof.subprocess, "run", lambda *a, **k: SimpleNamespace(returncode=0, stdout=payload, stderr=""))
+    monkeypatch.setattr(proof, "run_bounded", lambda *a, **k: SimpleNamespace(returncode=0, stdout=payload.encode("utf-8"), stderr=""))
     result = proof.verify_github_attestation(path, bundle)
     assert not result.verified
     assert "PRIVATE" not in " ".join(result.errors)
 
 
-@pytest.mark.parametrize("failure", ["exit", "timeout", "oserror", "encoding"])
+@pytest.mark.parametrize("failure", ["exit", "timeout", "oserror", "encoding", "boundary", "loop"])
 def test_failed_gh_process_cleans_snapshot_and_redacts_output(attested, failure, monkeypatch):
     path, raw, bundle, _ = attested
     snapshots = []
@@ -223,11 +225,40 @@ def test_failed_gh_process_cleans_snapshot_and_redacts_output(attested, failure,
             raise OSError("PRIVATE")
         if failure == "encoding":
             raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "PRIVATE")
+        if failure == "boundary":
+            raise proof.BoundedProcessError("PRIVATE")
+        if failure == "loop":
+            raise RuntimeError("PRIVATE")
         return SimpleNamespace(returncode=1, stdout="PRIVATE", stderr="PRIVATE")
 
-    monkeypatch.setattr(proof.subprocess, "run", execute)
+    monkeypatch.setattr(proof, "run_bounded", execute)
     result = proof.verify_github_attestation(path, bundle)
     assert not result.verified
+    assert "PRIVATE" not in " ".join(result.errors)
+    assert snapshots and not snapshots[0].exists()
+
+
+@pytest.mark.parametrize("mode", ["valid", "bad_encoding", "overflow", "timeout", "nonzero"])
+def test_real_process_intake_remains_fail_closed_and_removes_snapshot(attested, monkeypatch, mode):
+    path, raw, bundle, certificate = attested
+    payload = json.dumps([certificate]).encode("utf-8")
+    if mode == "bad_encoding":
+        payload = b'["\xff"]'
+    elif mode == "overflow":
+        payload = b"PRIVATE" * 1000
+    code = f"import os, time; os.write(2, b'PRIVATE'); os.write(1, {payload!r}); "
+    code += "time.sleep(30)" if mode == "timeout" else f"raise SystemExit({7 if mode == 'nonzero' else 0})"
+    snapshots = []
+    bounded = proof.run_bounded
+
+    def local_verifier(command, **kwargs):
+        snapshots.append(Path(command[3]))
+        assert snapshots[-1].read_bytes() == raw
+        return bounded([sys.executable, "-c", code], maximum_stdout=1000, timeout=0.5)
+
+    monkeypatch.setattr(proof, "run_bounded", local_verifier)
+    result = proof.verify_github_attestation(path, bundle)
+    assert result.verified == (mode == "valid")
     assert "PRIVATE" not in " ".join(result.errors)
     assert snapshots and not snapshots[0].exists()
 
@@ -237,7 +268,7 @@ def test_matching_certificate_can_follow_other_verified_attestations(attested, m
     mismatch = deepcopy(matching)
     mismatch["verificationResult"]["signature"]["certificate"]["sourceRepositoryDigest"] = "c" * 40
     payload = [None, mismatch, matching]
-    monkeypatch.setattr(proof.subprocess, "run", lambda *a, **k: SimpleNamespace(returncode=0, stdout=json.dumps(payload), stderr=""))
+    monkeypatch.setattr(proof, "run_bounded", lambda *a, **k: SimpleNamespace(returncode=0, stdout=json.dumps(payload).encode("utf-8"), stderr=""))
     assert proof.verify_github_attestation(path, bundle).verified
 
 
@@ -254,5 +285,5 @@ def test_invalid_review_policy_is_rejected_before_input_read(options, monkeypatc
 def test_response_size_limit_is_enforced(attested, monkeypatch):
     path, _, bundle, result = attested
     monkeypatch.setattr(proof, "MAX_ATTESTATION_RESPONSE_BYTES", 20)
-    monkeypatch.setattr(proof.subprocess, "run", lambda *a, **k: SimpleNamespace(returncode=0, stdout=json.dumps([result]), stderr=""))
+    monkeypatch.setattr(proof, "run_bounded", lambda *a, **k: SimpleNamespace(returncode=0, stdout=json.dumps([result]).encode("utf-8"), stderr=""))
     assert not proof.verify_github_attestation(path, bundle).verified

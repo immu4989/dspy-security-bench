@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Online ProofRun attestation checks now bound stdout while collecting it rather
+  than only after buffering the entire process response. The verifier runs with
+  closed stdin and discarded stderr; overflow, timeout, and interruption close
+  pipes and reap the direct child before removing the exact-byte snapshot.
+  Raw UTF-8 JSON is decoded independently of the host locale. Local subprocess
+  regressions cover flooding, hanging, inherited pipes, cleanup, and fail-closed
+  native integration; this does not sandbox the verifier or its descendants.
 - Shared bounded JSON intake now rejects special files and final-component
   links before reading, checks the opened descriptor, and uses nonblocking and
   no-follow flags where available. This fixes a reproduced named-pipe stall and
