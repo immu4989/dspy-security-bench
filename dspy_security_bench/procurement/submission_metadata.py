@@ -14,7 +14,7 @@ from urllib.parse import urlsplit
 
 
 def _https_reference(value) -> bool:
-    if not isinstance(value, str) or any(character.isspace() for character in value):
+    if not isinstance(value, str) or any(character.isspace() or ord(character) < 32 or ord(character) == 127 for character in value):
         return False
     try:
         parsed = urlsplit(value)

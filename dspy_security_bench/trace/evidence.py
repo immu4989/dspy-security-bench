@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
 
 from dspy_security_bench.mission.loader import canonical_sha256
+from dspy_security_bench.public_submission import prepare_submission, validate_bundle_metadata
 from dspy_security_bench.trace.mcp import verify_mcp_authorization_report
 from dspy_security_bench.trace.proof import (
     analyze_trace_evidence,
@@ -42,6 +43,10 @@ def build_trace_submission_bundle(
     notes: str = "",
     mcp_report: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    submission = prepare_submission(
+        family="trace", submitter=submitter, runtime=runtime,
+        source_repository=source_repository_url, notes=notes,
+    )
     _submission_text("submitter", submitter, 128)
     _submission_text("runtime", runtime, 128)
     _submission_text("notes", notes, 1000, allow_empty=True)
@@ -64,16 +69,7 @@ def build_trace_submission_bundle(
         "evidence": dict(evidence),
         "report": dict(report),
         "mcp_report": mcp,
-        "submission": {
-            "submitter": submitter.strip(),
-            "runtime": runtime.strip(),
-            "source_repository_url": source_repository_url.strip(),
-            "notes": notes.strip(),
-            "created_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
-            "privacy_attestation": (
-                "submitter reviewed the sanitized bundle and did not include raw telemetry"
-            ),
-        },
+        "submission": submission,
         "provenance": {
             "provider": "self_attested",
             "evidence_tier": "self_attested",
@@ -92,6 +88,9 @@ def build_trace_submission_bundle(
 def verify_trace_submission_bundle(
     bundle: Mapping[str, Any],
 ) -> TraceSubmissionVerification:
+    metadata_errors = validate_bundle_metadata(bundle, family="trace")
+    if metadata_errors:
+        return TraceSubmissionVerification(False, metadata_errors, ())
     errors: list[str] = []
     warnings: list[str] = []
     fields = {

@@ -14,6 +14,7 @@ from dspy_security_bench.causal.proof import (
     verify_causal_report,
 )
 from dspy_security_bench.mission.loader import canonical_sha256
+from dspy_security_bench.public_submission import prepare_submission, validate_bundle_metadata
 from dspy_security_bench.schedule.proof import analyze_scenario, verify_schedule_report
 
 BUNDLE_TYPE = "dspy-security-bench-causal-submission"
@@ -38,6 +39,10 @@ def build_causal_submission_bundle(
 ) -> dict[str, Any]:
     """Build a public bundle that contains no OTLP content-bearing fields."""
 
+    submission = prepare_submission(
+        family="causal", submitter=submitter, runtime=runtime, source_repository=source_repository,
+        known_gaps=known_gaps, created_at=created_at,
+    )
     structural = structural_trace(trace)
     causal_report = analyze_causality(structural, manifest)
     if causal_report["schedule_scenario"] is None:
@@ -46,13 +51,7 @@ def build_causal_submission_bundle(
     bundle: dict[str, Any] = {
         "schema_version": 1,
         "bundle_type": BUNDLE_TYPE,
-        "submission": {
-            "submitter": submitter,
-            "runtime": runtime,
-            "source_repository": source_repository,
-            "created_at": created_at or date.today().isoformat(),
-            "known_gaps": list(known_gaps or ["none declared"]),
-        },
+        "submission": submission,
         "structural_trace": structural,
         "manifest": manifest,
         "causal_report": causal_report,
@@ -69,6 +68,9 @@ def build_causal_submission_bundle(
 def verify_causal_submission_bundle(bundle: dict[str, Any]) -> CausalSubmissionResult:
     """Recompute the full trace → causal graph → schedule evidence chain."""
 
+    metadata_errors = validate_bundle_metadata(bundle, family="causal")
+    if metadata_errors:
+        return CausalSubmissionResult(False, metadata_errors, ())
     errors: list[str] = []
     warnings: list[str] = []
     fields = {

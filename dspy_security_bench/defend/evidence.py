@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 
 from dspy_security_bench.defend.protocol import DISCLAIMER, verify_report
 from dspy_security_bench.mission.loader import canonical_sha256
+from dspy_security_bench.public_submission import prepare_submission, validate_bundle_metadata
 
 BUNDLE_TYPE = "dspy-security-bench-defense-evidence"
 DISCLOSURE_STATUSES = ("public-pattern", "embargoed", "private")
@@ -44,6 +45,11 @@ def build_evidence_bundle(
     known_gaps: list[str] | None = None,
     created_at: str | None = None,
 ) -> dict[str, Any]:
+    submission = prepare_submission(
+        family="defense", submitter=submitter, runtime=runtime, source_repository=source_repository,
+        deployment_class=deployment_class, known_gaps=known_gaps, created_at=created_at,
+        disclosure_status=disclosure_status,
+    )
     errors = verify_report(report)
     if errors:
         raise ValueError("invalid DefenderTwin report: " + "; ".join(errors))
@@ -52,16 +58,7 @@ def build_evidence_bundle(
     bundle: dict[str, Any] = {
         "schema_version": 1,
         "bundle_type": BUNDLE_TYPE,
-        "submission": {
-            "submitter": submitter,
-            "runtime": runtime,
-            "source_repository": source_repository,
-            "deployment_class": deployment_class,
-            "created_at": created_at or date.today().isoformat(),
-            "disclosure_status": disclosure_status,
-            "known_gaps": list(known_gaps or ["none-declared"]),
-            "raw_data_shared": False,
-        },
+        "submission": submission,
         "mission": report["mission"],
         "proposal": report["proposal"],
         "report": report,
@@ -75,6 +72,9 @@ def build_evidence_bundle(
 
 
 def verify_evidence_bundle(bundle: dict[str, Any]) -> DefenseEvidenceVerification:
+    metadata_errors = validate_bundle_metadata(bundle, family="defense")
+    if metadata_errors:
+        return DefenseEvidenceVerification(False, metadata_errors, ())
     errors: list[str] = []
     warnings: list[str] = []
     if set(bundle) != {

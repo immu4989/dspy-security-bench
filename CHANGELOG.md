@@ -10,6 +10,14 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Structural evidence admission now validates typed metadata before replay for
+  TraceProof, causal, CollectiveGuard, and DefenderTwin bundles. Rehashed bundles
+  cannot bypass checks with boolean/float versions, credential-bearing URLs,
+  malformed dates, unsupported fields, or nonportable metadata. Creators reject
+  invalid declarations before processing evidence; metadata diagnostics withhold
+  submitted values. Native report and disclosure checks remain required.
+  Valid v1 bundles remain supported; malformed declarations must be corrected
+  into new bundles with new digests. Empty gap lists no longer silently default.
 - Fixed two Windows portability issues in the offline test harness: UTF-8 study
   HTML is now read explicitly as UTF-8, and hostile YAML fixtures use bounded
   descriptive test IDs instead of copying 70 KB payloads into pytest's environment

@@ -168,6 +168,22 @@ Two rules that exist to keep rows comparable:
   `leaderboard/results/*.json`; editing it directly lets the board drift from
   the data behind it.
 
+## Structural evidence metadata
+
+TraceProof, causal, CollectiveGuard, and DefenderTwin creators validate metadata
+before processing evidence. Their native verifiers enforce the same checks before
+replaying reports, including in dashboard generation and submission CI. Use an
+integer schema version, non-empty text identities, and credential-free HTTPS
+source URLs without whitespace, control characters, or invalid ports.
+
+Dates must be `YYYY-MM-DD` strings; TraceProof instead requires a timezone-aware
+ISO timestamp. Where supported, `known_gaps` must be a non-empty list of bounded
+strings. Omit optional arguments or pass `None` for defaults; empty lists and
+mistyped values are not silently converted. Valid v1 bundles remain supported.
+Correct malformed legacy declarations by generating new bundles and digests;
+rehashing alone establishes neither provenance nor publication approval. Native
+report verification and disclosure eligibility checks still apply.
+
 ## Submitting your agent's ProofRun result
 
 The recommended path is the versioned reusable workflow in

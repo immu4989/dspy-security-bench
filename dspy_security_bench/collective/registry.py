@@ -14,6 +14,7 @@ from dspy_security_bench.collective.v2 import (
     verify_report,
 )
 from dspy_security_bench.mission.loader import canonical_sha256
+from dspy_security_bench.public_submission import prepare_submission, validate_bundle_metadata
 
 BUNDLE_TYPE = "dspy-security-bench-collective-submission"
 
@@ -35,6 +36,10 @@ def build_collective_submission_bundle(
     known_gaps: list[str] | None = None,
     created_at: str | None = None,
 ) -> dict[str, Any]:
+    submission = prepare_submission(
+        family="collective", submitter=submitter, runtime=runtime, source_repository=source_repository,
+        deployment_class=deployment_class, known_gaps=known_gaps, created_at=created_at,
+    )
     errors = validate_scenario(scenario)
     if errors:
         raise ValueError("invalid CollectiveGuard v2 scenario: " + "; ".join(errors))
@@ -42,14 +47,7 @@ def build_collective_submission_bundle(
     bundle: dict[str, Any] = {
         "schema_version": 1,
         "bundle_type": BUNDLE_TYPE,
-        "submission": {
-            "submitter": submitter,
-            "runtime": runtime,
-            "source_repository": source_repository,
-            "deployment_class": deployment_class,
-            "created_at": created_at or date.today().isoformat(),
-            "known_gaps": list(known_gaps or ["none declared"]),
-        },
+        "submission": submission,
         "scenario": scenario,
         "report": report,
         "claim_boundary": DISCLAIMER,
@@ -62,6 +60,9 @@ def build_collective_submission_bundle(
 
 
 def verify_collective_submission_bundle(bundle: dict[str, Any]) -> CollectiveSubmissionResult:
+    metadata_errors = validate_bundle_metadata(bundle, family="collective")
+    if metadata_errors:
+        return CollectiveSubmissionResult(False, metadata_errors, ())
     errors: list[str] = []
     warnings: list[str] = []
     fields = {
