@@ -140,6 +140,11 @@ def build_parser() -> argparse.ArgumentParser:
     collection_format = collection.add_mutually_exclusive_group()
     collection_format.add_argument("--json", action="store_true", help="emit one source-redacted collection decision")
     collection_format.add_argument("--junit", action="store_true", help="emit one JUnit testcase per required entry, or an invalid-plan error")
+    comparison = commands.add_parser("compare-plans", help="compare collection requirements against an independently pinned baseline")
+    comparison.add_argument("baseline", help="owner-approved local collection plan")
+    comparison.add_argument("candidate", help="proposed local collection plan")
+    comparison.add_argument("--expected-baseline-file-sha256", required=True, help="independently retained baseline SHA-256")
+    comparison.add_argument("--json", action="store_true", help="emit one source-redacted plan comparison")
     return parser
 
 
@@ -180,6 +185,14 @@ def main(argv: list[str] | None = None) -> int:
             print(render_collection_junit(result, scope=args.plan))
         else:
             print(render_collection(result), file=sys.stderr if result["exit_code"] == 2 else sys.stdout)
+        return result["exit_code"]
+    if args.command == "compare-plans":
+        from dspy_security_bench.proofrun_plan_diff import compare_plans, render_plan_comparison
+
+        result = compare_plans(Path(args.baseline), Path(args.candidate),
+                               expected_baseline_file_sha256=args.expected_baseline_file_sha256)
+        print(json.dumps(result, sort_keys=True, indent=2, allow_nan=False) if args.json else render_plan_comparison(result),
+              file=sys.stderr if result["exit_code"] == 2 and not args.json else sys.stdout)
         return result["exit_code"]
     return 2
 

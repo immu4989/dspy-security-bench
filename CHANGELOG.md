@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added `proofrun compare-plans` for reviewing evidence requirements against an
+  independently pinned owner baseline. Source-redacted diffs expose every
+  addition, removal, reordered slot, artifact pin, and policy change without
+  opening artifacts or invoking GitHub. Even formatting-only changes require
+  review of the new exact-byte pin. Reports do not approve changes, rank security,
+  establish requirement completeness, or claim artifact verification.
 - Online ProofRun attestation checks now bound stdout while collecting it rather
   than only after buffering the entire process response. The verifier runs with
   closed stdin and discarded stderr; overflow, timeout, and interruption close

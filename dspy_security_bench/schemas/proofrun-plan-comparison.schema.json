@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/proofrun-plan-comparison.schema.json",
+  "title": "Source-redacted ProofRun collection plan comparison",
+  "description": "Unsigned comparison of two plans, not approval, evidence verification, or completeness. Schema validation cannot prove hashes, count arithmetic, or an honest comparison; rerun against independently pinned original bytes.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "review_type", "verifier_version", "expected_baseline_file_sha256", "baseline_file_sha256", "candidate_file_sha256", "entries", "summary", "comparison_is_approval", "artifact_evidence_verified", "requirements_completeness_established", "exit_code", "verdict", "reason_code"],
+  "properties": {
+    "schema_version": {"const": 1}, "review_type": {"const": "ProofRun collection plan comparison"},
+    "verifier_version": {"type": "string", "minLength": 1},
+    "expected_baseline_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "baseline_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "candidate_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "comparison_is_approval": {"const": false}, "artifact_evidence_verified": {"const": false}, "requirements_completeness_established": {"const": false},
+    "exit_code": {"enum": [0, 1, 2]}, "verdict": {"enum": ["unchanged", "review_required", "invalid"]},
+    "reason_code": {"enum": ["unchanged", "format_only", "requirements_changed", "invalid_policy", "invalid_baseline", "baseline_pin_mismatch", "invalid_candidate"]},
+    "summary": {
+      "type": "object", "additionalProperties": false, "required": ["added", "removed", "modified", "unchanged"],
+      "properties": {
+        "added": {"$ref": "#/$defs/count"}, "removed": {"$ref": "#/$defs/count"},
+        "modified": {"$ref": "#/$defs/count"}, "unchanged": {"$ref": "#/$defs/count"}
+      }
+    },
+    "entries": {
+      "type": "array", "maxItems": 50,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["entry_id_sha256", "status", "changed_fields", "before", "after"],
+        "properties": {
+          "entry_id_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"},
+          "status": {"enum": ["added", "removed", "modified", "unchanged"]},
+          "changed_fields": {"type": "array", "uniqueItems": true, "maxItems": 9, "items": {"enum": ["position", "path", "bundle_type", "file_sha256", "policy.minimum_trials", "policy.offline", "policy.attestation_repository", "policy.require_trusted_builder", "policy.allow_self_hosted_runner"]}},
+          "before": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/entry"}]},
+          "after": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/entry"}]}
+        },
+        "oneOf": [
+          {"properties": {"status": {"const": "added"}, "before": {"type": "null"}, "after": {"$ref": "#/$defs/entry"}, "changed_fields": {"maxItems": 0}}},
+          {"properties": {"status": {"const": "removed"}, "before": {"$ref": "#/$defs/entry"}, "after": {"type": "null"}, "changed_fields": {"maxItems": 0}}},
+          {"properties": {"status": {"const": "modified"}, "before": {"$ref": "#/$defs/entry"}, "after": {"$ref": "#/$defs/entry"}, "changed_fields": {"minItems": 1}}},
+          {"properties": {"status": {"const": "unchanged"}, "before": {"$ref": "#/$defs/entry"}, "after": {"$ref": "#/$defs/entry"}, "changed_fields": {"maxItems": 0}}}
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "count": {"type": "integer", "minimum": 0, "maximum": 25},
+    "entry": {
+      "type": "object", "additionalProperties": false, "required": ["index", "path_sha256", "bundle_type", "file_sha256", "policy"],
+      "properties": {
+        "index": {"type": "integer", "minimum": 0, "maximum": 24},
+        "path_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"},
+        "bundle_type": {"$ref": "proofrun-review.schema.json#/$defs/bundleType"},
+        "file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"},
+        "policy": {"$ref": "proofrun-review.schema.json#/$defs/policy"}
+      }
+    }
+  },
+  "oneOf": [
+    {"properties": {"exit_code": {"const": 0}, "verdict": {"const": "unchanged"}, "reason_code": {"const": "unchanged"}}},
+    {"properties": {"exit_code": {"const": 1}, "verdict": {"const": "review_required"}, "reason_code": {"enum": ["format_only", "requirements_changed"]}}},
+    {"properties": {"exit_code": {"const": 2}, "verdict": {"const": "invalid"}, "reason_code": {"enum": ["invalid_policy", "invalid_baseline", "baseline_pin_mismatch", "invalid_candidate"]}, "entries": {"maxItems": 0}, "summary": {"const": {"added": 0, "removed": 0, "modified": 0, "unchanged": 0}}}}
+  ],
+  "allOf": [
+    {"if": {"properties": {"exit_code": {"enum": [0, 1]}}}, "then": {"properties": {"entries": {"minItems": 1}, "expected_baseline_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}, "baseline_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}, "candidate_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}}}},
+    {"if": {"properties": {"reason_code": {"enum": ["unchanged", "format_only"]}}}, "then": {"properties": {"entries": {"items": {"properties": {"status": {"const": "unchanged"}}}}, "summary": {"properties": {"added": {"const": 0}, "removed": {"const": 0}, "modified": {"const": 0}, "unchanged": {"minimum": 1}}}}}},
+    {"if": {"properties": {"reason_code": {"const": "requirements_changed"}}}, "then": {"properties": {"entries": {"contains": {"properties": {"status": {"enum": ["added", "removed", "modified"]}}}}}}},
+    {"if": {"properties": {"reason_code": {"const": "invalid_policy"}}}, "then": {"properties": {"expected_baseline_file_sha256": {"type": "null"}, "baseline_file_sha256": {"type": "null"}, "candidate_file_sha256": {"type": "null"}}}},
+    {"if": {"properties": {"reason_code": {"enum": ["invalid_baseline", "baseline_pin_mismatch"]}}}, "then": {"properties": {"candidate_file_sha256": {"type": "null"}}}}
+  ]
+}

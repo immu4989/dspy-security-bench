@@ -47,7 +47,8 @@ if len(entry) != 1 or entry[0].value != "dspy_security_bench.cli:main":
 resources = importlib.resources.files("dspy_security_bench")
 for name in ("scan-evidence.schema.json", "scan-comparison.schema.json", "scan-study.schema.json",
              "scan-policy-review.schema.json", "repeat-report.schema.json", "proofrun-review.schema.json",
-             "proofrun-collection-plan.schema.json", "proofrun-collection-review.schema.json"):
+             "proofrun-collection-plan.schema.json", "proofrun-collection-review.schema.json",
+             "proofrun-plan-comparison.schema.json"):
     json.loads(resources.joinpath("schemas", name).read_text(encoding="utf-8"))
 if "workflow_dispatch" not in resources.joinpath("templates", "github-action.yml").read_text(encoding="utf-8"):
     raise RuntimeError("safe workflow template missing from installed wheel")
@@ -298,6 +299,15 @@ def smoke_collection_reviews(directory: Path) -> None:
     path = directory / "collection-plan.json"
     path.write_text(json.dumps(plan), encoding="utf-8")
     pin = hashlib.sha256(path.read_bytes()).hexdigest()
+    baseline = directory / "baseline-plan.json"
+    baseline.write_bytes(path.read_bytes())
+    comparison_args = ["proofrun", "compare-plans", baseline.name, path.name,
+                       "--expected-baseline-file-sha256", pin, "--json"]
+    comparison = json.loads(run_cli(directory, comparison_args))
+    if comparison["reason_code"] != "unchanged" or comparison["artifact_evidence_verified"]:
+        raise RuntimeError("installed plan comparison changed its no-evidence-verification contract")
+    run_cli(directory, ["proofrun", "compare-plans", baseline.name, path.name,
+                        "--expected-baseline-file-sha256", "0" * 64, "--json"], 2)
     result = json.loads(run_cli(directory, ["proofrun", "verify-collection", path.name, "--json",
                                             "--expected-plan-file-sha256", pin]))
     if result["summary"] != {"required": 2, "reviewed": 2, "passed": 2, "not_passed": 0, "invalid": 0}:
@@ -305,6 +315,9 @@ def smoke_collection_reviews(directory: Path) -> None:
     run_cli(directory, ["proofrun", "verify-collection", path.name, "--expected-plan-file-sha256", "0" * 64], 2)
     plan["entries"].insert(1, entries["trace"])
     path.write_text(json.dumps(plan), encoding="utf-8")
+    comparison = json.loads(run_cli(directory, comparison_args, 1))
+    if comparison["summary"]["added"] != 1 or comparison["summary"]["modified"] != 1:
+        raise RuntimeError("installed plan comparison hid an added or reordered evidence slot")
     result = json.loads(run_cli(directory, ["proofrun", "verify-collection", path.name, "--json"], 1))
     if result["summary"]["not_passed"] != 1 or result["summary"]["passed"] != 2:
         raise RuntimeError("installed collection silently admitted ineligible reference evidence")

@@ -384,6 +384,48 @@ output retains its field layout and semantics. Consumers using an earlier copy
 of this unreleased schema must update it before accepting structural decisions;
 the schema rejects structural authentication claims and policy-family mismatches.
 
+### Review collection plan changes (on main)
+
+Before replacing an approved collection plan, compare the proposed requirements
+against baseline bytes whose SHA-256 you retained through an independent trusted
+channel. This is useful for supplier renewals, internal policy updates, and
+change-control reviews where an omitted evidence slot or relaxed provenance
+requirement must not silently disappear.
+
+```bash
+dspy-security-bench proofrun compare-plans approved-plan.json proposed-plan.json \
+  --expected-baseline-file-sha256 "$OWNER_RETAINED_PLAN_SHA256" --json
+```
+
+The baseline pin is mandatory. A mismatched or invalid baseline stops before the
+candidate is read. Both plans use the existing strict plan validation: at most
+25 entries and 1 MB each. No referenced artifacts are opened, no native replay or
+GitHub lookup occurs, and neither plan is rewritten. The Python API is
+`proofrun_plan_diff.compare_plans(baseline, candidate, expected_baseline_file_sha256=...)`.
+
+Exit 0 means identical valid plan **bytes**, not verified evidence. Exit 1 means
+changed bytes require owner review: `format_only` distinguishes formatting or
+object-key-order changes from `requirements_changed`. Exit 2 means invalid
+policy/input, a baseline-pin mismatch, or an invalid candidate; no partial diff
+is emitted. Every change—including stricter policies—requires review. The tool
+does not infer a universal security ranking or approve candidate requirements.
+
+The [comparison schema](../dspy_security_bench/schemas/proofrun-plan-comparison.schema.json)
+records the exact hashes and up to 50 union entries. Rows follow baseline order,
+then candidate-only entries. Each row shows before/after positions and policies;
+field changes include path, family, artifact hash, and all five policy inputs.
+Reordering matters because collection resource budgets apply in plan order.
+An ID rename is a removal plus an addition, not an inferred match. Labels, paths,
+and repository names are fingerprinted rather than copied; hashes are linkable,
+not anonymization. Text mode identifies entries by their 1-based positions.
+
+After accountable owner review, retain the approved candidate's exact-byte hash
+through your trusted channel and run `verify-collection` with that pin against
+the actual artifacts. Reformatting also needs a new pin. A supplied plan/hash
+pair or saved comparison report does not authenticate itself. This workflow
+does not establish requirement completeness, independent execution, regulatory
+compliance, or deployment approval.
+
 ### Required evidence collections (on main)
 
 Use `proofrun verify-collection` when a supplier handoff or internal change review
