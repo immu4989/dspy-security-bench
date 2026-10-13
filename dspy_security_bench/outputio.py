@@ -29,8 +29,18 @@ def check_new_directory(output: Path) -> Path:
 
 def write_new_file(path: Path, raw: bytes) -> None:
     """Never overwrite a file or final link; errors can leave a partial new file."""
-    # Restrictive POSIX creation modes supplement deployment-owned ACLs. EXCL
-    # rejects existing final links, including dangling ones, without following.
+    # Windows CRT exclusive creation can follow a dangling symbolic link and
+    # create its target. Reject every observed existing directory entry first,
+    # including links/reparse points that exists() would miss. EXCL remains a
+    # second check, not a portable sandbox against concurrent link replacement.
+    path = Path(path)
+    try:
+        path.lstat()
+    except FileNotFoundError:
+        pass
+    else:
+        raise FileExistsError("output directory entry already exists")
+    # Restrictive POSIX creation modes supplement deployment-owned ACLs.
     with open(path, "xb", opener=lambda name, flags: os.open(name, flags, 0o600)) as stream:
         if stream.write(raw) != len(raw):
             raise OSError("incomplete write")

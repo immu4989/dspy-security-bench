@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Fixed Windows output preflight: reject existing directory entries, including
+  dangling symlinks, before invoking the platform's exclusive-create operation.
+  Snapshot, report, and walkthrough outputs retain stable-owner-path requirements;
+  this is not a filesystem race sandbox. Regression tests cover pre-open rejection.
 - Added `proofrun collection-demo`, a credential-free walkthrough of explicit
   owner requirements, exact-byte snapshots, changed policies, and recipient-side
   report sets. Three synthetic structural families exercise real native exits
