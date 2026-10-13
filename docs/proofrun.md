@@ -739,6 +739,12 @@ approval, complete requirements, or independently reproduced execution.
 
 ### Export all report formats from one review (on main)
 
+GitHub-hosted Linux users can use the separate
+[collection-review action](../actions/review-collection/README.md). It requires
+an independently retained owner plan pin, retains failed reports, and preserves
+the native failure gate without installing supplier code or automatically
+uploading evidence. Use a reviewed commit containing that unreleased action.
+
 Use `--report-dir` when engineers need JUnit, reviewers need HTML, and automation
 needs JSON from the **same invocation**. It is mutually exclusive with `--json`,
 `--html`, and `--junit`. Install a reviewed revision supporting this unreleased

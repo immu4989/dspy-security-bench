@@ -1,0 +1,54 @@
+name: "ProofRun collection review"
+description: "Review an owner-pinned evidence collection once; retain JSON, HTML, and JUnit without uploading source evidence."
+inputs:
+  plan:
+    description: "Local collection plan; relative paths use the caller working directory"
+    required: true
+  expected-plan-file-sha256:
+    description: "Mandatory independently retained owner-reviewed plan SHA-256"
+    required: true
+outputs:
+  exit-code:
+    description: "0: selected checks passed; 1: unmet evidence policy; 2: invalid input or export error"
+    value: ${{ steps.review.outputs.exit-code }}
+  report-set-complete:
+    description: "true only for a completed export, including native failed reviews"
+    value: ${{ steps.review.outputs.report-set-complete }}
+  report-directory:
+    description: "New runner-temporary directory; exposed only for a completed export"
+    value: ${{ steps.review.outputs.report-directory }}
+  manifest-file-sha256:
+    description: "Exact unsigned report manifest hash; not authentication or approval"
+    value: ${{ steps.review.outputs.manifest-file-sha256 }}
+runs:
+  using: composite
+  steps:
+    - name: Set up review Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: "3.12"
+    - name: Install reviewer from this action revision
+      shell: bash
+      run: python -I -m pip install "$GITHUB_ACTION_PATH/../.."
+    - name: Review pinned collection and preserve all native outcomes
+      id: review
+      continue-on-error: true
+      shell: bash
+      env:
+        PROOFRUN_REVIEW_PLAN: ${{ inputs.plan }}
+        PROOFRUN_REVIEW_PIN: ${{ inputs.expected-plan-file-sha256 }}
+      run: python -I "$GITHUB_ACTION_PATH/review.py"
+    - name: Preserve failed review as the action result
+      if: ${{ !cancelled() }}
+      shell: bash
+      env:
+        PROOFRUN_REVIEW_EXIT: ${{ steps.review.outputs.exit-code }}
+        PROOFRUN_REVIEW_COMPLETE: ${{ steps.review.outputs.report-set-complete }}
+        PROOFRUN_REVIEW_OUTCOME: ${{ steps.review.outcome }}
+      run: |
+        if [[ "$PROOFRUN_REVIEW_COMPLETE" != "true" ]]; then exit 2; fi
+        case "$PROOFRUN_REVIEW_EXIT:$PROOFRUN_REVIEW_OUTCOME" in
+          0:success) exit 0 ;;
+          1:failure) exit 1 ;;
+          *) exit 2 ;;
+        esac

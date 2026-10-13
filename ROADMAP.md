@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- A separate owner-pinned collection-review GitHub Action preserves adverse
+  evidence gates and complete report exports, without executing supplier adapters
+  or automatically publishing artifacts. Intake cannot shadow Python imports;
+  consumer sharing and trusted-runner configuration remain owner responsibilities.
+
 - A model-free collection walkthrough combines owner preparation, pinned
   recipient snapshots, requirement-change review, and synchronized report sets.
   Three deliberately different native outcomes are replay-tested without model

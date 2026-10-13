@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added a separate Linux collection-review GitHub Action with mandatory owner
+  plan pins, isolated Python imports, one native evaluation, synchronized report
+  outputs, and a fail-closed final gate. No caller installation, automatic upload,
+  signing, or deployment approval is performed. Real shell tests cover all native
+  exits and failures; a dedicated hosted smoke workflow covers the composite.
 - Fixed Windows output preflight: reject existing directory entries, including
   dangling symlinks, before invoking the platform's exclusive-create operation.
   Snapshot, report, and walkthrough outputs retain stable-owner-path requirements;

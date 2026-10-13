@@ -1,0 +1,70 @@
+name: Collection review action smoke
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ["actions/review-collection/**", "dspy_security_bench/**", ".github/workflows/collection-review-smoke.yml"]
+  push:
+    branches: [main]
+    paths: ["actions/review-collection/**", "dspy_security_bench/**", ".github/workflows/collection-review-smoke.yml"]
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [0, 1, 2]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Prepare explicitly synthetic smoke fixtures
+        id: fixture
+        env:
+          CASE: ${{ matrix.case }}
+        run: |
+          python -I -m pip install .
+          python -I - <<'PY'
+          import os
+          from pathlib import Path
+          from dspy_security_bench.proofrun_demo import create_collection_demo
+          root = Path(os.environ["RUNNER_TEMP"]) / "synthetic-demo"
+          result = create_collection_demo(root)
+          assert result["demo_complete"]
+          case = result["cases"][int(os.environ["CASE"])]
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"plan={root / case['plan']}\npin={case['plan_file_sha256']}\n")
+          PY
+      - name: Exercise actual action (adverse outcomes are expected in this smoke test only)
+        id: review
+        continue-on-error: true
+        uses: ./actions/review-collection
+        with:
+          plan: ${{ steps.fixture.outputs.plan }}
+          expected-plan-file-sha256: ${{ steps.fixture.outputs.pin }}
+      - name: Assert native outcome and retained reports
+        if: ${{ !cancelled() }}
+        env:
+          EXPECTED: ${{ matrix.case }}
+          ACTUAL: ${{ steps.review.outputs.exit-code }}
+          COMPLETE: ${{ steps.review.outputs.report-set-complete }}
+          OUTCOME: ${{ steps.review.outcome }}
+          REPORTS: ${{ steps.review.outputs.report-directory }}
+        run: |
+          python -I - <<'PY'
+          import json, os
+          from pathlib import Path
+          assert os.environ["ACTUAL"] == os.environ["EXPECTED"]
+          assert os.environ["COMPLETE"] == "true"
+          assert os.environ["OUTCOME"] == ("success" if os.environ["EXPECTED"] == "0" else "failure")
+          reports = Path(os.environ["REPORTS"])
+          assert {p.name for p in reports.iterdir()} == {"review.json", "review.html", "review.xml", "manifest.json"}
+          review = json.loads((reports / "review.json").read_bytes())
+          assert review["exit_code"] == int(os.environ["EXPECTED"])
+          assert review["summary"]["required"] == 3
+          PY

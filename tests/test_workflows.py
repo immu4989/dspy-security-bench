@@ -19,7 +19,7 @@ IMMUTABLE_ACTION = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
 
 def test_every_external_action_is_pinned_to_a_full_commit_sha():
     references = []
-    action_files = [*sorted(WORKFLOWS.glob("*.yml")), ACTION, *USER_FACING_WORKFLOWS]
+    action_files = [*sorted(WORKFLOWS.glob("*.yml")), ACTION, *ROOT.glob("actions/*/action.yml"), *USER_FACING_WORKFLOWS]
     for workflow in action_files:
         for line_number, line in enumerate(workflow.read_text().splitlines(), start=1):
             match = re.search(r"\buses:\s*([^\s#]+)", line)
