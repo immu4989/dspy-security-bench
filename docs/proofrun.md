@@ -571,6 +571,78 @@ supplier's review JSON. Collection success is not proof that your requirements
 are complete, that execution was independently reproduced, or that a deployment
 is safe. All three authority flags remain false.
 
+### Transfer an exact collection snapshot (on main)
+
+Use `proofrun snapshot-collection` to assemble a supplier, internal assurance,
+or independent-research handoff after an accountable owner has reviewed the
+collection plan. Install a reviewed revision supporting this unreleased command.
+The recipient uses the same `verify-collection` interface and the same plan pin;
+there is no new archive or evidence format to trust.
+
+```bash
+# OWNER_PLAN_SHA256 must come from your independently retained approved plan.
+# The parent directory must exist; handoff must not already exist.
+dspy-security-bench proofrun snapshot-collection intake/plan.json \
+  --expected-plan-file-sha256 "$OWNER_PLAN_SHA256" --out handoff --json
+
+# On the recipient's machine, after an authorized transfer of the directory:
+dspy-security-bench proofrun verify-collection handoff/collection-plan.json \
+  --expected-plan-file-sha256 "$OWNER_PLAN_SHA256" --html > recipient-review.html
+```
+
+The command checks the mandatory plan pin and entire plan contract, then reads
+each required artifact once. Every artifact must match its exact file pin, be
+strict JSON, and declare the required family. It preserves whitespace, Unicode,
+entry order, original relative paths, and every review policy. Copying does not
+rerun native verification: even semantically invalid or ineligible evidence can
+be faithfully copied, and the recipient's native review must still reject it.
+Online policies remain online; snapshot creation never invokes `gh`, but a
+recipient review may do so as specified by its plan.
+
+All input snapshots must be admitted before output creation. Limits remain
+1 MB for the plan, 25 required artifacts, 50 MB per artifact, and 100 MB of
+aggregate artifact bytes. Snapshots are retained in memory, so these are input
+budgets, not a process-memory ceiling. Missing files, linked/reparse artifact components,
+invalid JSON, incorrect pins/types, or exhausted budgets produce exit 2 without
+creating the destination. Unsafe plan paths already fail plan validation.
+Additionally, paths that collide with one another as file/directory prefixes,
+or with reserved `collection-plan.json`, are rejected case-insensitively before
+artifact reads. Shared parent-directory spellings must also agree exactly:
+`Folder/a.json` and `folder/b.json` cannot form a portable handoff. The command
+never renames artifacts or edits the pinned plan.
+
+The output directory must be new beneath an existing unlinked parent. Files are
+exclusively created, with restrictive POSIX creation modes where supported;
+deployment-owned access controls remain necessary. The unchanged plan is written
+last. Exit 0 reports a completed copy, **not** approved or verified evidence.
+An I/O failure returns exit 2 and can leave partial new files, including a partial
+plan; inspect that directory and use a fresh destination for a retry. Existing
+files are never overwritten and no recursive cleanup is attempted. This is not
+an atomic/durable transaction or a race-proof filesystem sandbox: keep both
+source and destination parents owner-controlled and stable during the operation.
+
+The [snapshot receipt schema](../dspy_security_bench/schemas/proofrun-collection-snapshot.schema.json)
+records observed/written counts, accepted artifact-byte totals, exact plan pins,
+completion, and a zero-based failed entry index where available. Receipts omit
+paths, entry labels, repository names, and raw diagnostics. An observed plan
+hash may remain in a failed receipt; only `snapshot_complete: true` indicates
+that this invocation completed the copy. Saved receipts do not authenticate
+the files or substitute for recipient-side review.
+
+**Snapshot contents are not redacted.** The directory contains the original
+plan and complete artifact files, potentially including private metadata.
+Review sharing permission and contents before transfer; this command never
+uploads, signs, creates an archive, or approves disclosure. A plan and hash
+delivered through the same untrusted channel do not establish owner approval.
+The sender may lose access to the original files after the copy; recipients
+still review the retained bytes, with missing or modified required files failing
+normally. Requirement completeness and deployment approval remain owner duties.
+
+Design rationale: SLSA's verification guidance separates consumer expectations,
+artifact-digest matching, and provenance authentication. This handoff applies
+that separation to collection transport; it does not establish a SLSA level or
+implement a new SLSA verifier. See [SLSA: verifying artifacts](https://slsa.dev/spec/v1.2/verifying-artifacts).
+
 ### Human-readable HTML reviews (on main)
 
 Use `--html` with either review command for a self-contained report suitable for

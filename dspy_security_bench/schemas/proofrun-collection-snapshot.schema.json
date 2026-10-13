@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/proofrun-collection-snapshot.schema.json",
+  "title": "Source-redacted ProofRun collection snapshot receipt",
+  "description": "A local copy receipt, not approval or evidence verification. Snapshot files contain full original content. Schema validation does not prove byte identities, counts, durable publication, or authenticity; recipients must review the original plan and artifacts with independent pins.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "review_type", "expected_plan_file_sha256", "plan_file_sha256", "required_entries", "observed_entries", "written_entries", "artifact_bytes", "failed_entry_index", "snapshot_complete", "artifact_evidence_verified", "requirements_completeness_established", "snapshot_is_approval", "snapshot_is_redacted", "exit_code", "reason_code"],
+  "properties": {
+    "schema_version": {"const": 1}, "review_type": {"const": "ProofRun collection snapshot"},
+    "expected_plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "required_entries": {"type": "integer", "minimum": 0, "maximum": 25},
+    "observed_entries": {"type": "integer", "minimum": 0, "maximum": 25},
+    "written_entries": {"type": "integer", "minimum": 0, "maximum": 25},
+    "artifact_bytes": {"type": "integer", "minimum": 0, "maximum": 100000000},
+    "failed_entry_index": {"anyOf": [{"type": "null"}, {"type": "integer", "minimum": 0, "maximum": 24}]},
+    "snapshot_complete": {"type": "boolean"},
+    "artifact_evidence_verified": {"const": false}, "requirements_completeness_established": {"const": false},
+    "snapshot_is_approval": {"const": false}, "snapshot_is_redacted": {"const": false},
+    "exit_code": {"enum": [0, 2]},
+    "reason_code": {"enum": ["snapshotted", "invalid_policy", "invalid_output", "invalid_plan", "plan_pin_mismatch", "path_conflict", "invalid_artifact", "artifact_pin_mismatch", "bundle_type_mismatch", "byte_budget_exceeded", "output_error"]}
+  },
+  "oneOf": [
+    {"properties": {"exit_code": {"const": 0}, "reason_code": {"const": "snapshotted"}, "snapshot_complete": {"const": true}, "required_entries": {"minimum": 1}, "observed_entries": {"minimum": 1}, "written_entries": {"minimum": 1}, "artifact_bytes": {"minimum": 1}, "failed_entry_index": {"type": "null"}, "expected_plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}, "plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}}},
+    {"properties": {"exit_code": {"const": 2}, "reason_code": {"not": {"const": "snapshotted"}}, "snapshot_complete": {"const": false}}}
+  ],
+  "allOf": [
+    {"if": {"properties": {"reason_code": {"enum": ["invalid_policy", "invalid_output", "invalid_plan", "plan_pin_mismatch"]}}}, "then": {"properties": {"required_entries": {"const": 0}, "observed_entries": {"const": 0}, "written_entries": {"const": 0}, "artifact_bytes": {"const": 0}, "failed_entry_index": {"type": "null"}}}},
+    {"if": {"properties": {"reason_code": {"enum": ["invalid_artifact", "artifact_pin_mismatch", "bundle_type_mismatch", "byte_budget_exceeded"]}}}, "then": {"properties": {"required_entries": {"minimum": 1}, "written_entries": {"const": 0}, "failed_entry_index": {"type": "integer", "minimum": 0, "maximum": 24}}}},
+    {"if": {"properties": {"reason_code": {"const": "invalid_policy"}}}, "then": {"properties": {"expected_plan_file_sha256": {"type": "null"}, "plan_file_sha256": {"type": "null"}}}},
+    {"if": {"properties": {"reason_code": {"const": "path_conflict"}}}, "then": {"properties": {"required_entries": {"minimum": 1}, "observed_entries": {"const": 0}, "written_entries": {"const": 0}, "artifact_bytes": {"const": 0}, "failed_entry_index": {"type": "null"}}}}
+  ]
+}

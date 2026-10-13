@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Exact-byte collection snapshots enable recipient-side verification without
+  sender paths or a new bundle format. Independently pinned requirements,
+  all-input admission, bounded snapshots, exclusive outputs, and plan-last
+  publication preserve mandatory evidence and explicit full-content boundaries.
+
 - Self-contained HTML evidence reviews give human reviewers every required
   outcome, three distinct decision dimensions, selected policies, fingerprints,
   and fixed remediation guidance without copying private source labels. Native

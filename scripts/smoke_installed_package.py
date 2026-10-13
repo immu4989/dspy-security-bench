@@ -334,6 +334,7 @@ def smoke_collection_reviews(directory: Path) -> None:
                                             "--expected-plan-file-sha256", pin]))
     if result["summary"] != {"required": 2, "reviewed": 2, "passed": 2, "not_passed": 0, "invalid": 0}:
         raise RuntimeError("installed collection did not review every required entry")
+    smoke_collection_snapshot(directory, path, plan, pin)
     run_cli(directory, ["proofrun", "verify-collection", path.name, "--expected-plan-file-sha256", "0" * 64], 2)
     plan["entries"].insert(1, entries["trace"])
     path.write_text(json.dumps(plan), encoding="utf-8")
@@ -348,6 +349,33 @@ def smoke_collection_reviews(directory: Path) -> None:
     result = json.loads(run_cli(directory, ["proofrun", "verify-collection", path.name, "--json"], 2))
     if result["summary"]["invalid"] != 1 or result["summary"]["passed"] != 2:
         raise RuntimeError("installed collection omitted missing evidence or skipped later entries")
+
+
+def smoke_collection_snapshot(directory: Path, path: Path, plan: dict, pin: str) -> None:
+    args = ["proofrun", "snapshot-collection", path.name, "--out", "handoff", "--json"]
+    run_cli(directory, [*args, "--expected-plan-file-sha256", "0" * 64], 2)
+    receipt = json.loads(run_cli(directory, [*args, "--expected-plan-file-sha256", pin]))
+    transfer = directory / "handoff"
+    if (not receipt["snapshot_complete"] or receipt["snapshot_is_redacted"] or receipt["artifact_evidence_verified"]
+            or (transfer / "collection-plan.json").read_bytes() != path.read_bytes()):
+        raise RuntimeError("installed snapshot changed exact bytes or claim boundaries")
+    run_cli(directory, [*args, "--expected-plan-file-sha256", pin], 2)
+    originals = [(directory / entry["path"], (directory / entry["path"]).read_bytes()) for entry in plan["entries"]]
+    try:
+        for original, raw in originals:
+            if (transfer / original.relative_to(directory)).read_bytes() != raw:
+                raise RuntimeError("installed snapshot rewrote artifact bytes")
+            original.write_bytes(b"synthetic source unavailable")
+        run_cli(directory, ["proofrun", "verify-collection", "handoff/collection-plan.json",
+                            "--expected-plan-file-sha256", pin, "--json"])
+    finally:
+        for original, raw in originals:
+            original.write_bytes(raw)
+    (transfer / plan["entries"][0]["path"]).write_bytes(b"synthetic recipient tampering")
+    result = json.loads(run_cli(directory, ["proofrun", "verify-collection", "handoff/collection-plan.json",
+                                           "--expected-plan-file-sha256", pin, "--json"], 2))
+    if result["entries"][0]["status"] != "pin_mismatch" or result["summary"]["passed"] != 1:
+        raise RuntimeError("installed snapshot recipient accepted substituted evidence or omitted another slot")
 
 
 def smoke_junit_reviews(directory: Path) -> None:

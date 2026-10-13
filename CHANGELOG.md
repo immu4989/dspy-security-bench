@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added `proofrun snapshot-collection` for exact-byte evidence handoff under a
+  mandatory independent plan pin. All required artifacts are admitted before
+  output creation; the command preserves original bytes and policies, rejects
+  path conflicts and changed inputs, exclusively creates a new directory, and
+  writes the plan last. Redacted receipts distinguish complete and partial
+  copies; full-content snapshots require sharing review and native recipient
+  verification. No evidence approval, upload, or provenance lookup is performed.
 - Added self-contained `--html` output for individual and collection ProofRun
   reviews. Human-readable decisions, selected policies, exact fingerprints, and
   remediation guidance preserve native exit codes and all required outcomes.

@@ -200,6 +200,12 @@ draft before retaining its independent pin. For replacements, `proofrun compare-
 exposes changes against an approved pinned baseline; neither command approves
 requirements or verifies native evidence. See the [preparation workflow](docs/proofrun.md#prepare-a-draft-collection-plan-on-main).
 
+For recipient handoff, `proofrun snapshot-collection` copies exact approved plan
+bytes and every pinned artifact into a new local directory. Its receipt is
+redacted but its files are not; inspect them before sharing. Recipients must run
+native review with an independently retained plan pin, not trust the copy receipt.
+See [collection snapshots](docs/proofrun.md#transfer-an-exact-collection-snapshot-on-main).
+
 Both review commands accept `--junit` for CI consumers. Retain reports on failed
 runs, keep the command's nonzero status, and do not mark unreviewed required
 artifacts as skipped. See [JUnit integration](docs/proofrun.md#junit-results-for-existing-ci-on-main).
