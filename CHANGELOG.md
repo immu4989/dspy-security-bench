@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added `proofrun verify-collection` for owner-planned multi-artifact intake across
+  all nine registry families. Required entries bind expected bundle types, exact
+  file hashes, and explicit review policies; an optional independent plan pin
+  protects the selected requirements. Missing, substituted, malformed, or
+  ineligible evidence cannot be hidden by successful entries. Bounded local
+  intake rejects linked/special files, keeps per-entry outcomes, and emits a
+  source-redacted unsigned summary without completeness or approval claims.
 - Unified machine-readable review now covers all nine registry families, with
   explicit `proofrun verify --structural` admission for TraceProof, CausalProof,
   CollectiveGuard, and DefenderTwin. Null trial policy cannot bypass repeated

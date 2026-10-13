@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/proofrun-collection-plan.schema.json",
+  "title": "Owner-controlled ProofRun collection review plan",
+  "description": "All entries are required. Native validation also enforces distinct IDs, portable case-insensitive paths, and exact file pins. A plan does not establish its own completeness or authenticity.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "plan_type", "entries"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "plan_type": {"const": "ProofRun review collection plan"},
+    "entries": {
+      "type": "array", "minItems": 1, "maxItems": 25,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "path", "bundle_type", "file_sha256", "policy"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 64},
+          "path": {"type": "string", "minLength": 1, "maxLength": 240, "pattern": "^[A-Za-z0-9_-][A-Za-z0-9_.-]*(?:/[A-Za-z0-9_-][A-Za-z0-9_.-]*)*\\.json$"},
+          "bundle_type": {"$ref": "proofrun-review.schema.json#/$defs/bundleType"},
+          "file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"},
+          "policy": {
+            "type": "object", "additionalProperties": false,
+            "required": ["minimum_trials", "offline", "attestation_repository", "require_trusted_builder", "allow_self_hosted_runner"],
+            "properties": {
+              "minimum_trials": {"anyOf": [{"type": "integer", "minimum": 2}, {"type": "null"}]},
+              "offline": {"type": "boolean"},
+              "attestation_repository": {"anyOf": [{"type": "null"}, {"type": "string", "pattern": "^[^/\\s]+/[^/\\s]+$"}]},
+              "require_trusted_builder": {"type": "boolean"},
+              "allow_self_hosted_runner": {"type": "boolean"}
+            },
+            "if": {"properties": {"offline": {"const": true}}},
+            "then": {"properties": {"require_trusted_builder": {"const": false}}}
+          }
+        },
+        "if": {"properties": {"bundle_type": {"$ref": "proofrun-review.schema.json#/$defs/structuralType"}}},
+        "then": {"properties": {"policy": {"properties": {"minimum_trials": {"type": "null"}}}}},
+        "else": {"properties": {"policy": {"properties": {"minimum_trials": {"type": "integer"}}}}}
+      }
+    }
+  }
+}

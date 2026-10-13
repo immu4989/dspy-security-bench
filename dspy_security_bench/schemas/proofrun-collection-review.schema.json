@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/proofrun-collection-review.schema.json",
+  "title": "Source-redacted ProofRun collection review",
+  "description": "Unsigned local decisions. Schema validation checks shape and status constraints, not count arithmetic, hash binding, native evidence validity, or authenticity. Rerun against the independently retained plan and artifacts.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "review_type", "verifier_version", "plan_file_sha256", "expected_plan_file_sha256", "entries", "summary", "review_is_attestation", "execution_reproduced", "requirements_completeness_established", "exit_code", "verdict", "reason_code"],
+  "properties": {
+    "schema_version": {"const": 1}, "review_type": {"const": "ProofRun collection verification"},
+    "verifier_version": {"type": "string", "minLength": 1},
+    "plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "expected_plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "review_is_attestation": {"const": false}, "execution_reproduced": {"const": false}, "requirements_completeness_established": {"const": false},
+    "exit_code": {"enum": [0, 1, 2]}, "verdict": {"enum": ["pass", "not_passed", "invalid"]},
+    "reason_code": {"enum": ["completed", "invalid_policy", "invalid_plan", "plan_pin_mismatch"]},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["required", "reviewed", "passed", "not_passed", "invalid"],
+      "properties": {
+        "required": {"$ref": "#/$defs/count"}, "reviewed": {"$ref": "#/$defs/count"},
+        "passed": {"$ref": "#/$defs/count"}, "not_passed": {"$ref": "#/$defs/count"}, "invalid": {"$ref": "#/$defs/count"}
+      }
+    },
+    "entries": {
+      "type": "array", "maxItems": 25,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["index", "entry_id_sha256", "expected_bundle_type", "expected_file_sha256", "input_file_sha256", "status", "review"],
+        "properties": {
+          "index": {"type": "integer", "minimum": 0, "maximum": 24},
+          "entry_id_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"},
+          "expected_bundle_type": {"$ref": "proofrun-review.schema.json#/$defs/bundleType"},
+          "expected_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"},
+          "input_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+          "status": {"enum": ["reviewed", "invalid_input", "pin_mismatch", "bundle_type_mismatch", "byte_budget_exceeded"]},
+          "review": {"anyOf": [{"type": "null"}, {"$ref": "proofrun-review.schema.json"}]}
+        },
+        "if": {"properties": {"status": {"const": "reviewed"}}},
+        "then": {"properties": {"review": {"$ref": "proofrun-review.schema.json"}, "input_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}}},
+        "else": {
+          "properties": {"review": {"type": "null"}},
+          "if": {"properties": {"status": {"enum": ["pin_mismatch", "bundle_type_mismatch"]}}},
+          "then": {"properties": {"input_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}}}
+        }
+      }
+    }
+  },
+  "$defs": {"count": {"type": "integer", "minimum": 0, "maximum": 25}},
+  "allOf": [
+    {
+      "if": {"properties": {"reason_code": {"const": "completed"}}},
+      "then": {"properties": {"entries": {"minItems": 1}, "plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}, "summary": {"properties": {"required": {"minimum": 1}}}}},
+      "else": {
+        "properties": {"exit_code": {"const": 2}, "entries": {"maxItems": 0}, "summary": {"const": {"required": 0, "reviewed": 0, "passed": 0, "not_passed": 0, "invalid": 0}}}
+      }
+    },
+    {
+      "if": {"properties": {"exit_code": {"const": 0}}},
+      "then": {"properties": {"verdict": {"const": "pass"}, "reason_code": {"const": "completed"}, "summary": {"properties": {"passed": {"minimum": 1}, "invalid": {"const": 0}, "not_passed": {"const": 0}}}, "entries": {"items": {"properties": {"status": {"const": "reviewed"}, "review": {"properties": {"exit_code": {"const": 0}}}}}}}}
+    },
+    {
+      "if": {"properties": {"exit_code": {"const": 1}}},
+      "then": {"properties": {"verdict": {"const": "not_passed"}, "reason_code": {"const": "completed"}, "summary": {"properties": {"invalid": {"const": 0}, "not_passed": {"minimum": 1}}}, "entries": {"items": {"properties": {"status": {"const": "reviewed"}, "review": {"properties": {"exit_code": {"enum": [0, 1]}}}}}, "contains": {"properties": {"review": {"properties": {"exit_code": {"const": 1}}}}}}}}
+    },
+    {
+      "if": {"properties": {"exit_code": {"const": 2}}},
+      "then": {"properties": {"verdict": {"const": "invalid"}}, "if": {"properties": {"reason_code": {"const": "completed"}}}, "then": {"properties": {"summary": {"properties": {"invalid": {"minimum": 1}}}}}}
+    },
+    {
+      "if": {"properties": {"reason_code": {"const": "invalid_policy"}}},
+      "then": {"properties": {"plan_file_sha256": {"type": "null"}, "expected_plan_file_sha256": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"reason_code": {"const": "plan_pin_mismatch"}}},
+      "then": {"properties": {"plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}, "expected_plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}}}
+    }
+  ]
+}

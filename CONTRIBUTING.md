@@ -189,6 +189,11 @@ For source-redacted intake decisions across these four families, use
 This is distinct from repeated-trial review and does not authenticate execution
 or approve deployment. See [structural review](docs/proofrun.md#structural-evidence-review-on-main).
 
+For handoffs with several required artifacts, retain an owner-reviewed
+[collection plan](docs/proofrun.md#required-evidence-collections-on-main) and its
+independent file hash, then run `proofrun verify-collection`. Missing entries and
+failed reviews must not be removed merely to obtain an aggregate pass.
+
 ## Submitting your agent's ProofRun result
 
 The recommended path is the versioned reusable workflow in

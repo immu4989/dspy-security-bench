@@ -45,7 +45,8 @@ if len(entry) != 1 or entry[0].value != "dspy_security_bench.cli:main":
     raise RuntimeError("installed CLI entry point is missing or changed")
 resources = importlib.resources.files("dspy_security_bench")
 for name in ("scan-evidence.schema.json", "scan-comparison.schema.json", "scan-study.schema.json",
-             "scan-policy-review.schema.json", "repeat-report.schema.json", "proofrun-review.schema.json"):
+             "scan-policy-review.schema.json", "repeat-report.schema.json", "proofrun-review.schema.json",
+             "proofrun-collection-plan.schema.json", "proofrun-collection-review.schema.json"):
     json.loads(resources.joinpath("schemas", name).read_text(encoding="utf-8"))
 if "workflow_dispatch" not in resources.joinpath("templates", "github-action.yml").read_text(encoding="utf-8"):
     raise RuntimeError("safe workflow template missing from installed wheel")
@@ -218,6 +219,7 @@ def main() -> int:
             if decision["integrity"] != "invalid" or decision["bundle_sha256"] is not None:
                 raise RuntimeError("installed verifier accepted rehashed malformed metadata")
         smoke_structural_reviews(directory)
+        smoke_collection_reviews(directory)
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(
@@ -229,7 +231,7 @@ def main() -> int:
         if not (directory / ".dspy-security-bench.yaml").is_file():
             raise RuntimeError("installed init did not create its config")
     print("Installed wheel smoke passed: resources, CLI, offline scan/study/policy replay, "
-          "portable bundles, procurement consistency, joint-policy exits, pins, tamper rejection, strict configuration, scaffold.")
+          "portable bundles, procurement consistency, structural/collection reviews, joint-policy exits, pins, tamper rejection, strict configuration, scaffold.")
     return 0
 
 
@@ -263,6 +265,39 @@ def smoke_structural_reviews(directory: Path) -> None:
         mismatch = json.loads(run_cli(directory, ["proofrun", "verify", output, "--offline", "--json"], 2))
         if mismatch["reason_code"] != "policy_not_applicable":
             raise RuntimeError("installed reviewer silently discarded the repeated-trial policy")
+
+
+def smoke_collection_reviews(directory: Path) -> None:
+    entries = {}
+    for family in ("collective", "defense", "trace"):
+        path = directory / f"{family}-bundle.json"
+        raw = path.read_bytes()
+        entries[family] = {
+            "id": family, "path": path.name, "bundle_type": json.loads(raw)["bundle_type"],
+            "file_sha256": hashlib.sha256(raw).hexdigest(),
+            "policy": {"minimum_trials": None, "offline": True, "attestation_repository": None,
+                       "require_trusted_builder": False, "allow_self_hosted_runner": False},
+        }
+    plan = {"schema_version": 1, "plan_type": "ProofRun review collection plan",
+            "entries": [entries["collective"], entries["defense"]]}
+    path = directory / "collection-plan.json"
+    path.write_text(json.dumps(plan), encoding="utf-8")
+    pin = hashlib.sha256(path.read_bytes()).hexdigest()
+    result = json.loads(run_cli(directory, ["proofrun", "verify-collection", path.name, "--json",
+                                            "--expected-plan-file-sha256", pin]))
+    if result["summary"] != {"required": 2, "reviewed": 2, "passed": 2, "not_passed": 0, "invalid": 0}:
+        raise RuntimeError("installed collection did not review every required entry")
+    run_cli(directory, ["proofrun", "verify-collection", path.name, "--expected-plan-file-sha256", "0" * 64], 2)
+    plan["entries"].insert(1, entries["trace"])
+    path.write_text(json.dumps(plan), encoding="utf-8")
+    result = json.loads(run_cli(directory, ["proofrun", "verify-collection", path.name, "--json"], 1))
+    if result["summary"]["not_passed"] != 1 or result["summary"]["passed"] != 2:
+        raise RuntimeError("installed collection silently admitted ineligible reference evidence")
+    plan["entries"][1]["path"] = "missing-trace.json"
+    path.write_text(json.dumps(plan), encoding="utf-8")
+    result = json.loads(run_cli(directory, ["proofrun", "verify-collection", path.name, "--json"], 2))
+    if result["summary"]["invalid"] != 1 or result["summary"]["passed"] != 2:
+        raise RuntimeError("installed collection omitted missing evidence or skipped later entries")
 
 
 def smoke_portable_reviews(directory: Path) -> None:

@@ -132,6 +132,10 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="accept GitHub attestations produced on self-hosted runners",
     )
+    collection = commands.add_parser("verify-collection", help="review every required entry in an owner-controlled evidence plan")
+    collection.add_argument("plan", help="local JSON plan; referenced files must be beneath its directory")
+    collection.add_argument("--expected-plan-file-sha256", help="independent SHA-256 pin for exact plan bytes")
+    collection.add_argument("--json", action="store_true", help="emit one source-redacted collection decision")
     return parser
 
 
@@ -160,6 +164,15 @@ def main(argv: list[str] | None = None) -> int:
         return _authority(args)
     if args.command == "verify":
         return _verify(args)
+    if args.command == "verify-collection":
+        from dspy_security_bench.proofrun_collection import render_collection, review_collection
+
+        result = review_collection(Path(args.plan), expected_plan_file_sha256=args.expected_plan_file_sha256)
+        if args.json:
+            print(json.dumps(result, sort_keys=True, indent=2, allow_nan=False))
+        else:
+            print(render_collection(result), file=sys.stderr if result["exit_code"] == 2 else sys.stdout)
+        return result["exit_code"]
     return 2
 
 

@@ -80,7 +80,9 @@ def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch, cap
 
     monkeypatch.setattr(smoke, "run_cli", fixture_cli)
     assert smoke.main() == 0
-    assert len(calls) == 84
+    assert len(calls) == 88
+    for code in (0, 1, 2):
+        assert any(args[:2] == ["proofrun", "verify-collection"] and expected == code for args, expected in calls)
     for family in ("trace", "causal", "collective", "defense"):
         assert any(args[:3] == ["proofrun", "verify", f"{family}-bundle.json"] and "--structural" in args
                    and expected == (1 if family == "trace" else 0) for args, expected in calls)

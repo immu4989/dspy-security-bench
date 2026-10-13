@@ -17,6 +17,10 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Required evidence-collection review with owner-selected per-artifact policies,
+  expected bundle types, independent plan/file byte pins, explicit missing and
+  unreviewed outcomes, bounded local intake, and source-redacted aggregate decisions.
+
 - One source-redacted review interface for all nine public evidence registries,
   with explicit structural versus repeated-trial policies, exact-byte pins,
   native replay, and separate integrity, eligibility, and provenance decisions.

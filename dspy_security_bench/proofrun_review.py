@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
-from dspy_security_bench.jsonio import read_json_snapshot
+from dspy_security_bench.jsonio import decode_json_object, read_json_snapshot
 from dspy_security_bench.proofrun import MAX_BUNDLE_BYTES, verify_github_attestation
 
 FAMILIES = {
@@ -125,6 +125,19 @@ def review_bundle(path: Path, *, policy: ReviewPolicy | None = None) -> dict:
     deterministic for the same bytes, policy, and installed verifier. Online checks
     can change with external availability and trust state; rerun them when needed.
     """
+    return _review(path, policy, lambda source: read_json_snapshot(source, MAX_BUNDLE_BYTES))
+
+
+def review_bundle_bytes(raw: bytes, *, policy: ReviewPolicy | None = None) -> dict:
+    """Review exact retained bytes with full strict intake; no source-file reread.
+
+    Collection consumers can bind their type/pin checks and native/online review
+    to one snapshot. Supplying bytes does not bypass any policy or evidence gate.
+    """
+    return _review(Path("bundle.json"), policy, lambda _: (raw, decode_json_object(raw, MAX_BUNDLE_BYTES)))
+
+
+def _review(path, policy, read) -> dict:
     try:
         package_version = version("dspy-security-bench")
     except PackageNotFoundError:
@@ -150,7 +163,7 @@ def review_bundle(path: Path, *, policy: ReviewPolicy | None = None) -> dict:
         return finish(2, "invalid", "invalid_policy")
     try:
         path = Path(path)
-        raw, bundle = read_json_snapshot(path, MAX_BUNDLE_BYTES)
+        raw, bundle = read(path)
     except (OSError, ValueError, TypeError):
         return finish(2, "invalid", "invalid_input")
     result["input_file_sha256"] = hashlib.sha256(raw).hexdigest()

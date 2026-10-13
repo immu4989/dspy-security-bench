@@ -366,6 +366,107 @@ output retains its field layout and semantics. Consumers using an earlier copy
 of this unreleased schema must update it before accepting structural decisions;
 the schema rejects structural authentication claims and policy-family mismatches.
 
+### Required evidence collections (on main)
+
+Use `proofrun verify-collection` when a supplier handoff or internal change review
+requires several artifacts. Unlike a directory scan, an owner-controlled plan
+defines the required set: a missing file is a failure, not an absent row. Every
+entry binds an expected bundle type, exact input-file SHA-256, and explicit review
+policy. All nine registry families are supported; each retains its native meaning.
+
+For example, put two independently reviewed structural bundles in `intake/` as
+`collective.json` and `defense.json`. This local preparation snippet records their
+exact bytes and your selected policies. It does not authenticate their origin:
+
+```python
+import hashlib
+import json
+from pathlib import Path
+
+root = Path("intake")
+expected_types = {
+    "collective": "dspy-security-bench-collective-submission",
+    "defense": "dspy-security-bench-defense-evidence",
+}
+entries = []
+for label, bundle_type in expected_types.items():
+    raw = (root / f"{label}.json").read_bytes()
+    entries.append({
+        "id": label, "path": f"{label}.json", "bundle_type": bundle_type,
+        "file_sha256": hashlib.sha256(raw).hexdigest(),
+        "policy": {
+            "minimum_trials": None, "offline": True,
+            "attestation_repository": None, "require_trusted_builder": False,
+            "allow_self_hosted_runner": False,
+        },
+    })
+plan = {"schema_version": 1, "plan_type": "ProofRun review collection plan", "entries": entries}
+raw_plan = json.dumps(plan, indent=2).encode("utf-8")
+# Exclusive creation preserves an earlier owner's plan.
+with (root / "plan.json").open("xb") as stream:
+    stream.write(raw_plan)
+print(hashlib.sha256(raw_plan).hexdigest())
+```
+
+Review and retain the plan hash through an independent trusted channel before
+accepting later inputs. Do not treat a supplier-supplied plan/hash pair as your
+requirements. A file pin identifies bytes, not their author or trustworthiness.
+
+```bash
+dspy-security-bench proofrun verify-collection intake/plan.json --json \
+  --expected-plan-file-sha256 "$OWNER_RETAINED_PLAN_SHA256"
+```
+
+For repeated-trial entries, set `minimum_trials` to an integer of at least two
+(typically five or more under your protocol). For online repeated-family review,
+set `offline` to false and supply your expected `attestation_repository` and
+builder/runner requirements. Policies are never inferred from the evidence or
+silently overridden by a collection-wide flag. Structural bundles cannot satisfy
+online authentication requirements. The API is
+`proofrun_collection.review_collection(path, expected_plan_file_sha256=...)`;
+`proofrun_review.review_bundle_bytes(raw, policy=...)` supports services that
+already retain the exact input snapshot.
+
+Behavior and limits:
+
+- The entire plan is validated before any referenced file is read or GitHub
+  verification is attempted. Empty plans, policy-family mismatches, duplicate
+  IDs, case-insensitive duplicate paths, and repeated file pins are rejected.
+  Reusing one artifact in multiple slots is not supported and does not establish
+  independent evidence.
+- Paths are relative to the plan directory, using portable ASCII components and
+  `.json` filenames. Absolute paths, URLs, traversal, Windows reserved names,
+  symbolic links, observed Windows reparse points, and special files are rejected.
+  Use a stable, owner-controlled local directory: this is not an OS sandbox
+  against concurrent ancestor-directory replacement or a timeout for stalled
+  network filesystems.
+- Limits are 25 entries, 1 MB of plan JSON, 50 MB per artifact, and 100 MB of
+  aggregate artifact input, plus at most a one-byte overflow probe per read.
+  Every planned entry gets an outcome, including entries that cannot be reviewed
+  within the budget. Read failures conservatively charge the attempted allocation.
+- Exit 0 means every entry passed its selected review. Exit 1 means at least one
+  valid entry did not pass eligibility/authentication, with no invalid entries.
+  Exit 2 means invalid plan/input, pin/type mismatch, exhausted byte budget, or
+  native verification failure. Invalid individual files do not suppress later
+  outcomes; a successful majority cannot override a failure.
+- Output includes the exact plan hash, per-entry expected/observed file hashes,
+  expected bundle types, indexes, SHA-256 entry-ID fingerprints, native decisions,
+  and counts. Private labels, paths, source values, and raw diagnostics are omitted.
+  Hashes remain correlatable and are not anonymization or permission to publish.
+- JSON output is one object on stdout after successful argument parsing, including
+  invalid requests. There is no automatic output-file write, download, execution
+  of submitted code, publication, or deployment. Online entries may perform the
+  same GitHub attestation lookup as individual reviews.
+
+Packaged schemas describe the [plan](../dspy_security_bench/schemas/proofrun-collection-plan.schema.json)
+and [review](../dspy_security_bench/schemas/proofrun-collection-review.schema.json).
+Native validation adds path/uniqueness rules and exact count/hash binding; schema
+validation alone cannot establish these relationships or authenticity. Retain the
+original artifacts and rerun against your original policy instead of trusting a
+supplier's review JSON. Collection success is not proof that your requirements
+are complete, that execution was independently reproduced, or that a deployment
+is safe. All three authority flags remain false.
+
 ### Retaining and interpreting review decisions
 
 Decisions include the exact `input_file_sha256`, and `bundle_sha256` only when
