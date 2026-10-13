@@ -204,6 +204,12 @@ Both review commands accept `--junit` for CI consumers. Retain reports on failed
 runs, keep the command's nonzero status, and do not mark unreviewed required
 artifacts as skipped. See [JUnit integration](docs/proofrun.md#junit-results-for-existing-ci-on-main).
 
+For human reviewers, both commands also accept `--html` with the same native
+exit codes. Keep source labels and paths out of the presentation, show all
+required outcomes, and keep integrity, eligibility, and provenance distinct.
+HTML, JSON, and JUnit formats are mutually exclusive. See
+[HTML review reports](docs/proofrun.md#human-readable-html-reviews-on-main).
+
 ## Submitting your agent's ProofRun result
 
 The recommended path is the versioned reusable workflow in

@@ -120,6 +120,7 @@ def build_parser() -> argparse.ArgumentParser:
     output_format = verify.add_mutually_exclusive_group()
     output_format.add_argument("--json", action="store_true", help="emit one source-redacted machine-readable review decision")
     output_format.add_argument("--junit", action="store_true", help="emit source-redacted JUnit XML for CI; preserve the native exit code")
+    output_format.add_argument("--html", action="store_true", help="emit a self-contained source-redacted HTML review; preserve the native exit code")
     verify.add_argument("--attestation-repo", help="owner/repository; defaults to bundle metadata")
     review_kind = verify.add_mutually_exclusive_group()
     # Older argparse versions identify explicit mutually-exclusive values by
@@ -143,6 +144,7 @@ def build_parser() -> argparse.ArgumentParser:
     collection_format = collection.add_mutually_exclusive_group()
     collection_format.add_argument("--json", action="store_true", help="emit one source-redacted collection decision")
     collection_format.add_argument("--junit", action="store_true", help="emit one JUnit testcase per required entry, or an invalid-plan error")
+    collection_format.add_argument("--html", action="store_true", help="emit a self-contained source-redacted HTML collection review")
     comparison = commands.add_parser("compare-plans", help="compare collection requirements against an independently pinned baseline")
     comparison.add_argument("baseline", help="owner-approved local collection plan")
     comparison.add_argument("candidate", help="proposed local collection plan")
@@ -191,6 +193,10 @@ def main(argv: list[str] | None = None) -> int:
             from dspy_security_bench.proofrun_junit import render_collection_junit
 
             print(render_collection_junit(result, scope=args.plan))
+        elif args.html:
+            from dspy_security_bench.proofrun_html import render_collection_html
+
+            print(render_collection_html(result))
         else:
             print(render_collection(result), file=sys.stderr if result["exit_code"] == 2 else sys.stdout)
         return result["exit_code"]
@@ -589,6 +595,10 @@ def _verify(args) -> int:
         from dspy_security_bench.proofrun_junit import render_review_junit
 
         print(render_review_junit(review, scope=args.bundle))
+    elif args.html:
+        from dspy_security_bench.proofrun_html import render_review_html
+
+        print(render_review_html(review))
     else:
         print(render_review(review), file=sys.stderr if review["exit_code"] == 2 else sys.stdout)
     return review["exit_code"]

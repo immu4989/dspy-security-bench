@@ -80,13 +80,19 @@ def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch, cap
 
     monkeypatch.setattr(smoke, "run_cli", fixture_cli)
     assert smoke.main() == 0
-    assert len(calls) == 100
+    assert len(calls) == 105
     for code in (0, 2):
         assert any(args[:2] == ["proofrun", "prepare-plan"] and expected == code for args, expected in calls)
     for code in (0, 1, 2):
         assert any(args[:2] == ["proofrun", "compare-plans"] and expected == code for args, expected in calls)
     for code in (0, 1, 2):
         assert any("--junit" in args and expected == code for args, expected in calls)
+        assert any(args[:2] == ["proofrun", "verify"] and "--html" in args and expected == code
+                   for args, expected in calls)
+    html_collections = [(args, expected) for args, expected in calls
+                        if args[:2] == ["proofrun", "verify-collection"] and "--html" in args]
+    assert len(html_collections) == 2 and all(code == 2 for _, code in html_collections)
+    assert sum("--expected-plan-file-sha256" in args for args, _ in html_collections) == 1
     for code in (0, 1, 2):
         assert any(args[:2] == ["proofrun", "verify-collection"] and expected == code for args, expected in calls)
     for family in ("trace", "causal", "collective", "defense"):

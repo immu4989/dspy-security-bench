@@ -571,6 +571,52 @@ supplier's review JSON. Collection success is not proof that your requirements
 are complete, that execution was independently reproduced, or that a deployment
 is safe. All three authority flags remain false.
 
+### Human-readable HTML reviews (on main)
+
+Use `--html` with either review command for a self-contained report suitable for
+engineering, procurement, or governance review. It runs the same native checks;
+it does not import a supplier's saved review as evidence. Install a reviewed
+revision supporting this unreleased interface before using these examples:
+
+```bash
+dspy-security-bench proofrun verify supplier.json --offline --html \
+  --expected-file-sha256 "$OWNER_FILE_SHA256" > artifact-review.html
+
+dspy-security-bench proofrun verify-collection intake/plan.json --html \
+  --expected-plan-file-sha256 "$OWNER_PLAN_SHA256" > collection-review.html
+```
+
+Use `--structural` for an individual structural bundle; collections retain each
+entry's explicit policy. `--html`, `--json`, and `--junit` are mutually exclusive.
+After argument parsing, stdout contains a complete report even for invalid
+evidence or rejected plans. Argument-parser errors still go to stderr without a
+report. Exit codes remain **0** (selected checks passed), **1** (requirements
+unmet), or **2** (invalid or unreviewed). Preserve that exit status in CI and
+retain reports on failures; do not add `|| true`. Shell redirection can overwrite
+files before the command starts: choose fresh output paths that are distinct
+from all input artifacts and plans.
+
+The overview includes every required slot and separates integrity, eligibility,
+and provenance. Offline provenance is **Not checked**, never authenticated.
+Missing artifacts and exhausted budgets remain errors; invalid plans show an
+explicit admission failure rather than an empty successful review. Expanded
+details show fixed guidance, selected policy when available, and exact file,
+bundle, repository, and entry-ID fingerprints. For slots rejected before native
+review, consult the owner plan for policy details.
+
+Open the file locally; no web server, scripts, network assets, or analytics are
+required. The layout includes keyboard-operable details, a scrollable outcome
+table, and print styling. All details start expanded; expand any collapsed
+sections before printing. Text contrast has regression tests, but this is not
+an accessibility certification.
+
+Paths, entry labels, repository names, and arbitrary source diagnostics are
+omitted. Fingerprints are still linkable; review organizational sharing policy
+before distributing reports. HTML is unsigned presentation, not verified
+evidence: regenerate from original artifacts and independently retained pins.
+Neither a green decision nor a modified HTML page establishes deployment
+approval, complete requirements, or independently reproduced execution.
+
 ### JUnit results for existing CI (on main)
 
 Both review commands accept `--junit` instead of `--json`. After normal argument

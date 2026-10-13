@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added self-contained `--html` output for individual and collection ProofRun
+  reviews. Human-readable decisions, selected policies, exact fingerprints, and
+  remediation guidance preserve native exit codes and all required outcomes.
+  Reports omit source labels and paths, use no scripts or remote assets, and
+  distinguish offline consistency from authenticated provenance. Responsive
+  layout, keyboard-operable details, print styling, and tested text contrast
+  support review without claiming deployment approval or accessibility certification.
 - Fixed a Python 3.10/3.11 argument-parser corner case that could silently discard
   an explicit five-trial requirement when combined with `--structural`. Numeric
   defaults are now applied after conflict detection; the ordinary five-trial

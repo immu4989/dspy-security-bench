@@ -237,6 +237,7 @@ def main() -> int:
         smoke_structural_reviews(directory)
         smoke_collection_reviews(directory)
         smoke_junit_reviews(directory)
+        smoke_html_reviews(directory)
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(
@@ -361,6 +362,19 @@ def smoke_junit_reviews(directory: Path) -> None:
         suite = ET.fromstring(source).find("testsuite")
         if suite.get("tests") != required or suite.get("errors") != "1" or suite.get("skipped") != "0":
             raise RuntimeError("installed JUnit presentation hid missing required evidence or plan rejection")
+
+
+def smoke_html_reviews(directory: Path) -> None:
+    for path, code in (("collective-bundle.json", 0), ("trace-bundle.json", 1), ("missing.json", 2)):
+        source = run_cli(directory, ["proofrun", "verify", path, "--structural", "--offline", "--html"], code)
+        if (not source.startswith("<!doctype html>") or f"Native exit code {code}" not in source
+                or source.count('<details class="entry"') != 1 or "<script" in source):
+            raise RuntimeError("installed HTML presentation changed an individual evidence verdict")
+    for options, required in (([], 3), (["--expected-plan-file-sha256", "0" * 64], 0)):
+        source = run_cli(directory, ["proofrun", "verify-collection", "collection-plan.json", "--html", *options], 2)
+        if ("Native exit code 2" not in source or source.count('<details class="entry"') != required
+                or (required == 0 and "No evidence reviewed" not in source)):
+            raise RuntimeError("installed HTML presentation hid missing required evidence or plan rejection")
 
 
 def smoke_portable_reviews(directory: Path) -> None:

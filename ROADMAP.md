@@ -17,6 +17,12 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Self-contained HTML evidence reviews give human reviewers every required
+  outcome, three distinct decision dimensions, selected policies, fingerprints,
+  and fixed remediation guidance without copying private source labels. Native
+  exit codes, unsigned-presentation boundaries, and missing-evidence errors are
+  preserved alongside responsive, keyboard-operable, print-ready presentation.
+
 - Bounded collection-plan preparation preserves explicit owner requirements while
   recording exact artifact bytes. Pinned baseline comparisons expose policy,
   order, membership, and artifact changes without approving candidates or
