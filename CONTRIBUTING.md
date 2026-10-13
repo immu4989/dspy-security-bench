@@ -75,6 +75,14 @@ run the benchmark itself. Contributors changing embedding-based synthesis or
 deduplication should install `.[dev,synthesis]`; the ordinary development and
 CI environment intentionally avoids the large optional ML runtime.
 
+Treat generated review documents as UTF-8: always specify `encoding="utf-8"`
+when reading or writing them, including test assertions. Use short descriptive
+`ids=` for parametrized stress tests; pytest copies node IDs into an environment
+variable, and Windows limits an individual variable to 32,767 characters.
+The platform CI jobs write JUnit XML; to render a retained failure report locally,
+run `python scripts/report_pytest_failures.py platform-smoke-results.xml`.
+The diagnostic command does not rerun tests or change their exit verdict.
+
 ## Release archive checks
 
 Before publishing a release, build from a reviewed checkout and run

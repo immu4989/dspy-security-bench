@@ -1,5 +1,8 @@
 """Hostile scan configuration must fail before agent construction."""
+import subprocess
+import sys
 import traceback
+from pathlib import Path
 
 import pytest
 
@@ -28,6 +31,11 @@ from dspy_security_bench.scan.config import ScanConfig
     "gate: {min_security: " + "[" * 51 + "0" + "]" * 51 + "}",
     "scan: {attacks: [" + "direct," * 10_001 + "]}",
     "? [private-value]\n: secret",
+], ids=[
+    "merge-key", "container-alias", "recursive-alias", "unknown-alias", "nan", "negative-infinity",
+    "overflow-float", "implicit-date", "binary", "set", "python-object", "unpaired-surrogate",
+    "invalid-float", "invalid-int", "invalid-bool", "oversized-number", "excessive-depth",
+    "excessive-nodes", "non-scalar-key",
 ])
 def test_hostile_yaml_is_rejected_before_planning(tmp_path, monkeypatch, capsys, payload):
     path = tmp_path / "config.yaml"
@@ -92,3 +100,17 @@ def test_quoted_date_and_scalar_alias_are_supported(tmp_path):
 def test_loader_registration_does_not_mutate_global_safe_loader():
     import yaml
     assert yaml.safe_load("x: [1, 2]\ny: 2026-09-28")["y"].year == 2026
+
+
+def test_hostile_payloads_do_not_become_oversized_pytest_environment_variables():
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q", "tests/test_scan_yaml_limits.py"],
+        cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True, timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    node_ids = [line for line in result.stdout.splitlines() if line.startswith("tests/")]
+    assert node_ids
+    # Pytest stores node IDs in PYTEST_CURRENT_TEST at setup/call/teardown.
+    # Windows rejects values over 32,767 characters; keep generous headroom.
+    assert max(map(len, node_ids)) < 256
+    assert any("excessive-nodes" in node for node in node_ids)

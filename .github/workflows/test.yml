@@ -37,32 +37,7 @@ jobs:
 
       - name: Expose failed test diagnostics
         if: failure()
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          from xml.etree import ElementTree
-
-          report = Path("pytest-results.xml")
-          if not report.exists():
-              print("::error title=pytest diagnostics::pytest did not produce a JUnit report")
-              raise SystemExit(0)
-
-          def escape(value: str) -> str:
-              return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-
-          def escape_property(value: str) -> str:
-              return escape(value).replace(":", "%3A").replace(",", "%2C")
-
-          root = ElementTree.parse(report).getroot()
-          failures = root.findall(".//testcase[failure]") + root.findall(".//testcase[error]")
-          for case in failures:
-              problem = case.find("failure")
-              if problem is None:
-                  problem = case.find("error")
-              details = (problem.text or problem.get("message") or "pytest failure").strip()
-              test_id = f"{case.get('classname', '')}.{case.get('name', '')}".strip(".")
-              print(f"::error title={escape_property(test_id)}::{escape(details)}")
-          PY
+        run: python scripts/report_pytest_failures.py pytest-results.xml
 
       - name: Run Ruff
         if: matrix.python-version == '3.12'
@@ -103,3 +78,8 @@ jobs:
           tests/test_scan_joint_gate.py
           tests/test_scan_yaml_limits.py
           tests/test_agent_tool_budget.py
+          tests/test_pytest_diagnostics.py
+          --junitxml=platform-smoke-results.xml
+      - name: Expose failed platform test diagnostics
+        if: failure()
+        run: python scripts/report_pytest_failures.py platform-smoke-results.xml

@@ -3,17 +3,31 @@
 import json
 import socket
 from copy import deepcopy
+from pathlib import Path
+
+import pytest
 
 from dspy_security_bench.scan.cli import main
 from dspy_security_bench.scan.study_demo import build_study_demo_artifacts
 from dspy_security_bench.scan.study_html import MAX_PREVIEW_CASES, render_scan_study_html
 
 
-def test_study_demo_is_deterministic_and_recomputes_offline(tmp_path, monkeypatch):
+@pytest.mark.parametrize("default_encoding", ["utf-8", "cp1252"])
+def test_study_demo_is_deterministic_and_recomputes_offline(tmp_path, monkeypatch, default_encoding):
     def forbidden(*args, **kwargs):
         raise AssertionError("offline demo must not access the network")
 
     monkeypatch.setattr(socket.socket, "connect", forbidden)
+    # Model a non-UTF-8 host without changing the process locale or suppressing
+    # encoding failures. Explicit UTF-8 artifact I/O must work in both cases.
+    original_open = Path.open
+
+    def host_open(path, mode="r", buffering=-1, encoding=None, errors=None, newline=None):
+        if "b" not in mode and encoding in (None, "locale"):
+            encoding = default_encoding
+        return original_open(path, mode, buffering, encoding, errors, newline)
+
+    monkeypatch.setattr(Path, "open", host_open)
     artifacts = build_study_demo_artifacts()
     assert artifacts == build_study_demo_artifacts()
     assert len(artifacts) == 6
@@ -25,7 +39,7 @@ def test_study_demo_is_deterministic_and_recomputes_offline(tmp_path, monkeypatc
     assert "Fictional teaching demo." in artifacts["review.html"]
     assert "deliberately reused" in artifacts["review.html"]
     assert main(["study", "demo", "--out", str(destination)]) == 2
-    assert (destination / "review.html").read_text() == artifacts["review.html"]
+    assert (destination / "review.html").read_text(encoding="utf-8") == artifacts["review.html"]
 
 
 def test_html_is_script_free_and_escapes_source_identifiers():

@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Fixed two Windows portability issues in the offline test harness: UTF-8 study
+  HTML is now read explicitly as UTF-8, and hostile YAML fixtures use bounded
+  descriptive test IDs instead of copying 70 KB payloads into pytest's environment
+  variable. Cross-platform CI now retains JUnit failure diagnostics with bounded,
+  escaped ASCII annotations. Non-UTF-8 host simulation and collection checks guard
+  these boundaries without weakening the parser stress tests.
 - Fixed the composite-action integration with strict output preflight: nested
   artifact directories are prepared safely, without replacing files or following
   linked paths. Publication now requires the current experiment to complete;

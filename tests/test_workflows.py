@@ -51,6 +51,17 @@ def test_platform_smoke_covers_offline_studies_and_scan_boundaries():
         assert f"tests/{module}" in commands
 
 
+def test_every_test_job_emits_junit_and_failure_diagnostics():
+    workflow = yaml.safe_load((WORKFLOWS / "test.yml").read_text(encoding="utf-8"))
+    for job_name, report in (("pytest", "pytest-results.xml"), ("platform-smoke", "platform-smoke-results.xml")):
+        steps = workflow["jobs"][job_name]["steps"]
+        test_index = next(i for i, step in enumerate(steps) if f"--junitxml={report}" in step.get("run", ""))
+        diag_index = next(i for i, step in enumerate(steps) if f"scripts/report_pytest_failures.py {report}" in step.get("run", ""))
+        assert test_index < diag_index
+        assert steps[diag_index]["if"] == "failure()"
+        assert not steps[test_index].get("continue-on-error")
+
+
 def test_assuranceledger_ci_recomputes_partner_contracts_offline():
     path = WORKFLOWS / "assuranceledger.yml"
     workflow = path.read_text()
