@@ -35,6 +35,22 @@ The benchmark and FederalProof exports do not provide a certification,
 authorization to operate, legal determination, or operational incident-response
 guidance.
 
+## Local evidence intake
+
+Commands using the shared bounded JSON reader require an ordinary file, not a
+named pipe, device, directory, or final-component symbolic link/reparse point.
+The reader checks metadata before opening and checks the opened descriptor
+before reading. Available nonblocking/no-follow flags guard POSIX pipe and
+final-link replacement; observable file identity changes are rejected.
+Filesystem error messages withhold paths and operating-system diagnostics.
+
+Use stable, owner-controlled local evidence. These checks do not confine ancestor
+directories, reject hard links, freeze concurrent in-place writes, or guarantee
+latency on network filesystems. They are not an OS sandbox. If a workflow supplied
+a pipe or final-component link, first materialize an authorized ordinary local
+copy and retain any independently approved exact-byte hash for verification.
+Collection reviews additionally apply their documented relative-path checks.
+
 ## TraceProof data handling
 
 TraceProof processes OTLP JSON offline and uses a deny-by-default allowlist, but

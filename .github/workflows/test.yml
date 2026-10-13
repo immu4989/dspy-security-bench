@@ -82,6 +82,7 @@ jobs:
           tests/test_structural_review.py
           tests/test_proofrun_collection.py
           tests/test_proofrun_junit.py
+          tests/test_regular_evidence_io.py
           --junitxml=platform-smoke-results.xml
       - name: Expose failed platform test diagnostics
         if: failure()

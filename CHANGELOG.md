@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Shared bounded JSON intake now rejects special files and final-component
+  links before reading, checks the opened descriptor, and uses nonblocking and
+  no-follow flags where available. This fixes a reproduced named-pipe stall and
+  extends the collection reader's safeguards to other evidence commands.
+  Filesystem errors withhold private paths. Regression coverage includes FIFO
+  replacement, observed reparse points, descriptor cleanup, and exact bytes;
+  stable owner-controlled local files remain required.
 - Individual and collection ProofRun reviews now export source-redacted JUnit
   XML via `--junit`. Unmet eligibility/provenance remains a failure; invalid or
   unreviewed evidence remains an error. Invalid plans produce an error testcase,

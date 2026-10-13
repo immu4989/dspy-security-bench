@@ -3,10 +3,10 @@
 import importlib
 import io
 import json
-from types import SimpleNamespace
 
 import pytest
 
+from dspy_security_bench import jsonio
 from dspy_security_bench.procurement import cli
 from dspy_security_bench.procurement.repeat import create_submission_bundle, run_repeat_twin
 from tests.test_repeat_twin import build_community_agent
@@ -72,7 +72,7 @@ def test_each_command_enforces_the_shared_byte_limit(tmp_path, monkeypatch, comm
     assert not output.exists()
 
 
-def test_reader_requests_only_one_byte_beyond_its_limit(monkeypatch):
+def test_reader_requests_only_one_byte_beyond_its_limit(tmp_path, monkeypatch):
     reads = []
 
     class TrackingStream(io.BytesIO):
@@ -80,7 +80,9 @@ def test_reader_requests_only_one_byte_beyond_its_limit(monkeypatch):
             reads.append(size)
             return super().read(size)
 
-    path = SimpleNamespace(open=lambda mode: TrackingStream(b'{"ok":true}'))
+    path = tmp_path / "evidence.json"
+    path.write_bytes(b'{"ok":true}')
+    monkeypatch.setattr(jsonio.os, "fdopen", lambda *a, **kw: TrackingStream(b'{"ok":true}'))
     monkeypatch.setattr(cli, "MAX_EVIDENCE_BYTES", 20)
     assert cli._read_evidence(path) == {"ok": True}
     assert reads == [21]

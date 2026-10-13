@@ -7,13 +7,13 @@ A plan's completeness and provenance remain the owner's responsibility.
 from __future__ import annotations
 
 import hashlib
-import os
 import re
 import stat
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from dspy_security_bench.jsonio import decode_json_object
+from dspy_security_bench.jsonio import read_regular_bytes as _read_regular
 from dspy_security_bench.proofrun_review import (
     ALL_FAMILIES,
     MAX_BUNDLE_BYTES,
@@ -79,27 +79,6 @@ def validate_plan(plan: dict) -> list[ReviewPolicy]:
             raise ValueError("policy does not apply to expected bundle family")
         policies.append(policy)
     return policies
-
-
-def _read_regular(path: Path, maximum: int) -> bytes:
-    """Bound bytes and reject nonregular final components, including FIFO races.
-
-    This is not a sandbox against a process replacing ancestor directories or a
-    guarantee about blocking network filesystems. Use a stable local directory.
-    """
-    info = path.lstat()
-    if (not stat.S_ISREG(info.st_mode)
-            or getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)):
-        raise ValueError("input is not a regular non-symlink file")
-    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_NOFOLLOW", 0)
-    descriptor = os.open(path, flags)
-    try:
-        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
-            raise ValueError("opened input is not a regular file")
-        with os.fdopen(descriptor, "rb", closefd=False) as stream:
-            return stream.read(maximum + 1)
-    finally:
-        os.close(descriptor)
 
 
 def _entry_path(root: Path, relative: str) -> Path:

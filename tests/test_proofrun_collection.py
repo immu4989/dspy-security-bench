@@ -316,7 +316,7 @@ def test_static_symlinks_are_rejected(healthy, tmp_path, location, schemas):
 def test_fifo_rejected_before_open(tmp_path, monkeypatch):
     path = tmp_path / "private.json"
     os.mkfifo(path)
-    monkeypatch.setattr(collection.os, "open", lambda *a: pytest.fail("FIFO was opened"))
+    monkeypatch.setattr(os, "open", lambda *a: pytest.fail("FIFO was opened"))
     with pytest.raises(ValueError):
         collection._read_regular(path, 100)
 
@@ -333,7 +333,7 @@ def test_fifo_replacement_at_open_is_nonblocking(tmp_path, monkeypatch):
         os.mkfifo(source)
         return original(source, flags)
 
-    monkeypatch.setattr(collection.os, "open", replace)
+    monkeypatch.setattr(os, "open", replace)
     with pytest.raises(ValueError):
         collection._read_regular(path, 100)
 
