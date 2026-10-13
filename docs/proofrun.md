@@ -426,6 +426,54 @@ pair or saved comparison report does not authenticate itself. This workflow
 does not establish requirement completeness, independent execution, regulatory
 compliance, or deployment approval.
 
+### Practice a complete collection handoff (on main)
+
+For a first owner/supplier/reviewer exercise, install a reviewed source revision
+supporting the unreleased collection commands, then run:
+
+```bash
+dspy-security-bench proofrun collection-demo --out collection-walkthrough
+```
+
+No model credentials, external models, network calls, or operational data are
+used. The destination must be new under an existing unlinked parent. Open
+`collection-walkthrough/README.md` for six replay commands and their expected
+exit codes. Open `reports/review.html`, `provenance-reports/review.html`, and
+`missing-reports/review.html` beneath that directory to compare the three cases:
+
+| Exercise | Native exit | Lesson |
+| --- | --- | --- |
+| Complete offline evidence | 0 | Every selected structural requirement is reviewed; provenance remains unauthenticated |
+| Requested authenticated provenance | 1 | Structural evidence cannot establish authenticated execution merely because online mode was selected |
+| Required defense evidence omitted | 2 | The missing requirement stays visible and cannot be outvoted by the other two artifacts |
+
+The walkthrough uses bundled CollectiveGuard, CausalProof, and DefenderTwin
+fixtures. It actually runs plan preparation, exact-byte snapshot creation,
+pinned policy comparison, and native recipient reviews with synchronized
+JSON/HTML/JUnit report sets. It validates the observed exit codes rather than
+writing precomputed success reports. `demo.json` records the observed teaching
+outcomes; it is a tutorial summary, not a new evidence or approval protocol.
+The generator exits 0 only when all intended cases—including the failures—were
+produced successfully. `--json` emits that summary to stdout. An unexpected
+native result, existing destination, or output failure exits 2; partial new
+files may remain for inspection, and retries require a fresh directory.
+
+The generated README demonstrates preparing a draft, copying a pinned handoff,
+generating a recipient report set, reviewing a policy change, and replaying both
+adverse cases. Pins printed there identify the local fixture only, not independent
+trust. Real recipients must retain owner-approved pins through a trusted channel.
+The initial `recipient/` snapshot can be reviewed without the original `owner/`
+directory. A fixed date marks synthetic fixture metadata, not observed execution.
+Original fixture bytes and plans are deterministic; JUnit scope hashes can differ
+across local paths, and verifier-version changes can change reports.
+
+Do not submit these generated files as measured or independently reproduced
+community results. Valid structural evidence can contain adverse findings, and
+this fictional walkthrough does not establish that a deployment is safe, a
+supplier is qualified, or a government's requirements are complete. Review
+original artifact content before sharing real snapshots; the command does not
+upload, sign, redact the originals, authorize disclosure, or change production.
+
 ### Required evidence collections (on main)
 
 Use `proofrun verify-collection` when a supplier handoff or internal change review

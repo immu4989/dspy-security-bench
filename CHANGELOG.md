@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added `proofrun collection-demo`, a credential-free walkthrough of explicit
+  owner requirements, exact-byte snapshots, changed policies, and recipient-side
+  report sets. Three synthetic structural families exercise real native exits
+  0/1/2, including unmet provenance and missing required evidence. Generated
+  instructions are replay-tested; original fixtures and metadata are explicitly
+  synthetic, outputs are exclusive, and unexpected outcomes fail generation.
 - Added `--report-dir` for individual and collection ProofRun review: one native
   evaluation produces JSON, HTML, JUnit, and a manifest of their exact bytes.
   Failed reviews still produce complete reports and retain their native exit

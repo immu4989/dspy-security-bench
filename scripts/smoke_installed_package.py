@@ -239,6 +239,7 @@ def main() -> int:
         smoke_junit_reviews(directory)
         smoke_html_reviews(directory)
         smoke_report_sets(directory)
+        smoke_collection_demo(directory)
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(
@@ -431,6 +432,24 @@ def smoke_report_sets(directory: Path) -> None:
                 raise RuntimeError("installed report export repeated review for an existing destination")
             if (output / "manifest.json").read_bytes() != manifest_raw:
                 raise RuntimeError("installed report export overwrote an existing report set")
+
+
+def smoke_collection_demo(directory: Path) -> None:
+    args = ["proofrun", "collection-demo", "--out", "collection-walkthrough", "--json"]
+    result = json.loads(run_cli(directory, args))
+    output = directory / "collection-walkthrough"
+    if (not result["demo_complete"] or not result["synthetic"]
+            or [case["observed_exit_code"] for case in result["cases"]] != [0, 1, 2]
+            or not (output / "README.md").is_file()):
+        raise RuntimeError("installed walkthrough changed its synthetic or adverse-outcome contract")
+    run_cli(directory, args, 2)
+    for case in result["cases"]:
+        review = json.loads(run_cli(output, ["proofrun", "verify-collection", case["plan"],
+                                             "--expected-plan-file-sha256", case["plan_file_sha256"], "--json"],
+                                    case["expected_exit_code"]))
+        saved = json.loads((output / case["reports"] / "review.json").read_bytes())
+        if saved != review or review["summary"]["required"] != 3:
+            raise RuntimeError("installed tutorial outputs do not replay from their exact original evidence")
 
 
 def smoke_portable_reviews(directory: Path) -> None:

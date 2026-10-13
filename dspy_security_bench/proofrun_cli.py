@@ -18,9 +18,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dspy-security-bench proofrun",
         description=(
-            "Run repeated ImpactTwin, ControlTwin, IncidentTwin, MissionPack/SourceTwin, "
-            "or AuthorityTwin "
-            "and create or verify a provenance-ready evidence bundle."
+            "Create evidence bundles, review repeated-trial or structural evidence, "
+            "and prepare, compare, snapshot, or practice owner-controlled collection handoffs."
         ),
     )
     commands = parser.add_subparsers(dest="command")
@@ -162,6 +161,9 @@ def build_parser() -> argparse.ArgumentParser:
     snapshot.add_argument("--out", required=True, help="new transfer directory under an existing unlinked parent; never overwritten")
     snapshot.add_argument("--expected-plan-file-sha256", required=True, help="independently retained plan SHA-256")
     snapshot.add_argument("--json", action="store_true", help="emit a source-redacted receipt, not the snapshot contents")
+    demo = commands.add_parser("collection-demo", help="model-free synthetic handoff walkthrough with pass, unmet, and missing-evidence cases")
+    demo.add_argument("--out", required=True, help="new local demonstration directory under an existing unlinked parent")
+    demo.add_argument("--json", action="store_true", help="emit observed demo outcomes, not a deployment approval")
     return parser
 
 
@@ -236,6 +238,19 @@ def main(argv: list[str] | None = None) -> int:
         result = snapshot_collection(Path(args.plan), Path(args.out), expected_plan_file_sha256=args.expected_plan_file_sha256)
         print(json.dumps(result, sort_keys=True, indent=2, allow_nan=False) if args.json else render_snapshot(result),
               file=sys.stderr if result["exit_code"] == 2 and not args.json else sys.stdout)
+        return result["exit_code"]
+    if args.command == "collection-demo":
+        from dspy_security_bench.proofrun_demo import DISCLAIMER, create_collection_demo
+
+        result = create_collection_demo(Path(args.out))
+        if args.json:
+            print(json.dumps(result, sort_keys=True, indent=2, allow_nan=False))
+        elif result["exit_code"] == 0:
+            print("Synthetic handoff walkthrough created. Open README.md in the output directory.")
+            print("Observed native exits: complete=0, provenance-required=1, missing-evidence=2.")
+            print(DISCLAIMER)
+        else:
+            print(f"Collection demo failed: {result['reason_code']}. Inspect any partial new output and retry in a fresh directory.", file=sys.stderr)
         return result["exit_code"]
     return 2
 

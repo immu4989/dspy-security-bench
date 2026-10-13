@@ -220,6 +220,14 @@ For handoffs with several required artifacts, retain an owner-reviewed
 independent file hash, then run `proofrun verify-collection`. Missing entries and
 failed reviews must not be removed merely to obtain an aggregate pass.
 
+Start with `proofrun collection-demo --out collection-walkthrough` to exercise
+the owner-to-recipient workflow without credentials. The generated README's six
+commands are regression-tested against actual native exits; keep deliberately
+unmet and missing-evidence cases in the tutorial. Fixed fixture dates, synthetic
+metadata, and non-claims must remain visible. Never describe these files as
+independent supplier results or a production evaluation. See the
+[collection walkthrough](docs/proofrun.md#practice-a-complete-collection-handoff-on-main).
+
 Use `proofrun prepare-plan` to record supplied artifact hashes against explicit
 owner requirements without manual multi-file hashing. Review the full-content
 draft before retaining its independent pin. For replacements, `proofrun compare-plans`

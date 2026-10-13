@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- A model-free collection walkthrough combines owner preparation, pinned
+  recipient snapshots, requirement-change review, and synchronized report sets.
+  Three deliberately different native outcomes are replay-tested without model
+  credentials, production systems, or claims of independent supplier evaluation.
+
 - Single-run report sets render JSON, HTML, and JUnit from one fresh native
   decision, with exact-byte manifests, exclusive outputs, and explicit partial
   export receipts; CI and human readers need not rerun provenance verification.
