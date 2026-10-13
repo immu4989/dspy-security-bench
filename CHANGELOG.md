@@ -10,6 +10,9 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Applied the portable no-overwrite output helper to direct scan-evidence and
+  procurement sharing-review writers, closing the same dangling-link target
+  creation gap for those public interfaces without changing evidence bytes.
 - Added a separate Linux collection-review GitHub Action with mandatory owner
   plan pins, isolated Python imports, one native evaluation, synchronized report
   outputs, and a fail-closed final gate. No caller installation, automatic upload,

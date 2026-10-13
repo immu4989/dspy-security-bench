@@ -69,6 +69,17 @@ def test_evidence_reconstructs_counts_and_verdict_with_optional_independent_pin(
         verify_scan_evidence(payload, "0" * 64)
 
 
+def test_direct_writer_rejects_dangling_output_link_without_creating_target(tmp_path):
+    output, target = tmp_path / "linked.json", tmp_path / "absent.json"
+    try:
+        output.symlink_to(target)
+    except OSError:
+        pytest.skip("symlink creation unavailable")
+    with pytest.raises(FileExistsError):
+        write_scan_evidence(output, scope(), evidence_policy(GateSpec(), "error"), rows())
+    assert output.is_symlink() and not target.exists()
+
+
 @pytest.mark.parametrize("mutation", [
     "drop-row", "duplicate", "substitute", "bool", "nonbinary", "not-complementary",
     "hidden-content", "forged-report", "forged-protocol", "forged-boundary", "schema-bool",

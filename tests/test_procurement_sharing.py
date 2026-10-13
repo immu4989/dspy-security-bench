@@ -112,6 +112,18 @@ def test_offline_cli_roundtrip_no_overwrite_and_no_source_mutation(report, tmp_p
     assert output.read_bytes() == saved
 
 
+def test_sharing_review_rejects_dangling_output_without_creating_target(report, tmp_path):
+    source = tmp_path / "source.json"
+    source.write_text(json.dumps(report))
+    output, target = tmp_path / "linked.json", tmp_path / "absent.json"
+    try:
+        output.symlink_to(target)
+    except OSError:
+        pytest.skip("symlink creation unavailable")
+    assert main(["sharing-review", str(source), "--out", str(output)]) == 2
+    assert output.is_symlink() and not target.exists()
+
+
 @pytest.mark.parametrize("raw", ['{"agent":1,"agent":2}', '{"x":NaN}', '{"x":"\\ud800"}', '[]'])
 def test_cli_strict_intake(raw, tmp_path, capsys):
     source = tmp_path / "PRIVATE.json"

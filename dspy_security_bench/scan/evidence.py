@@ -19,6 +19,7 @@ import pandas as pd
 
 from dspy_security_bench.jsonio import read_json_object
 from dspy_security_bench.mission.loader import canonical_sha256
+from dspy_security_bench.outputio import write_new_file
 from dspy_security_bench.scan.config import GateSpec
 from dspy_security_bench.scan.gate import evaluate_scan_summaries
 
@@ -180,8 +181,7 @@ def write_scan_evidence(path: Path, scope: dict, policy: dict, observations: lis
     raw = (json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
     if len(raw) > MAX_BYTES:
         raise ValueError("scan evidence exceeds 50 MB")
-    with path.open("xb") as stream:
-        stream.write(raw)
+    write_new_file(path, raw)
     return payload
 
 

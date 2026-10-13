@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from dspy_security_bench.jsonio import read_json_object
+from dspy_security_bench.outputio import write_new_file
 from dspy_security_bench.procurement.agents import ReferenceProcurementAgent
 from dspy_security_bench.procurement.benchmark import render_terminal, run_impact_twin
 
@@ -305,9 +306,7 @@ def _sharing_review(args) -> int:
             )
         else:
             review = create_sharing_review(source, source_sha256=args.source_sha256)
-            # Exclusive creation also rejects existing sources and symlinks.
-            with Path(args.out).open("x", encoding="utf-8") as stream:
-                stream.write(json.dumps(review, indent=2, sort_keys=True) + "\n")
+            write_new_file(Path(args.out), (json.dumps(review, indent=2, sort_keys=True) + "\n").encode("utf-8"))
         print("[impact] sharing review verified; owner review required before publication")
         print("[impact] secret detection and redaction were not performed; counts are not a safety verdict")
         return 0
