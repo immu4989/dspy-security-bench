@@ -122,7 +122,10 @@ def build_parser() -> argparse.ArgumentParser:
     output_format.add_argument("--junit", action="store_true", help="emit source-redacted JUnit XML for CI; preserve the native exit code")
     verify.add_argument("--attestation-repo", help="owner/repository; defaults to bundle metadata")
     review_kind = verify.add_mutually_exclusive_group()
-    review_kind.add_argument("--minimum-trials", type=int, default=5, help="minimum repeated trials (default: 5)")
+    # Older argparse versions identify explicit mutually-exclusive values by
+    # identity against the default. Defer the numeric default so an explicit 5
+    # cannot disappear from conflict detection through small-integer interning.
+    review_kind.add_argument("--minimum-trials", type=int, default=None, help="minimum repeated trials (default: 5)")
     review_kind.add_argument("--structural", action="store_true", help="explicit structural review; no trial-confidence or execution-authentication claim")
     verify.add_argument("--expected-file-sha256", help="independent SHA-256 pin for exact input bytes")
     verify.add_argument(
@@ -572,8 +575,9 @@ def _authority(args) -> int:
 
 
 def _verify(args) -> int:
+    minimum_trials = None if args.structural else (5 if args.minimum_trials is None else args.minimum_trials)
     review = review_bundle(Path(args.bundle), policy=ReviewPolicy(
-        minimum_trials=None if args.structural else args.minimum_trials, offline=args.offline,
+        minimum_trials=minimum_trials, offline=args.offline,
         expected_file_sha256=args.expected_file_sha256,
         attestation_repository=args.attestation_repo,
         require_trusted_builder=args.require_trusted_builder,

@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Fixed a Python 3.10/3.11 argument-parser corner case that could silently discard
+  an explicit five-trial requirement when combined with `--structural`. Numeric
+  defaults are now applied after conflict detection; the ordinary five-trial
+  default is unchanged. Both argument orders and alternate numeric spellings
+  reject conflicting policies before evidence intake.
 - Added `proofrun prepare-plan` to replace ad hoc multi-file hashing with bounded
   draft preparation from explicit owner requirements. It preserves every slot
   and policy, optionally pins requirements, rejects missing/linked/duplicate or

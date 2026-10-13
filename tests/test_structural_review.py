@@ -89,10 +89,30 @@ def test_repeated_bundles_cannot_disable_trial_policy(repeated, tmp_path, schema
     assert result["integrity"] == "not_checked" and result["bundle_sha256"] is None
 
 
-def test_cli_cannot_silently_drop_an_explicit_trial_requirement():
+@pytest.mark.parametrize("value", ["0", "2", "5", "05", "+5", "10"])
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("equals", [False, True])
+def test_cli_cannot_silently_drop_an_explicit_trial_requirement(value, reverse, equals, monkeypatch):
+    explicit = [f"--minimum-trials={value}"] if equals else ["--minimum-trials", value]
+    options = [*explicit, "--structural"] if reverse else ["--structural", *explicit]
+    monkeypatch.setattr(cli, "review_bundle", lambda *a, **k: pytest.fail("conflicting policy reached input review"))
     with pytest.raises(SystemExit) as caught:
-        cli.main(["verify", "unused", "--structural", "--minimum-trials", "5", "--json"])
+        cli.main(["verify", "unused", *options, "--json"])
     assert caught.value.code == 2
+
+
+@pytest.mark.parametrize("options,expected", [([], 5), (["--minimum-trials", "5"], 5),
+                                           (["--minimum-trials", "2"], 2), (["--minimum-trials", "0"], 0),
+                                           (["--structural"], None)])
+def test_deferred_trial_default_preserves_explicit_policy(options, expected, monkeypatch, capsys):
+    policies = []
+    def review(path, *, policy):
+        policies.append(policy)
+        return {"exit_code": 0}
+    monkeypatch.setattr(cli, "review_bundle", review)
+    assert cli.main(["verify", "unused", *options, "--json"]) == 0
+    assert len(policies) == 1 and policies[0].minimum_trials == expected
+    assert capsys.readouterr().err == ""
 
 
 def ineligible(family):
