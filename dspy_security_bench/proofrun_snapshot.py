@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import hashlib
-import os
-import stat
 from pathlib import Path
 
 from dspy_security_bench.jsonio import decode_json_object, read_regular_bytes
+from dspy_security_bench.outputio import check_directory as _directory
+from dspy_security_bench.outputio import check_new_directory as _destination
+from dspy_security_bench.outputio import write_new_file as _write_new
 from dspy_security_bench.proofrun_collection import (
     MAX_BUNDLE_BYTES,
     MAX_PLAN_BYTES,
@@ -33,26 +34,6 @@ REASONS = {
 }
 
 
-def _directory(path: Path) -> None:
-    info = path.lstat()
-    if (not stat.S_ISDIR(info.st_mode)
-            or getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)):
-        raise ValueError("unlinked directory required")
-
-
-def _destination(output: Path) -> Path:
-    output = output.absolute()
-    try:
-        output.lstat()
-    except FileNotFoundError:
-        pass
-    else:
-        raise ValueError("destination already exists")
-    for parent in output.parents:
-        _directory(parent)
-    return output
-
-
 def _check_paths(entries: list[dict]) -> None:
     # Case-insensitive collisions matter even when exporting on a case-sensitive
     # filesystem: recipients must not need to rename paths and invalidate pins.
@@ -70,14 +51,6 @@ def _check_paths(entries: list[dict]) -> None:
         for right in paths[i + 1:]:
             if left == right or left.startswith(right + "/") or right.startswith(left + "/"):
                 raise ValueError("conflicting file and directory paths")
-
-
-def _write_new(path: Path, raw: bytes) -> None:
-    # EXCL rejects existing files, links and dangling links. Restrictive POSIX
-    # creation modes supplement, but do not replace, deployment-owned ACLs.
-    with open(path, "xb", opener=lambda name, flags: os.open(name, flags, 0o600)) as stream:
-        if stream.write(raw) != len(raw):
-            raise OSError("incomplete write")
 
 
 def snapshot_collection(path: Path, output: Path, *, expected_plan_file_sha256: str) -> dict:

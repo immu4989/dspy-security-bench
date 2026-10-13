@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/proofrun-report-manifest.schema.json",
+  "title": "Unsigned ProofRun report-set byte manifest",
+  "description": "Exact bytes of three presentations rendered from one native decision. Shape or hash verification does not authenticate the decision, reproduce execution, or approve deployment. Regenerate reports from original evidence and independent input pins.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "report_type", "review_type", "verifier_version", "native_exit_code", "review_is_attestation", "execution_reproduced", "files"],
+  "properties": {
+    "schema_version": {"const": 1}, "report_type": {"const": "ProofRun report set"},
+    "review_type": {"enum": ["ProofRun verification", "ProofRun collection verification"]},
+    "verifier_version": {"type": "string"}, "native_exit_code": {"enum": [0, 1, 2]},
+    "review_is_attestation": {"const": false}, "execution_reproduced": {"const": false},
+    "files": {"type": "array", "minItems": 3, "maxItems": 3,
+      "prefixItems": [
+        {"allOf": [{"$ref": "#/$defs/file"}, {"properties": {"path": {"const": "review.json"}}}]},
+        {"allOf": [{"$ref": "#/$defs/file"}, {"properties": {"path": {"const": "review.html"}}}]},
+        {"allOf": [{"$ref": "#/$defs/file"}, {"properties": {"path": {"const": "review.xml"}}}]}
+      ]}
+  },
+  "$defs": {
+    "file": {"type": "object", "additionalProperties": false, "required": ["path", "sha256", "size_bytes"],
+      "properties": {"path": {"type": "string"}, "sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"},
+        "size_bytes": {"type": "integer", "minimum": 1}}}
+  }
+}

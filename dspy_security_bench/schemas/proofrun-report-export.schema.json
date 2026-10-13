@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/proofrun-report-export.schema.json",
+  "title": "Source-redacted ProofRun report export receipt",
+  "description": "Complete output is distinct from passing evidence. Successful export preserves native exit 0/1/2; preflight, evaluation, rendering, or write failure exits 2. This unsigned receipt is not evidence authentication, a durability guarantee, or deployment approval.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "receipt_type", "native_exit_code", "review_file_sha256", "manifest_file_sha256", "files_written", "report_set_complete", "review_is_attestation", "execution_reproduced", "exit_code", "reason_code"],
+  "properties": {
+    "schema_version": {"const": 1}, "receipt_type": {"const": "ProofRun report set export"},
+    "native_exit_code": {"enum": [null, 0, 1, 2]}, "exit_code": {"enum": [0, 1, 2]},
+    "review_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "manifest_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "files_written": {"type": "integer", "minimum": 0, "maximum": 4},
+    "report_set_complete": {"type": "boolean"}, "review_is_attestation": {"const": false}, "execution_reproduced": {"const": false},
+    "reason_code": {"enum": ["exported", "invalid_output", "review_error", "render_error", "output_error"]}
+  },
+  "oneOf": [
+    {"properties": {"reason_code": {"const": "exported"}, "report_set_complete": {"const": true}, "files_written": {"const": 4}, "native_exit_code": {"enum": [0, 1, 2]}, "review_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}, "manifest_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}}},
+    {"properties": {"reason_code": {"not": {"const": "exported"}}, "exit_code": {"const": 2}, "report_set_complete": {"const": false}, "manifest_file_sha256": {"type": "null"}}}
+  ],
+  "allOf": [
+    {"if": {"properties": {"reason_code": {"enum": ["invalid_output", "review_error"]}}}, "then": {"properties": {"native_exit_code": {"type": "null"}, "files_written": {"const": 0}, "review_file_sha256": {"type": "null"}}}},
+    {"if": {"properties": {"reason_code": {"const": "render_error"}}}, "then": {"properties": {"files_written": {"const": 0}, "native_exit_code": {"enum": [0, 1, 2]}}}},
+    {"if": {"properties": {"reason_code": {"const": "output_error"}}}, "then": {"properties": {"native_exit_code": {"enum": [0, 1, 2]}, "review_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}}}},
+    {"if": {"properties": {"reason_code": {"const": "exported"}, "native_exit_code": {"const": 0}}}, "then": {"properties": {"exit_code": {"const": 0}}}},
+    {"if": {"properties": {"reason_code": {"const": "exported"}, "native_exit_code": {"const": 1}}}, "then": {"properties": {"exit_code": {"const": 1}}}},
+    {"if": {"properties": {"reason_code": {"const": "exported"}, "native_exit_code": {"const": 2}}}, "then": {"properties": {"exit_code": {"const": 2}}}}
+  ]
+}

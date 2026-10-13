@@ -80,7 +80,7 @@ def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch, cap
 
     monkeypatch.setattr(smoke, "run_cli", fixture_cli)
     assert smoke.main() == 0
-    assert len(calls) == 110
+    assert len(calls) == 115
     for code in (0, 2):
         assert any(args[:2] == ["proofrun", "prepare-plan"] and expected == code for args, expected in calls)
         assert any(args[:2] == ["proofrun", "snapshot-collection"] and expected == code for args, expected in calls)
@@ -90,6 +90,7 @@ def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch, cap
         assert any(args[:2] == ["proofrun", "compare-plans"] and expected == code for args, expected in calls)
     for code in (0, 1, 2):
         assert any("--junit" in args and expected == code for args, expected in calls)
+        assert any("--report-dir" in args and expected == code for args, expected in calls)
         assert any(args[:2] == ["proofrun", "verify"] and "--html" in args and expected == code
                    for args, expected in calls)
     html_collections = [(args, expected) for args, expected in calls

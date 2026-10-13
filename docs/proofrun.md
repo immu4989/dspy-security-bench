@@ -689,6 +689,70 @@ evidence: regenerate from original artifacts and independently retained pins.
 Neither a green decision nor a modified HTML page establishes deployment
 approval, complete requirements, or independently reproduced execution.
 
+### Export all report formats from one review (on main)
+
+Use `--report-dir` when engineers need JUnit, reviewers need HTML, and automation
+needs JSON from the **same invocation**. It is mutually exclusive with `--json`,
+`--html`, and `--junit`. Install a reviewed revision supporting this unreleased
+interface. The output parent must already exist, and the destination must be new:
+
+```bash
+dspy-security-bench proofrun verify supplier.json --offline \
+  --expected-file-sha256 "$OWNER_FILE_SHA256" --report-dir artifact-reports
+
+dspy-security-bench proofrun verify-collection intake/plan.json \
+  --expected-plan-file-sha256 "$OWNER_PLAN_SHA256" --report-dir collection-reports
+```
+
+Use `--structural` for a structural individual bundle; the collection's explicit
+entry policies are unchanged. Invalid destinations fail preflight before input
+review or provenance lookup. A valid request invokes the native reviewer once,
+then renders its source-redacted result into four files:
+
+| File | Purpose |
+| --- | --- |
+| `review.json` | Complete native review decision, including failed outcomes |
+| `review.html` | Human-readable presentation of that decision |
+| `review.xml` | JUnit presentation of that decision |
+| `manifest.json` | Exact SHA-256 hashes and byte sizes of the three reports, native exit code, and verifier version |
+
+This does not multiply online provenance calls by the number of output formats.
+Every format uses the same captured decision even if source files subsequently
+change. Repeated offline exports from the same input path, bytes, policy, and
+verifier are deterministic; a changed input path changes the JUnit scope identity.
+No evaluation time, reproduction, approval, or independent witness is invented.
+
+Stdout is one [export receipt](../dspy_security_bench/schemas/proofrun-report-export.schema.json),
+not the review itself. `report_set_complete` describes **file export**, not
+whether evidence passed. `native_exit_code` is null when review did not finish.
+When export completes, the command preserves the native 0/1/2 exit code, so an
+invalid plan or missing artifact can produce a complete report set and exit 2.
+Rendering or storage failure also exits 2, with `report_set_complete: false` and
+the native code retained if review finished. Check both fields, and retain
+failed-run reports in CI without suppressing the command's nonzero status.
+
+The [manifest](../dspy_security_bench/schemas/proofrun-report-manifest.schema.json)
+is written last. The completed receipt pins its exact bytes and `review.json`;
+file hashes can identify accidental modification or mixing after export. They
+do not authenticate the reviewer or prevent someone from editing and rehashing
+every file. Neither the manifest, JSON, HTML, nor JUnit is accepted as a substitute
+for original evidence: recipients must rerun native review with independently
+retained input pins. There is no saved-report approval or signature claim.
+
+All outputs use exclusive creation; existing files and final links are never
+overwritten. Directories and files request restrictive POSIX permissions where
+supported. The shared snapshot output checks reject observed linked/reparse
+parents, but require stable owner-controlled paths and appropriate local ACLs.
+An interruption or I/O error can leave partial new files, including a partial
+manifest; there is no automatic deletion or atomic/durable multi-file guarantee.
+Inspect incomplete output and choose a fresh destination for retry. Render
+failures occur before the directory is created. Retain the export receipt and
+actual process status rather than inferring success from a filename's existence.
+
+These reports omit artifact contents, input paths, repository names, and entry
+labels. Fingerprints remain linkable. Review organizational sharing policies;
+the command writes locally and does not upload, attest, or publish anything.
+
 ### JUnit results for existing CI (on main)
 
 Both review commands accept `--junit` instead of `--json`. After normal argument

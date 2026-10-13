@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added `--report-dir` for individual and collection ProofRun review: one native
+  evaluation produces JSON, HTML, JUnit, and a manifest of their exact bytes.
+  Failed reviews still produce complete reports and retain their native exit
+  code; export failures are distinguished from evidence outcomes. Output
+  preflight precedes verification, exclusive creation prevents clobbering, and
+  manifest-last publication plus source-redacted receipts expose partial writes.
+  Report hashes are not signatures, saved-decision verification, or approval.
 - Bounded pytest parameter IDs prevent adversarial fixture contents from becoming
   megabyte-sized verbose log lines or inherited environment values. Stress cases
   retain their full inputs and descriptive IDs; automatic byte/long/control-text

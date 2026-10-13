@@ -242,6 +242,13 @@ required outcomes, and keep integrity, eligibility, and provenance distinct.
 HTML, JSON, and JUnit formats are mutually exclusive. See
 [HTML review reports](docs/proofrun.md#human-readable-html-reviews-on-main).
 
+Use `--report-dir NEW_DIRECTORY` instead of a stdout format when all three
+presentations are needed. It must invoke native review only once and preserve
+failed outcomes in complete report sets. A separate export receipt distinguishes
+native exit codes from incomplete rendering/storage. Tests cover byte manifests,
+preflight-before-verification, attestation-call counts, and partial writes. See
+[single-run report sets](docs/proofrun.md#export-all-report-formats-from-one-review-on-main).
+
 ## Submitting your agent's ProofRun result
 
 The recommended path is the versioned reusable workflow in

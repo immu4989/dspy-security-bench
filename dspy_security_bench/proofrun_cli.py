@@ -121,6 +121,7 @@ def build_parser() -> argparse.ArgumentParser:
     output_format.add_argument("--json", action="store_true", help="emit one source-redacted machine-readable review decision")
     output_format.add_argument("--junit", action="store_true", help="emit source-redacted JUnit XML for CI; preserve the native exit code")
     output_format.add_argument("--html", action="store_true", help="emit a self-contained source-redacted HTML review; preserve the native exit code")
+    output_format.add_argument("--report-dir", help="new directory for JSON, HTML, JUnit and a byte manifest from one review; stdout is an export receipt")
     verify.add_argument("--attestation-repo", help="owner/repository; defaults to bundle metadata")
     review_kind = verify.add_mutually_exclusive_group()
     # Older argparse versions identify explicit mutually-exclusive values by
@@ -145,6 +146,7 @@ def build_parser() -> argparse.ArgumentParser:
     collection_format.add_argument("--json", action="store_true", help="emit one source-redacted collection decision")
     collection_format.add_argument("--junit", action="store_true", help="emit one JUnit testcase per required entry, or an invalid-plan error")
     collection_format.add_argument("--html", action="store_true", help="emit a self-contained source-redacted HTML collection review")
+    collection_format.add_argument("--report-dir", help="new directory for all report formats from one review; stdout is an export receipt")
     comparison = commands.add_parser("compare-plans", help="compare collection requirements against an independently pinned baseline")
     comparison.add_argument("baseline", help="owner-approved local collection plan")
     comparison.add_argument("candidate", help="proposed local collection plan")
@@ -191,6 +193,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "verify-collection":
         from dspy_security_bench.proofrun_collection import render_collection, review_collection
 
+        if args.report_dir is not None:
+            from dspy_security_bench.proofrun_reports import export_collection_reports
+
+            receipt = export_collection_reports(Path(args.plan), Path(args.report_dir),
+                                                expected_plan_file_sha256=args.expected_plan_file_sha256)
+            print(json.dumps(receipt, sort_keys=True, indent=2, allow_nan=False))
+            return receipt["exit_code"]
         result = review_collection(Path(args.plan), expected_plan_file_sha256=args.expected_plan_file_sha256)
         if args.json:
             print(json.dumps(result, sort_keys=True, indent=2, allow_nan=False))
@@ -594,13 +603,20 @@ def _authority(args) -> int:
 
 def _verify(args) -> int:
     minimum_trials = None if args.structural else (5 if args.minimum_trials is None else args.minimum_trials)
-    review = review_bundle(Path(args.bundle), policy=ReviewPolicy(
+    policy = ReviewPolicy(
         minimum_trials=minimum_trials, offline=args.offline,
         expected_file_sha256=args.expected_file_sha256,
         attestation_repository=args.attestation_repo,
         require_trusted_builder=args.require_trusted_builder,
         allow_self_hosted_runner=args.allow_self_hosted_runner,
-    ))
+    )
+    if args.report_dir is not None:
+        from dspy_security_bench.proofrun_reports import export_bundle_reports
+
+        receipt = export_bundle_reports(Path(args.bundle), Path(args.report_dir), policy=policy)
+        print(json.dumps(receipt, sort_keys=True, indent=2, allow_nan=False))
+        return receipt["exit_code"]
+    review = review_bundle(Path(args.bundle), policy=policy)
     if args.json:
         print(json.dumps(review, sort_keys=True, indent=2, allow_nan=False))
     elif args.junit:

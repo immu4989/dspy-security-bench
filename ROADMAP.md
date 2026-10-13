@@ -17,6 +17,10 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Single-run report sets render JSON, HTML, and JUnit from one fresh native
+  decision, with exact-byte manifests, exclusive outputs, and explicit partial
+  export receipts; CI and human readers need not rerun provenance verification.
+
 - Exact-byte collection snapshots enable recipient-side verification without
   sender paths or a new bundle format. Independently pinned requirements,
   all-input admission, bounded snapshots, exclusive outputs, and plan-last

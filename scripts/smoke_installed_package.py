@@ -238,6 +238,7 @@ def main() -> int:
         smoke_collection_reviews(directory)
         smoke_junit_reviews(directory)
         smoke_html_reviews(directory)
+        smoke_report_sets(directory)
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(
@@ -403,6 +404,33 @@ def smoke_html_reviews(directory: Path) -> None:
         if ("Native exit code 2" not in source or source.count('<details class="entry"') != required
                 or (required == 0 and "No evidence reviewed" not in source)):
             raise RuntimeError("installed HTML presentation hid missing required evidence or plan rejection")
+
+
+def smoke_report_sets(directory: Path) -> None:
+    cases = [(["verify", "collective-bundle.json", "--structural", "--offline"], 0),
+             (["verify", "trace-bundle.json", "--structural", "--offline"], 1),
+             (["verify", "missing.json", "--structural", "--offline"], 2),
+             (["verify-collection", "collection-plan.json"], 2)]
+    for index, (arguments, code) in enumerate(cases):
+        output_name = f"report-set-{index}"
+        args = ["proofrun", *arguments, "--report-dir", output_name]
+        receipt = json.loads(run_cli(directory, args, code))
+        output = directory / output_name
+        manifest_raw = (output / "manifest.json").read_bytes()
+        manifest = json.loads(manifest_raw)
+        if (not receipt["report_set_complete"] or receipt["native_exit_code"] != code
+                or receipt["manifest_file_sha256"] != hashlib.sha256(manifest_raw).hexdigest()):
+            raise RuntimeError("installed report export changed native verdict or completion semantics")
+        for item in manifest["files"]:
+            raw = (output / item["path"]).read_bytes()
+            if len(raw) != item["size_bytes"] or hashlib.sha256(raw).hexdigest() != item["sha256"]:
+                raise RuntimeError("installed report manifest does not identify exact output bytes")
+        if index == 0:
+            failed = json.loads(run_cli(directory, args, 2))
+            if failed["reason_code"] != "invalid_output" or failed["native_exit_code"] is not None:
+                raise RuntimeError("installed report export repeated review for an existing destination")
+            if (output / "manifest.json").read_bytes() != manifest_raw:
+                raise RuntimeError("installed report export overwrote an existing report set")
 
 
 def smoke_portable_reviews(directory: Path) -> None:
