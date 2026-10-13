@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/proofrun-plan-preparation.schema.json",
+  "title": "Source-redacted ProofRun draft preparation receipt",
+  "description": "A local preparation receipt, not evidence verification or approval. Shape validation does not prove hashes, arithmetic, file publication, artifact integrity, or authenticity. Verify the approved plan and actual artifacts separately.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "review_type", "expected_requirements_file_sha256", "requirements_file_sha256", "plan_file_sha256", "required_entries", "observed_entries", "failed_entry_index", "plan_is_approved", "artifact_evidence_verified", "requirements_completeness_established", "exit_code", "reason_code"],
+  "properties": {
+    "schema_version": {"const": 1}, "review_type": {"const": "ProofRun collection plan preparation"},
+    "expected_requirements_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "requirements_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/nullableDigest"},
+    "required_entries": {"type": "integer", "minimum": 0, "maximum": 25},
+    "observed_entries": {"type": "integer", "minimum": 0, "maximum": 25},
+    "failed_entry_index": {"anyOf": [{"type": "null"}, {"type": "integer", "minimum": 0, "maximum": 24}]},
+    "plan_is_approved": {"const": false}, "artifact_evidence_verified": {"const": false}, "requirements_completeness_established": {"const": false},
+    "exit_code": {"enum": [0, 2]},
+    "reason_code": {"enum": ["prepared", "invalid_policy", "invalid_requirements", "requirements_pin_mismatch", "invalid_artifact", "bundle_type_mismatch", "byte_budget_exceeded", "duplicate_artifact", "invalid_output", "output_error"]}
+  },
+  "oneOf": [
+    {"properties": {"exit_code": {"const": 0}, "reason_code": {"const": "prepared"}, "required_entries": {"minimum": 1}, "observed_entries": {"minimum": 1}, "failed_entry_index": {"type": "null"}, "requirements_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}, "plan_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}}},
+    {"properties": {"exit_code": {"const": 2}, "reason_code": {"not": {"const": "prepared"}}, "plan_file_sha256": {"type": "null"}}}
+  ],
+  "allOf": [
+    {"if": {"properties": {"reason_code": {"enum": ["invalid_policy", "invalid_requirements", "requirements_pin_mismatch", "invalid_output"]}}}, "then": {"properties": {"required_entries": {"const": 0}, "observed_entries": {"const": 0}, "failed_entry_index": {"type": "null"}}}},
+    {"if": {"properties": {"reason_code": {"enum": ["invalid_artifact", "bundle_type_mismatch", "byte_budget_exceeded", "duplicate_artifact"]}}}, "then": {"properties": {"required_entries": {"minimum": 1}, "failed_entry_index": {"type": "integer", "minimum": 0, "maximum": 24}}}},
+    {"if": {"properties": {"reason_code": {"const": "requirements_pin_mismatch"}}}, "then": {"properties": {"expected_requirements_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}, "requirements_file_sha256": {"$ref": "proofrun-review.schema.json#/$defs/digest"}}}}
+  ]
+}

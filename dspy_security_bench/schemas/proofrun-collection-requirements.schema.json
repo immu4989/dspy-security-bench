@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/immu4989/dspy-security-bench/main/dspy_security_bench/schemas/proofrun-collection-requirements.schema.json",
+  "title": "Explicit owner requirements for a draft ProofRun collection plan",
+  "description": "All slots and policies are owner-selected; only exact artifact byte pins are absent. Native validation enforces distinct IDs and portable case-insensitive paths. This file does not establish completeness or owner approval.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "requirements_type", "entries"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "requirements_type": {"const": "ProofRun collection requirements"},
+    "entries": {
+      "type": "array", "minItems": 1, "maxItems": 25,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "path", "bundle_type", "policy"],
+        "properties": {
+          "id": {"$ref": "proofrun-collection-plan.schema.json#/properties/entries/items/properties/id"},
+          "path": {"$ref": "proofrun-collection-plan.schema.json#/properties/entries/items/properties/path"},
+          "bundle_type": {"$ref": "proofrun-review.schema.json#/$defs/bundleType"},
+          "policy": {"$ref": "proofrun-collection-plan.schema.json#/properties/entries/items/properties/policy"}
+        },
+        "if": {"properties": {"bundle_type": {"$ref": "proofrun-review.schema.json#/$defs/structuralType"}}},
+        "then": {"properties": {"policy": {"properties": {"minimum_trials": {"type": "null"}}}}},
+        "else": {"properties": {"policy": {"properties": {"minimum_trials": {"type": "integer"}}}}}
+      }
+    }
+  }
+}

@@ -48,7 +48,8 @@ resources = importlib.resources.files("dspy_security_bench")
 for name in ("scan-evidence.schema.json", "scan-comparison.schema.json", "scan-study.schema.json",
              "scan-policy-review.schema.json", "repeat-report.schema.json", "proofrun-review.schema.json",
              "proofrun-collection-plan.schema.json", "proofrun-collection-review.schema.json",
-             "proofrun-plan-comparison.schema.json"):
+             "proofrun-plan-comparison.schema.json", "proofrun-collection-requirements.schema.json",
+             "proofrun-plan-preparation.schema.json"):
     json.loads(resources.joinpath("schemas", name).read_text(encoding="utf-8"))
 if "workflow_dispatch" not in resources.joinpath("templates", "github-action.yml").read_text(encoding="utf-8"):
     raise RuntimeError("safe workflow template missing from installed wheel")
@@ -299,6 +300,26 @@ def smoke_collection_reviews(directory: Path) -> None:
     path = directory / "collection-plan.json"
     path.write_text(json.dumps(plan), encoding="utf-8")
     pin = hashlib.sha256(path.read_bytes()).hexdigest()
+    requirements = {"schema_version": 1, "requirements_type": "ProofRun collection requirements",
+                    "entries": [{k: v for k, v in entry.items() if k != "file_sha256"} for entry in plan["entries"]]}
+    requirements_path = directory / "collection-requirements.json"
+    requirements_path.write_text(json.dumps(requirements), encoding="utf-8")
+    requirements_pin = hashlib.sha256(requirements_path.read_bytes()).hexdigest()
+    prepare_args = ["proofrun", "prepare-plan", requirements_path.name, "--out", "prepared-collection.json", "--json"]
+    run_cli(directory, [*prepare_args, "--expected-requirements-file-sha256", "0" * 64], 2)
+    draft = directory / "prepared-collection.json"
+    if draft.exists():
+        raise RuntimeError("installed preparation wrote a draft after a requirements-pin mismatch")
+    receipt = json.loads(run_cli(directory, [*prepare_args, "--expected-requirements-file-sha256", requirements_pin]))
+    draft_bytes = draft.read_bytes()
+    if (json.loads(draft_bytes) != plan or receipt["plan_file_sha256"] != hashlib.sha256(draft_bytes).hexdigest()
+            or receipt["artifact_evidence_verified"] or receipt["plan_is_approved"]):
+        raise RuntimeError("installed preparation changed owner policy, exact-byte pins, or claim boundaries")
+    run_cli(directory, prepare_args, 2)
+    if draft.read_bytes() != draft_bytes:
+        raise RuntimeError("installed preparation overwrote an existing plan")
+    run_cli(directory, ["proofrun", "verify-collection", draft.name,
+                        "--expected-plan-file-sha256", receipt["plan_file_sha256"], "--json"])
     baseline = directory / "baseline-plan.json"
     baseline.write_bytes(path.read_bytes())
     comparison_args = ["proofrun", "compare-plans", baseline.name, path.name,

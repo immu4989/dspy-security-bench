@@ -434,39 +434,83 @@ defines the required set: a missing file is a failure, not an absent row. Every
 entry binds an expected bundle type, exact input-file SHA-256, and explicit review
 policy. All nine registry families are supported; each retains its native meaning.
 
-For example, put two independently reviewed structural bundles in `intake/` as
-`collective.json` and `defense.json`. This local preparation snippet records their
-exact bytes and your selected policies. It does not authenticate their origin:
+#### Prepare a draft collection plan (on main)
 
-```python
-import hashlib
-import json
-from pathlib import Path
+Put the selected artifacts in `intake/`, then author `intake/requirements.json`.
+Requirements have the plan's explicit slots and policies, but no file hashes.
+For example, an owner choosing two offline structural requirements can write:
 
-root = Path("intake")
-expected_types = {
-    "collective": "dspy-security-bench-collective-submission",
-    "defense": "dspy-security-bench-defense-evidence",
+```json
+{
+  "schema_version": 1,
+  "requirements_type": "ProofRun collection requirements",
+  "entries": [
+    {
+      "id": "collective", "path": "collective.json",
+      "bundle_type": "dspy-security-bench-collective-submission",
+      "policy": {
+        "minimum_trials": null, "offline": true,
+        "attestation_repository": null, "require_trusted_builder": false,
+        "allow_self_hosted_runner": false
+      }
+    },
+    {
+      "id": "defense", "path": "defense.json",
+      "bundle_type": "dspy-security-bench-defense-evidence",
+      "policy": {
+        "minimum_trials": null, "offline": true,
+        "attestation_repository": null, "require_trusted_builder": false,
+        "allow_self_hosted_runner": false
+      }
+    }
+  ]
 }
-entries = []
-for label, bundle_type in expected_types.items():
-    raw = (root / f"{label}.json").read_bytes()
-    entries.append({
-        "id": label, "path": f"{label}.json", "bundle_type": bundle_type,
-        "file_sha256": hashlib.sha256(raw).hexdigest(),
-        "policy": {
-            "minimum_trials": None, "offline": True,
-            "attestation_repository": None, "require_trusted_builder": False,
-            "allow_self_hosted_runner": False,
-        },
-    })
-plan = {"schema_version": 1, "plan_type": "ProofRun review collection plan", "entries": entries}
-raw_plan = json.dumps(plan, indent=2).encode("utf-8")
-# Exclusive creation preserves an earlier owner's plan.
-with (root / "plan.json").open("xb") as stream:
-    stream.write(raw_plan)
-print(hashlib.sha256(raw_plan).hexdigest())
 ```
+
+```bash
+dspy-security-bench proofrun prepare-plan intake/requirements.json \
+  --out intake/plan.json --json
+```
+
+The output is a **draft**, never an approved requirement set. Preparation checks
+strict JSON, declared family, and byte limits, then adds the SHA-256 of each
+observed artifact without changing owner-selected policies. It does not run
+agents, perform native evidence replay, contact GitHub, discover files, omit
+missing entries, or infer requirements from supplied evidence. Invalid native
+evidence can be pinned successfully and must still fail subsequent verification.
+
+All requirements and the final encoded-plan size are admitted before artifact
+reads. Limits are 1 MB of requirements, 25 slots, 50 MB per artifact, and 100 MB
+aggregate artifact bytes, with one overflow-probe byte per attempted read.
+Duplicate artifact hashes, missing/special/linked files, wrong declared families,
+and invalid JSON fail the whole preparation; no partial plan is emitted on
+input failure. Existing files are never overwritten. The output must be a new
+portable `.json` filename beside the requirements so relative artifact paths
+retain their meaning. No directories are created. A write failure can leave a
+partial **new** output; inspect it before removing or retrying it.
+
+For requirements retained through an independent trusted channel, additionally
+pass `--expected-requirements-file-sha256 "$OWNER_REQUIREMENTS_SHA256"`. A pin
+mismatch stops before artifact intake. Omitting it is allowed for initial draft
+preparation and does not authenticate requirements. Never treat a supplier's
+requirements/hash pair as your organization's approved scope.
+
+`--json` emits only the [source-redacted receipt](../dspy_security_bench/schemas/proofrun-plan-preparation.schema.json),
+including the exact draft-file hash and observed counts. The draft file itself
+retains owner-selected IDs, paths, and repository names: review it before sharing.
+The [requirements schema](../dspy_security_bench/schemas/proofrun-collection-requirements.schema.json)
+reuses plan constraints; native validation additionally enforces distinct IDs,
+paths, policies, and resource limits. Python callers can use
+`proofrun_prepare.prepare_plan(path, expected_requirements_file_sha256=...)` to
+receive `(full_content_plan_or_none, receipt)` without writing, or
+`prepare_plan_file(path, output, ...)` to exclusively create the draft.
+
+Use stable owner-controlled local directories. Observed hashes describe the
+bytes read, not files another process later changes; this is not a filesystem
+sandbox or a network-filesystem latency guarantee. Exit 0 means preparation
+completed, not evidence validity, authenticity, completeness, or deployment approval.
+Exit 2 means invalid input/policy/output or failed preparation. No artifact is
+silently dropped to turn failure into success.
 
 Review and retain the plan hash through an independent trusted channel before
 accepting later inputs. Do not treat a supplier-supplied plan/hash pair as your

@@ -82,6 +82,7 @@ jobs:
           tests/test_structural_review.py
           tests/test_proofrun_collection.py
           tests/test_proofrun_plan_diff.py
+          tests/test_proofrun_prepare.py
           tests/test_proofrun_junit.py
           tests/test_regular_evidence_io.py
           tests/test_bounded_process.py

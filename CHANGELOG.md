@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added `proofrun prepare-plan` to replace ad hoc multi-file hashing with bounded
+  draft preparation from explicit owner requirements. It preserves every slot
+  and policy, optionally pins requirements, rejects missing/linked/duplicate or
+  mismatched artifacts, and exclusively creates a same-directory plan with exact
+  byte pins. Source-redacted receipts do not claim artifact verification or owner
+  approval; native collection review remains mandatory after approval.
 - Added `proofrun compare-plans` for reviewing evidence requirements against an
   independently pinned owner baseline. Source-redacted diffs expose every
   addition, removal, reordered slot, artifact pin, and policy change without

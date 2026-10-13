@@ -145,6 +145,11 @@ def build_parser() -> argparse.ArgumentParser:
     comparison.add_argument("candidate", help="proposed local collection plan")
     comparison.add_argument("--expected-baseline-file-sha256", required=True, help="independently retained baseline SHA-256")
     comparison.add_argument("--json", action="store_true", help="emit one source-redacted plan comparison")
+    preparation = commands.add_parser("prepare-plan", help="record artifact byte pins for explicit owner requirements; does not approve or verify evidence")
+    preparation.add_argument("requirements", help="strict local JSON requirements with explicit slots and policies")
+    preparation.add_argument("--out", required=True, help="new draft .json file beside the requirements; never overwritten")
+    preparation.add_argument("--expected-requirements-file-sha256", help="independently retained requirements SHA-256")
+    preparation.add_argument("--json", action="store_true", help="emit a source-redacted preparation receipt, not draft contents")
     return parser
 
 
@@ -192,6 +197,14 @@ def main(argv: list[str] | None = None) -> int:
         result = compare_plans(Path(args.baseline), Path(args.candidate),
                                expected_baseline_file_sha256=args.expected_baseline_file_sha256)
         print(json.dumps(result, sort_keys=True, indent=2, allow_nan=False) if args.json else render_plan_comparison(result),
+              file=sys.stderr if result["exit_code"] == 2 and not args.json else sys.stdout)
+        return result["exit_code"]
+    if args.command == "prepare-plan":
+        from dspy_security_bench.proofrun_prepare import prepare_plan_file, render_preparation
+
+        result = prepare_plan_file(Path(args.requirements), Path(args.out),
+                                   expected_requirements_file_sha256=args.expected_requirements_file_sha256)
+        print(json.dumps(result, sort_keys=True, indent=2, allow_nan=False) if args.json else render_preparation(result),
               file=sys.stderr if result["exit_code"] == 2 and not args.json else sys.stdout)
         return result["exit_code"]
     return 2

@@ -194,6 +194,12 @@ For handoffs with several required artifacts, retain an owner-reviewed
 independent file hash, then run `proofrun verify-collection`. Missing entries and
 failed reviews must not be removed merely to obtain an aggregate pass.
 
+Use `proofrun prepare-plan` to record supplied artifact hashes against explicit
+owner requirements without manual multi-file hashing. Review the full-content
+draft before retaining its independent pin. For replacements, `proofrun compare-plans`
+exposes changes against an approved pinned baseline; neither command approves
+requirements or verifies native evidence. See the [preparation workflow](docs/proofrun.md#prepare-a-draft-collection-plan-on-main).
+
 Both review commands accept `--junit` for CI consumers. Retain reports on failed
 runs, keep the command's nonzero status, and do not mark unreviewed required
 artifacts as skipped. See [JUnit integration](docs/proofrun.md#junit-results-for-existing-ci-on-main).

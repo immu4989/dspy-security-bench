@@ -17,6 +17,12 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Bounded collection-plan preparation preserves explicit owner requirements while
+  recording exact artifact bytes. Pinned baseline comparisons expose policy,
+  order, membership, and artifact changes without approving candidates or
+  authenticating evidence. Online verification now bounds subprocess output
+  during collection and cleans up direct children and private snapshots.
+
 - Source-redacted JUnit output connects individual and collection evidence reviews
   to existing CI test-report consumers, preserving failure/error distinctions,
   missing requirements, unique input/policy identities, and original exit codes.
