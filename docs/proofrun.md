@@ -326,6 +326,48 @@ it is not a claim that a signature is necessarily fraudulent. An offline review
 cannot be combined with `--require-trusted-builder`: that contradictory policy
 now exits 2, because offline replay cannot authenticate the builder.
 
+### Structural evidence review (on main)
+
+The same command and JSON decision interface also supports TraceProof, CausalProof,
+CollectiveGuard v2, and DefenderTwin **submission bundles**. Select `--structural`
+explicitly; these four protocols do not contain repeated-trial evidence:
+
+```bash
+dspy-security-bench proofrun verify structural-bundle.json --structural --offline --json \
+  --expected-file-sha256 "$EXPECTED_FILE_SHA256"
+```
+
+For the Python API, use `ReviewPolicy(minimum_trials=None, offline=True)`.
+`policy.minimum_trials: null` means structural review, not a disabled trial gate.
+Omitting `--structural` retains the five-trial default for the five repeated
+families. Applying a repeated-trial policy to a structural bundle, or a structural
+policy to a repeated bundle, exits 2 with `policy_not_applicable` before native
+replay. The CLI rejects combining `--structural` with `--minimum-trials`.
+
+Each family still runs its full native verifier, including embedded-report
+recomputation, privacy/disclosure rules, and eligibility checks. Native warnings
+such as partial collection, missing instrumentation, private disclosure, or
+known reference telemetry remain valid-but-ineligible (exit 1), not malformed
+evidence. A valid, eligible bundle can contain adverse findings: review success
+does **not** mean the system is secure or suitable for deployment. Inspect the
+native report and apply your organization's decision policy separately.
+
+Structural bundles remain self-attested. Without `--offline`, valid eligible
+structural evidence returns `attestation_unverified` (exit 1) without invoking
+GitHub: these contracts do not bind authenticated execution provenance. An
+arbitrary signature over the JSON cannot upgrade that evidence. This distinction
+follows the principle of checking artifact identity and expected provenance
+separately in [SLSA's verification guidance](https://slsa.dev/spec/v1.2/verifying-artifacts);
+this feature does not assign a SLSA level or establish compliance.
+
+The unreleased schema-v1 review contract now admits the four additional bundle
+types, nullable trial policy, and the mismatch reason. Existing repeated-family
+output retains its field layout and semantics. Consumers using an earlier copy
+of this unreleased schema must update it before accepting structural decisions;
+the schema rejects structural authentication claims and policy-family mismatches.
+
+### Retaining and interpreting review decisions
+
 Decisions include the exact `input_file_sha256`, and `bundle_sha256` only when
 native validity is established. They record the installed package version and
 review policy. An explicit `--attestation-repo` is represented by SHA-256 of the

@@ -184,6 +184,11 @@ Correct malformed legacy declarations by generating new bundles and digests;
 rehashing alone establishes neither provenance nor publication approval. Native
 report verification and disclosure eligibility checks still apply.
 
+For source-redacted intake decisions across these four families, use
+`dspy-security-bench proofrun verify bundle.json --structural --offline --json`.
+This is distinct from repeated-trial review and does not authenticate execution
+or approve deployment. See [structural review](docs/proofrun.md#structural-evidence-review-on-main).
+
 ## Submitting your agent's ProofRun result
 
 The recommended path is the versioned reusable workflow in

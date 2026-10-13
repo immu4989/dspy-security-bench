@@ -17,6 +17,12 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- One source-redacted review interface for all nine public evidence registries,
+  with explicit structural versus repeated-trial policies, exact-byte pins,
+  native replay, and separate integrity, eligibility, and provenance decisions.
+  Structural evidence cannot be promoted to authenticated execution or trial
+  confidence, and accepted adverse findings are not deployment approval.
+
 - Optional same-pair secure-and-useful gates, cooperative per-task tool admission
   limits with scope-bound budgets, strict bounded scan YAML, portable repeated
   study bundles and safe manifest revisions, and installed-wheel integrity/replay

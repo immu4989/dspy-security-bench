@@ -217,6 +217,7 @@ def main() -> int:
             decision = json.loads(run_cli(directory, ["proofrun", "verify", altered, "--offline", "--json"], 2))
             if decision["integrity"] != "invalid" or decision["bundle_sha256"] is not None:
                 raise RuntimeError("installed verifier accepted rehashed malformed metadata")
+        smoke_structural_reviews(directory)
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(
@@ -230,6 +231,38 @@ def main() -> int:
     print("Installed wheel smoke passed: resources, CLI, offline scan/study/policy replay, "
           "portable bundles, procurement consistency, joint-policy exits, pins, tamper rejection, strict configuration, scaffold.")
     return 0
+
+
+def smoke_structural_reviews(directory: Path) -> None:
+    """Create each structural family through installed CLI, then review it."""
+    metadata = ["--submitter", "fictional-wheel-smoke", "--runtime", "synthetic",
+                "--source-repository", "https://example.com/synthetic"]
+    run_cli(directory, ["trace", "demo", "--out-dir", "trace"])
+    run_cli(directory, ["trace", "bundle", "trace/trace-evidence.json", "trace/trace-report.json",
+                        *metadata, "--out", "trace-bundle.json"])
+    run_cli(directory, ["causal", "init", "--trace-out", "causal-trace.json", "--manifest-out", "causal-manifest.json"])
+    run_cli(directory, ["causal", "bundle", "causal-trace.json", "causal-manifest.json",
+                        *metadata, "--out", "causal-bundle.json"])
+    run_cli(directory, ["collective", "plane", "init", "--out", "collective-scenario.json"])
+    run_cli(directory, ["collective", "plane", "bundle", "collective-scenario.json", *metadata,
+                        "--deployment-class", "synthetic", "--out", "collective-bundle.json"])
+    run_cli(directory, ["defend", "demo", "--mission", "community-hospital", "--out-dir", "defense"])
+    run_cli(directory, ["defend", "bundle", "defense/community-hospital-bounded-reference.report.json", *metadata,
+                        "--deployment-class", "synthetic", "--out", "defense-bundle.json"])
+    for family in ("trace", "causal", "collective", "defense"):
+        output = f"{family}-bundle.json"
+        pin = hashlib.sha256((directory / output).read_bytes()).hexdigest()
+        # The known TraceProof demo is deliberately registry-ineligible.
+        expected = 1 if family == "trace" else 0
+        review = json.loads(run_cli(directory, ["proofrun", "verify", output, "--structural", "--offline", "--json",
+                                                "--expected-file-sha256", pin], expected))
+        if (review["integrity"] != "valid" or review["policy"]["minimum_trials"] is not None
+                or review["evidence_tier"] != "self_attested" or review["provenance"] != "not_checked"
+                or review["input_file_sha256"] != pin):
+            raise RuntimeError("installed structural review confused integrity, trials, or provenance")
+        mismatch = json.loads(run_cli(directory, ["proofrun", "verify", output, "--offline", "--json"], 2))
+        if mismatch["reason_code"] != "policy_not_applicable":
+            raise RuntimeError("installed reviewer silently discarded the repeated-trial policy")
 
 
 def smoke_portable_reviews(directory: Path) -> None:

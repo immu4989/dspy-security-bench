@@ -10,6 +10,15 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Unified machine-readable review now covers all nine registry families, with
+  explicit `proofrun verify --structural` admission for TraceProof, CausalProof,
+  CollectiveGuard, and DefenderTwin. Null trial policy cannot bypass repeated
+  gates; mismatched policies fail before replay. Native warnings remain
+  valid-but-ineligible, structural provenance cannot be upgraded, and adverse
+  findings remain evidence rather than deployment approval. Installed-wheel
+  checks now create and review each structural family. Existing repeated-family
+  decision fields remain unchanged; consumers of the unreleased review schema
+  must refresh it for the additional bundle types and mismatch reason.
 - Structural evidence admission now validates typed metadata before replay for
   TraceProof, causal, CollectiveGuard, and DefenderTwin bundles. Rehashed bundles
   cannot bypass checks with boolean/float versions, credential-bearing URLs,

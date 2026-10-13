@@ -39,12 +39,35 @@ FAMILIES = {
     ),
 }
 
+# Separate protocols: these artifacts do not contain repeated-trial evidence or
+# authenticated execution provenance. Never silently drop a trial requirement.
+STRUCTURAL_FAMILIES = {
+    "dspy-security-bench-traceproof-community-evidence": (
+        "dspy_security_bench.trace.evidence", "verify_trace_submission_bundle",
+        "community_eligible", "Trace registry eligibility",
+    ),
+    "dspy-security-bench-causal-submission": (
+        "dspy_security_bench.causal.registry", "verify_causal_submission_bundle",
+        "community_eligible", "Causal registry eligibility",
+    ),
+    "dspy-security-bench-collective-submission": (
+        "dspy_security_bench.collective.registry", "verify_collective_submission_bundle",
+        "community_eligible", "Collective registry eligibility",
+    ),
+    "dspy-security-bench-defense-evidence": (
+        "dspy_security_bench.defend.evidence", "verify_evidence_bundle",
+        "community_eligible", "Defense registry eligibility",
+    ),
+}
+ALL_FAMILIES = {**FAMILIES, **STRUCTURAL_FAMILIES}
+
 REASONS = {
     "offline_verified": "Native evidence is valid and eligible; provenance was not authenticated.",
     "online_verified": "Native evidence is valid and eligible; GitHub provenance was verified.",
-    "not_eligible": "Valid evidence does not satisfy registry eligibility under this trial policy.",
+    "not_eligible": "Valid evidence does not satisfy native registry eligibility under the selected review policy.",
     "attestation_unverified": "GitHub provenance was not verified under the requested identity policy.",
     "invalid_policy": "Invalid review policy; check minimum trials, file pin, repository, and offline/trusted-builder options.",
+    "policy_not_applicable": "Review policy does not match the bundle family; select structural review explicitly, or a repeated-trial minimum.",
     "invalid_input": "Input must be readable bounded strict UTF-8 JSON; source details withheld.",
     "pin_mismatch": "Input file SHA-256 does not match the independent pin.",
     "unsupported_bundle_type": "Unsupported bundle type; source details withheld.",
@@ -57,7 +80,8 @@ REASONS = {
 class ReviewPolicy:
     """Caller-selected verification requirements; never inferred from a report."""
 
-    minimum_trials: int = 5
+    # None explicitly selects structural review, not a disabled repeated gate.
+    minimum_trials: int | None = 5
     offline: bool = False
     expected_file_sha256: str | None = None
     attestation_repository: str | None = None
@@ -66,7 +90,7 @@ class ReviewPolicy:
 
     def public_fields(self) -> dict:
         """Validate policy and return a projection without private repository names."""
-        if type(self.minimum_trials) is not int or self.minimum_trials < 2:
+        if self.minimum_trials is not None and (type(self.minimum_trials) is not int or self.minimum_trials < 2):
             raise ValueError("invalid minimum trials")
         if any(type(flag) is not bool for flag in (
             self.offline, self.require_trusted_builder, self.allow_self_hosted_runner,
@@ -133,28 +157,38 @@ def review_bundle(path: Path, *, policy: ReviewPolicy | None = None) -> dict:
     if policy.expected_file_sha256 is not None and policy.expected_file_sha256 != result["input_file_sha256"]:
         return finish(2, "invalid", "pin_mismatch")
     bundle_type = bundle.get("bundle_type")
-    if not isinstance(bundle_type, str) or bundle_type not in FAMILIES:
+    if not isinstance(bundle_type, str) or bundle_type not in ALL_FAMILIES:
         return finish(2, "invalid", "unsupported_bundle_type")
     result["bundle_type"] = bundle_type
-    module_name, function_name, eligibility_field, _ = FAMILIES[bundle_type]
+    structural = bundle_type in STRUCTURAL_FAMILIES
+    if structural != (policy.minimum_trials is None):
+        return finish(2, "invalid", "policy_not_applicable")
+    module_name, function_name, eligibility_field, _ = ALL_FAMILIES[bundle_type]
     try:
         verify = getattr(importlib.import_module(module_name), function_name)
-        integrity = verify(bundle, minimum_trials=policy.minimum_trials)
+        integrity = verify(bundle) if structural else verify(bundle, minimum_trials=policy.minimum_trials)
         eligible = getattr(integrity, eligibility_field)
+        valid = not integrity.errors if structural else integrity.valid
     except (OSError, TypeError, ValueError, KeyError, AttributeError, OverflowError, RecursionError):
         result["integrity"] = "invalid"
         return finish(2, "invalid", "verification_error")
-    if not integrity.valid:
+    if not valid:
         result["integrity"] = "invalid"
         return finish(2, "invalid", "invalid_evidence")
     result.update(
         integrity="valid", eligibility="eligible" if eligible else "ineligible",
-        bundle_sha256=integrity.bundle_sha256, evidence_tier=integrity.evidence_tier,
+        bundle_sha256=bundle["bundle_sha256"] if structural else integrity.bundle_sha256,
+        evidence_tier="self_attested" if structural else integrity.evidence_tier,
     )
     if not eligible:
         return finish(1, "not_eligible", "not_eligible")
     if policy.offline:
         return finish(0, "pass", "offline_verified")
+    if structural:
+        # These frozen bundle contracts cannot bind an authenticated execution.
+        # A signature over an arbitrary JSON file must not promote their tier.
+        result["provenance"] = "unverified"
+        return finish(1, "attestation_unverified", "attestation_unverified")
     try:
         attestation = verify_github_attestation(
             path, bundle, repository=policy.attestation_repository,
@@ -178,13 +212,16 @@ def render_review(review: dict) -> str:
         lines.append(f"Input snapshot sha256: {review['input_file_sha256']}")
     lines.append(f"Integrity: {review['integrity']}")
     bundle_type = review["bundle_type"]
-    if bundle_type in FAMILIES:
-        label = FAMILIES[bundle_type][3]
+    if bundle_type in ALL_FAMILIES:
+        label = ALL_FAMILIES[bundle_type][3]
         eligible = {"eligible": "yes", "ineligible": "no", "not_checked": "not checked"}[review["eligibility"]]
         lines.append(f"{label}: {eligible}")
     tier_label = "Cryptographic" if review["provenance"] == "verified" else "Offline"
     lines.append(f"{tier_label} evidence tier: {review['evidence_tier']}")
     marker = "INVALID" if review["exit_code"] == 2 else review["verdict"].upper()
     lines.append(f"[{marker}] {REASONS[review['reason_code']]}")
+    if bundle_type in STRUCTURAL_FAMILIES:
+        lines.append("Structural review: no repeated-trial confidence or authenticated execution is established.")
+        lines.append("Registry eligibility can include adverse findings; inspect the native report before making security decisions.")
     lines.append("This local review is not a signed attestation or independent execution reproduction.")
     return "\n".join(lines)

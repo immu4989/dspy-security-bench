@@ -79,6 +79,7 @@ jobs:
           tests/test_scan_yaml_limits.py
           tests/test_agent_tool_budget.py
           tests/test_pytest_diagnostics.py
+          tests/test_structural_review.py
           --junitxml=platform-smoke-results.xml
       - name: Expose failed platform test diagnostics
         if: failure()

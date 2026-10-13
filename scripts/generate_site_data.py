@@ -20,7 +20,7 @@ from dspy_security_bench.procurement.registry_metadata import (
     registry_shape,
     reproduction_record_errors,
 )
-from dspy_security_bench.proofrun_review import FAMILIES
+from dspy_security_bench.proofrun_review import ALL_FAMILIES
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS_DIR = ROOT / "leaderboard/results"
@@ -839,17 +839,9 @@ def _native_eligible(bundle, bundle_type: str) -> bool:
     """Full offline native admission; no model calls or signature lookup."""
     if not isinstance(bundle, dict) or bundle.get("bundle_type") != bundle_type:
         return False
-    structural = {
-        "dspy-security-bench-traceproof-community-evidence": ("dspy_security_bench.trace.evidence", "verify_trace_submission_bundle"),
-        "dspy-security-bench-causal-submission": ("dspy_security_bench.causal.registry", "verify_causal_submission_bundle"),
-        "dspy-security-bench-collective-submission": ("dspy_security_bench.collective.registry", "verify_collective_submission_bundle"),
-        "dspy-security-bench-defense-evidence": ("dspy_security_bench.defend.evidence", "verify_evidence_bundle"),
-    }
-    if bundle_type in FAMILIES:
-        module_name, function_name, eligibility_field, _ = FAMILIES[bundle_type]
-    else:
-        module_name, function_name = structural[bundle_type]
-        eligibility_field = "community_eligible"
+    if bundle_type not in ALL_FAMILIES:
+        return False
+    module_name, function_name, eligibility_field, _ = ALL_FAMILIES[bundle_type]
     # Missing verifier dependencies are build errors, not a reason to silently
     # drop all rows. Data-derived verifier failures only reject that input.
     verify = getattr(importlib.import_module(module_name), function_name)

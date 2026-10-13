@@ -22,17 +22,19 @@
     "execution_reproduced": {"const": false},
     "exit_code": {"enum": [0, 1, 2]},
     "verdict": {"enum": ["pass", "not_eligible", "attestation_unverified", "invalid"]},
-    "reason_code": {"enum": ["offline_verified", "online_verified", "not_eligible", "attestation_unverified", "invalid_policy", "invalid_input", "pin_mismatch", "unsupported_bundle_type", "invalid_evidence", "verification_error"]}
+    "reason_code": {"enum": ["offline_verified", "online_verified", "not_eligible", "attestation_unverified", "invalid_policy", "policy_not_applicable", "invalid_input", "pin_mismatch", "unsupported_bundle_type", "invalid_evidence", "verification_error"]}
   },
   "$defs": {
     "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "nullableDigest": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]},
-    "bundleType": {"enum": ["dspy-security-bench-community-submission", "dspy-security-bench-control-evidence-submission", "dspy-security-bench-incident-evidence-submission", "dspy-security-bench-source-evidence-submission", "dspy-security-bench-authority-evidence-submission"]},
+    "bundleType": {"oneOf": [{"$ref": "#/$defs/repeatedType"}, {"$ref": "#/$defs/structuralType"}]},
+    "repeatedType": {"enum": ["dspy-security-bench-community-submission", "dspy-security-bench-control-evidence-submission", "dspy-security-bench-incident-evidence-submission", "dspy-security-bench-source-evidence-submission", "dspy-security-bench-authority-evidence-submission"]},
+    "structuralType": {"enum": ["dspy-security-bench-traceproof-community-evidence", "dspy-security-bench-causal-submission", "dspy-security-bench-collective-submission", "dspy-security-bench-defense-evidence"]},
     "policy": {
       "type": "object", "additionalProperties": false,
       "required": ["minimum_trials", "mode", "expected_file_sha256", "expected_repository_sha256", "require_trusted_builder", "deny_self_hosted_runner"],
       "properties": {
-        "minimum_trials": {"type": "integer", "minimum": 2},
+        "minimum_trials": {"anyOf": [{"type": "integer", "minimum": 2}, {"type": "null"}], "description": "Null explicitly selects structural review; it never disables a repeated-trial minimum for a repeated bundle."},
         "mode": {"enum": ["offline", "online"]},
         "expected_file_sha256": {"$ref": "#/$defs/nullableDigest"},
         "expected_repository_sha256": {"$ref": "#/$defs/nullableDigest", "description": "SHA-256 of the caller-supplied repository string's UTF-8 bytes, or null when derived from bundle claims. Informational policy fingerprint, not authentication."},
@@ -66,10 +68,31 @@
       "properties": {"verdict": {"const": "attestation_unverified"}, "exit_code": {"const": 1}, "eligibility": {"const": "eligible"}, "provenance": {"const": "unverified"}, "evidence_tier": {"enum": ["self_attested", "github_attestation_unverified"]}, "reason_code": {"const": "attestation_unverified"}, "policy": {"properties": {"mode": {"const": "online"}}}}
     },
     {
-      "properties": {"verdict": {"const": "invalid"}, "exit_code": {"const": 2}, "integrity": {"enum": ["invalid", "not_checked"]}, "eligibility": {"const": "not_checked"}, "provenance": {"const": "not_checked"}, "evidence_tier": {"const": "not_established"}, "bundle_sha256": {"type": "null"}, "reason_code": {"enum": ["invalid_policy", "invalid_input", "pin_mismatch", "unsupported_bundle_type", "invalid_evidence", "verification_error"]}}
+      "properties": {"verdict": {"const": "invalid"}, "exit_code": {"const": 2}, "integrity": {"enum": ["invalid", "not_checked"]}, "eligibility": {"const": "not_checked"}, "provenance": {"const": "not_checked"}, "evidence_tier": {"const": "not_established"}, "bundle_sha256": {"type": "null"}, "reason_code": {"enum": ["invalid_policy", "policy_not_applicable", "invalid_input", "pin_mismatch", "unsupported_bundle_type", "invalid_evidence", "verification_error"]}}
     }
   ],
   "allOf": [
+    {
+      "if": {"properties": {"bundle_type": {"$ref": "#/$defs/structuralType"}}},
+      "then": {"properties": {"provenance": {"enum": ["not_checked", "unverified"]}, "evidence_tier": {"enum": ["not_established", "self_attested"]}}}
+    },
+    {
+      "if": {"properties": {"reason_code": {"const": "policy_not_applicable"}}},
+      "then": {
+        "properties": {"input_file_sha256": {"$ref": "#/$defs/digest"}, "bundle_type": {"$ref": "#/$defs/bundleType"}, "integrity": {"const": "not_checked"}},
+        "if": {"properties": {"bundle_type": {"$ref": "#/$defs/structuralType"}}},
+        "then": {"properties": {"policy": {"properties": {"minimum_trials": {"type": "integer"}}}}},
+        "else": {"properties": {"policy": {"properties": {"minimum_trials": {"type": "null"}}}}}
+      },
+      "else": {
+        "if": {"properties": {"bundle_type": {"$ref": "#/$defs/structuralType"}}},
+        "then": {"properties": {"policy": {"properties": {"minimum_trials": {"type": "null"}}}}},
+        "else": {
+          "if": {"properties": {"bundle_type": {"$ref": "#/$defs/repeatedType"}}},
+          "then": {"properties": {"policy": {"properties": {"minimum_trials": {"type": "integer"}}}}}
+        }
+      }
+    },
     {
       "if": {"properties": {"reason_code": {"const": "offline_verified"}}},
       "then": {"properties": {"provenance": {"const": "not_checked"}, "evidence_tier": {"enum": ["self_attested", "github_attestation_unverified"]}, "policy": {"properties": {"mode": {"const": "offline"}}}}}

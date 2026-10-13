@@ -119,7 +119,9 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("bundle")
     verify.add_argument("--json", action="store_true", help="emit one source-redacted machine-readable review decision")
     verify.add_argument("--attestation-repo", help="owner/repository; defaults to bundle metadata")
-    verify.add_argument("--minimum-trials", type=int, default=5)
+    review_kind = verify.add_mutually_exclusive_group()
+    review_kind.add_argument("--minimum-trials", type=int, default=5, help="minimum repeated trials (default: 5)")
+    review_kind.add_argument("--structural", action="store_true", help="explicit structural review; no trial-confidence or execution-authentication claim")
     verify.add_argument("--expected-file-sha256", help="independent SHA-256 pin for exact input bytes")
     verify.add_argument(
         "--offline", action="store_true", help="skip cryptographic provenance lookup"
@@ -524,7 +526,7 @@ def _authority(args) -> int:
 
 def _verify(args) -> int:
     review = review_bundle(Path(args.bundle), policy=ReviewPolicy(
-        minimum_trials=args.minimum_trials, offline=args.offline,
+        minimum_trials=None if args.structural else args.minimum_trials, offline=args.offline,
         expected_file_sha256=args.expected_file_sha256,
         attestation_repository=args.attestation_repo,
         require_trusted_builder=args.require_trusted_builder,
