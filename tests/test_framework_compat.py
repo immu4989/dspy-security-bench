@@ -432,8 +432,10 @@ def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch,
         content=[FunctionCall(id="fixture-call", name="transfer_to_reviewer" if mode == "handoff" else "record",
                               arguments='{}' if mode == "handoff" else '{"record_id": "R-1"}')],
     )
+    finish = CreateResult(finish_reason="stop", cached=False, content="" if mode == "empty" else "done",
+                          usage=RequestUsage(prompt_tokens=4, completion_tokens=5))
     responses = {
-        "answer": ["done"], "empty": [""], "tool": [calls, "done"],
+        "answer": [finish], "empty": [finish], "tool": [calls, finish],
         "tool-limit": [calls], "handoff": [calls], "error": [],
     }[mode]
     clients, captured, effects, closed = [], [], [], []
@@ -482,6 +484,13 @@ def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch,
     else:
         result = adapter.run("fixture", [tool])
         assert result.final_answer == {"empty": "", "tool-limit": "recorded"}.get(mode, "done")
+        # Replay computes its own prompt counts rather than using CreateResult's
+        # prompt_tokens. Verify the client counters, not message-level receipts.
+        prompt_count = sum(clients[0].count_tokens(call["messages"]) for call in clients[0].create_calls)
+        assert result.usage == {
+            "prompt_tokens": prompt_count,
+            "completion_tokens": {"tool": 8, "tool-limit": 3}.get(mode, 5),
+        }
         assert captured[0].stop_reason is None
         if mode in {"tool", "tool-limit"}:
             assert effects == [{"record_id": "R-1", "limit": 1}]
@@ -495,6 +504,10 @@ def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch,
         second = adapter.run("second fixture", [tool])
         assert len(clients) == 2 and clients[0] is not clients[1]
         assert closed == [True, True] and len(second.tool_calls) == 1
+        assert second.usage == {
+            "prompt_tokens": sum(clients[1].count_tokens(call["messages"]) for call in clients[1].create_calls),
+            "completion_tokens": 8,
+        }
         assert len(effects) == 2
         assert [message.content for message in clients[1].create_calls[0]["messages"]
                 if getattr(message, "source", None) == "user"] == ["second fixture"]
@@ -568,7 +581,8 @@ def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
 
 
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "langchain", reason="optional LangChain SDK matrix")
-@pytest.mark.parametrize("mode", ["answer", "empty", "blocks", "approval", "static-pause"])
+@pytest.mark.parametrize("mode", ["answer", "empty", "blocks", "approval", "static-pause",
+                                 "missing-usage", "partial-usage", "invalid-usage", "pruned-state", "error-recovered"])
 def test_langchain_bridge_runs_native_agent_loop_without_provider_calls(monkeypatch, mode):
     from types import SimpleNamespace
 
@@ -589,19 +603,38 @@ def test_langchain_bridge_runs_native_agent_loop_without_provider_calls(monkeypa
     monkeypatch.setattr("socket.socket.connect_ex", no_network)
     monkeypatch.setattr("socket.getaddrinfo", no_network)
 
+    failures = []
+
     class CannedModel(FakeMessagesListChatModel):
         def bind_tools(self, tools, **kwargs):
             return self
+
+        def _generate(self, *args, **kwargs):
+            if mode == "error-recovered" and not failures:
+                failures.append(True)
+                raise LookupError("synthetic failed model call")
+            return super()._generate(*args, **kwargs)
 
     content = "" if mode == "empty" else "done"
     if mode == "blocks":
         content = [{"type": "reasoning", "reasoning": "PRIVATE"},
                    {"type": "text", "text": "do"}, {"type": "text", "text": "ne"}]
-    model = CannedModel(responses=[
+    responses = [
         AIMessage(content="", tool_calls=[{"name": "record", "args": {}, "id": "fixture-call", "type": "tool_call"}]),
         AIMessage(content=content),
-    ])
-    captured, effects = [], []
+    ]
+    # Assign malformed/missing fixtures after construction to avoid SDK coercion.
+    first_usage = {"input_tokens": 2, "output_tokens": 3, "total_tokens": 5}
+    if mode == "missing-usage":
+        first_usage = None
+    elif mode == "partial-usage":
+        first_usage.pop("total_tokens")
+    elif mode == "invalid-usage":
+        first_usage["input_tokens"] = True
+    responses[0].usage_metadata = first_usage
+    responses[1].usage_metadata = {"input_tokens": 7, "output_tokens": 11, "total_tokens": 18}
+    model = CannedModel(responses=responses)
+    captured, effects, callbacks = [], [], []
 
     def native_create(**kwargs):
         options = {}
@@ -613,9 +646,18 @@ def test_langchain_bridge_runs_native_agent_loop_without_provider_calls(monkeypa
             options["checkpointer"] = InMemorySaver()
         graph = create_agent(**kwargs, **options)
 
-        def invoke(payload):
+        def invoke(payload, *, config):
+            callbacks.append(config["callbacks"][0])
+            config = {**config, "configurable": {"thread_id": "fixture"}}
             with tracing_context(enabled=False):
-                result = graph.invoke(payload, config={"configurable": {"thread_id": "fixture"}})
+                try:
+                    result = graph.invoke(payload, config=config)
+                except LookupError:
+                    if mode != "error-recovered":
+                        raise
+                    result = graph.invoke(payload, config=config)
+            if mode == "pruned-state":
+                result["messages"] = result["messages"][-1:]
             captured.append(result)
             return result
 
@@ -638,6 +680,18 @@ def test_langchain_bridge_runs_native_agent_loop_without_provider_calls(monkeypa
         assert result.final_answer == ("" if mode == "empty" else "done")
         assert effects == [True] and result.tool_calls[0].result == "recorded"
         assert captured[0]["messages"][-1].type == "ai"
+        expected = {"prompt_tokens": 9, "completion_tokens": 14, "total_tokens": 23}
+        if mode in {"missing-usage", "error-recovered"}:
+            expected = {}
+        elif mode == "partial-usage":
+            expected.pop("total_tokens")
+        elif mode == "invalid-usage":
+            expected.pop("prompt_tokens")
+        assert result.usage == expected
+        if mode == "answer":
+            second = adapter.run("second fixture", [tool])
+            assert second.usage == expected and effects == [True, True]
+            assert callbacks[0] is not callbacks[1]
 
 
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "langchain", reason="optional LangChain SDK matrix")

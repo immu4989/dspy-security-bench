@@ -10,6 +10,14 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added LangChain callback-scoped token collection with per-call completeness:
+  missing/invalid fields, failed or unfinished calls, and ambiguous callback
+  lifecycles cannot become partial run totals. Collection survives message-state
+  pruning and resets per invocation without retaining model content. AutoGen now
+  reads the fresh model client's counters after cleanup and result admission,
+  replacing the nonexistent standard `TaskResult.usage` path. Native offline tests
+  cover real counters, recovery, partial metadata, pruning, and fresh runs;
+  these remain SDK-exposed estimates, not complete provider billing evidence.
 - Native framework telemetry now uses the shared strict token/cost admission
   rules: no inferred missing totals, fractional/boolean counts, nonfinite cost,
   or silent precedence between conflicting aliases. Ordinary optional-metadata

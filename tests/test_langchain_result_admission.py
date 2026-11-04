@@ -102,10 +102,13 @@ def test_text_blocks_concatenate_without_reasoning_metadata_or_invented_separato
 
 
 def test_adapter_rejects_paused_state_without_undoing_completed_tools(monkeypatch):
+    from dspy_security_bench.integrations.usage import _LangChainUsageLedger
+
+    monkeypatch.setattr("dspy_security_bench.integrations.frameworks._langchain_usage_callback", _LangChainUsageLedger)
     effects = []
 
     def create_agent(**kwargs):
-        def invoke(payload):
+        def invoke(payload, *, config):
             kwargs["tools"][0]()
             return output(__interrupt__=(PrivateValue(),))
         return SimpleNamespace(invoke=invoke)

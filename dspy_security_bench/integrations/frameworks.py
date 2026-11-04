@@ -16,10 +16,10 @@ from dspy_security_bench.agents import (
     AgentResultError,
     BenchTool,
     ToolCall,
-    normalize_usage,
     validate_agent_result,
 )
 from dspy_security_bench.agents.base import require_text_answer
+from dspy_security_bench.integrations.usage import _langchain_usage_callback, _usage
 
 _BASE_INSTRUCTIONS = (
     "Complete the user's request using the provided tools when needed. "
@@ -108,64 +108,6 @@ def _run_awaitable(value: Awaitable[Any]) -> Any:
     context = copy_context()
     with ThreadPoolExecutor(max_workers=1) as executor:
         return executor.submit(context.run, execute).result()
-
-
-_UNREADABLE_USAGE = object()
-
-
-def _usage_field(value: Any, name: str) -> Any:
-    try:
-        return value.get(name) if isinstance(value, dict) else getattr(value, name, None)
-    except Exception:
-        # Optional telemetry is not a task-validity gate. Do not expose raw
-        # metadata exceptions; BaseException control flow still propagates.
-        return _UNREADABLE_USAGE
-
-
-def _usage(values: Any, *path: str) -> dict[str, int | float]:
-    """Admit SDK-exposed fields without inventing totals or choosing conflicts.
-
-    Missing, malformed, conflicting, and unreadable quantities remain unknown.
-    SDK defaults/computed properties are not raw provider receipts or billing
-    evidence. Only the optional metadata path is guarded, not native execution.
-    """
-    for name in path:
-        values = _usage_field(values, name)
-        if values is None or values is _UNREADABLE_USAGE:
-            return {}
-    if callable(values):
-        try:
-            values = values()
-        except Exception:
-            return {}
-    aliases = {
-        "prompt_tokens": ("prompt_tokens", "input_tokens", "request_tokens"),
-        "completion_tokens": ("completion_tokens", "output_tokens", "response_tokens"),
-        "total_tokens": ("total_tokens",),
-        "requests": ("requests",),
-        "estimated_cost_usd": ("estimated_cost_usd",),
-    }
-    result: dict[str, int | float] = {}
-    for target, sources in aliases.items():
-        candidates = []
-        for source in sources:
-            value = _usage_field(values, source)
-            if value is None:
-                continue
-            if target == "requests":
-                normalized = (
-                    value if isinstance(value, int) and not isinstance(value, bool) and value >= 0
-                    else _UNREADABLE_USAGE
-                )
-            else:
-                normalized = normalize_usage({target: value}).get(target, _UNREADABLE_USAGE)
-            if normalized is _UNREADABLE_USAGE:
-                break
-            candidates.append(normalized)
-        else:
-            if candidates and all(value == candidates[0] for value in candidates):
-                result[target] = candidates[0]
-    return result
 
 
 def _langchain_output(result: Any) -> str:
@@ -257,6 +199,7 @@ class LangChainAdapter:
     def run(self, query: str, tools: list[BenchTool], *, system_directive: str = "") -> AgentResult:
         try:
             from langchain.agents import create_agent
+            usage = _langchain_usage_callback()
         except ImportError as exc:
             raise RuntimeError("LangChain is missing; install langchain>=1.3") from exc
 
@@ -266,8 +209,9 @@ class LangChainAdapter:
             tools=[_tool_callable(tool, ledger) for tool in tools],
             system_prompt=_instructions(self.instructions, system_directive),
         )
-        result = agent.invoke({"messages": [{"role": "user", "content": query}]})
-        return validate_agent_result(AgentResult(final_answer=_langchain_output(result), tool_calls=ledger))
+        result = agent.invoke({"messages": [{"role": "user", "content": query}]}, config={"callbacks": [usage]})
+        answer = _langchain_output(result)
+        return validate_agent_result(AgentResult(final_answer=answer, tool_calls=ledger, usage=usage.usage()))
 
 
 def _pydantic_final_answer(result: Any) -> str:
@@ -409,15 +353,15 @@ class AutoGenAdapter:
                     system_message=_instructions(self.instructions, system_directive),
                     max_tool_iterations=self.max_tool_iterations,
                 )
-                return await agent.run(task=query)
+                return await agent.run(task=query), client
             finally:
                 closed = client.close()
                 if inspect.isawaitable(closed):
                     await closed
 
-        result = _run_awaitable(execute())
+        result, client = _run_awaitable(execute())
         final = _autogen_final_answer(result, name=self.name)
-        usage = _usage(result, "usage")
+        usage = _usage(client, "total_usage")
         return validate_agent_result(AgentResult(final_answer=final, tool_calls=ledger, usage=usage))
 
 

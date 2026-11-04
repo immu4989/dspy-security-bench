@@ -198,6 +198,17 @@ if sys.argv[1:] == ["--version"]:
             raise RuntimeError("PRIVATE optional telemetry")
     if _usage(UnavailableUsage(), "context_wrapper", "usage"):
         raise RuntimeError("installed framework bridge invented unavailable telemetry")
+    from dspy_security_bench.integrations.usage import _LangChainUsageLedger
+    for missing in (False, True):
+        ledger = _LangChainUsageLedger()
+        for run_id in ("one", "two"):
+            ledger.on_chat_model_start(None, None, run_id=run_id)
+            usage = None if missing and run_id == "two" else {"input_tokens": 2, "output_tokens": 3, "total_tokens": 5}
+            message = SimpleNamespace(type="ai", usage_metadata=usage)
+            ledger.on_llm_end(SimpleNamespace(generations=[[SimpleNamespace(message=message)]]), run_id=run_id)
+        expected = {} if missing else {"prompt_tokens": 4, "completion_tokens": 6, "total_tokens": 10}
+        if ledger.usage() != expected:
+            raise RuntimeError("installed LangChain ledger reported incomplete callback totals")
     class InvalidAnswer(ReferenceProcurementAgent):
         def run(self, *args, **kwargs):
             result = super().run(*args, **kwargs)

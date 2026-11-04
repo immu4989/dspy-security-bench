@@ -164,6 +164,8 @@ def run_bridge(monkeypatch, framework, usage, *, broken_path=False, invalid_answ
 
     class Result:
         def __getattr__(self, name):
+            if framework == "autogen" and name == "usage":
+                pytest.fail("AutoGen counters belong to the fresh client, not TaskResult")
             if name == usage_name:
                 if broken_path:
                     raise RuntimeError("PRIVATE native metadata field")
@@ -187,6 +189,13 @@ def run_bridge(monkeypatch, framework, usage, *, broken_path=False, invalid_answ
     class Client:
         def __init__(self, **kwargs):
             pass
+
+        @property
+        def total_usage(self):
+            assert closed == [True]
+            if broken_path:
+                raise RuntimeError("PRIVATE client metadata field")
+            return usage
 
         async def close(self):
             closed.append(True)

@@ -266,22 +266,23 @@ included. Custom agents own the completeness of usage they supply.
 ## Native SDK telemetry
 
 The stricter native usage extraction is **on main after v0.19.0**. Required
-answer/completion checks run first. Once they pass, ordinary exceptions from an
-optional usage accessor no longer invalidate the completed answer or its tool
-ledger. An unavailable metadata container/method yields `{}`; an unreadable
+answer/completion checks run before telemetry is exported. Once they pass,
+ordinary exceptions from an optional usage accessor no longer invalidate the
+completed answer or its tool ledger. An unavailable metadata container/method
+yields `{}`; an unreadable
 field makes only that quantity unknown. `KeyboardInterrupt`, `SystemExit`, and
 async cancellation still propagate. This is not error suppression for model or
 tool execution, a retry mechanism, or protection against blocking accessors.
 
-The existing extraction paths are:
+The extraction paths are:
 
 | Bridge | SDK metadata inspected |
 |---|---|
 | OpenAI Agents | `result.context_wrapper.usage` |
 | Pydantic AI | `result.usage()` |
 | CrewAI | `result.usage_metrics` |
-| AutoGen | `result.usage`, only when exposed; standard `TaskResult` does not supply it |
-| LangChain | No run-level usage extraction in this bridge |
+| AutoGen | Fresh model client's `total_usage()` after client cleanup |
+| LangChain | Per-invocation model callbacks reading `AIMessage.usage_metadata` |
 
 Token aliases `prompt_tokens` / `input_tokens` / `request_tokens` and
 `completion_tokens` / `output_tokens` / `response_tokens` describe the same two
@@ -307,6 +308,44 @@ execution or compare these estimates as complete cross-framework cost totals.
 The [OpenAI usage example](https://developers.openai.com/cookbook/examples/agents_sdk/security_scanners_with_agents_sdk#usage-and-limits)
 illustrates reporting response and token counts separately. No live provider
 evaluation or historical report rewriting is part of this change.
+
+### Callback coverage and client counter scope
+
+The LangChain bridge supplies a fresh numeric-only callback collector to each
+`invoke`. It observes model starts, completions, and errors during execution,
+without saving prompts, model output, model names, or exception text. It totals
+only token fields that are valid on **every observed completed model call**.
+Missing/invalid fields omit that quantity; a failed/pending call, duplicate or
+orphan event, or ambiguous lifecycle makes all totals unknown. No callback events
+means `{}`, not zero. Only single completed chat generations are supported;
+chunks, batched generations, and alternatives are conservatively unknown.
+
+Counts come from callbacks rather than the final message or returned message
+history, so pruning history does not discard already observed usage. A closed
+snapshot is detached from later callback changes. Synchronization handles
+concurrent observed callbacks; it does not add asynchronous benchmark scheduling.
+This intentionally uses stricter completeness checks than simply accumulating
+the available metadata. LangChain documents its
+[callback usage interface](https://docs.langchain.com/oss/python/langchain/models#token-usage).
+SDK-free tests exercise missing/invalid metadata, failed and unfinished calls,
+duplicates, concurrency, and lifecycle isolation. Native offline graph tests
+also exercise recovered errors and pruned returned state.
+
+AutoGen's standard `TaskResult` has no `usage` field. The bridge now reads the
+[model client's counters](https://microsoft.github.io/autogen/stable/reference/python/autogen_ext.models.openai.html)
+from the fresh client created for that invocation, after closing it and admitting
+the terminal answer. Optional counter-access failures stay unknown. Standard
+`RequestUsage` exposes prompt and completion counts, so the bridge does not
+invent `total_tokens`, request counts, or costs. Custom `TaskResult.usage`
+extensions are no longer consulted. A new client on every run prevents lifetime
+counts from leaking across cases; native replay tests check this distinction.
+
+Neither approach proves complete provider usage. SDK defaults, silent missing
+metadata, hidden retries, unobserved child calls, cache conventions, and work
+outside the instrumented invocation may remain invisible. AutoGen reports its
+client's aggregate counters, not the callback completeness guarantee used for
+LangChain. No prices, currency conversions, resource caps, provider billing
+reconciliation, or new report/scoring formulas are introduced.
 
 ## Async callbacks in notebooks and services
 

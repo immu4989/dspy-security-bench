@@ -99,11 +99,15 @@ def test_openai_agents_adapter_uses_native_tools(monkeypatch):
 
 
 def test_langchain_adapter_uses_create_agent(monkeypatch):
+    from dspy_security_bench.integrations.usage import _LangChainUsageLedger
+
+    monkeypatch.setattr("dspy_security_bench.integrations.frameworks._langchain_usage_callback", _LangChainUsageLedger)
     class FakeGraph:
         def __init__(self, tools):
             self.tools = tools
 
-        def invoke(self, payload):
+        def invoke(self, payload, *, config):
+            assert len(config["callbacks"]) == 1
             self.tools[0](record_id="LC-1")
             assert payload["messages"][0]["content"] == "inspect"
             return {"messages": [SimpleNamespace(type="ai", content="langchain done", tool_calls=[], invalid_tool_calls=[])]}
