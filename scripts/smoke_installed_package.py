@@ -160,6 +160,19 @@ if sys.argv[1:] == ["--version"]:
             raise RuntimeError("installed AutoGen bridge admitted non-final native state")
     if _autogen_final_answer(SimpleNamespace(messages=[final], stop_reason=None), name="autogen_agent") != "answer":
         raise RuntimeError("installed AutoGen bridge changed terminal text")
+    from dspy_security_bench.integrations.frameworks import _pydantic_final_answer
+    for state in (None, SimpleNamespace(), SimpleNamespace(output=None),
+                  SimpleNamespace(output={"answer": "structured"}),
+                  SimpleNamespace(output=SimpleNamespace(approvals=[object()]))):
+        try:
+            _pydantic_final_answer(state)
+        except AgentResultError:
+            pass
+        else:
+            raise RuntimeError("installed Pydantic AI bridge stringified unsupported output")
+    for answer in ("", "answer"):
+        if _pydantic_final_answer(SimpleNamespace(output=answer)) != answer:
+            raise RuntimeError("installed Pydantic AI bridge changed explicit text")
     class InvalidAnswer(ReferenceProcurementAgent):
         def run(self, *args, **kwargs):
             result = super().run(*args, **kwargs)

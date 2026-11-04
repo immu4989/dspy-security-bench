@@ -17,6 +17,10 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Pydantic AI text-mode admission now separates completed answers from deferred
+  work and structured output. Offline native graphs exercise tools, usage, fresh
+  run state, approvals, and external-call deferrals without resolving pending work.
+
 - Native AutoGen execution now uses a valid default identity and complete tool
   introspection metadata. Real offline loops verify parameterized tools, fresh
   clients, iteration-limit summaries, and cleanup; explicit terminal attribution

@@ -85,6 +85,7 @@ jobs:
           tests/test_openai_result_admission.py
           tests/test_langchain_result_admission.py
           tests/test_autogen_result_admission.py
+          tests/test_pydantic_result_admission.py
           tests/test_callback_async.py
           tests/test_integrations.py
           tests/test_mission_result_admission.py

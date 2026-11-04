@@ -148,6 +148,123 @@ def test_selected_framework_sdk_surface_is_compatible():
         pytest.fail(f"unsupported DSB_FRAMEWORK value: {framework}")
 
 
+@pytest.fixture
+def native_sync_loop():
+    """Own the loop used by SDK run_sync instead of leaving an implicit loop open."""
+    import asyncio
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        yield loop
+    finally:
+        loop.run_until_complete(loop.shutdown_asyncgens())
+        loop.run_until_complete(loop.shutdown_default_executor())
+        loop.close()
+        asyncio.set_event_loop(None)
+
+
+@pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "pydantic-ai", reason="optional Pydantic AI SDK matrix")
+@pytest.mark.parametrize("mode", ["answer", "tool", "approval", "deferred", "structured", "empty-response"])
+def test_pydantic_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, native_sync_loop, mode):
+    from pydantic import BaseModel
+    from pydantic_ai import Agent, CallDeferred, DeferredToolRequests, Tool, models
+    from pydantic_ai.exceptions import UnexpectedModelBehavior
+    from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart, UserPromptPart
+    from pydantic_ai.models.function import FunctionModel
+    from pydantic_ai.usage import RequestUsage
+
+    from dspy_security_bench.agents import AgentResultError
+    from dspy_security_bench.integrations import PydanticAIAdapter
+
+    def no_network(*args, **kwargs):
+        pytest.fail("native Pydantic AI fixture must not contact providers or tracing services")
+
+    monkeypatch.setattr("socket.socket.connect", no_network)
+    monkeypatch.setattr("socket.socket.connect_ex", no_network)
+    monkeypatch.setattr("socket.getaddrinfo", no_network)
+    monkeypatch.setattr(models, "ALLOW_MODEL_REQUESTS", False)
+    calls, captured, agents, effects = [], [], [], []
+
+    class StructuredAnswer(BaseModel):
+        answer: str
+
+    async def model_function(messages, info):
+        calls.append(messages)
+        if mode == "empty-response":
+            parts = []
+        elif mode == "structured":
+            parts = [ToolCallPart(info.output_tools[0].name, {"answer": "PRIVATE structured answer"})]
+        elif mode in {"tool", "approval", "deferred"} and len(calls) % 2 == 1:
+            parts = [ToolCallPart("record", {"record_id": "R-1"}, tool_call_id="fixture-call")]
+            if mode == "approval":
+                parts.insert(0, TextPart("PRIVATE stale answer alongside an unapproved call"))
+        else:
+            parts = [TextPart("done")]
+        return ModelResponse(parts=parts, usage=RequestUsage(input_tokens=2, output_tokens=3))
+
+    class CapturingAgent(Agent):
+        def run_sync(self, *args, **kwargs):
+            result = super().run_sync(*args, **kwargs)
+            captured.append(result)
+            return result
+
+    def agent_factory(*args, **kwargs):
+        if mode in {"approval", "deferred"}:
+            kwargs["output_type"] = [str, DeferredToolRequests]
+        if mode == "approval":
+            kwargs["tools"] = [Tool(tool, requires_approval=True) for tool in kwargs["tools"]]
+        elif mode == "structured":
+            kwargs["output_type"] = StructuredAnswer
+        agent = CapturingAgent(*args, **kwargs)
+        agent.instrument = False
+        agents.append(agent)
+        return agent
+
+    monkeypatch.setattr("pydantic_ai.Agent", agent_factory)
+
+    def record(**kwargs):
+        if mode == "deferred":
+            raise CallDeferred(metadata={"synthetic": True})
+        effects.append(kwargs)
+        return "recorded"
+
+    tool = BenchTool("record", "Record a fictional action.", {
+        "type": "object", "properties": {"record_id": {"type": "string"}, "limit": {"type": "integer", "default": 1}},
+        "required": ["record_id"],
+    }, record)
+    adapter = PydanticAIAdapter(model=FunctionModel(model_function))
+    if mode in {"approval", "deferred", "structured"}:
+        with pytest.raises(AgentResultError, match="final_answer must be text"):
+            adapter.run("fixture", [tool])
+        assert not effects and len(calls) == 1
+        if mode == "structured":
+            assert isinstance(captured[0].output, StructuredAnswer)
+        else:
+            assert isinstance(captured[0].output, DeferredToolRequests)
+            assert len(getattr(captured[0].output, "approvals" if mode == "approval" else "calls")) == 1
+    elif mode == "empty-response":
+        with pytest.raises(UnexpectedModelBehavior):
+            adapter.run("fixture", [tool])
+        assert not captured and not effects
+    else:
+        result = adapter.run("fixture", [tool])
+        assert result.final_answer == "done"
+        assert result.usage["requests"] == (2 if mode == "tool" else 1)
+        assert result.usage["total_tokens"] == (10 if mode == "tool" else 5)
+        if mode == "tool":
+            assert effects == [{"record_id": "R-1", "limit": 1}]
+            assert result.tool_calls[0].args == effects[0]
+            assert result.tool_calls[0].result == "recorded"
+            second = adapter.run("second fixture", [tool])
+            assert len(second.tool_calls) == 1 and len(effects) == 2
+            assert len(agents) == 2 and agents[0] is not agents[1]
+            assert [part.content for message in calls[2] for part in message.parts
+                    if isinstance(part, UserPromptPart)] == ["second fixture"]
+        else:
+            assert not effects and not result.tool_calls
+
+
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "autogen", reason="optional AutoGen SDK matrix")
 @pytest.mark.parametrize("mode", ["answer", "empty", "tool", "tool-limit", "handoff", "error"])
 def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, mode):

@@ -256,6 +256,11 @@ class LangChainAdapter:
         return validate_agent_result(AgentResult(final_answer=_langchain_output(result), tool_calls=ledger))
 
 
+def _pydantic_final_answer(result: Any) -> str:
+    """Default text mode excludes deferred requests and structured output objects."""
+    return require_text_answer(getattr(result, "output", None))
+
+
 @dataclass
 class PydanticAIAdapter:
     model: str = "openai:gpt-5.6"
@@ -275,11 +280,12 @@ class PydanticAIAdapter:
             instructions=_instructions(self.instructions, system_directive),
         )
         result = agent.run_sync(query)
-        return AgentResult(
-            final_answer=_text(result.output),
+        answer = _pydantic_final_answer(result)
+        return validate_agent_result(AgentResult(
+            final_answer=answer,
             tool_calls=ledger,
             usage=_usage(getattr(result, "usage", None)),
-        )
+        ))
 
 
 @dataclass

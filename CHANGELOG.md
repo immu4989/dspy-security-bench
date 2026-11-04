@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- The Pydantic AI bridge now rejects missing/non-text output before reading
+  optional usage, including deferred approvals, external-call requests, and
+  structured objects. It no longer turns those values into scored strings.
+  Real offline SDK graph tests cover live tool bindings, defaults, fresh state,
+  deferred work with stale text, structured results, and empty-response errors;
+  no approval, external execution, or provider evaluation is performed.
 - Repaired two native AutoGen execution blockers: the default agent name is now
   the valid identifier `autogen_agent`, and generated tools expose type hints as
   well as signatures. Configuration is checked before client creation. Terminal

@@ -374,6 +374,38 @@ SDK CI fixtures cover tool execution, empty/text-block answers, dynamic approval
 and static pre-tool pauses using a canned model, blocked sockets, and disabled
 tracing; no provider or external approval service is used.
 
+## Pydantic AI text output and deferred work
+
+On main after v0.19.0, the built-in Pydantic AI bridge accepts only an explicit
+string `AgentRunResult.output`. Missing output, `None`, containers, structured
+models, and deferred request objects raise `AgentResultError`; they are not
+stringified into answers. Required output is checked before optional usage is
+read. Text is preserved exactly, including an intentionally empty result value.
+That does not override the SDK's own retries/errors for empty model responses.
+
+The SDK's [deferred-tools contract](https://pydantic.dev/docs/ai/tools-toolsets/deferred-tools/)
+allows runs configured for deferred work to return `DeferredToolRequests` instead
+of text. Such output may require approval or external execution; it is not a
+completed answer for this one-shot bridge. Native tests include an approval
+request alongside stale text and verify that it is neither scored nor approved.
+The adapter does not add approval policies, resolve external calls, resume runs,
+or serialize deferred state. Earlier completed tool effects are not undone.
+
+The adapter keeps the SDK's default text mode and synchronous `run_sync` entry
+point. For structured scoring, approval workflows, or async clients, implement
+an explicitly reviewed [custom callback](#custom-and-mcp-backed-loops) that owns
+completion and serialization. Do not convert an unresolved request to an empty
+answer merely to satisfy this contract. Existing saved evidence is not rewritten;
+retain producer revisions and recapture runs when adopting the new boundary.
+
+Native CI uses the real Pydantic agent graph and
+[`FunctionModel`](https://pydantic.dev/docs/ai/guides/testing/) with model requests
+disabled, sockets blocked, and instrumentation disabled. It covers parameterized
+tools, default arguments, fresh per-run state, usage, deferred approvals/calls,
+structured output, and empty-response errors. SDK-free tests additionally cover
+missing fields, intentional empty results, and objects that must never be
+represented. These are offline compatibility checks, not provider evaluations.
+
 ## AutoGen execution and final-answer attribution
 
 On main after v0.19.0, the default AutoGen name is **`autogen_agent`**, replacing

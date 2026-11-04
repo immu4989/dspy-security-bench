@@ -10,6 +10,7 @@ on:
       - "tests/test_openai_result_admission.py"
       - "tests/test_langchain_result_admission.py"
       - "tests/test_autogen_result_admission.py"
+      - "tests/test_pydantic_result_admission.py"
       - "tests/test_callback_async.py"
       - "tests/test_integrations.py"
       - "tests/test_causal_runtime.py"
@@ -25,6 +26,7 @@ on:
       - "tests/test_openai_result_admission.py"
       - "tests/test_langchain_result_admission.py"
       - "tests/test_autogen_result_admission.py"
+      - "tests/test_pydantic_result_admission.py"
       - "tests/test_callback_async.py"
       - "tests/test_integrations.py"
       - "tests/test_causal_runtime.py"
@@ -81,4 +83,5 @@ jobs:
         run: >-
           uv run --locked --no-sync pytest -q tests/test_framework_compat.py
           tests/test_openai_result_admission.py tests/test_langchain_result_admission.py
-          tests/test_autogen_result_admission.py tests/test_callback_async.py tests/test_integrations.py
+          tests/test_autogen_result_admission.py tests/test_pydantic_result_admission.py
+          tests/test_callback_async.py tests/test_integrations.py

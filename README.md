@@ -1085,6 +1085,10 @@ and distinguishes terminal answers from handoffs and events. Real offline SDK
 loops exercise parameterized tools and fresh run state.
 [AutoGen compatibility and migration](docs/integrations.md#autogen-execution-and-final-answer-attribution).
 
+Pydantic AI deferred approvals and structured outputs are now rejected as
+non-text results, with native offline coverage for the completion boundary.
+[Pydantic AI output contract](docs/integrations.md#pydantic-ai-text-output-and-deferred-work).
+
 ---
 
 ## Public-interest specialty: ImpactTwin / ProcureBench

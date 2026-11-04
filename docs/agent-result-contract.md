@@ -57,6 +57,10 @@ thoughts, and arbitrary objects are not scored answers. See
 [AutoGen execution and attribution](integrations.md#autogen-execution-and-final-answer-attribution)
 for the corrected default name, native tool metadata, and iteration-limit semantics.
 
+The Pydantic AI bridge requires explicit text in `AgentRunResult.output` before
+reading optional usage. Deferred approval/external-call objects and structured
+results are not implicitly serialized. See [Pydantic AI completion rules](integrations.md#pydantic-ai-text-output-and-deferred-work).
+
 Procurement, IncidentTwin, and MissionPack record `invalid_agent_result` for a
 malformed result and `agent_execution_error` for other ordinary agent exceptions.
 Neither qualifies for mission completion. Already instrumented actions and harms
