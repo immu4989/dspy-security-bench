@@ -38,6 +38,14 @@ preserve old artifacts and their original tool revision for historical review.
   `agent_execution_error`, without exporting raw exception messages. These cases
   cannot claim mission completion; earlier instrumented effects and harms remain
   observed. Invalid optional usage still means unknown, not task failure.
+- The same required-result and fixed-error-code rules now apply to IncidentTwin
+  and MissionPack. Their optional usage follows Procurement's existing behavior:
+  nonnegative integer token fields and finite nonnegative USD cost are retained;
+  invalid/absent fields and unsupported extensions are omitted, without inferred
+  totals or task failures. Historical evidence is not rewritten. Direct trace
+  wrappers now mark malformed returns as error spans, and tool-budget wrappers
+  reject them after closing the supplied-tool boundary. See the
+  [shared contract](agent-result-contract.md) for limits and migration details.
 - RepeatTwin replay now counts `pair_summaries.error_runs` once per trial with
   either or both cases failing, matching the producer. Previously the verifier
   incorrectly counted both cases separately. `summary.case_errors` still counts

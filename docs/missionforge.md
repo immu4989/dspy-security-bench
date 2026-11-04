@@ -92,6 +92,13 @@ and a causal trace diff. The verifier reconstructs case outcomes from those
 actions, then reconstructs pair outcomes and aggregates. Changing a score and
 rehashing a file cannot make a false report valid.
 
+On main after v0.19.0, the [agent-result contract](agent-result-contract.md)
+requires explicit text answers and typed tool traces. Invalid results are case
+execution errors, not completed missions; already recorded findings, disclosures,
+and other actions remain available for scoring. Invalid optional token/cost
+telemetry stays unknown rather than turning useful work into a failed task.
+Raw exception messages are not copied into new case error fields.
+
 ## Author a MissionPack
 
 ```bash

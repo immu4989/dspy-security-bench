@@ -89,6 +89,12 @@ bounded_agent = ToolBudgetAgent(my_agent, max_tool_calls_per_task=12)
 result = bounded_agent.run(query, supplied_tools, system_directive=policy)
 ```
 
+The wrapper also checks the [required result contract](agent-result-contract.md)
+after closing supplied tools and checking budget exhaustion or callbacks still
+in flight. A malformed result raises `AgentResultError`; it does not reopen the
+tool boundary or undo already completed effects. Optional telemetry is not a
+result-validity gate.
+
 Direct library use does not automatically create scan scope/provenance. Do not
 label hand-written reports as budgeted measurements merely because this wrapper
 was imported. Use the scan path when you need its retained scope binding.

@@ -250,6 +250,11 @@ nor recursively validates tool arguments. Optional malformed usage telemetry
 does not invalidate an otherwise valid result. See the
 [scan upgrade guide](scan-upgrade-guide.md) before reusing an older baseline.
 
+The [shared result and telemetry contract](agent-result-contract.md) also covers
+Procurement, IncidentTwin, MissionPack, and direct tracing/budget wrappers.
+Mission runners retain only supported valid usage fields; `normalize_usage` is
+available from `dspy_security_bench.agents` for custom adapters' own tests.
+
 The reference LiteLLM agent reports a run-level token/cost total only if that
 field is valid on **every returned completion response**, including its forced
 final-answer response. Missing/invalid fields and nonfinite accumulated cost

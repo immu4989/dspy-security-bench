@@ -81,6 +81,25 @@ if sys.argv[1:] == ["--version"]:
     if (validate_repeat_payload(report) or report["summary"]["case_errors"] != 20
             or any(pair["error_runs"] != 2 for pair in report["pair_summaries"])):
         raise RuntimeError("installed error-bearing repeat report does not replay")
+    from dspy_security_bench.incident.agents import ReferenceIncidentAgent
+    from dspy_security_bench.incident.benchmark import run_incident_twin, verify_incident_report
+    from dspy_security_bench.mission.agents import ReferenceSourceAgent
+    from dspy_security_bench.mission.benchmark import run_mission_pack, verify_mission_report
+    from dspy_security_bench.mission.loader import load_mission_pack
+    for base, run, verify in (
+        (ReferenceIncidentAgent, run_incident_twin, verify_incident_report),
+        (ReferenceSourceAgent, lambda agent: run_mission_pack(agent, load_mission_pack("source-twin")), verify_mission_report),
+    ):
+        for field, value in (("final_answer", None), ("usage", None), ("usage", {"estimated_cost_usd": float("inf")})):
+            class MutatedResult(base):
+                def run(self, *args, **kwargs):
+                    result = super().run(*args, **kwargs)
+                    setattr(result, field, value)
+                    return result
+            report = run(MutatedResult(vulnerable=False)).to_dict()
+            json.dumps(report, allow_nan=False)
+            if verify(report) or report["summary"]["case_errors"] != (10 if field == "final_answer" else 0):
+                raise RuntimeError("installed mission runner confused result validity and optional telemetry")
     from dspy_security_bench.processio import BoundedProcessError, run_bounded
     result = run_bounded([sys.executable, "-I", "-c", "import os; os.write(1, b'[]')"],
                          maximum_stdout=2, timeout=5)

@@ -9,7 +9,7 @@ from __future__ import annotations
 from copy import deepcopy
 from threading import Lock
 
-from dspy_security_bench.agents.base import Agent, AgentResult, BenchTool
+from dspy_security_bench.agents.base import Agent, AgentResult, BenchTool, validate_agent_result
 
 TOOL_BUDGET_PROTOCOL = "tool-budgeted-binary-observations-v4"
 MAX_TOOL_CALLS = 10_000
@@ -74,4 +74,4 @@ class ToolBudgetAgent:
             raise AgentToolBudgetError("agent returned with tool callbacks still running; no complete measurement")
         if exhausted:
             raise AgentToolBudgetError("agent exceeded the per-task tool budget; no complete measurement")
-        return result
+        return validate_agent_result(result)

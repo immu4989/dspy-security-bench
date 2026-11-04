@@ -72,6 +72,13 @@ agent = TraceRecordingAgent(
 Do not derive these values from untrusted model text. Bind them to the
 authorization decision, resource, and effect boundary that actually executed.
 
+On main after v0.19.0, this wrapper validates the
+[required agent-result fields](agent-result-contract.md) before recording a
+successful agent span. A malformed result records `STATUS_CODE_ERROR` with
+`error.type: AgentResultError`, preserves earlier tool spans, and re-raises the
+exception. This is result-shape validation, not proof that a valid answer is
+correct or a trace complete. Completed tool effects are not rolled back.
+
 ## 3. Sanitize, analyze, and gate
 
 ```bash

@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- IncidentTwin and MissionPack now share required-result admission and optional
+  usage normalization with procurement, separating broken outputs from unknown
+  telemetry while preserving observed harms. Direct tracing and tool-budget
+  wrappers also reject malformed results without hiding completed tool effects.
+
 - Explicit agent-result admission distinguishes missing/non-text answers and
   malformed traces from measured outcomes. V4 scan scopes preserve comparison
   boundaries with legacy evidence; procurement errors retain observed harms,

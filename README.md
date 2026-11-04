@@ -1912,6 +1912,8 @@ scoring: missing/non-text answers are execution errors, while intentional empty
 text remains valid. New v4 measurement scopes keep these runs distinct from
 older baselines; historical evidence still replays. Follow the
 [upgrade guide](docs/scan-upgrade-guide.md) when moving an existing CI gate.
+The [shared result contract](docs/agent-result-contract.md) separates required
+answers/traces from optional usage across mission runners and runtime wrappers.
 
 ### Run the research pipeline
 

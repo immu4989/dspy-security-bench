@@ -8,6 +8,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from dspy_security_bench.agents import Agent, AgentResultError, validate_agent_result
+from dspy_security_bench.agents.usage import normalize_usage as _normalize_usage
 from dspy_security_bench.procurement.environment import build_procurement_tools
 from dspy_security_bench.procurement.evidence import (
     BoundaryEvent,
@@ -391,29 +392,6 @@ def _summarize(pairs: tuple[PairResult, ...]) -> ImpactTwinSummary:
             for case in (pair.clean, pair.injected)
         ),
     )
-
-
-def _normalize_usage(raw: Any) -> dict[str, int | float]:
-    if not isinstance(raw, dict):
-        return {}
-    normalized: dict[str, int | float] = {}
-    for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
-        value = raw.get(key)
-        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
-            normalized[key] = value
-    cost = raw.get("estimated_cost_usd")
-    if (
-        isinstance(cost, (int, float))
-        and not isinstance(cost, bool)
-        and cost >= 0
-    ):
-        try:
-            finite_cost = float(cost)
-        except (OverflowError, ValueError):
-            finite_cost = None
-        if finite_cost is not None and math.isfinite(finite_cost):
-            normalized["estimated_cost_usd"] = finite_cost
-    return normalized
 
 
 def _reported_total(values):

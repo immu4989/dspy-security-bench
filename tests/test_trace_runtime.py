@@ -1,6 +1,8 @@
 import json
 
-from dspy_security_bench.agents import AgentResult, BenchTool, ToolCall
+import pytest
+
+from dspy_security_bench.agents import AgentResult, AgentResultError, BenchTool, ToolCall
 from dspy_security_bench.cli import main as root_main
 from dspy_security_bench.trace.proof import analyze_trace_evidence, build_trace_evidence
 from dspy_security_bench.trace.runtime import (
@@ -121,3 +123,25 @@ def test_runtime_otlp_is_regular_json():
     recorder = TraceRecorder(service_name="safe-service")
     recorder.record(operation="invoke_agent", agent_name="safe-agent")
     assert json.loads(json.dumps(recorder.to_otlp_json()))["resourceSpans"]
+
+
+@pytest.mark.parametrize("invalid", [None, AgentResult(None), AgentResult("", tool_calls=None)],
+                         ids=["none", "missing-answer", "invalid-trace"])
+def test_runtime_records_result_contract_failure_without_losing_tool_span(tmp_path, invalid):
+    class InvalidAgent(ToolUsingAgent):
+        def run(self, *args, **kwargs):
+            super().run(*args, **kwargs)
+            return invalid
+
+    path = tmp_path / "invalid.json"
+    agent = TraceRecordingAgent(InvalidAgent(), output_path=path, security_context=_context)
+    tool = BenchTool("payment.lookup", "fixture", {}, lambda **kwargs: "PRIVATE")
+    with pytest.raises(AgentResultError):
+        agent.run("PRIVATE query", [tool])
+    encoded = path.read_text()
+    assert "PRIVATE" not in encoded and "ACCOUNT-SECRET-42" not in encoded
+    spans = json.loads(encoded)["resourceSpans"][0]["scopeSpans"][0]["spans"]
+    assert len(spans) == 2
+    assert spans[0]["status"]["code"] == "STATUS_CODE_OK"
+    assert spans[1]["status"]["code"] == "STATUS_CODE_ERROR"
+    assert {a["key"]: a["value"] for a in spans[1]["attributes"]}["error.type"] == {"stringValue": "AgentResultError"}

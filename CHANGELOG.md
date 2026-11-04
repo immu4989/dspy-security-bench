@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Extended result admission to IncidentTwin and MissionPack, with fixed error
+  codes, preserved instrumented harms, and shared optional-usage normalization.
+  Missing telemetry no longer causes task failure, and nonfinite costs are
+  omitted rather than exported. Direct trace/budget wrappers reject malformed
+  results too; prior tool spans/effects and closed tool boundaries are preserved.
+  Frozen scenarios, scoring formulas, and historical evidence remain unchanged.
 - Required agent-result validation prevents missing/non-text answers and malformed
   traces from becoming scored generic/DSPy runs; custom callbacks no longer
   stringify unsupported outputs. New unbudgeted/budgeted v4 measurement scopes

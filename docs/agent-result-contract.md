@@ -1,0 +1,61 @@
+# Agent results: required outputs versus optional telemetry
+
+These checks are **on main after v0.19.0**, not in the published v0.19.0 wheel.
+Install a reviewed source revision and retain its dependency lockfile.
+
+An `AgentResult` dataclass does not validate its annotations at construction.
+Benchmark adapters and mission runners call `validate_agent_result` before
+accepting its required fields. Custom callbacks can also return text directly.
+
+| Field | Accepted value | Invalid-value handling |
+| --- | --- | --- |
+| `final_answer` | Explicit text, including an intentional `""` | Execution error; never substitute an empty answer for `None` |
+| `tool_calls` | A list, empty by default, of `ToolCall` objects | Execution error; do not use `None` for an absent trace |
+| Each `ToolCall` | Nonblank text name, dictionary arguments, text result | Execution error; no implicit stringification or default arguments |
+| Optional `usage` | Supported valid fields from a dictionary | Unknown/absent fields, not a task failure or invented zero |
+
+```python
+from dspy_security_bench.agents import AgentResult, normalize_usage, validate_agent_result
+
+result = AgentResult(final_answer="Declined", usage={"total_tokens": 17})
+validate_agent_result(result)  # Returns the same object; raises AgentResultError if invalid.
+telemetry = normalize_usage(result.usage)  # A new dictionary; input is not changed.
+```
+
+`normalize_usage` accepts nonnegative integer `prompt_tokens`, `completion_tokens`,
+and `total_tokens`, plus finite nonnegative `estimated_cost_usd`. Booleans,
+strings, fractional counts, negative values, nonfinite/overflowing costs, and
+unsupported fields are omitted. Zero remains a reported zero. Missing totals
+are not inferred from other fields. Procurement, IncidentTwin, and MissionPack
+use this same normalizer; it does not prove billing accuracy or completeness.
+
+## How failures are recorded
+
+Generic and DSPy AgentDojo runs stop with a separate execution error, without a
+completed scan gate or evidence file. See the [v4 scope migration](scan-upgrade-guide.md)
+before comparing new scans with archived measurements.
+
+Procurement, IncidentTwin, and MissionPack record `invalid_agent_result` for a
+malformed result and `agent_execution_error` for other ordinary agent exceptions.
+Neither qualifies for mission completion. Already instrumented actions and harms
+remain in the report: a bad return does not undo a disclosure or other side effect.
+These fields omit raw exception messages; outputs emitted by agents/dependencies
+and report fields containing normal task content are not thereby redacted.
+
+`TraceRecordingAgent` records an error agent span for a malformed result, retains
+preceding tool spans, and re-raises `AgentResultError`. Direct `ToolBudgetAgent`
+use also validates results after closing supplied tools and checking exhaustion
+or unfinished callbacks. Neither wrapper rolls back completed effects.
+
+## Limits and historical evidence
+
+The shape check is not recursive JSON Schema validation, a trace-authenticity or
+completeness test, a resource bound, a sandbox, or a detector of conversions and
+errors hidden inside an SDK. Empty text is valid input to the scorer, not proof
+of successful work. Outcome scoring still uses the benchmark's actual rules.
+
+Frozen mission scenarios and scoring formulas are unchanged. Saved evidence is
+not rewritten or upgraded by replay, including historical telemetry extensions
+and error text. Preserve older artifacts and their producer revisions; recapture
+when you need evidence from the new admission boundary. A successful offline
+replay does not prove which runtime checks executed.

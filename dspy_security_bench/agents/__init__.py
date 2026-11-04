@@ -12,6 +12,7 @@ from dspy_security_bench.agents.base import (
     apply_system_directive,
     validate_agent_result,
 )
+from dspy_security_bench.agents.usage import normalize_usage
 
 __all__ = [
     "Agent",
@@ -21,6 +22,7 @@ __all__ = [
     "ToolCall",
     "apply_system_directive",
     "validate_agent_result",
+    "normalize_usage",
     "LiteLLMFunctionCallingAgent",
     "ToolBudgetAgent",
     "AgentToolBudgetError",

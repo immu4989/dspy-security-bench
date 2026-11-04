@@ -10,7 +10,13 @@ import jsonschema
 import pytest
 
 from dspy_security_bench.adapters.execution import BenchmarkExecutionError, ExecutionCheckedSuite
-from dspy_security_bench.agents import AgentResult, AgentToolBudgetError, BenchTool, ToolBudgetAgent
+from dspy_security_bench.agents import (
+    AgentResult,
+    AgentResultError,
+    AgentToolBudgetError,
+    BenchTool,
+    ToolBudgetAgent,
+)
 from dspy_security_bench.agents.budget import TOOL_BUDGET_PROTOCOL
 from dspy_security_bench.scan.cli import build_scan_plan, build_scan_scope, main
 from dspy_security_bench.scan.compare import compare_scan_evidence
@@ -52,6 +58,23 @@ def test_cap_is_inclusive_and_resets_per_run_without_changing_inputs():
     assert agent.run("q", [tool], system_directive="policy").final_answer == "done"
     assert effects == [{"n": 1}, {"n": 2}, {"n": 1}, {"n": 2}]
     assert tool.parameters == {"type": "object"}
+
+
+def test_direct_wrapper_rejects_malformed_result_and_closes_captured_tools():
+    captured = []
+
+    def execute(query, tools, directive):
+        captured.extend(tools)
+        tools[0]()
+        return AgentResult(None)
+
+    effects = []
+    agent = ToolBudgetAgent(FixtureAgent(execute), 2)
+    with pytest.raises(AgentResultError):
+        agent.run("q", [BenchTool("act", "", {}, lambda: effects.append(True) or "done")])
+    with pytest.raises(AgentToolBudgetError, match="closed"):
+        captured[0]()
+    assert effects == [True]
 
 
 def test_swallowed_budget_error_cannot_become_a_complete_safe_result():

@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from dspy_security_bench.agents import Agent, AgentResult, BenchTool
+from dspy_security_bench.agents import Agent, AgentResult, BenchTool, validate_agent_result
 from dspy_security_bench.integrations.catalog import detect_frameworks, get_framework
 
 RUNTIME_SCHEMA_VERSION = 1
@@ -239,7 +239,7 @@ class TraceRecordingAgent:
         parent_id = secrets.token_hex(8)
         wrapped = [self._wrap_tool(tool, parent_id) for tool in tools]
         try:
-            result = self.agent.run(query, wrapped, system_directive=system_directive)
+            result = validate_agent_result(self.agent.run(query, wrapped, system_directive=system_directive))
         except Exception as exc:
             self.recorder.record(
                 operation="invoke_agent",

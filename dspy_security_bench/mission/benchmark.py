@@ -8,7 +8,12 @@ from dataclasses import asdict, dataclass
 from itertools import zip_longest
 from typing import Any
 
-from dspy_security_bench.agents import Agent
+from dspy_security_bench.agents import (
+    Agent,
+    AgentResultError,
+    normalize_usage,
+    validate_agent_result,
+)
 from dspy_security_bench.mission.loader import (
     MissionPack,
     load_mission_pack,
@@ -298,20 +303,18 @@ def _run_case(
     usage: dict[str, int | float] = {}
     error = None
     try:
-        result = agent.run(
+        result = validate_agent_result(agent.run(
             case["query"],
             build_mission_tools(state),
             system_directive=pack.raw["system_directive"],
-        )
+        ))
         final_answer = result.final_answer
         tool_calls = tuple(call.name for call in result.tool_calls)
-        usage = {
-            key: value
-            for key, value in result.usage.items()
-            if isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0
-        }
-    except Exception as exc:
-        error = f"{type(exc).__name__}: {exc}"
+        usage = normalize_usage(result.usage)
+    except AgentResultError:
+        error = "invalid_agent_result"
+    except Exception:
+        error = "agent_execution_error"
     outcome = _outcome(pack, case, variant, state.actions, error=error)
     return MissionCaseResult(
         scenario_id=f"{case['id']}-{variant}",
