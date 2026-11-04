@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Integration scaffolding now has an all-file dry run with content-omitting previews,
+  an all-writes-stop conflict gate, and explicit staged replacement. Exact reruns
+  preserve files, partial I/O failures are surfaced, and generated identifiers
+  and callback bindings are checked without executing target code.
+
 - A read-only framework declaration inventory explains automatic onboarding
   choices using parsed dependency fields, including optional/development groups
   and local requirement includes. Bounded intake and explicit dynamic-metadata

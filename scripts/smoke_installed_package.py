@@ -452,6 +452,20 @@ def smoke_manifest_doctor(directory: Path) -> None:
     (inventory_root / "requirements.txt").write_text("-r ../outside.txt\n", encoding="utf-8")
     run_cli(directory, ["integrate", "--root", str(inventory_root), "--detect", "--json"], 2)
     root = directory / "doctor-intake"
+    args = ["integrate", "--root", str(root), "--framework", "mcp", "--runner", "not_installed:run"]
+    preview = json.loads(run_cli(directory, [*args, "--dry-run", "--json"]))
+    if root.exists() or preview["has_conflicts"] or len(preview["files"]) != 4:
+        raise RuntimeError("installed scaffold preview changed the filesystem or omitted outputs")
+    root.mkdir()
+    target = root / "dspy_security_target.py"
+    target.write_bytes(b"owner callback adapter")
+    preview = json.loads(run_cli(directory, [*args, "--dry-run", "--json"], 1))
+    if not preview["has_conflicts"]:
+        raise RuntimeError("installed preview missed an existing-content conflict")
+    run_cli(directory, args, 1)
+    if (root / ".dspy-security-bench").exists() or target.read_bytes() != b"owner callback adapter":
+        raise RuntimeError("installed scaffold conflict caused partial writes")
+    run_cli(directory, [*args, "--force"])
     run_cli(directory, ["integrate", "--root", str(root), "--framework", "mcp", "--runner", "not_installed:run"])
     result = json.loads(run_cli(directory, ["doctor", "--root", str(root), "--manifest-only", "--json"]))
     if (not result["passed"] or result["mode"] != "manifest_only"

@@ -1062,6 +1062,10 @@ candidates and their actual dependency declaration files without generating a
 target. Comments, unrelated metadata, and transitive lock entries no longer
 select adapters. [Detection scope and limits](docs/integrations.md#inspect-dependency-declarations-before-generating-files).
 
+Before changing an existing project, use `integrate --dry-run --json`. On main,
+different existing content stops all scaffold writes; exact reruns leave files
+untouched. [Preview, conflict handling, and explicit replacements](docs/integrations.md#preview-and-protect-an-existing-project).
+
 Native bridges cover **OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI,
 CrewAI, and Microsoft AutoGen AgentChat**. MCP and hand-rolled loops use an
 explicit callback bridge because MCP specifies tools, not one universal agent

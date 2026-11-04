@@ -94,6 +94,7 @@ jobs:
           tests/test_outputio.py
           tests/test_integration_doctor_preflight.py
           tests/test_integration_dependencies.py
+          tests/test_integration_scaffold_plan.py
           tests/test_proofrun_snapshot.py
           tests/test_regular_evidence_io.py
           tests/test_bounded_process.py

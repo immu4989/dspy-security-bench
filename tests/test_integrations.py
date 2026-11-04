@@ -244,6 +244,7 @@ def test_integrate_scaffolds_safe_target_test_manifest_and_workflow(tmp_path):
     repeated = integrate_project(get_framework("openai-agents"), tmp_path, model="other")
     assert repeated.created == ()
     assert len(repeated.skipped) == 4
+    assert repeated.conflicts
 
 
 def test_mcp_scaffold_and_doctor_are_zero_key(tmp_path, monkeypatch):
@@ -270,7 +271,7 @@ def test_mcp_scaffold_rejects_malformed_runner_and_symlink_escape(tmp_path):
     outside = tmp_path.parent / f"{tmp_path.name}-outside"
     outside.mkdir()
     (tmp_path / ".dspy-security-bench").symlink_to(outside, target_is_directory=True)
-    with pytest.raises(ValueError, match="outside project root|symlink"):
+    with pytest.raises(ValueError, match="outside project root|symlink|unlinked"):
         integrate_project(spec, tmp_path, runner="custom_loop:run_agent")
 
 

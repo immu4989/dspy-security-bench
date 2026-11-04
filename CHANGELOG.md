@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added an all-file integration preview and conflict gate. `integrate --dry-run`
+  reports proposed paths/actions/fingerprints without writes; differing existing
+  content stops the whole scaffold instead of mixing old and new configuration.
+  Exclusive creates, staged explicit replacements, snapshot rechecks, manifest-last
+  ordering, and partial-failure diagnostics improve adoption without claiming a
+  multi-file transaction. Shared identifier checks and callback aliases prevent
+  invalid generated imports, path collisions, and callback-name shadowing.
 - Replaced framework-name substring matching with bounded static dependency
   parsing across Python project formats, optional/dev groups, and local requirements
   includes. Comments, metadata, constraints, and URL text do not become adapter

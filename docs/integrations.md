@@ -46,6 +46,76 @@ Release tags can move: replace the engine reference in both manifest and workflo
 with a reviewed full commit SHA when immutable pinning is required. Doctor warns
 on version tags; local checks do not prove hosted permissions or provenance.
 
+## Preview and protect an existing project
+
+The all-file preview and conflict gate are **on main after v0.19.0**. Before
+generating files, inspect the proposed paths and changes:
+
+```bash
+dspy-security-bench integrate --framework langchain --dry-run
+dspy-security-bench integrate --framework langchain --dry-run --json
+```
+
+For MCP/custom targets, also supply `--runner package.module:run_agent`. Automatic
+framework detection works in preview mode too. No files or directories are
+created by `--dry-run`, even when the requested root does not exist (use an
+explicit framework in that case). The generated Python is parsed, not imported
+or executed. Preview does not check SDK availability or prove the adapter can run.
+
+Each selected file has one action:
+
+| Action | Meaning |
+|---|---|
+| `create` | No directory entry exists at the proposed file path. |
+| `unchanged` | Existing bytes exactly match the proposed bytes; leave them untouched. |
+| `conflict` | Existing bytes differ; **all scaffold writes stop**, including missing files. |
+| `replace` | Existing bytes differ and `--force` explicitly permits replacement. |
+
+JSON uses `mode: "scaffold_preview"`, an agent import string, `has_conflicts`, and
+`files` with relative paths, actions, byte lengths, and existing/proposed SHA-256
+fingerprints. It omits file contents and model values, but filenames and hashes
+are not anonymized. It is an informational snapshot, **not a saved plan that can
+be submitted for execution**. Application recomputes a fresh plan from the same
+CLI options and rechecks its observed file bytes before writing.
+
+Both preview and application return 0 for a conflict-free result, 1 for existing
+content conflicts, and 2 for invalid input or filesystem failure. Repeating an
+identical scaffold leaves files and modification times unchanged. Previously,
+different existing files were skipped independently; a rerun could therefore
+combine an old adapter with newly generated metadata. The conflict gate no longer
+allows that mixture. Review existing customizations and reconcile manually, pick
+another target module, or deliberately replace the selected generated files:
+
+```bash
+# First commit or back up work you intend to retain.
+dspy-security-bench integrate --framework langchain --force --dry-run
+# Run only after reviewing the preview and deciding to replace those files.
+dspy-security-bench integrate --framework langchain --force
+```
+
+`--no-workflow` and `--no-test` remove those files from the plan; they are neither
+inspected nor changed. `--force` does not bypass link, special-file, collision,
+syntax, or size checks. Existing destinations must be regular non-linked files
+of at most 1 MB each. The owner-selected root is resolved once (an intentional
+root alias is supported); observed links/reparse points and nondirectory parents
+below it are rejected. Identifiers reject Python keywords, normalization-changing
+names, and reserved portable destination names. Colliding generated paths fail
+before writes, callback modules cannot collide with generated modules, and aliased
+callback imports avoid generated-name shadowing.
+
+New files use exclusive creation. Forced replacements stage complete bytes in a
+fresh sibling file before using
+[`os.replace`](https://docs.python.org/3/library/os.html#os.replace); they do not
+truncate the old file in place or change its hard-linked siblings. New/replacement
+files use restrictive creation modes, subject to platform ACLs; original file
+metadata is not preserved and no backup is made automatically. The integration
+manifest is ordered last, but **this is not an all-or-nothing transaction** or a
+manifest-based completion protocol. Existing unchanged manifests may remain
+throughout a run. Late I/O failure can leave created/replaced files or directories;
+exit 2 reports completed and attempted relative paths. Review them before retrying.
+There is no rollback, crash-durability guarantee, concurrent-writer protection,
+or OS sandbox. Keep project paths stable and owner-controlled.
+
 ## Supported frameworks
 
 | Framework | Command | Optional extra |
@@ -87,7 +157,8 @@ contains `schema_version: 1`, `mode: "declarations_only"`, and a
 `detected_frameworks` list with each framework key, label, and relative
 `declarations` filenames. Exit 0 means the inventory was read successfully,
 including an empty or ambiguous inventory; exit 2 means inspection failed.
-Errors go to stderr without source values. `--json` requires `--detect`.
+Errors go to stderr without source values. `--json` requires `--detect` or
+`--dry-run`; the latter emits the separate scaffold-preview format above.
 
 Detection now parses declaration fields instead of searching entire files:
 

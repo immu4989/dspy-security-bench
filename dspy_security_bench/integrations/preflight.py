@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 
 from dspy_security_bench.integrations.catalog import get_framework
+from dspy_security_bench.integrations.identifiers import valid_target as valid_target
 from dspy_security_bench.jsonio import read_json_object, read_regular_bytes
 from dspy_security_bench.scan.yaml_config import ConfigLoader
 
@@ -16,13 +17,6 @@ MAX_CONTROL_BYTES = 1_000_000
 WORKFLOW_PREFIX = "immu4989/dspy-security-bench/.github/workflows/proofrun.yml@"
 FIELDS = {"schema_version", "framework", "agent", "model", "runner", "required_import",
           "required_env", "package_hint", "engine_ref"}
-IMPORT = r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*:[A-Za-z_]\w*"
-
-
-def valid_target(value) -> bool:
-    return isinstance(value, str) and len(value) <= 256 and re.fullmatch(IMPORT, value) is not None
-
-
 def local_control_file(root: Path, relative: Path) -> Path:
     """Reject observed links/reparse points beneath a stable owner-selected root."""
     current = root.resolve(strict=True)

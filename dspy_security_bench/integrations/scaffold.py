@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import re
-from dataclasses import dataclass
 from pathlib import Path
 
-from dspy_security_bench.integrations.catalog import FrameworkSpec
+from dspy_security_bench.integrations.catalog import FrameworkSpec, get_framework
+from dspy_security_bench.integrations.identifiers import valid_module, valid_target
+from dspy_security_bench.integrations.scaffold_io import (
+    IntegrationPlan,
+    IntegrationScaffoldResult,
+    apply_plan,
+    make_plan,
+)
 
 ENGINE_REF = "v0.19.0"
 MANIFEST_PATH = Path(".dspy-security-bench/integration.json")
@@ -24,26 +31,22 @@ _MODEL_KEYS = {
 }
 
 
-@dataclass(frozen=True)
-class IntegrationScaffoldResult:
-    created: tuple[Path, ...]
-    skipped: tuple[Path, ...]
-    agent_import: str
-
-
 def _module_path(module: str) -> Path:
-    if not re.fullmatch(r"[A-Za-z_]\w*(\.[A-Za-z_]\w*)*", module):
-        raise ValueError("module must be a dotted Python module name")
+    if not valid_module(module) or not valid_target(f"{module}:build_agent"):
+        raise ValueError("module must be a bounded dotted Python module name without keywords or normalization changes")
+    reserved = {"con", "prn", "aux", "nul"} | {f"{prefix}{number}" for prefix in ("com", "lpt") for number in range(1, 10)}
+    if any(part.casefold() in reserved for part in module.split(".")):
+        raise ValueError("module uses a reserved portable filename")
     return Path(*module.split(".")).with_suffix(".py")
 
 
 def _runner_parts(runner: str | None) -> tuple[str, str]:
-    if not runner or runner.count(":") != 1:
+    if not isinstance(runner, str) or runner.count(":") != 1:
         raise ValueError("MCP/custom integration requires --runner module:callable")
     module_name, callable_name = runner.split(":", 1)
-    if not re.fullmatch(r"[A-Za-z_]\w*(\.[A-Za-z_]\w*)*", module_name):
+    if not valid_module(module_name):
         raise ValueError("runner module must be a dotted Python module name")
-    if not re.fullmatch(r"[A-Za-z_]\w*", callable_name):
+    if not valid_target(runner):
         raise ValueError("runner callable must be a Python identifier")
     return module_name, callable_name
 
@@ -57,7 +60,7 @@ def _adapter_source(spec: FrameworkSpec, model: str | None, runner: str | None) 
         module_name, callable_name = _runner_parts(runner)
         return (
             header
-            + f'''from {module_name} import {callable_name}\nfrom dspy_security_bench.integrations import CallbackAdapter\n\n\ndef build_agent() -> CallbackAdapter:\n    """Return a fresh benchmark adapter for every case."""\n    return CallbackAdapter(runner={callable_name}, name="mcp-custom-agent")\n'''
+            + f'''from {module_name} import {callable_name} as _run_callback\nfrom dspy_security_bench.integrations import CallbackAdapter\n\n\ndef build_agent() -> CallbackAdapter:\n    """Return a fresh benchmark adapter for every case."""\n    return CallbackAdapter(runner=_run_callback, name="mcp-custom-agent")\n'''
         )
 
     if model is None:
@@ -111,7 +114,7 @@ jobs:
 """
 
 
-def integrate_project(
+def plan_integration(
     spec: FrameworkSpec,
     root: str | Path = ".",
     *,
@@ -121,12 +124,19 @@ def integrate_project(
     include_workflow: bool = True,
     include_test: bool = True,
     force: bool = False,
-) -> IntegrationScaffoldResult:
-    root = Path(root)
-    root_resolved = root.resolve()
+) -> IntegrationPlan:
+    """Render and inspect every selected destination without creating anything."""
+    if not isinstance(spec, FrameworkSpec) or not isinstance(spec.key, str) or spec != get_framework(spec.key):
+        raise ValueError("scaffolding requires a supported catalog framework")
+    if any(type(value) is not bool for value in (include_workflow, include_test, force)):
+        raise ValueError("scaffold options must be booleans")
     target_relative = _module_path(module)
     agent_import = f"{module}:build_agent"
     chosen_model = model if model is not None else spec.default_model
+    if chosen_model is not None and (not isinstance(chosen_model, str) or not 1 <= len(chosen_model) <= 512 or not chosen_model.isprintable()):
+        raise ValueError("model must be bounded printable text")
+    if runner is not None:
+        _runner_parts(runner)
     keys = _provider_keys(spec, chosen_model)
     manifest = {
         "schema_version": 1,
@@ -141,32 +151,31 @@ def integrate_project(
     }
     targets: list[tuple[Path, str]] = [
         (target_relative, _adapter_source(spec, chosen_model, runner)),
-        (MANIFEST_PATH, json.dumps(manifest, indent=2, sort_keys=True) + "\n"),
     ]
     if include_workflow:
         targets.append((WORKFLOW_PATH, _workflow_source(agent_import, keys)))
     if include_test:
         targets.append((TEST_PATH, _test_source(module)))
-
-    created: list[Path] = []
-    skipped: list[Path] = []
-    pending: list[tuple[Path, str]] = []
+    targets.append((MANIFEST_PATH, json.dumps(manifest, indent=2, sort_keys=True) + "\n"))
+    if spec.key == "mcp":
+        callback_module, _ = _runner_parts(runner)
+        callback_module = callback_module.casefold()
+        for relative, _ in targets:
+            if relative.suffix == ".py":
+                generated_module = ".".join(relative.with_suffix("").parts).casefold()
+                if callback_module == generated_module or callback_module.startswith(generated_module + "."):
+                    raise ValueError("callback module collides with a generated module; choose a different --module or omit the generated test")
+    # Syntax validation does not import, compile to bytecode, or run the target.
     for relative, content in targets:
-        path = root / relative
-        if path.exists() and not force:
-            skipped.append(path)
-            continue
-        if not path.resolve().is_relative_to(root_resolved):
-            raise ValueError(f"refusing to write outside project root through {relative}")
-        cursor = path
-        while cursor != root:
-            if cursor.is_symlink():
-                raise ValueError(f"refusing to write through symlink {relative}")
-            cursor = cursor.parent
-        pending.append((path, content))
+        if relative.suffix == ".py":
+            ast.parse(content)
+    return make_plan(Path(root), agent_import, targets, force=force)
 
-    for path, content in pending:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content, encoding="utf-8")
-        created.append(path)
-    return IntegrationScaffoldResult(tuple(created), tuple(skipped), agent_import)
+
+def integrate_project(
+    spec: FrameworkSpec, root: str | Path = ".", *, model: str | None = None,
+    runner: str | None = None, module: str = "dspy_security_target",
+    include_workflow: bool = True, include_test: bool = True, force: bool = False,
+) -> IntegrationScaffoldResult:
+    return apply_plan(plan_integration(spec, root, model=model, runner=runner, module=module,
+                                      include_workflow=include_workflow, include_test=include_test, force=force))

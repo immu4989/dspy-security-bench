@@ -80,7 +80,9 @@ def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch, cap
 
     monkeypatch.setattr(smoke, "run_cli", fixture_cli)
     assert smoke.main() == 0
-    assert len(calls) == 127
+    assert len(calls) == 131
+    assert any(args[0] == "integrate" and "--dry-run" in args and expected == 0 for args, expected in calls)
+    assert any(args[0] == "integrate" and "--dry-run" in args and expected == 1 for args, expected in calls)
     assert any(args[0] == "integrate" and "--detect" in args and expected == 0 for args, expected in calls)
     assert any(args[0] == "integrate" and "--detect" in args and expected == 2 for args, expected in calls)
     assert any(args[0] == "doctor" and "--manifest-only" in args and expected == 0 for args, expected in calls)
