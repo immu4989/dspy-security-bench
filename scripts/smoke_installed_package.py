@@ -198,6 +198,15 @@ if sys.argv[1:] == ["--version"]:
             raise RuntimeError("PRIVATE optional telemetry")
     if _usage(UnavailableUsage(), "context_wrapper", "usage"):
         raise RuntimeError("installed framework bridge invented unavailable telemetry")
+    from dspy_security_bench.agents.litellm_fc import _complete_usage, _response_usage
+    if _response_usage(UnavailableUsage()):
+        raise RuntimeError("installed LiteLLM agent invented unavailable telemetry")
+    partial = _response_usage(SimpleNamespace(usage=UnavailableUsage(), _hidden_params={"response_cost": 0.25}))
+    if partial != {"estimated_cost_usd": 0.25}:
+        raise RuntimeError("installed LiteLLM agent lost valid neighboring cost")
+    complete = _response_usage(SimpleNamespace(usage={"prompt_tokens": 2}, _hidden_params={"response_cost": 0.25}))
+    if _complete_usage([complete, partial]) != {"estimated_cost_usd": 0.5}:
+        raise RuntimeError("installed LiteLLM agent published incomplete run totals")
     from dspy_security_bench.integrations.usage import _LangChainUsageLedger
     for missing in (False, True):
         ledger = _LangChainUsageLedger()

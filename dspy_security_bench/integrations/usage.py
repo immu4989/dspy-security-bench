@@ -9,19 +9,9 @@ from threading import Lock
 from typing import Any
 from uuid import UUID
 
-from dspy_security_bench.agents import normalize_usage
+from dspy_security_bench.agents.usage import _UNREADABLE_USAGE, _usage_field, normalize_usage
 
-_UNREADABLE_USAGE = object()
 _TOKEN_FIELDS = ("prompt_tokens", "completion_tokens", "total_tokens")
-
-
-def _usage_field(value: Any, name: str) -> Any:
-    try:
-        return value.get(name) if isinstance(value, dict) else getattr(value, name, None)
-    except Exception:
-        # Optional telemetry is not a task-validity gate. Do not expose raw
-        # metadata exceptions; BaseException control flow still propagates.
-        return _UNREADABLE_USAGE
 
 
 def _usage(values: Any, *path: str) -> dict[str, int | float]:

@@ -3,6 +3,19 @@
 from __future__ import annotations
 
 import math
+from typing import Any
+
+_UNREADABLE_USAGE = object()
+
+
+def _usage_field(value: Any, name: str) -> Any:
+    """Read optional data without exposing accessor failures or coercing values."""
+    try:
+        return value.get(name) if isinstance(value, dict) else getattr(value, name, None)
+    except Exception:
+        # Optional telemetry is not a task-validity gate. BaseException control
+        # flow still propagates; no native model/tool execution is guarded here.
+        return _UNREADABLE_USAGE
 
 
 def normalize_usage(raw: object) -> dict[str, int | float]:

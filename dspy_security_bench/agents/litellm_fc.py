@@ -15,6 +15,7 @@ import json
 import math
 
 from dspy_security_bench.agents.base import AgentResult, BenchTool, ToolCall
+from dspy_security_bench.agents.usage import _usage_field, normalize_usage
 from dspy_security_bench.jsonio import decode_json_object
 
 
@@ -155,25 +156,12 @@ def _parse_tool_arguments(value) -> dict:
 
 
 def _response_usage(response) -> dict[str, int | float]:
-    """Extract portable token/cost fields without depending on provider shape."""
-    raw = getattr(response, "usage", None)
-    values: dict[str, int | float] = {}
-    for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
-        value = getattr(raw, key, None)
-        if value is None and isinstance(raw, dict):
-            value = raw.get(key)
-        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
-            values[key] = value
-    hidden = getattr(response, "_hidden_params", None)
-    cost = hidden.get("response_cost") if isinstance(hidden, dict) else None
-    if isinstance(cost, (int, float)) and not isinstance(cost, bool) and cost >= 0:
-        try:
-            estimate = float(cost)
-        except OverflowError:
-            estimate = math.inf
-        if math.isfinite(estimate):
-            values["estimated_cost_usd"] = estimate
-    return values
+    """Optional SDK telemetry must not prevent processing a returned response."""
+    raw = _usage_field(response, "usage")
+    values = {key: _usage_field(raw, key) for key in ("prompt_tokens", "completion_tokens", "total_tokens")}
+    hidden = _usage_field(response, "_hidden_params")
+    values["estimated_cost_usd"] = _usage_field(hidden, "response_cost") if isinstance(hidden, dict) else None
+    return normalize_usage(values)
 
 
 def _complete_usage(reports: list[dict[str, int | float]]) -> dict[str, int | float]:

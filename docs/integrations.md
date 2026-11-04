@@ -259,9 +259,17 @@ The reference LiteLLM agent reports a run-level token/cost total only if that
 field is valid on **every returned completion response**, including its forced
 final-answer response. Missing/invalid fields and nonfinite accumulated cost
 remain absent, not zero or a partial sum. Other complete fields can still be
-reported. These are provider-reported estimates, not billing reconciliation;
+reported. **On main after v0.19.0**, ordinary exceptions from optional usage/cost
+getters make the affected quantities unknown without preventing response or
+tool execution. Interrupts and cancellation still propagate, as do provider,
+tool, and required-response errors; blocking getters are not time-limited.
+These are SDK-exposed estimates, not billing reconciliation;
 unreported SDK retries, tool execution costs, and provider-side work are not
-included. Custom agents own the completeness of usage they supply.
+included. Extraction reads the response's token fields and existing
+`_hidden_params["response_cost"]` only; it does not fetch prices or calculate
+missing cost. SDK defaults or computed fields cannot be distinguished from
+provider observations after that distinction is lost. Custom agents own the
+completeness of usage they supply.
 
 ## Native SDK telemetry
 

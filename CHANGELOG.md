@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- The reference LiteLLM agent now isolates ordinary optional usage/cost accessor
+  failures from response and tool execution. Unreadable quantities stay unknown
+  across the entire run instead of becoming partial totals; valid neighboring
+  fields survive. Control-flow, provider, tool, and required-response failures
+  still propagate. Offline regressions cover every response position, forced
+  final answers, and native LiteLLM response objects without provider calls.
 - Added LangChain callback-scoped token collection with per-call completeness:
   missing/invalid fields, failed or unfinished calls, and ambiguous callback
   lifecycles cannot become partial run totals. Collection survives message-state
