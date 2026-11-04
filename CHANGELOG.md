@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Replaced framework-name substring matching with bounded static dependency
+  parsing across Python project formats, optional/dev groups, and local requirements
+  includes. Comments, metadata, constraints, and URL text do not become adapter
+  evidence. New read-only `integrate --detect --json` explains candidates before
+  scaffolding; dynamic inputs require explicit selection rather than code execution.
+  Declared packages are not claims of installation, active use, or readiness.
 - Strengthened integration doctor with bounded typed manifests and parsed
   effective workflow permissions instead of substring checks. Invalid static
   configuration stops target loading; `--manifest-only` skips import hooks,

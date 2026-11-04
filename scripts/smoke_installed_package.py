@@ -436,6 +436,21 @@ def smoke_report_sets(directory: Path) -> None:
 
 
 def smoke_manifest_doctor(directory: Path) -> None:
+    inventory_root = directory / "dependency-intake"
+    inventory_root.mkdir()
+    (inventory_root / "pyproject.toml").write_text(
+        '# crewai is only a comment\n[project]\ndependencies=["langgraph>=1"]\n', encoding="utf-8")
+    inventory = json.loads(run_cli(directory, ["integrate", "--root", str(inventory_root), "--detect", "--json"]))
+    if [item["framework"] for item in inventory["detected_frameworks"]] != ["langchain"]:
+        raise RuntimeError("installed detector did not use actual dependency declarations")
+    if (inventory_root / "dspy_security_target.py").exists():
+        raise RuntimeError("installed detection inventory wrote a target")
+    run_cli(directory, ["integrate", "--root", str(inventory_root)])
+    manifest = json.loads((inventory_root / ".dspy-security-bench/integration.json").read_text(encoding="utf-8"))
+    if manifest["framework"] != "langchain":
+        raise RuntimeError("installed auto integration selected the wrong framework")
+    (inventory_root / "requirements.txt").write_text("-r ../outside.txt\n", encoding="utf-8")
+    run_cli(directory, ["integrate", "--root", str(inventory_root), "--detect", "--json"], 2)
     root = directory / "doctor-intake"
     run_cli(directory, ["integrate", "--root", str(root), "--framework", "mcp", "--runner", "not_installed:run"])
     result = json.loads(run_cli(directory, ["doctor", "--root", str(root), "--manifest-only", "--json"]))

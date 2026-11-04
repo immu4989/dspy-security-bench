@@ -24,15 +24,35 @@ def integrate_main(argv: list[str]) -> int:
     parser.add_argument("--no-workflow", action="store_true")
     parser.add_argument("--no-test", action="store_true")
     parser.add_argument("--force", action="store_true")
-    parser.add_argument("--list", action="store_true", help="list supported frameworks")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--list", action="store_true", help="list supported frameworks")
+    mode.add_argument("--detect", action="store_true", help="inspect dependency declarations without generating files")
+    parser.add_argument("--json", action="store_true", help="machine-readable declaration inventory (requires --detect)")
     args = parser.parse_args(argv)
 
+    if args.json and not args.detect:
+        parser.error("--json requires --detect")
     if args.list:
         for spec in FRAMEWORKS:
             print(f"{spec.key:16} {spec.label:30} {spec.package_hint}")
         return 0
 
     try:
+        if args.detect:
+            detected = detect_frameworks(args.root)
+            inventory = {"schema_version": 1, "mode": "declarations_only", "detected_frameworks": [
+                {"framework": spec.key, "label": spec.label, "declarations": list(paths)}
+                for spec, paths in detected
+            ]}
+            if args.json:
+                print(json.dumps(inventory, indent=2))
+            else:
+                print("Declared frameworks (includes optional/dev declarations; installation and use not checked):")
+                for spec, paths in detected:
+                    print(f"  {spec.key}: {', '.join(repr(path) for path in paths)}")
+                if not detected:
+                    print("  none detected")
+            return 0
         if args.framework == "auto":
             detected = detect_frameworks(args.root)
             if not detected:

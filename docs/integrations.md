@@ -71,6 +71,71 @@ the same security invariant: they invoke the exact `BenchTool` callable supplied
 by the live synthetic environment. Reimplementing or simulating a tool produces
 invalid functional evidence.
 
+## Inspect dependency declarations before generating files
+
+The structured detector and read-only inventory are **on main after v0.19.0**.
+With a reviewed source install, run:
+
+```bash
+dspy-security-bench integrate --root . --detect
+dspy-security-bench integrate --root . --detect --json
+```
+
+Neither command generates files, imports project code, installs packages, calls
+build backends, expands environment variables, or fetches dependency URLs. JSON
+contains `schema_version: 1`, `mode: "declarations_only"`, and a
+`detected_frameworks` list with each framework key, label, and relative
+`declarations` filenames. Exit 0 means the inventory was read successfully,
+including an empty or ambiguous inventory; exit 2 means inspection failed.
+Errors go to stderr without source values. `--json` requires `--detect`.
+
+Detection now parses declaration fields instead of searching entire files:
+
+- `pyproject.toml`: project dependencies, optional extras, dependency groups
+  (including validated group references), and Poetry dependency/dev/group tables.
+- `Pipfile`: package, development, and custom package categories, excluding
+  sources, scripts, interpreter requirements, and Pipenv settings.
+- `requirements.txt` and root `requirements-*.txt`: named PEP 508 requirements,
+  extras/markers, named direct URLs, continuations, hashes, and local `-r`
+  includes. Comments, index settings, and `-c` references are not dependencies.
+- `setup.cfg`: `options.install_requires` and `options.extras_require`.
+- `setup.py`: literal dependency lists/tuples and extras dictionaries in calls
+  associated with top-level `setuptools`/`distutils.core` setup imports. Parsing
+  syntax does not execute the file or prove which calls actually run.
+
+This follows the declaration boundaries described by
+[PyPA project metadata](https://packaging.python.org/en/latest/specifications/pyproject-toml/),
+[dependency groups](https://packaging.python.org/en/latest/specifications/dependency-groups/),
+[pip requirements](https://pip.pypa.io/en/stable/reference/requirements-file-format/),
+[Poetry](https://python-poetry.org/docs/pyproject/#dependencies-and-dependency-groups),
+and [Pipenv](https://pipenv.pypa.io/en/latest/pipfile.html). It is a documented
+static subset, not a replacement for those tools' complete configuration validation.
+
+Optional/development declarations and inactive environment markers **all count**;
+markers are not evaluated against the current machine. Thus the inventory does
+not prove installation, active use, version compatibility, or successful execution.
+Lockfiles and transitive packages are excluded. For example, a comment mentioning
+CrewAI beside a real LangGraph requirement selects only LangChain; a CrewAI extra
+beside that requirement makes automatic selection ambiguous and requires
+`--framework langchain` or another explicit choice.
+
+Dynamic metadata, nonliteral setup arguments, and unnamed local/archive/VCS
+requirements cannot supply a complete static inventory: choose `--framework`
+explicitly. Normal doctor warns when these unsupported declarations prevent full
+inspection and uses the framework from the explicit integration manifest; it
+still runs its other checks before loading trusted factories. Malformed or unsafe
+inputs remain failures. Manifest-only doctor does not inspect dependencies at all.
+
+Inputs must be UTF-8, regular non-linked files under a stable owner-selected root.
+Limits are 1 MB per file, 4 MB total, 32 unique files, 4,096 root directory entries,
+4,096 characters per requirement, and 20,000 nodes/50 levels for parsed TOML or
+Python syntax. Include cycles, traversal, absolute/remote `-r` paths, and observed
+linked ancestors fail; include paths use portable forward slashes. Constraints
+are never followed through `-c`. A file independently discovered by the root
+requirements wildcard is still read and validated, but contributes no dependency
+evidence if it is only used as a constraint; an explicit `-r` can also use it as a
+requirement file. These limits are not an OS sandbox or a filesystem race defense.
+
 ## Custom and MCP-backed loops
 
 MCP standardizes tool discovery and execution, but it does not define one

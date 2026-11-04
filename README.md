@@ -1057,6 +1057,11 @@ manifest and parsed workflow without loading the target. Normal `doctor` imports
 trusted code and constructs two agents; it does not sandbox their side effects.
 See the [preflight trust boundary](docs/integrations.md#inspect-before-executing-target-code).
 
+Also on main, `dspy-security-bench integrate --detect --json` lists framework
+candidates and their actual dependency declaration files without generating a
+target. Comments, unrelated metadata, and transitive lock entries no longer
+select adapters. [Detection scope and limits](docs/integrations.md#inspect-dependency-declarations-before-generating-files).
+
 Native bridges cover **OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI,
 CrewAI, and Microsoft AutoGen AgentChat**. MCP and hand-rolled loops use an
 explicit callback bridge because MCP specifies tools, not one universal agent
@@ -1393,7 +1398,7 @@ uv run python scripts/generate_leaderboard.py     # regenerates LEADERBOARD.md
 |---|---|
 | 🏆 **Compare models** | A frozen, reproducible [leaderboard](LEADERBOARD.md) of base-model injection-robustness — 14 models across 10 families, from frontier to open-weights. |
 | 🔍 **Scan your own agent** | Point the [`scan` CI gate](#scan-your-own-agent-v030) at *any* agent (not just DSPy) and fail the build on regressions. SARIF + OWASP LLM01 / NIST AI 100-2 / MITRE ATLAS mappings. |
-| 🔌 **Connect your framework** | Run [`integrate`](docs/integrations.md) for OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, or an MCP/custom callback, then validate it without model spend using `doctor`. |
+| 🔌 **Connect your framework** | Run [`integrate`](docs/integrations.md) for OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI, CrewAI, AutoGen, or an MCP/custom callback. Inspect declarations first; normal `doctor` constructs trusted factories whose side effects remain your responsibility. |
 | ✈️ **Sanitize operational traces** | Use [TraceProof](docs/traceproof.md) to keep OTLP processing local, remove prompts and secrets, find 12 authorization/effect failures, and export JSON, SARIF, OSCAL, or a synthetic replay twin. |
 | 🚨 **Contain autonomous collectives** | Use [CollectiveGuard](docs/collectiveguard.md) to detect side-channel coordination, indirect egress, authority laundering, safe-stop failures, evaluator access, and missed response windows from content-free events. |
 | ✅ **Verify a cyber-defense fix** | Use [DefenderTwin](docs/verified-cyber-defense-commons.md) to prove attack-path closure, target/approval scope, service continuity, introduced-risk absence, rollback, and evidence completeness across five synthetic sectors. |

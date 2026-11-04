@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- A read-only framework declaration inventory explains automatic onboarding
+  choices using parsed dependency fields, including optional/development groups
+  and local requirement includes. Bounded intake and explicit dynamic-metadata
+  fallback avoid project execution and substring-driven adapter selection.
+
 - Declarative integration preflight lets users inspect manifests and actual
   workflow permission settings before importing targets. Explicit unchecked
   runtime states, static-before-factory ordering, bounded intake, and a separate

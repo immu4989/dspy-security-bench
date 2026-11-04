@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from dspy_security_bench.integrations.catalog import detect_frameworks, get_framework
+from dspy_security_bench.integrations.dependencies import UnsupportedDeclaration
 from dspy_security_bench.integrations.preflight import inspect_workflow, read_manifest, valid_target
 from dspy_security_bench.integrations.scaffold import MANIFEST_PATH, WORKFLOW_PATH
 
@@ -93,6 +94,8 @@ def run_doctor(root: str | Path = ".", *, agent_import: str | None = None,
             status = "pass" if spec.key in detected or spec.key == "mcp" else "warn"
             message = spec.label if status == "pass" else f"{spec.label} is not declared in a dependency manifest"
             checks.append(DoctorCheck("framework", status, message))
+        except UnsupportedDeclaration:
+            checks.append(DoctorCheck("framework", "warn", "dependency names cannot be fully inspected statically; using the explicit integration manifest framework"))
         except (OSError, ValueError):
             checks.append(DoctorCheck("framework", "fail", "dependency declaration inspection failed; details withheld"))
 

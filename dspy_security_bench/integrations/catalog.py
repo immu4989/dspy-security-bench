@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -99,14 +98,6 @@ _ALIASES = {
     "microsoft-autogen": "autogen",
     "custom": "mcp",
 }
-_MANIFEST_NAMES = (
-    "pyproject.toml",
-    "requirements.txt",
-    "requirements-dev.txt",
-    "setup.cfg",
-    "setup.py",
-    "Pipfile",
-)
 
 
 def get_framework(name: str) -> FrameworkSpec:
@@ -121,24 +112,20 @@ def get_framework(name: str) -> FrameworkSpec:
 def detect_frameworks(root: str | Path = ".") -> list[tuple[FrameworkSpec, tuple[str, ...]]]:
     """Detect direct framework declarations without importing user code.
 
-    Only dependency manifests are inspected. Lockfiles are deliberately
-    excluded because transitive SDKs otherwise create misleading detections.
+    Inspect bounded static declarations, including optional/development groups.
+    This is not dependency resolution or proof that a framework is installed or
+    used. Lockfiles, comments, and unrelated metadata do not select an adapter.
     """
 
-    root = Path(root)
+    # Offline evidence replay imports the catalog via tracing but does not need
+    # onboarding parsers. Preserve its stdlib + YAML-only dependency boundary.
+    from packaging.utils import canonicalize_name
+
+    from dspy_security_bench.integrations.dependencies import declared_dependencies
+
+    declarations = declared_dependencies(Path(root))
     evidence: dict[str, set[str]] = {spec.key: set() for spec in FRAMEWORKS}
-    manifests = [root / name for name in _MANIFEST_NAMES]
-    manifests.extend(sorted(root.glob("requirements-*.txt")))
-    for path in manifests:
-        if not path.is_file() or path.stat().st_size > 2_000_000:
-            continue
-        text = path.read_text(encoding="utf-8", errors="ignore").lower()
-        normalized = re.sub(r"[_]+", "-", text)
-        for spec in FRAMEWORKS:
-            for marker in spec.markers:
-                needle = marker.lower().replace("_", "-")
-                pattern = rf"(?<![a-z0-9-]){re.escape(needle)}(?![a-z0-9-])"
-                if re.search(pattern, normalized):
-                    evidence[spec.key].add(path.name)
-                    break
+    for spec in FRAMEWORKS:
+        for marker in spec.markers:
+            evidence[spec.key].update(declarations.get(canonicalize_name(marker), ()))
     return [(spec, tuple(sorted(evidence[spec.key]))) for spec in FRAMEWORKS if evidence[spec.key]]
