@@ -10,6 +10,11 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- The collection-review action now provisions a fresh non-editable reviewer
+  environment from its unchanged `uv.lock` using a pinned uv version. Locked
+  synchronization rejects drift, caller environments are not reused, and review
+  cannot fall back to caller Python. A lockfile fingerprint supports workflow
+  records without claiming a hermetic runner or authenticated execution.
 - Applied the portable no-overwrite output helper to direct scan-evidence and
   procurement sharing-review writers, closing the same dangling-link target
   creation gap for those public interfaces without changing evidence bytes.

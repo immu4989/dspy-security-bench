@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- The collection-review action's source revision and runtime dependency lock
+  now travel together: each invocation provisions a fresh non-editable runtime,
+  rejects lock drift, records the lock fingerprint, and never falls back to the
+  caller's Python. Runner and build-backend trust remain deployment-owned.
+
 - A separate owner-pinned collection-review GitHub Action preserves adverse
   evidence gates and complete report exports, without executing supplier adapters
   or automatically publishing artifacts. Intake cannot shadow Python imports;

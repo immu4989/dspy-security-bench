@@ -8,6 +8,9 @@ inputs:
     description: "Mandatory independently retained owner-reviewed plan SHA-256"
     required: true
 outputs:
+  dependency-lock-sha256:
+    description: "SHA-256 of this action revision's uv.lock used for successful runtime setup; not an attestation"
+    value: ${{ steps.runtime.outputs.dependency-lock-sha256 }}
   exit-code:
     description: "0: selected checks passed; 1: unmet evidence policy; 2: invalid input or export error"
     value: ${{ steps.review.outputs.exit-code }}
@@ -27,9 +30,15 @@ runs:
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: "3.12"
-    - name: Install reviewer from this action revision
+    - name: Set up pinned dependency installer
+      uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      with:
+        version: "0.12.3"
+        enable-cache: false
+    - name: Install locked reviewer in a fresh isolated environment
+      id: runtime
       shell: bash
-      run: python -I -m pip install "$GITHUB_ACTION_PATH/../.."
+      run: python -I "$GITHUB_ACTION_PATH/runtime.py"
     - name: Review pinned collection and preserve all native outcomes
       id: review
       continue-on-error: true
@@ -37,7 +46,10 @@ runs:
       env:
         PROOFRUN_REVIEW_PLAN: ${{ inputs.plan }}
         PROOFRUN_REVIEW_PIN: ${{ inputs.expected-plan-file-sha256 }}
-      run: python -I "$GITHUB_ACTION_PATH/review.py"
+        PROOFRUN_REVIEW_PYTHON: ${{ steps.runtime.outputs.python }}
+      run: |
+        if [[ -z "$PROOFRUN_REVIEW_PYTHON" || ! -x "$PROOFRUN_REVIEW_PYTHON" ]]; then exit 2; fi
+        "$PROOFRUN_REVIEW_PYTHON" -I "$GITHUB_ACTION_PATH/review.py"
     - name: Preserve failed review as the action result
       if: ${{ !cancelled() }}
       shell: bash

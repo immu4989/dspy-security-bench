@@ -13,6 +13,20 @@ post comments, edit summaries, or install the caller's project. No model keys
 or write permissions are needed. Online policies can invoke `gh` attestation
 verification and need deployment-owned access and network configuration.
 
+Runtime setup uses a pinned uv installer and this action revision's `uv.lock`.
+It creates a fresh environment under `RUNNER_TEMP`, synchronizes with `--locked`,
+and installs the reviewer non-editably without development/default groups.
+Missing or stale lockfiles fail setup rather than being regenerated. Caller
+virtual environments are not synchronized, caller project configuration is not
+discovered, and review does not fall back to a preinstalled package. A successful
+setup exposes the exact lockfile hash for workflow records. Setup can use the
+network for the interpreter, locked distributions, and source build requirements.
+Inherited uv configuration/selection/synchronization overrides are discarded;
+only `UV_CACHE_DIR`, `UV_PYTHON_INSTALL_DIR`, `UV_OFFLINE`, and
+`UV_PYTHON_DOWNLOADS` survive as runner controls. Custom package-index overrides
+are not an action interface; provision a deployment-owned runtime and use the
+CLI directly if your environment requires a different supply path.
+
 ## Consumer workflow
 
 Use an owner-controlled workflow, trusted runner, reviewed dependency supply,
@@ -73,15 +87,22 @@ the job if unsuccessful; they do not override the evidence-review result.
 | `report-set-complete` | `true` for all four reports from one decision; not a pass or approval |
 | `report-directory` | New runner-temporary directory, exposed only for complete exports |
 | `manifest-file-sha256` | Exact unsigned manifest bytes; not authenticated execution |
+| `dependency-lock-sha256` | Action lockfile used by successful setup; not a signature or proof that every runner component is pinned |
 
 Inputs are passed as environment data rather than interpolated into shell
 source, and Python runs in isolated mode to avoid import shadowing by the intake
-checkout. This does not isolate hostile processes on a shared runner, freeze
-filesystem changes, authenticate the initial requirement pin, lock transitive
-dependencies, or establish that a deployment is safe. Package installation
-uses the action's source revision but resolves dependencies normally. For
-air-gapped, hash-locked, or non-Linux deployments, provision the reviewed package
-yourself and use `proofrun verify-collection --report-dir` directly.
+checkout. Runtime dependency resolution is constrained by the reviewed lockfile;
+this is not a hermetic or fully reproducible build. Python's patch version, the
+runner image, GitHub CLI, trusted package caches, and isolated
+build-backend requirements remain deployment dependencies. A lockfile hash is
+not an authenticity claim. Source/lockfile changes observed during setup fail
+closed, but the runner must still prevent concurrent modification by other
+processes. This does not authenticate the initial requirement pin or establish
+that a deployment is safe. For air-gapped, fully provisioned, or non-Linux
+deployments, provision the reviewed package yourself and use
+`proofrun verify-collection --report-dir` directly. Partial setup environments
+are retained under runner temporary storage for diagnosis, never reused by a
+subsequent invocation, and follow the runner's own cleanup policy.
 
 Tests execute the real review and final-gate shell with all three native
 outcomes, import-shadowing attempts, invalid pins, partial exports, and missing
@@ -92,3 +113,5 @@ failed-case assertions are test-only, not a recommended consumer bypass.
 See [native report contracts](../../docs/proofrun.md#export-all-report-formats-from-one-review-on-main),
 [GitHub's secure-use guidance](https://docs.github.com/en/actions/reference/security/secure-use),
 and [artifact upload behavior and platform limitations](https://github.com/actions/upload-artifact).
+The runtime follows uv's documented [locked synchronization](https://docs.astral.sh/uv/concepts/projects/sync/)
+and [dedicated project environment](https://docs.astral.sh/uv/concepts/projects/config/) semantics.

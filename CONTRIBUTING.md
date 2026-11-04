@@ -228,6 +228,13 @@ metadata, and non-claims must remain visible. Never describe these files as
 independent supplier results or a production evaluation. See the
 [collection walkthrough](docs/proofrun.md#practice-a-complete-collection-handoff-on-main).
 
+Changes to the collection-review action's runtime must preserve fresh temporary
+environments, locked dependency synchronization, non-editable installation, and
+the no-fallback launch contract. Keep `uv.lock` and `pyproject.toml` in its smoke
+workflow path filters. Unit tests exercise the exact shell gate and setup command;
+Python 3.12 tests also check real uv stale-lock rejection with a dependency-free,
+offline fixture. A local bootstrap check does not establish hosted CI success.
+
 Use `proofrun prepare-plan` to record supplied artifact hashes against explicit
 owner requirements without manual multi-file hashing. Review the full-content
 draft before retaining its independent pin. For replacements, `proofrun compare-plans`

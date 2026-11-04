@@ -2,10 +2,10 @@ name: Collection review action smoke
 on:
   workflow_dispatch:
   pull_request:
-    paths: ["actions/review-collection/**", "dspy_security_bench/**", ".github/workflows/collection-review-smoke.yml"]
+    paths: ["actions/review-collection/**", "dspy_security_bench/**", "pyproject.toml", "uv.lock", ".github/workflows/collection-review-smoke.yml"]
   push:
     branches: [main]
-    paths: ["actions/review-collection/**", "dspy_security_bench/**", ".github/workflows/collection-review-smoke.yml"]
+    paths: ["actions/review-collection/**", "dspy_security_bench/**", "pyproject.toml", "uv.lock", ".github/workflows/collection-review-smoke.yml"]
 permissions:
   contents: read
 jobs:
@@ -55,10 +55,12 @@ jobs:
           COMPLETE: ${{ steps.review.outputs.report-set-complete }}
           OUTCOME: ${{ steps.review.outcome }}
           REPORTS: ${{ steps.review.outputs.report-directory }}
+          LOCK_PIN: ${{ steps.review.outputs.dependency-lock-sha256 }}
         run: |
           python -I - <<'PY'
-          import json, os
+          import hashlib, json, os
           from pathlib import Path
+          assert os.environ["LOCK_PIN"] == hashlib.sha256(Path("uv.lock").read_bytes()).hexdigest()
           assert os.environ["ACTUAL"] == os.environ["EXPECTED"]
           assert os.environ["COMPLETE"] == "true"
           assert os.environ["OUTCOME"] == ("success" if os.environ["EXPECTED"] == "0" else "failure")

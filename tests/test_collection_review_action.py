@@ -34,6 +34,7 @@ def environment(tmp_path, plan, pin):
     return {**os.environ, "PATH": str(Path(sys.executable).parent) + os.pathsep + os.environ.get("PATH", ""),
             "GITHUB_ACTION_PATH": str(DIRECTORY), "GITHUB_OUTPUT": str(tmp_path / "outputs"),
             "RUNNER_OS": "Linux", "RUNNER_TEMP": str(tmp_path),
+            "PROOFRUN_REVIEW_PYTHON": sys.executable,
             "PROOFRUN_REVIEW_PLAN": str(plan), "PROOFRUN_REVIEW_PIN": pin}
 
 
@@ -120,8 +121,12 @@ def test_action_has_no_caller_install_upload_or_approval_permissions():
     assert all("${{" not in step.get("run", "") for step in steps)
     text = (DIRECTORY / "action.yml").read_text()
     assert "upload-artifact" not in text and "attestations: write" not in text
-    assert 'python -I -m pip install "$GITHUB_ACTION_PATH/../.."' in text
+    assert 'python -I "$GITHUB_ACTION_PATH/runtime.py"' in text
+    assert '"$PROOFRUN_REVIEW_PYTHON" -I "$GITHUB_ACTION_PATH/review.py"' in text
     assert "pip install -e" not in text
+    installer = next(step for step in steps if step.get("uses", "").startswith("astral-sh/setup-uv@"))
+    assert installer["with"] == {"version": "0.12.3", "enable-cache": False}
+    assert ACTION["outputs"]["dependency-lock-sha256"]["value"] == "${{ steps.runtime.outputs.dependency-lock-sha256 }}"
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="action explicitly supports Linux bash runners")
