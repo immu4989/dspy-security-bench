@@ -8,9 +8,9 @@ from dspy_security_bench.agents.litellm_fc import _complete_usage
 
 
 def response(*, usage=None, cost=None, tools=False):
-    call = SimpleNamespace(id="call", function=SimpleNamespace(name="read", arguments="{}"))
-    message = SimpleNamespace(content="done", tool_calls=[call] if tools else None)
-    return SimpleNamespace(choices=[SimpleNamespace(message=message)], usage=usage,
+    call = SimpleNamespace(id="call", type="function", function=SimpleNamespace(name="read", arguments="{}"))
+    message = SimpleNamespace(role="assistant", content="done", tool_calls=[call] if tools else None)
+    return SimpleNamespace(choices=[SimpleNamespace(message=message, finish_reason="tool_calls" if tools else "stop")], usage=usage,
                            _hidden_params={"response_cost": cost})
 
 

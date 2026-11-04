@@ -271,6 +271,47 @@ missing cost. SDK defaults or computed fields cannot be distinguished from
 provider observations after that distinction is lost. Custom agents own the
 completeness of usage they supply.
 
+## LiteLLM completion and tool-turn admission
+
+**On main after v0.19.0**, the reference agent accepts exactly one non-streaming
+assistant choice. A final answer requires `finish_reason="stop"`, explicit string
+content (including `""`), and no pending tool or legacy function call. Missing or
+non-text content is never replaced with an empty answer. Truncated/filtered
+output, streaming chunks, alternative choices, and unsupported termination states
+are execution errors. A textual refusal with an otherwise completed state is
+still scored normally; this is not a check of answer quality or truthfulness.
+
+The forced-final request after `max_iters` uses the same checks and never executes
+new calls. During normal rounds, tool calls require `finish_reason="tool_calls"`,
+text-or-null assistant content, named functions, and nonblank IDs unique within
+the returned batch. The complete batch's metadata is admitted before any of its
+tools run. Provider-specific tool extensions are preserved. Malformed JSON
+arguments and unknown named functions retain the existing tool-error feedback;
+they do not execute a default action. A supplied tool must return text, not an
+object to stringify. Already completed actions are not rolled back on failure.
+
+LiteLLM's [output contract](https://docs.litellm.ai/docs/completion/output) exposes
+normalized finish reasons and sometimes the original value in
+`choice.provider_specific_fields.native_finish_reason`. A normalized `stop` alone
+can hide an error: the pinned SDK maps reasons such as `ERROR`, `network_error`,
+and `MALFORMED_FUNCTION_CALL` to it. When an original reason survives, this adapter
+accepts only `stop`, `stop_sequence`, `end_turn`, `COMPLETE`, `eos_token`, `eos`, or
+`STOP`; tool turns also accept `tool_calls` and `tool_use`. Unknown reasons require
+explicit compatibility work, not an optimistic fallback. The
+[function-calling example](https://docs.litellm.ai/docs/completion/function_call)
+illustrates the separate tool-execution and final-response turns.
+
+These checks examine **SDK-returned state**, not raw provider provenance. SDKs may
+insert defaults (including roles, stop reasons, and tool IDs) or discard native
+state before the adapter sees it. The boundary cannot recover those distinctions,
+validate every provider extension, or redact SDK logs. Optional telemetry failures
+remain independent; required-response getter errors and control-flow exceptions
+propagate. Mission reports preserve instrumented harms and record fixed errors;
+trace wrappers retain completed tool spans. Saved results and scoring formulas
+are unchanged: retain producer revisions and recapture comparison evidence after
+adopting this boundary. Native response fixtures block sockets and do not claim
+live-provider evaluation.
+
 ## Native SDK telemetry
 
 The stricter native usage extraction is **on main after v0.19.0**. Required

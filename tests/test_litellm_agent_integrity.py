@@ -11,10 +11,10 @@ from dspy_security_bench.agents.litellm_fc import LiteLLMFunctionCallingAgent, _
 
 
 def response(arguments=None, *, final=False):
-    call = SimpleNamespace(id="call-1", function=SimpleNamespace(name="act", arguments=arguments))
+    call = SimpleNamespace(id="call-1", type="function", function=SimpleNamespace(name="act", arguments=arguments))
     call.model_dump = lambda: {"id": call.id, "type": "function", "function": {"name": "act", "arguments": arguments}}
-    message = SimpleNamespace(content="done" if final else None, tool_calls=[] if final else [call])
-    return SimpleNamespace(choices=[SimpleNamespace(message=message)], usage={"total_tokens": 2})
+    message = SimpleNamespace(role="assistant", content="done" if final else None, tool_calls=[] if final else [call])
+    return SimpleNamespace(choices=[SimpleNamespace(message=message, finish_reason="stop" if final else "tool_calls")], usage={"total_tokens": 2})
 
 
 def backend(monkeypatch, answers):

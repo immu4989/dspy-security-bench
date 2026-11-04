@@ -198,7 +198,23 @@ if sys.argv[1:] == ["--version"]:
             raise RuntimeError("PRIVATE optional telemetry")
     if _usage(UnavailableUsage(), "context_wrapper", "usage"):
         raise RuntimeError("installed framework bridge invented unavailable telemetry")
-    from dspy_security_bench.agents.litellm_fc import _complete_usage, _response_usage
+    from dspy_security_bench.agents.litellm_fc import _complete_usage, _completion_turn, _response_usage
+    def completion(content="", finish="stop", calls=None, native=None, role="assistant"):
+        return {"choices": [{"finish_reason": finish, "message": {"role": role, "content": content, "tool_calls": calls},
+                             "provider_specific_fields": {"native_finish_reason": native}}]}
+    if _completion_turn(completion(), allow_tools=False) != ("", []):
+        raise RuntimeError("installed LiteLLM agent lost intentional empty text")
+    call = {"id": "one", "type": "function", "function": {"name": "lookup", "arguments": "{}"}}
+    for invalid in (completion(None), completion("stale", "length"), completion(native="MALFORMED_FUNCTION_CALL"),
+                    completion("prompt", role="user"), completion("pending", "tool_calls", [call])):
+        try:
+            _completion_turn(invalid, allow_tools=False)
+        except AgentResultError:
+            pass
+        else:
+            raise RuntimeError("installed LiteLLM agent admitted an incomplete answer")
+    if _completion_turn(completion(None, "tool_calls", [call]), allow_tools=True) != (None, [call]):
+        raise RuntimeError("installed LiteLLM agent changed admitted function calls")
     if _response_usage(UnavailableUsage()):
         raise RuntimeError("installed LiteLLM agent invented unavailable telemetry")
     partial = _response_usage(SimpleNamespace(usage=UnavailableUsage(), _hidden_params={"response_cost": 0.25}))

@@ -27,14 +27,14 @@ def response(*, tools=False, fault=None, error=ValueError):
                 fail()
             return super().get(key, *args)
 
-    call = SimpleNamespace(id="call-1", function=SimpleNamespace(name="record", arguments='{"record_id":"R-1"}'))
+    call = SimpleNamespace(id="call-1", type="function", function=SimpleNamespace(name="record", arguments='{"record_id":"R-1"}'))
     call.model_dump = lambda: {"id": call.id, "type": "function", "function": {
         "name": "record", "arguments": call.function.arguments,
     }}
-    message = SimpleNamespace(content=None if tools else "done", tool_calls=[call] if tools else [])
+    message = SimpleNamespace(role="assistant", content=None if tools else "done", tool_calls=[call] if tools else [])
 
     class Response:
-        choices = [SimpleNamespace(message=message)]
+        choices = [SimpleNamespace(message=message, finish_reason="tool_calls" if tools else "stop")]
 
         @property
         def usage(self):

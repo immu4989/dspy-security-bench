@@ -14,7 +14,13 @@ from __future__ import annotations
 import json
 import math
 
-from dspy_security_bench.agents.base import AgentResult, BenchTool, ToolCall
+from dspy_security_bench.agents.base import (
+    AgentResult,
+    AgentResultError,
+    BenchTool,
+    ToolCall,
+    require_text_answer,
+)
 from dspy_security_bench.agents.usage import _usage_field, normalize_usage
 from dspy_security_bench.jsonio import decode_json_object
 
@@ -82,25 +88,24 @@ class LiteLLMFunctionCallingAgent:
                 num_retries=self.num_retries,
                 drop_params=True,
             )
+            content, tool_calls = _completion_turn(resp, allow_tools=True)
             usage_reports.append(_response_usage(resp))
-            msg = resp.choices[0].message
-            tool_calls = getattr(msg, "tool_calls", None)
 
             if not tool_calls:
-                final_answer = msg.content or ""
+                final_answer = require_text_answer(content)
                 break
 
             # Record the assistant turn (with its tool calls) so the model sees
             # its own calls on the next round.
             messages.append({
                 "role": "assistant",
-                "content": msg.content or None,
-                "tool_calls": [tc.model_dump() if hasattr(tc, "model_dump") else tc for tc in tool_calls],
+                "content": content,
+                "tool_calls": tool_calls,
             })
 
             for tc in tool_calls:
-                name = tc.function.name
-                raw_args = tc.function.arguments
+                name = tc["function"]["name"]
+                raw_args = tc["function"]["arguments"]
                 invalid_arguments = False
                 try:
                     args = _parse_tool_arguments(raw_args)
@@ -118,11 +123,13 @@ class LiteLLMFunctionCallingAgent:
                     # live AgentDojo env so injection detection works.
                     result = tool(**args)
 
+                if not isinstance(result, str):
+                    raise AgentResultError("ToolCall.result must be text")
                 trace.append(ToolCall(name=name, args=args, result=result))
                 messages.append({
                     "role": "tool",
-                    "tool_call_id": tc.id,
-                    "content": str(result),
+                    "tool_call_id": tc["id"],
+                    "content": result,
                 })
         else:
             # Ran out of iterations. Ask once for a final answer with no tools.
@@ -138,11 +145,90 @@ class LiteLLMFunctionCallingAgent:
                 num_retries=self.num_retries,
                 drop_params=True,
             )
+            final_answer, _ = _completion_turn(resp, allow_tools=False)
             usage_reports.append(_response_usage(resp))
-            final_answer = resp.choices[0].message.content or ""
 
         return AgentResult(final_answer=final_answer, tool_calls=trace,
                            usage=_complete_usage(usage_reports))
+
+
+def _field(value, name):
+    """Required response access: unlike optional telemetry, failures propagate."""
+    return value.get(name) if isinstance(value, dict) else getattr(value, name, None)
+
+
+# LiteLLM can normalize provider error/unknown reasons to "stop". Only these
+# explicit normal termination reasons are supported when the original survives.
+# Do not import the SDK's private map: it includes errors and defaults to stop.
+_NATIVE_STOPS = frozenset({"stop", "stop_sequence", "end_turn", "COMPLETE", "eos_token", "eos", "STOP"})
+
+
+def _completion_turn(response, *, allow_tools: bool) -> tuple[str | None, list[dict]]:
+    """Admit one non-streaming assistant turn before performing any tool action.
+
+    SDK defaults cannot be distinguished from provider evidence after conversion.
+    Unknown native reasons require explicit adapter work, not optimistic scoring.
+    This checks returned state, not whether the model fulfilled the user's task.
+    """
+    choices = _field(response, "choices")
+    if not isinstance(choices, list) or len(choices) != 1:
+        raise AgentResultError("LiteLLM response must contain exactly one choice")
+    kind = _field(response, "object")
+    if kind is not None and (not isinstance(kind, str) or kind != "chat.completion"):
+        raise AgentResultError("LiteLLM response must be a non-streaming chat completion")
+    choice = choices[0]
+    finish = _field(choice, "finish_reason")
+    if not isinstance(finish, str) or finish not in {"stop", "tool_calls"}:
+        raise AgentResultError("LiteLLM response has no supported completed turn")
+    provider_fields = _field(choice, "provider_specific_fields")
+    if provider_fields is not None and not isinstance(provider_fields, dict):
+        raise AgentResultError("LiteLLM native completion state must be a dictionary")
+    native = _field(provider_fields, "native_finish_reason")
+    native_stops = _NATIVE_STOPS | {"tool_calls", "tool_use"} if finish == "tool_calls" else _NATIVE_STOPS
+    if native is not None and (not isinstance(native, str) or native not in native_stops):
+        raise AgentResultError("LiteLLM native finish reason is not a supported completed turn")
+    message = _field(choice, "message")
+    role = _field(message, "role")
+    if not isinstance(role, str) or role != "assistant":
+        raise AgentResultError("LiteLLM response must be attributed to the assistant")
+    if _field(message, "function_call") is not None:
+        raise AgentResultError("LiteLLM legacy function-call state is unsupported")
+    calls = _field(message, "tool_calls")
+    if calls is None:
+        calls = []
+    elif not isinstance(calls, list):
+        raise AgentResultError("LiteLLM tool_calls must be a list or absent")
+    content = _field(message, "content")
+    if not calls:
+        if finish != "stop":
+            raise AgentResultError("LiteLLM tool-call completion is missing its calls")
+        return require_text_answer(content), []
+    if not allow_tools or finish != "tool_calls":
+        raise AgentResultError("LiteLLM pending tool calls are not a final answer")
+    if content is not None and not isinstance(content, str):
+        raise AgentResultError("LiteLLM assistant tool-turn content must be text or null")
+    admitted = []
+    identifiers = set()
+    for call in calls:
+        identifier, kind = _field(call, "id"), _field(call, "type")
+        function = _field(call, "function")
+        name, arguments = _field(function, "name"), _field(function, "arguments")
+        if not isinstance(identifier, str) or not identifier.strip() or identifier in identifiers:
+            raise AgentResultError("LiteLLM tool-call IDs must be nonblank and unique within a turn")
+        if not isinstance(kind, str) or kind != "function" or not isinstance(name, str) or not name.strip():
+            raise AgentResultError("LiteLLM tool calls must name a function")
+        identifiers.add(identifier)
+        # Retain SDK extensions such as provider-specific signatures, but execute
+        # only the fields just admitted. Validate the entire batch before effects.
+        dump = getattr(call, "model_dump", None)
+        payload = call if isinstance(call, dict) else dump() if callable(dump) else {}
+        if not isinstance(payload, dict):
+            raise AgentResultError("LiteLLM serialized tool call must be a dictionary")
+        function_payload = payload.get("function")
+        function_payload = function_payload if isinstance(function_payload, dict) else {}
+        admitted.append({**payload, "id": identifier, "type": "function",
+                         "function": {**function_payload, "name": name, "arguments": arguments}})
+    return content, admitted
 
 
 def _parse_tool_arguments(value) -> dict:

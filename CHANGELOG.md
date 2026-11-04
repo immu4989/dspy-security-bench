@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- The reference LiteLLM loop now admits explicit completed assistant turns before
+  reading telemetry or executing tool batches. Missing/non-text answers,
+  truncation/filtering, pending final-step calls, ambiguous choices, and preserved
+  native error reasons are execution errors, not empty or stale scored answers.
+  Tool-call identities are checked before batch effects; tool results must be
+  text. Offline native-response, mission replay, and trace tests preserve earlier
+  harms without inventing completion. SDK defaults remain a documented limit.
 - The reference LiteLLM agent now isolates ordinary optional usage/cost accessor
   failures from response and tool execution. Unreadable quantities stay unknown
   across the entire run instead of becoming partial totals; valid neighboring
