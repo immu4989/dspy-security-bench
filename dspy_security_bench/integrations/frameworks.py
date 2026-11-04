@@ -16,6 +16,7 @@ from dspy_security_bench.agents import (
     AgentResultError,
     BenchTool,
     ToolCall,
+    normalize_usage,
     validate_agent_result,
 )
 from dspy_security_bench.agents.base import require_text_answer
@@ -109,32 +110,61 @@ def _run_awaitable(value: Awaitable[Any]) -> Any:
         return executor.submit(context.run, execute).result()
 
 
-def _usage(values: Any) -> dict[str, int | float]:
-    if values is None:
-        return {}
+_UNREADABLE_USAGE = object()
+
+
+def _usage_field(value: Any, name: str) -> Any:
+    try:
+        return value.get(name) if isinstance(value, dict) else getattr(value, name, None)
+    except Exception:
+        # Optional telemetry is not a task-validity gate. Do not expose raw
+        # metadata exceptions; BaseException control flow still propagates.
+        return _UNREADABLE_USAGE
+
+
+def _usage(values: Any, *path: str) -> dict[str, int | float]:
+    """Admit SDK-exposed fields without inventing totals or choosing conflicts.
+
+    Missing, malformed, conflicting, and unreadable quantities remain unknown.
+    SDK defaults/computed properties are not raw provider receipts or billing
+    evidence. Only the optional metadata path is guarded, not native execution.
+    """
+    for name in path:
+        values = _usage_field(values, name)
+        if values is None or values is _UNREADABLE_USAGE:
+            return {}
     if callable(values):
-        values = values()
+        try:
+            values = values()
+        except Exception:
+            return {}
     aliases = {
-        "input_tokens": "prompt_tokens",
-        "prompt_tokens": "prompt_tokens",
-        "output_tokens": "completion_tokens",
-        "completion_tokens": "completion_tokens",
-        "total_tokens": "total_tokens",
-        "requests": "requests",
-        "request_tokens": "prompt_tokens",
-        "response_tokens": "completion_tokens",
-        "estimated_cost_usd": "estimated_cost_usd",
+        "prompt_tokens": ("prompt_tokens", "input_tokens", "request_tokens"),
+        "completion_tokens": ("completion_tokens", "output_tokens", "response_tokens"),
+        "total_tokens": ("total_tokens",),
+        "requests": ("requests",),
+        "estimated_cost_usd": ("estimated_cost_usd",),
     }
     result: dict[str, int | float] = {}
-    for source, target in aliases.items():
-        value = values.get(source) if isinstance(values, dict) else getattr(values, source, None)
-        if isinstance(value, int | float) and not isinstance(value, bool) and value >= 0:
-            result[target] = value
-    if "total_tokens" not in result and {
-        "prompt_tokens",
-        "completion_tokens",
-    }.issubset(result):
-        result["total_tokens"] = result["prompt_tokens"] + result["completion_tokens"]
+    for target, sources in aliases.items():
+        candidates = []
+        for source in sources:
+            value = _usage_field(values, source)
+            if value is None:
+                continue
+            if target == "requests":
+                normalized = (
+                    value if isinstance(value, int) and not isinstance(value, bool) and value >= 0
+                    else _UNREADABLE_USAGE
+                )
+            else:
+                normalized = normalize_usage({target: value}).get(target, _UNREADABLE_USAGE)
+            if normalized is _UNREADABLE_USAGE:
+                break
+            candidates.append(normalized)
+        else:
+            if candidates and all(value == candidates[0] for value in candidates):
+                result[target] = candidates[0]
     return result
 
 
@@ -214,7 +244,7 @@ class OpenAIAgentsAdapter:
         )
         result = Runner.run_sync(agent, query)
         answer = _openai_final_answer(result)
-        usage = _usage(getattr(getattr(result, "context_wrapper", None), "usage", None))
+        usage = _usage(result, "context_wrapper", "usage")
         return validate_agent_result(AgentResult(final_answer=answer, tool_calls=ledger, usage=usage))
 
 
@@ -268,7 +298,7 @@ class PydanticAIAdapter:
         return validate_agent_result(AgentResult(
             final_answer=answer,
             tool_calls=ledger,
-            usage=_usage(getattr(result, "usage", None)),
+            usage=_usage(result, "usage"),
         ))
 
 
@@ -319,7 +349,7 @@ class CrewAIAdapter:
         return validate_agent_result(AgentResult(
             final_answer=answer,
             tool_calls=ledger,
-            usage=_usage(getattr(result, "usage_metrics", None)),
+            usage=_usage(result, "usage_metrics"),
         ))
 
 
@@ -387,7 +417,7 @@ class AutoGenAdapter:
 
         result = _run_awaitable(execute())
         final = _autogen_final_answer(result, name=self.name)
-        usage = _usage(getattr(result, "usage", None))
+        usage = _usage(result, "usage")
         return validate_agent_result(AgentResult(final_answer=final, tool_calls=ledger, usage=usage))
 
 

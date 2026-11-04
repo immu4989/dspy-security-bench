@@ -394,8 +394,9 @@ def test_pydantic_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch
     else:
         result = adapter.run("fixture", [tool])
         assert result.final_answer == "done"
-        assert result.usage["requests"] == (2 if mode == "tool" else 1)
-        assert result.usage["total_tokens"] == (10 if mode == "tool" else 5)
+        multiplier = 2 if mode == "tool" else 1
+        assert result.usage == {"prompt_tokens": 2 * multiplier, "completion_tokens": 3 * multiplier,
+                                "total_tokens": 5 * multiplier, "requests": multiplier}
         if mode == "tool":
             assert effects == [{"record_id": "R-1", "limit": 1}]
             assert result.tool_calls[0].args == effects[0]
@@ -501,7 +502,7 @@ def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch,
 
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "openai-agents", reason="optional OpenAI SDK matrix")
 @pytest.mark.parametrize("mode", ["answer", "empty", "approval"])
-def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, mode):
+def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, native_sync_loop, mode):
     from agents import Model, ModelResponse, RunConfig, Runner, Usage
     from openai.types.responses import (
         ResponseFunctionToolCall,
@@ -562,7 +563,7 @@ def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
         assert result.final_answer == ("" if mode == "empty" else "done")
         assert result.tool_calls[0].result == "recorded"
         assert effects == [True] and model.calls == 2
-        assert result.usage["total_tokens"] == 10
+        assert result.usage == {"prompt_tokens": 4, "completion_tokens": 6, "total_tokens": 10, "requests": 2}
         assert captured[0].interruptions == []
 
 

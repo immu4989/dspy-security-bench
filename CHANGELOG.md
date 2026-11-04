@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Native framework telemetry now uses the shared strict token/cost admission
+  rules: no inferred missing totals, fractional/boolean counts, nonfinite cost,
+  or silent precedence between conflicting aliases. Ordinary optional-metadata
+  getter/method failures leave the affected quantities unknown without erasing
+  completed answers or tool effects. Required-result checks and control-flow
+  exceptions remain intact. SDK defaults/computed values are still SDK-exposed
+  estimates, not independently observed provider usage or billing receipts.
 - Corrected CrewAI's active-event-loop bridge: await native kickoff results
   before reading them, preserving request context while keeping `run()` blocking.
   Require explicit raw text attributed to the selected agent, instead of scoring

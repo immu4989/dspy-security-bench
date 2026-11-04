@@ -5,8 +5,10 @@ on:
     branches: [main]
     paths:
       - "dspy_security_bench/integrations/**"
+      - "dspy_security_bench/agents/usage.py"
       - "dspy_security_bench/causal/runtime.py"
       - "tests/test_framework_compat.py"
+      - "tests/test_framework_usage.py"
       - "tests/test_openai_result_admission.py"
       - "tests/test_langchain_result_admission.py"
       - "tests/test_autogen_result_admission.py"
@@ -22,8 +24,10 @@ on:
     branches: [main]
     paths:
       - "dspy_security_bench/integrations/**"
+      - "dspy_security_bench/agents/usage.py"
       - "dspy_security_bench/causal/runtime.py"
       - "tests/test_framework_compat.py"
+      - "tests/test_framework_usage.py"
       - "tests/test_openai_result_admission.py"
       - "tests/test_langchain_result_admission.py"
       - "tests/test_autogen_result_admission.py"
@@ -83,7 +87,7 @@ jobs:
         env:
           DSB_FRAMEWORK: ${{ matrix.framework }}
         run: >-
-          uv run --locked --no-sync pytest -q tests/test_framework_compat.py
+          uv run --locked --no-sync pytest -q tests/test_framework_compat.py tests/test_framework_usage.py
           tests/test_openai_result_admission.py tests/test_langchain_result_admission.py
           tests/test_autogen_result_admission.py tests/test_pydantic_result_admission.py
           tests/test_crewai_result_admission.py

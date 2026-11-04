@@ -263,6 +263,51 @@ reported. These are provider-reported estimates, not billing reconciliation;
 unreported SDK retries, tool execution costs, and provider-side work are not
 included. Custom agents own the completeness of usage they supply.
 
+## Native SDK telemetry
+
+The stricter native usage extraction is **on main after v0.19.0**. Required
+answer/completion checks run first. Once they pass, ordinary exceptions from an
+optional usage accessor no longer invalidate the completed answer or its tool
+ledger. An unavailable metadata container/method yields `{}`; an unreadable
+field makes only that quantity unknown. `KeyboardInterrupt`, `SystemExit`, and
+async cancellation still propagate. This is not error suppression for model or
+tool execution, a retry mechanism, or protection against blocking accessors.
+
+The existing extraction paths are:
+
+| Bridge | SDK metadata inspected |
+|---|---|
+| OpenAI Agents | `result.context_wrapper.usage` |
+| Pydantic AI | `result.usage()` |
+| CrewAI | `result.usage_metrics` |
+| AutoGen | `result.usage`, only when exposed; standard `TaskResult` does not supply it |
+| LangChain | No run-level usage extraction in this bridge |
+
+Token aliases `prompt_tokens` / `input_tokens` / `request_tokens` and
+`completion_tokens` / `output_tokens` / `response_tokens` describe the same two
+quantities. All non-null aliases present must be valid and agree; disagreement,
+malformed values, or failed alias access omit that quantity instead of choosing
+the last field. Missing/null aliases are ignored. Counts, including adapter-level
+`requests`, must be nonnegative integers, not booleans or floats. USD cost must
+be finite and nonnegative. Other fields, currencies, cache/reasoning details,
+and `successful_requests` are not silently converted into these metrics.
+
+The bridge never creates a missing `total_tokens` from input plus output. It
+also does not repair arithmetic disagreements between separately exposed counts.
+Valid neighboring fields survive; zero is retained only when the SDK exposes
+zero. The shared mission normalizer retains supported token/cost fields but
+does not export the adapter-only `requests` extension into mission evidence.
+
+**SDK-exposed is not necessarily provider-observed.** SDKs may default missing
+values to zero, aggregate partial metadata, or expose computed totals (for
+example Pydantic AI's `total_tokens` property). Extraction does not recover those
+lost distinctions, prove completeness, reconcile billing, or estimate prices.
+Keep producer/framework versions with comparisons; do not treat `{}` as free
+execution or compare these estimates as complete cross-framework cost totals.
+The [OpenAI usage example](https://developers.openai.com/cookbook/examples/agents_sdk/security_scanners_with_agents_sdk#usage-and-limits)
+illustrates reporting response and token counts separately. No live provider
+evaluation or historical report rewriting is part of this change.
+
 ## Async callbacks in notebooks and services
 
 **On main after v0.19.0**, `CallbackAdapter.arun` awaits a callback in the caller's

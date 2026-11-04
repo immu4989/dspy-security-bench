@@ -187,6 +187,17 @@ if sys.argv[1:] == ["--version"]:
     for answer in ("", "answer"):
         if _crewai_final_answer(SimpleNamespace(agent_role="crewai-agent", raw=answer), role="crewai-agent") != answer:
             raise RuntimeError("installed CrewAI bridge changed explicit text")
+    from dspy_security_bench.integrations.frameworks import _usage
+    if _usage({"input_tokens": 2, "output_tokens": 3}) != {"prompt_tokens": 2, "completion_tokens": 3}:
+        raise RuntimeError("installed framework bridge invented missing usage totals")
+    if _usage({"input_tokens": 2, "prompt_tokens": 3, "total_tokens": 1.5,
+               "estimated_cost_usd": float("inf"), "requests": True}):
+        raise RuntimeError("installed framework bridge admitted conflicting or invalid telemetry")
+    class UnavailableUsage:
+        def __getattr__(self, name):
+            raise RuntimeError("PRIVATE optional telemetry")
+    if _usage(UnavailableUsage(), "context_wrapper", "usage"):
+        raise RuntimeError("installed framework bridge invented unavailable telemetry")
     class InvalidAnswer(ReferenceProcurementAgent):
         def run(self, *args, **kwargs):
             result = super().run(*args, **kwargs)
