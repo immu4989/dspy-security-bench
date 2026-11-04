@@ -148,6 +148,96 @@ def test_selected_framework_sdk_surface_is_compatible():
         pytest.fail(f"unsupported DSB_FRAMEWORK value: {framework}")
 
 
+@pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "autogen", reason="optional AutoGen SDK matrix")
+@pytest.mark.parametrize("mode", ["answer", "empty", "tool", "tool-limit", "handoff", "error"])
+def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, mode):
+    from autogen_agentchat.agents import AssistantAgent
+    from autogen_core import FunctionCall
+    from autogen_core.models import CreateResult, RequestUsage
+    from autogen_ext.models.replay import ReplayChatCompletionClient
+
+    from dspy_security_bench.agents import AgentResultError
+    from dspy_security_bench.integrations import AutoGenAdapter
+
+    def no_network(*args, **kwargs):
+        pytest.fail("native AutoGen fixture must not contact providers or tracing services")
+
+    monkeypatch.setattr("socket.socket.connect", no_network)
+    monkeypatch.setattr("socket.socket.connect_ex", no_network)
+    monkeypatch.setattr("socket.getaddrinfo", no_network)
+    calls = CreateResult(
+        finish_reason="function_calls", cached=False, usage=RequestUsage(prompt_tokens=2, completion_tokens=3),
+        content=[FunctionCall(id="fixture-call", name="transfer_to_reviewer" if mode == "handoff" else "record",
+                              arguments='{}' if mode == "handoff" else '{"record_id": "R-1"}')],
+    )
+    responses = {
+        "answer": ["done"], "empty": [""], "tool": [calls, "done"],
+        "tool-limit": [calls], "handoff": [calls], "error": [],
+    }[mode]
+    clients, captured, effects, closed = [], [], [], []
+
+    class Client(ReplayChatCompletionClient):
+        async def close(self):
+            closed.append(True)
+            await super().close()
+
+    def client_factory(**kwargs):
+        assert kwargs == {"model": "fixture", "parallel_tool_calls": False}
+        client = Client(responses, model_info={
+            "vision": False, "function_calling": True, "json_output": False,
+            "family": "unknown", "structured_output": False,
+        })
+        clients.append(client)
+        return client
+
+    class Agent(AssistantAgent):
+        async def run(self, **kwargs):
+            result = await super().run(**kwargs)
+            captured.append(result)
+            return result
+
+    def agent_factory(**kwargs):
+        if mode == "handoff":
+            kwargs["handoffs"] = ["reviewer"]
+        return Agent(**kwargs)
+
+    monkeypatch.setattr("autogen_ext.models.openai.OpenAIChatCompletionClient", client_factory)
+    monkeypatch.setattr("autogen_agentchat.agents.AssistantAgent", agent_factory)
+    tool = BenchTool("record", "Record a fictional action.", {
+        "type": "object", "properties": {"record_id": {"type": "string"}, "limit": {"type": "integer", "default": 1}},
+        "required": ["record_id"],
+    }, lambda **kwargs: effects.append(kwargs) or "recorded")
+    adapter = AutoGenAdapter(model="fixture", max_tool_iterations=1 if mode == "tool-limit" else 10)
+    if mode == "handoff":
+        with pytest.raises(AgentResultError, match="terminal message"):
+            adapter.run("fixture", [tool])
+        assert captured[0].messages[-1].type == "HandoffMessage"
+        assert not effects
+    elif mode == "error":
+        with pytest.raises(ValueError, match="No more mock responses"):
+            adapter.run("fixture", [tool])
+        assert not effects and not captured
+    else:
+        result = adapter.run("fixture", [tool])
+        assert result.final_answer == {"empty": "", "tool-limit": "recorded"}.get(mode, "done")
+        assert captured[0].stop_reason is None
+        if mode in {"tool", "tool-limit"}:
+            assert effects == [{"record_id": "R-1", "limit": 1}]
+            assert result.tool_calls[0].args == effects[0]
+            assert result.tool_calls[0].result == "recorded"
+        else:
+            assert effects == [] and result.tool_calls == []
+    assert closed == [True] and len(clients) == 1
+    assert len(clients[0].create_calls) == {"tool": 2, "error": 0}.get(mode, 1)
+    if mode == "tool":
+        second = adapter.run("second fixture", [tool])
+        assert len(clients) == 2 and clients[0] is not clients[1]
+        assert closed == [True, True] and len(second.tool_calls) == 1
+        assert len(effects) == 2
+        assert [message.content for message in clients[1].create_calls[0]["messages"]
+                if getattr(message, "source", None) == "user"] == ["second fixture"]
+
+
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "openai-agents", reason="optional OpenAI SDK matrix")
 @pytest.mark.parametrize("mode", ["answer", "empty", "approval"])
 def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, mode):

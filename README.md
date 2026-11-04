@@ -1080,6 +1080,11 @@ notebooks and async services. The synchronous bridge preserves request context
 and directs pending loop-owned work to the async path; benchmark scheduling
 remains synchronous. [Async callback guide](docs/integrations.md#async-callbacks-in-notebooks-and-services).
 
+The main-branch AutoGen bridge also fixes native name/tool-construction failures
+and distinguishes terminal answers from handoffs and events. Real offline SDK
+loops exercise parameterized tools and fresh run state.
+[AutoGen compatibility and migration](docs/integrations.md#autogen-execution-and-final-answer-attribution).
+
 ---
 
 ## Public-interest specialty: ImpactTwin / ProcureBench

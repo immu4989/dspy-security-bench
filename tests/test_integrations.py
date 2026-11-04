@@ -7,6 +7,7 @@ import inspect
 import json
 import sys
 from types import ModuleType, SimpleNamespace
+from typing import get_type_hints
 
 import pytest
 import yaml
@@ -52,14 +53,19 @@ def _install_module(monkeypatch, name: str, **attributes):
     return module
 
 
-def test_dynamic_tool_preserves_schema_and_records_real_call():
+@pytest.mark.parametrize("asynchronous", [False, True])
+def test_dynamic_tool_preserves_schema_and_records_real_call(asynchronous):
     ledger = []
-    function = _tool_callable(_bench_tool(), ledger)
+    function = _tool_callable(_bench_tool(), ledger, asynchronous=asynchronous)
     signature = inspect.signature(function)
     assert signature.parameters["record_id"].annotation is str
     assert signature.parameters["record_id"].default is inspect.Parameter.empty
     assert signature.parameters["limit"].default == 1
-    assert '"record_id": "R-1"' in function(record_id="R-1")
+    assert get_type_hints(function) == {"record_id": str, "limit": int, "return": str}
+    result = function(record_id="R-1")
+    if asynchronous:
+        result = asyncio.run(result)
+    assert '"record_id": "R-1"' in result
     assert ledger[0].name == "lookup_record"
     assert ledger[0].args == {"record_id": "R-1"}
 
@@ -176,6 +182,7 @@ def test_autogen_adapter_uses_fresh_agentchat_loop(monkeypatch, inside_loop, out
     class FakeAgent:
         def __init__(self, **kwargs):
             assert kwargs["system_message"].startswith("trusted defense")
+            self.name = kwargs["name"]
             self.tools = kwargs["tools"]
 
         async def run(self, *, task):
@@ -184,7 +191,9 @@ def test_autogen_adapter_uses_fresh_agentchat_loop(monkeypatch, inside_loop, out
                 raise LookupError("synthetic SDK failure")
             if outcome == "cancelled":
                 raise asyncio.CancelledError()
-            return SimpleNamespace(messages=[SimpleNamespace(content=f"autogen: {task}")])
+            return SimpleNamespace(stop_reason=None, messages=[SimpleNamespace(
+                source=self.name, type="TextMessage", content=f"autogen: {task}",
+            )])
 
     _install_module(monkeypatch, "autogen_agentchat")
     _install_module(monkeypatch, "autogen_agentchat.agents", AssistantAgent=FakeAgent)

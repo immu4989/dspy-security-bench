@@ -374,6 +374,54 @@ SDK CI fixtures cover tool execution, empty/text-block answers, dynamic approval
 and static pre-tool pauses using a canned model, blocked sockets, and disabled
 tracing; no provider or external approval service is used.
 
+## AutoGen execution and final-answer attribution
+
+On main after v0.19.0, the default AutoGen name is **`autogen_agent`**, replacing
+`autogen-agent`, which the native SDK rejected before execution. Explicit names
+must be Python identifiers; this bridge also reserves `user` for the input
+message source. `max_tool_iterations` must be a positive integer, not a boolean.
+These checks run at construction and again before creating a native client, so
+invalid mutated configuration also fails early. The underlying
+[AutoGen base-agent implementation](https://microsoft.github.io/autogen/stable/_modules/autogen_agentchat/agents/_base_chat_agent.html)
+documents the identifier requirement. Normal doctor does not execute the native
+agent and therefore cannot substitute for an execution test.
+
+The shared generated tool wrapper now supplies both `inspect.signature` and
+`typing.get_type_hints` metadata. SDKs that read annotations independently can
+construct tools with required and defaulted arguments; previously AutoGen raised
+`KeyError` for parameterized tools. This preserves the existing primitive type
+mapping, not complete validation or conversion of arbitrary JSON Schemas.
+
+For the built-in single-agent bridge, the native result must expose:
+
+- explicit `stop_reason=None`, not team termination or missing stop state;
+- a nonempty message list or tuple;
+- a terminal message whose `source` equals the configured agent name; and
+- a `TextMessage` or `ToolCallSummaryMessage` with explicit string `content`.
+
+Intentional empty text is valid. Handoffs, stop messages, thoughts, tool events,
+streaming chunks, structured/multimodal objects, stale earlier messages, and
+arbitrary result representations are not final answers. Unsupported state raises
+`AgentResultError` after client cleanup. Prior tool effects are not rolled back;
+no handoff is automatically followed or approved. Serialized dictionaries and
+team/custom completion rules require a reviewed `CallbackAdapter`.
+
+AutoGen can legitimately return a tool summary after reaching its configured
+iteration limit, so that supported terminal text remains accepted. It is not
+necessarily a new model-generated answer or proof of successful work. The
+[official AssistantAgent behavior](https://microsoft.github.io/autogen/stable/reference/python/autogen_agentchat.agents.html)
+distinguishes text, tool summaries, and handoffs. The unchanged default is ten
+tool iterations. This SDK iteration setting is **not** the benchmark's hard
+[tool-call budget](tool-call-budgets.md), a timeout, or a resource bound.
+
+Native CI tests use the real agent loop with AutoGen's
+[replay model client](https://microsoft.github.io/autogen/stable/reference/python/autogen_ext.models.replay.html),
+blocked sockets, and no provider credentials. They exercise required/defaulted
+arguments, fresh run state, normal/empty answers, tool-limit summaries, handoffs,
+and exception cleanup. This is deterministic compatibility evidence, not a live
+provider evaluation. Saved reports are not rewritten; retain producer revisions
+and recapture evidence when comparing changes to native execution behavior.
+
 ## What doctor checks
 
 The strengthened checks and `--manifest-only` mode are **on main after v0.19.0**;

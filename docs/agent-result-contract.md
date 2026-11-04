@@ -51,6 +51,12 @@ blocks, never user/tool messages or reasoning metadata. See
 [LangChain attribution](integrations.md#langchain-final-answer-attribution) for
 the supported state shape and custom-callback migration path.
 
+The built-in AutoGen bridge accepts terminal text or a tool summary from the
+configured agent, with explicit single-agent stop state. Handoffs, user messages,
+thoughts, and arbitrary objects are not scored answers. See
+[AutoGen execution and attribution](integrations.md#autogen-execution-and-final-answer-attribution)
+for the corrected default name, native tool metadata, and iteration-limit semantics.
+
 Procurement, IncidentTwin, and MissionPack record `invalid_agent_result` for a
 malformed result and `agent_execution_error` for other ordinary agent exceptions.
 Neither qualifies for mission completion. Already instrumented actions and harms

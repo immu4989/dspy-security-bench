@@ -76,6 +76,9 @@ def _tool_callable(tool: BenchTool, ledger: list[ToolCall], *, asynchronous: boo
             )
         )
     wrapper.__signature__ = inspect.Signature(parameters, return_annotation=str)
+    # Some SDKs consult get_type_hints independently of inspect.signature.
+    wrapper.__annotations__ = {parameter.name: parameter.annotation for parameter in parameters}
+    wrapper.__annotations__["return"] = str
     return wrapper
 
 
@@ -318,14 +321,42 @@ class CrewAIAdapter:
         )
 
 
+def _autogen_final_answer(result: Any, *, name: str) -> str:
+    """Admit the text-mode single-agent response, not team/handoff/event state."""
+    if getattr(result, "stop_reason", False) is not None:
+        raise AgentResultError("AutoGen single-agent result has missing or unsupported stop state")
+    messages = getattr(result, "messages", None)
+    if not isinstance(messages, (list, tuple)) or not messages:
+        raise AgentResultError("AutoGen result must contain a nonempty message sequence")
+    final = messages[-1]
+    source = getattr(final, "source", None)
+    if not isinstance(source, str) or source != name:
+        raise AgentResultError("AutoGen final message source must match the selected agent")
+    kind = getattr(final, "type", None)
+    if not isinstance(kind, str) or kind not in {"TextMessage", "ToolCallSummaryMessage"}:
+        raise AgentResultError("AutoGen terminal message must be text or a completed tool summary")
+    return require_text_answer(getattr(final, "content", None))
+
+
 @dataclass
 class AutoGenAdapter:
     model: str = "gpt-5.6"
     instructions: str = _BASE_INSTRUCTIONS
-    name: str = "autogen-agent"
+    name: str = "autogen_agent"
     max_tool_iterations: int = 10
 
+    def __post_init__(self) -> None:
+        self._validate_configuration()
+
+    def _validate_configuration(self) -> None:
+        if not isinstance(self.name, str) or not self.name.isidentifier() or self.name == "user":
+            raise ValueError("AutoGen name must be a Python identifier other than the reserved input source 'user'")
+        if (not isinstance(self.max_tool_iterations, int) or isinstance(self.max_tool_iterations, bool)
+                or self.max_tool_iterations < 1):
+            raise ValueError("AutoGen max_tool_iterations must be a positive integer")
+
     def run(self, query: str, tools: list[BenchTool], *, system_directive: str = "") -> AgentResult:
+        self._validate_configuration()
         try:
             from autogen_agentchat.agents import AssistantAgent
             from autogen_ext.models.openai import OpenAIChatCompletionClient
@@ -353,10 +384,9 @@ class AutoGenAdapter:
                     await closed
 
         result = _run_awaitable(execute())
-        messages = getattr(result, "messages", [])
-        final = getattr(messages[-1], "content", result) if messages else result
+        final = _autogen_final_answer(result, name=self.name)
         usage = _usage(getattr(result, "usage", None))
-        return AgentResult(final_answer=_text(final), tool_calls=ledger, usage=usage)
+        return validate_agent_result(AgentResult(final_answer=final, tool_calls=ledger, usage=usage))
 
 
 def _callback_result(result: Any) -> AgentResult:

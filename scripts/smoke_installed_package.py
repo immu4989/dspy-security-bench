@@ -136,6 +136,30 @@ if sys.argv[1:] == ["--version"]:
     final.content_blocks = [{"type": "reasoning", "reasoning": "PRIVATE"}, {"type": "text", "text": "answer"}]
     if _langchain_output({"messages": [final]}) != "answer":
         raise RuntimeError("installed LangChain bridge changed text-block attribution")
+    from typing import get_type_hints
+    from dspy_security_bench.agents import BenchTool
+    from dspy_security_bench.integrations.frameworks import AutoGenAdapter, _autogen_final_answer, _tool_callable
+    if AutoGenAdapter().name != "autogen_agent":
+        raise RuntimeError("installed AutoGen default is not a valid native identifier")
+    tool = BenchTool("lookup", "Synthetic lookup", {
+        "type": "object", "properties": {"record_id": {"type": "string"}}, "required": ["record_id"],
+    }, lambda **kwargs: "recorded")
+    for asynchronous in (False, True):
+        if get_type_hints(_tool_callable(tool, [], asynchronous=asynchronous)) != {"record_id": str, "return": str}:
+            raise RuntimeError("installed tool metadata is incomplete for SDK introspection")
+    final = SimpleNamespace(type="TextMessage", source="autogen_agent", content="answer")
+    for state in (SimpleNamespace(messages=[]),
+                  SimpleNamespace(messages=[final], stop_reason="terminated"),
+                  SimpleNamespace(messages=[SimpleNamespace(type="HandoffMessage", source="autogen_agent", content="pending")], stop_reason=None),
+                  SimpleNamespace(messages=[SimpleNamespace(type="TextMessage", source="user", content="prompt")], stop_reason=None)):
+        try:
+            _autogen_final_answer(state, name="autogen_agent")
+        except AgentResultError:
+            pass
+        else:
+            raise RuntimeError("installed AutoGen bridge admitted non-final native state")
+    if _autogen_final_answer(SimpleNamespace(messages=[final], stop_reason=None), name="autogen_agent") != "answer":
+        raise RuntimeError("installed AutoGen bridge changed terminal text")
     class InvalidAnswer(ReferenceProcurementAgent):
         def run(self, *args, **kwargs):
             result = super().run(*args, **kwargs)

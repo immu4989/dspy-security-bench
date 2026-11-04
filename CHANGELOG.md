@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Repaired two native AutoGen execution blockers: the default agent name is now
+  the valid identifier `autogen_agent`, and generated tools expose type hints as
+  well as signatures. Configuration is checked before client creation. Terminal
+  answer admission excludes handoffs, events, user messages, and arbitrary objects
+  while preserving supported text/tool summaries and earlier effects. Real SDK
+  replay tests cover parameterized tools, fresh state, limits, and client cleanup;
+  this does not add provider evaluation or automatic handoff/approval behavior.
 - Added `CallbackAdapter.arun` for loop-bound notebook/service integrations, with
   the same required-result admission and normal exception/cancellation semantics.
   The synchronous bridge now supports general awaitables on Python 3.10–3.13 and

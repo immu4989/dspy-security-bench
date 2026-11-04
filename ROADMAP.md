@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Native AutoGen execution now uses a valid default identity and complete tool
+  introspection metadata. Real offline loops verify parameterized tools, fresh
+  clients, iteration-limit summaries, and cleanup; explicit terminal attribution
+  prevents handoff/event state from becoming scored answers.
+
 - Custom callbacks now offer an async entry point for notebook/service loops,
   with shared result validation, request-context preservation, and explicit
   pending-future ownership. Synchronous benchmark scheduling is unchanged;
