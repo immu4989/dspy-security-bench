@@ -74,7 +74,7 @@ def test_openai_agents_adapter_uses_native_tools(monkeypatch):
         def run_sync(agent, query):
             assert agent.kwargs["instructions"].startswith("trusted defense")
             agent.kwargs["tools"][0](record_id="OA-1")
-            return SimpleNamespace(final_output=f"done: {query}")
+            return SimpleNamespace(final_output=f"done: {query}", interruptions=[])
 
     _install_module(
         monkeypatch,

@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- The built-in OpenAI Agents bridge now distinguishes completed text from
+  approval-paused and malformed native results. Offline tests exercise the real
+  SDK loop and tool boundary, rather than only constructor signatures; no paused
+  work is automatically approved or resumed.
+
 - IncidentTwin and MissionPack now share required-result admission and optional
   usage normalization with procurement, separating broken outputs from unknown
   telemetry while preserving observed harms. Direct tracing and tool-budget

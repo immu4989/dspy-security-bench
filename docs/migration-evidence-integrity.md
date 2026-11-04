@@ -38,6 +38,11 @@ preserve old artifacts and their original tool revision for historical review.
   `agent_execution_error`, without exporting raw exception messages. These cases
   cannot claim mission completion; earlier instrumented effects and harms remain
   observed. Invalid optional usage still means unknown, not task failure.
+- The built-in OpenAI Agents bridge now requires an explicit empty interruption
+  list and text final output. Pending approval and malformed SDK results are
+  incomplete/error paths, not substituted empty text. Custom test doubles must
+  model the required completion state; structured-output applications need an
+  explicit custom callback. No approvals or resumes are performed automatically.
 - The same required-result and fixed-error-code rules now apply to IncidentTwin
   and MissionPack. Their optional usage follows Procurement's existing behavior:
   nonnegative integer token fields and finite nonnegative USD cost are retained;

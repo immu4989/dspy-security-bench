@@ -72,6 +72,19 @@ if sys.argv[1:] == ["--version"]:
         pass
     else:
         raise RuntimeError("installed callback stringified unsupported output")
+    from types import SimpleNamespace
+    from dspy_security_bench.integrations.frameworks import _openai_final_answer
+    for result in (SimpleNamespace(final_output=None, interruptions=[]),
+                   SimpleNamespace(final_output="stale", interruptions=[object()]),
+                   SimpleNamespace(final_output="answer")):
+        try:
+            _openai_final_answer(result)
+        except AgentResultError:
+            pass
+        else:
+            raise RuntimeError("installed OpenAI bridge admitted incomplete native result")
+    if _openai_final_answer(SimpleNamespace(final_output="", interruptions=[])) != "":
+        raise RuntimeError("installed OpenAI bridge changed an intentional empty answer")
     class InvalidAnswer(ReferenceProcurementAgent):
         def run(self, *args, **kwargs):
             result = super().run(*args, **kwargs)

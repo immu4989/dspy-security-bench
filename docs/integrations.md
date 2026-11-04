@@ -263,6 +263,28 @@ reported. These are provider-reported estimates, not billing reconciliation;
 unreported SDK retries, tool execution costs, and provider-side work are not
 included. Custom agents own the completeness of usage they supply.
 
+## OpenAI Agents result completeness
+
+On main after v0.19.0, the built-in OpenAI Agents bridge accepts only a text
+`final_output` with an explicitly empty `interruptions` list. Missing/non-text
+answers, absent/malformed interruption state, and pending approvals raise
+`AgentResultError`; they are not stringified or substituted with empty text.
+An intentional empty text answer is still valid when no interruption is pending.
+
+The [official SDK result guide](https://developers.openai.com/api/docs/guides/agents/results)
+distinguishes approval-paused state from a final answer. A pause is valid SDK
+behavior but incomplete benchmark execution. This adapter does not approve,
+resume, or serialize pending work; use an explicitly reviewed application
+workflow outside this one-shot bridge when your evaluation needs human review.
+Previously executed effects are not rolled back, and error messages do not copy
+SDK state, pending arguments, or output values. The bridge uses the SDK's default
+text mode; adapt structured output explicitly through a custom callback.
+
+The optional framework CI job now exercises the actual installed SDK's model
+loop with a canned model, real tool invocation, empty output, and an approval
+pause. Sockets are blocked and tracing disabled in those fixtures. This is
+zero-provider compatibility evidence, not a live model or approval-policy test.
+
 ## What doctor checks
 
 The strengthened checks and `--manifest-only` mode are **on main after v0.19.0**;

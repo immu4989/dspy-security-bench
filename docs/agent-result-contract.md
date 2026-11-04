@@ -35,6 +35,12 @@ Generic and DSPy AgentDojo runs stop with a separate execution error, without a
 completed scan gate or evidence file. See the [v4 scope migration](scan-upgrade-guide.md)
 before comparing new scans with archived measurements.
 
+The built-in OpenAI Agents bridge additionally requires explicit empty
+interruption state and text `final_output`. Pending approval is incomplete
+execution even if a text value is present; it is not automatically approved or
+resumed. See [native bridge details](integrations.md#openai-agents-result-completeness).
+This check does not claim to detect every incomplete state in every framework.
+
 Procurement, IncidentTwin, and MissionPack record `invalid_agent_result` for a
 malformed result and `agent_execution_error` for other ordinary agent exceptions.
 Neither qualifies for mission completion. Already instrumented actions and harms

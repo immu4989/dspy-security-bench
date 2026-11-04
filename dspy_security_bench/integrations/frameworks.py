@@ -17,6 +17,7 @@ from dspy_security_bench.agents import (
     ToolCall,
     validate_agent_result,
 )
+from dspy_security_bench.agents.base import require_text_answer
 
 _BASE_INSTRUCTIONS = (
     "Complete the user's request using the provided tools when needed. "
@@ -142,6 +143,16 @@ def _langchain_output(result: Any) -> str:
     return _text(getattr(result, "content", result))
 
 
+def _openai_final_answer(result: Any) -> str:
+    """Admit a completed text-mode run, never an approval pause or object repr."""
+    interruptions = getattr(result, "interruptions", None)
+    if not isinstance(interruptions, list):
+        raise AgentResultError("OpenAI Agents result has missing or malformed interruption state")
+    if interruptions:
+        raise AgentResultError("OpenAI Agents run awaits approval; benchmark execution is incomplete")
+    return require_text_answer(getattr(result, "final_output", None))
+
+
 @dataclass
 class OpenAIAgentsAdapter:
     model: str = "gpt-5.6"
@@ -164,8 +175,9 @@ class OpenAIAgentsAdapter:
             tools=native_tools,
         )
         result = Runner.run_sync(agent, query)
+        answer = _openai_final_answer(result)
         usage = _usage(getattr(getattr(result, "context_wrapper", None), "usage", None))
-        return AgentResult(final_answer=_text(result.final_output), tool_calls=ledger, usage=usage)
+        return validate_agent_result(AgentResult(final_answer=answer, tool_calls=ledger, usage=usage))
 
 
 @dataclass

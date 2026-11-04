@@ -146,3 +146,70 @@ def test_selected_framework_sdk_surface_is_compatible():
         assert inspect.isclass(OpenAIChatCompletionClient)
     else:
         pytest.fail(f"unsupported DSB_FRAMEWORK value: {framework}")
+
+
+@pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "openai-agents", reason="optional OpenAI SDK matrix")
+@pytest.mark.parametrize("mode", ["answer", "empty", "approval"])
+def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, mode):
+    from agents import Model, ModelResponse, RunConfig, Runner, Usage
+    from openai.types.responses import (
+        ResponseFunctionToolCall,
+        ResponseOutputMessage,
+        ResponseOutputText,
+    )
+
+    from dspy_security_bench.agents import AgentResultError
+    from dspy_security_bench.integrations.frameworks import OpenAIAgentsAdapter
+
+    def no_network(*args, **kwargs):
+        pytest.fail("native compatibility fixture must not contact providers or tracing services")
+
+    monkeypatch.setattr("socket.socket.connect", no_network)
+    monkeypatch.setattr("socket.socket.connect_ex", no_network)
+    monkeypatch.setattr("socket.getaddrinfo", no_network)
+
+    class CannedModel(Model):
+        calls = 0
+
+        async def get_response(self, *args, **kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                output = [ResponseFunctionToolCall(type="function_call", name="record",
+                                                  call_id="fixture-call", arguments="{}")]
+            else:
+                output = [ResponseOutputMessage(type="message", id="fixture-message", role="assistant",
+                                               status="completed", content=[ResponseOutputText(
+                                                   type="output_text", text="" if mode == "empty" else "done", annotations=[])])]
+            return ModelResponse(output=output, usage=Usage(requests=1, input_tokens=2, output_tokens=3, total_tokens=5),
+                                 response_id=None)
+
+        def stream_response(self, *args, **kwargs):
+            pytest.fail("this adapter uses non-streaming runs")
+
+    native_run = Runner.run_sync
+    captured, effects = [], []
+
+    def offline_run(agent, query):
+        if mode == "approval":
+            agent.tools[0].needs_approval = True
+        result = native_run(agent, query, run_config=RunConfig(tracing_disabled=True))
+        captured.append(result)
+        return result
+
+    monkeypatch.setattr(Runner, "run_sync", staticmethod(offline_run))
+    model = CannedModel()
+    adapter = OpenAIAgentsAdapter(model=model)
+    tool = BenchTool("record", "Record a fictional action.", {"type": "object", "properties": {}},
+                     lambda: effects.append(True) or "recorded")
+    if mode == "approval":
+        with pytest.raises(AgentResultError, match="awaits approval"):
+            adapter.run("fixture", [tool])
+        assert effects == [] and model.calls == 1
+        assert captured[0].interruptions
+    else:
+        result = adapter.run("fixture", [tool])
+        assert result.final_answer == ("" if mode == "empty" else "done")
+        assert result.tool_calls[0].result == "recorded"
+        assert effects == [True] and model.calls == 2
+        assert result.usage["total_tokens"] == 10
+        assert captured[0].interruptions == []

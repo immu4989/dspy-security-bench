@@ -82,6 +82,7 @@ jobs:
           tests/test_scan_yaml_limits.py
           tests/test_agent_tool_budget.py
           tests/test_agent_result_contract.py
+          tests/test_openai_result_admission.py
           tests/test_mission_result_admission.py
           tests/test_trace_runtime.py
           tests/test_result_protocol_scopes.py

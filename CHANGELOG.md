@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- The OpenAI Agents bridge rejects pending approvals, missing/malformed
+  interruption state, and non-text final output instead of coercing them to
+  scored text. Empty text remains valid for completed runs. Real SDK-loop
+  compatibility tests exercise tool execution and approval pauses with a canned
+  model, blocked sockets, and disabled tracing; no provider or approval action
+  is performed. Other native framework conversions are not covered by this check.
 - Extended result admission to IncidentTwin and MissionPack, with fixed error
   codes, preserved instrumented harms, and shared optional-usage normalization.
   Missing telemetry no longer causes task failure, and nonfinite costs are

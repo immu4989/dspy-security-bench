@@ -122,6 +122,11 @@ Optional invalid usage telemetry is not a task-failure gate. This validates the
 adapter boundary, not recursive argument JSON, trace truth/completeness, or an
 SDK's earlier conversions and internally suppressed errors.
 
+The built-in OpenAI Agents bridge also rejects pending approvals or malformed
+completion state before producing `AgentResult`; an SDK pause is not silently
+coerced into a completed empty response. Other framework-native conversions
+remain outside that specific check. See the [integration contract](integrations.md#openai-agents-result-completeness).
+
 Scan-owned diagnostics for agent construction and benchmark execution include
 the failure phase and exception class, but omit exception messages that could
 contain provider requests, credentials, or private tool data. This does not
