@@ -161,13 +161,17 @@ def test_crewai_adapter_uses_direct_agent_kickoff(monkeypatch):
     assert result.tool_calls[0].args["record_id"] == "CR-1"
 
 
-def test_autogen_adapter_uses_fresh_agentchat_loop(monkeypatch):
+@pytest.mark.parametrize("inside_loop", [False, True])
+@pytest.mark.parametrize("outcome", ["success", "error", "cancelled"])
+def test_autogen_adapter_uses_fresh_agentchat_loop(monkeypatch, inside_loop, outcome):
+    closed = []
+
     class FakeClient:
         def __init__(self, **kwargs):
             assert kwargs["parallel_tool_calls"] is False
 
         async def close(self):
-            return None
+            closed.append(True)
 
     class FakeAgent:
         def __init__(self, **kwargs):
@@ -176,6 +180,10 @@ def test_autogen_adapter_uses_fresh_agentchat_loop(monkeypatch):
 
         async def run(self, *, task):
             await self.tools[0](record_id="AG-1")
+            if outcome == "error":
+                raise LookupError("synthetic SDK failure")
+            if outcome == "cancelled":
+                raise asyncio.CancelledError()
             return SimpleNamespace(messages=[SimpleNamespace(content=f"autogen: {task}")])
 
     _install_module(monkeypatch, "autogen_agentchat")
@@ -187,11 +195,23 @@ def test_autogen_adapter_uses_fresh_agentchat_loop(monkeypatch):
         "autogen_ext.models.openai",
         OpenAIChatCompletionClient=FakeClient,
     )
-    result = AutoGenAdapter(model="test").run(
-        "inspect", [_bench_tool()], system_directive="trusted defense"
-    )
-    assert result.final_answer == "autogen: inspect"
-    assert result.tool_calls[0].args["record_id"] == "AG-1"
+    def execute():
+        return AutoGenAdapter(model="test").run(
+            "inspect", [_bench_tool()], system_directive="trusted defense"
+        )
+
+    async def nested():
+        return execute()
+
+    if outcome == "success":
+        result = asyncio.run(nested()) if inside_loop else execute()
+        assert result.final_answer == "autogen: inspect"
+        assert result.tool_calls[0].args["record_id"] == "AG-1"
+    else:
+        expected = LookupError if outcome == "error" else asyncio.CancelledError
+        with pytest.raises(expected):
+            asyncio.run(nested()) if inside_loop else execute()
+    assert closed == [True]
 
 
 def test_callback_adapter_accepts_async_and_agent_result():

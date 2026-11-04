@@ -84,6 +84,8 @@ jobs:
           tests/test_agent_result_contract.py
           tests/test_openai_result_admission.py
           tests/test_langchain_result_admission.py
+          tests/test_callback_async.py
+          tests/test_integrations.py
           tests/test_mission_result_admission.py
           tests/test_trace_runtime.py
           tests/test_result_protocol_scopes.py

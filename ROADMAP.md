@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Custom callbacks now offer an async entry point for notebook/service loops,
+  with shared result validation, request-context preservation, and explicit
+  pending-future ownership. Synchronous benchmark scheduling is unchanged;
+  offline tests exercise concurrency isolation and cancellation cleanup.
+
 - LangChain final-answer attribution now requires completed assistant text,
   excluding stale interrupted states, user/tool messages, unfinished calls, and
   reasoning metadata. Native offline loops cover both approval and pre-tool

@@ -7,6 +7,7 @@ import inspect
 import sys
 from collections.abc import Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
 from dataclasses import dataclass
 from typing import Any
 
@@ -79,12 +80,30 @@ def _tool_callable(tool: BenchTool, ledger: list[ToolCall], *, asynchronous: boo
 
 
 def _run_awaitable(value: Awaitable[Any]) -> Any:
+    # Pending futures/tasks belong to an existing loop. Blocking that loop while
+    # moving its work to a worker cannot make progress safely; leave ownership
+    # and cancellation with the caller instead.
+    if asyncio.isfuture(value):
+        if value.done():
+            return value.result()
+        raise RuntimeError(
+            "pending futures/tasks require awaiting CallbackAdapter.arun on their owning loop"
+        )
+
+    async def consume():
+        return await value
+
+    def execute():
+        # Before Python 3.14 asyncio.run accepts only coroutine objects.
+        return asyncio.run(consume())
+
     try:
         asyncio.get_running_loop()
     except RuntimeError:
-        return asyncio.run(value)
+        return execute()
+    context = copy_context()
     with ThreadPoolExecutor(max_workers=1) as executor:
-        return executor.submit(asyncio.run, value).result()
+        return executor.submit(context.run, execute).result()
 
 
 def _text(value: Any) -> str:
@@ -340,6 +359,14 @@ class AutoGenAdapter:
         return AgentResult(final_answer=_text(final), tool_calls=ledger, usage=usage)
 
 
+def _callback_result(result: Any) -> AgentResult:
+    if isinstance(result, AgentResult):
+        return validate_agent_result(result)
+    if not isinstance(result, str):
+        raise AgentResultError("custom callback must return text or an AgentResult")
+    return AgentResult(final_answer=result)
+
+
 @dataclass
 class CallbackAdapter:
     """Bridge an MCP-backed or custom loop through one explicit callback.
@@ -348,6 +375,9 @@ class CallbackAdapter:
     trusted ``system_directive``. It may return text, ``AgentResult``, or an
     awaitable of either. This is intentionally explicit because MCP specifies
     tools, not a universal agent execution API.
+
+    Use ``await arun(...)`` in async applications, especially for loop-bound
+    clients, futures, or tasks. Benchmark runners continue to call ``run``.
     """
 
     runner: Callable[[str, list[BenchTool], str], str | AgentResult | Awaitable[str | AgentResult]]
@@ -357,8 +387,17 @@ class CallbackAdapter:
         result = self.runner(query, tools, system_directive)
         if inspect.isawaitable(result):
             result = _run_awaitable(result)
-        if isinstance(result, AgentResult):
-            return validate_agent_result(result)
-        if not isinstance(result, str):
-            raise AgentResultError("custom callback must return text or an AgentResult")
-        return AgentResult(final_answer=result)
+        return _callback_result(result)
+
+    async def arun(
+        self, query: str, tools: list[BenchTool], *, system_directive: str = ""
+    ) -> AgentResult:
+        """Run in the caller's event loop, preserving normal await/cancel semantics.
+
+        A synchronous callback is invoked inline, not offloaded. This method
+        does not add concurrency, timeouts, or asynchronous benchmark scheduling.
+        """
+        result = self.runner(query, tools, system_directive)
+        if inspect.isawaitable(result):
+            result = await result
+        return _callback_result(result)

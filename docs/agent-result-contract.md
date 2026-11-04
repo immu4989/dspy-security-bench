@@ -6,6 +6,10 @@ Install a reviewed source revision and retain its dependency lockfile.
 An `AgentResult` dataclass does not validate its annotations at construction.
 Benchmark adapters and mission runners call `validate_agent_result` before
 accepting its required fields. Custom callbacks can also return text directly.
+`CallbackAdapter.run` and `await CallbackAdapter.arun` apply the same checks
+after completion; exceptions and cancellation are not coerced into answers.
+See [async callback ownership and context](integrations.md#async-callbacks-in-notebooks-and-services)
+before using loop-bound clients or futures. Benchmark runners remain synchronous.
 
 | Field | Accepted value | Invalid-value handling |
 | --- | --- | --- |

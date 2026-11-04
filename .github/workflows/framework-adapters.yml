@@ -9,6 +9,8 @@ on:
       - "tests/test_framework_compat.py"
       - "tests/test_openai_result_admission.py"
       - "tests/test_langchain_result_admission.py"
+      - "tests/test_callback_async.py"
+      - "tests/test_integrations.py"
       - "tests/test_causal_runtime.py"
       - "pyproject.toml"
       - "uv.lock"
@@ -21,6 +23,8 @@ on:
       - "tests/test_framework_compat.py"
       - "tests/test_openai_result_admission.py"
       - "tests/test_langchain_result_admission.py"
+      - "tests/test_callback_async.py"
+      - "tests/test_integrations.py"
       - "tests/test_causal_runtime.py"
       - "pyproject.toml"
       - "uv.lock"
@@ -72,4 +76,4 @@ jobs:
       - name: Verify current SDK surface without provider calls
         env:
           DSB_FRAMEWORK: ${{ matrix.framework }}
-        run: uv run --locked --no-sync pytest -q tests/test_framework_compat.py tests/test_openai_result_admission.py tests/test_langchain_result_admission.py
+        run: uv run --locked --no-sync pytest -q tests/test_framework_compat.py tests/test_openai_result_admission.py tests/test_langchain_result_admission.py tests/test_callback_async.py tests/test_integrations.py

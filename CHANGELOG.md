@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Added `CallbackAdapter.arun` for loop-bound notebook/service integrations, with
+  the same required-result admission and normal exception/cancellation semantics.
+  The synchronous bridge now supports general awaitables on Python 3.10–3.13 and
+  preserves context-variable bindings in its worker. Pending futures/tasks are
+  rejected without taking over their owner loop or cancelling them; completed
+  outcomes are retained. Benchmark scheduling remains synchronous. Offline tests
+  cover context separation, future ownership, cancellation, and AutoGen cleanup.
 - Corrected LangChain final-answer attribution: require an uninterrupted state
   with a completed terminal assistant message and no pending/invalid tool calls.
   Extract only explicit text blocks, excluding reasoning and tool metadata;

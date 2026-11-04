@@ -263,6 +263,64 @@ reported. These are provider-reported estimates, not billing reconciliation;
 unreported SDK retries, tool execution costs, and provider-side work are not
 included. Custom agents own the completeness of usage they supply.
 
+## Async callbacks in notebooks and services
+
+**On main after v0.19.0**, `CallbackAdapter.arun` awaits a callback in the caller's
+event loop. Use it for notebook cells, async request handlers, and clients with
+loop-bound connections. It accepts the same text/`AgentResult` contract as `run`,
+including results returned by coroutines, general awaitables, futures, and tasks.
+For example, this standalone demonstration makes no provider calls:
+
+```python
+import asyncio
+from dspy_security_bench.integrations import CallbackAdapter
+
+async def run_agent(query, tools, system_directive):
+    await asyncio.sleep(0)
+    return "Synthetic answer"  # Replace with your trusted application loop.
+
+adapter = CallbackAdapter(run_agent)
+
+async def demo():
+    result = await adapter.arun("Inspect a synthetic record", [], system_directive="Use synthetic data")
+    assert result.final_answer == "Synthetic answer"
+
+asyncio.run(demo())  # In a notebook with an active loop, use: await demo()
+```
+
+In a real evaluation, pass the exact live `BenchTool` instances and trusted
+directive supplied by the environment. This convenience API does **not** change
+benchmark scheduling: CLI/mission runners and trace/budget wrappers still call
+the synchronous `run` contract. It does not make every native framework bridge
+async, automatically parallelize trials, or add timeouts. Synchronous callbacks
+are invoked inline even by `arun`; a blocking callback still blocks its caller.
+
+For existing synchronous integrations, `run` accepts fresh coroutines and general
+awaitables using a temporary loop. When another loop is already running in the
+calling thread, it uses a worker and copies the current `ContextVar` bindings.
+This preserves request context in the awaited body; changes to worker bindings
+do not propagate back. The copy does not clone mutable values or provide tenant
+isolation. `run` still blocks until completion. Python's
+[runner documentation](https://docs.python.org/3/library/asyncio-runner.html)
+explains why the bridge wraps general awaitables for Python versions before
+3.14; [context variables](https://docs.python.org/3/library/contextvars.html)
+explain the per-thread context boundary.
+
+Pending futures/tasks already belong to a loop: `run` raises `RuntimeError`
+directing you to `arun`, without driving their loop or cancelling them. Completed
+futures/tasks retain their result, exception, or cancellation. The callback has
+already executed when its returned future is checked, so the **owner must still
+await or cancel any work it started**. Prefer `await adapter.arun(...)` on that
+same owner loop from the beginning. Neither entry point migrates live clients
+or pending work across loops; an awaitable capturing a different loop can still
+fail under Python's normal [future semantics](https://docs.python.org/3/library/asyncio-future.html).
+
+Both entry points validate completed results identically. Callback exceptions
+and cancellation propagate, never become answer text, and do not roll back
+earlier effects. Async callers control cancellation/deadlines using their own
+application policy; no sandbox, automatic retry, or forced thread cancellation
+is provided. Review and trust callback code before invoking either entry point.
+
 ## OpenAI Agents result completeness
 
 On main after v0.19.0, the built-in OpenAI Agents bridge accepts only a text

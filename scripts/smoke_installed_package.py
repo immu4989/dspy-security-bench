@@ -72,6 +72,43 @@ if sys.argv[1:] == ["--version"]:
         pass
     else:
         raise RuntimeError("installed callback stringified unsupported output")
+    import asyncio
+    from contextvars import ContextVar
+    request_context = ContextVar("installed_callback_request", default="missing")
+    class GeneralAwaitable:
+        def __await__(self):
+            async def answer():
+                await asyncio.sleep(0)
+                return request_context.get()
+            return answer().__await__()
+    async def check_async_callback():
+        token = request_context.set("synthetic-request")
+        try:
+            adapter = CallbackAdapter(lambda *args: GeneralAwaitable())
+            if adapter.run("query", []).final_answer != "synthetic-request":
+                raise RuntimeError("installed synchronous bridge lost request context")
+            loop = asyncio.get_running_loop()
+            future = loop.create_future()
+            loop.call_soon(future.set_result, "answer")
+            adapter = CallbackAdapter(lambda *args: future)
+            try:
+                adapter.run("query", [])
+            except RuntimeError as exc:
+                if "arun" not in str(exc) or future.done():
+                    raise RuntimeError("installed bridge changed pending future ownership") from None
+            else:
+                raise RuntimeError("installed bridge tried to drive pending future synchronously")
+            if (await adapter.arun("query", [])).final_answer != "answer":
+                raise RuntimeError("installed async bridge lost loop-bound answer")
+            try:
+                await CallbackAdapter(lambda *args: None).arun("query", [])
+            except AgentResultError:
+                pass
+            else:
+                raise RuntimeError("installed async bridge admitted malformed output")
+        finally:
+            request_context.reset(token)
+    asyncio.run(check_async_callback())
     from types import SimpleNamespace
     from dspy_security_bench.integrations.frameworks import _openai_final_answer
     for result in (SimpleNamespace(final_output=None, interruptions=[]),

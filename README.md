@@ -1075,6 +1075,11 @@ without `--force`.
 
 [Open the framework integration guide →](docs/integrations.md)
 
+On main after v0.19.0, custom adapters also expose `await adapter.arun(...)` for
+notebooks and async services. The synchronous bridge preserves request context
+and directs pending loop-owned work to the async path; benchmark scheduling
+remains synchronous. [Async callback guide](docs/integrations.md#async-callbacks-in-notebooks-and-services).
+
 ---
 
 ## Public-interest specialty: ImpactTwin / ProcureBench
