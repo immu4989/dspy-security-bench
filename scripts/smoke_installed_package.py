@@ -173,6 +173,20 @@ if sys.argv[1:] == ["--version"]:
     for answer in ("", "answer"):
         if _pydantic_final_answer(SimpleNamespace(output=answer)) != answer:
             raise RuntimeError("installed Pydantic AI bridge changed explicit text")
+    from dspy_security_bench.integrations.frameworks import _crewai_final_answer
+    for state in (None, SimpleNamespace(), SimpleNamespace(raw="answer"),
+                  SimpleNamespace(agent_role="crewai-agent", raw=None),
+                  SimpleNamespace(agent_role="crewai-agent", raw={"text": "structured"}),
+                  SimpleNamespace(agent_role="other-agent", raw="answer")):
+        try:
+            _crewai_final_answer(state, role="crewai-agent")
+        except AgentResultError:
+            pass
+        else:
+            raise RuntimeError("installed CrewAI bridge admitted unsupported output")
+    for answer in ("", "answer"):
+        if _crewai_final_answer(SimpleNamespace(agent_role="crewai-agent", raw=answer), role="crewai-agent") != answer:
+            raise RuntimeError("installed CrewAI bridge changed explicit text")
     class InvalidAnswer(ReferenceProcurementAgent):
         def run(self, *args, **kwargs):
             result = super().run(*args, **kwargs)

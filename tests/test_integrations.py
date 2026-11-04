@@ -152,11 +152,12 @@ def test_crewai_adapter_uses_direct_agent_kickoff(monkeypatch):
     class FakeAgent:
         def __init__(self, **kwargs):
             assert kwargs["goal"].startswith("trusted defense")
+            self.role = kwargs["role"]
             self.tools = kwargs["tools"]
 
         def kickoff(self, query):
             self.tools[0](record_id="CR-1")
-            return SimpleNamespace(raw=f"crew: {query}")
+            return SimpleNamespace(raw=f"crew: {query}", agent_role=self.role)
 
     _install_module(monkeypatch, "crewai", Agent=FakeAgent)
     _install_module(monkeypatch, "crewai.tools", tool=tool)

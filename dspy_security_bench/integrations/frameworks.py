@@ -109,22 +109,6 @@ def _run_awaitable(value: Awaitable[Any]) -> Any:
         return executor.submit(context.run, execute).result()
 
 
-def _text(value: Any) -> str:
-    if value is None:
-        return ""
-    if isinstance(value, str):
-        return value
-    if isinstance(value, list):
-        parts = []
-        for item in value:
-            if isinstance(item, dict) and isinstance(item.get("text"), str):
-                parts.append(item["text"])
-            else:
-                parts.append(str(item))
-        return "\n".join(parts)
-    return str(value)
-
-
 def _usage(values: Any) -> dict[str, int | float]:
     if values is None:
         return {}
@@ -288,6 +272,14 @@ class PydanticAIAdapter:
         ))
 
 
+def _crewai_final_answer(result: Any, *, role: str) -> str:
+    """Read the SDK's explicit answer for this agent, never an object repr."""
+    source = getattr(result, "agent_role", None)
+    if not isinstance(source, str) or source != role:
+        raise AgentResultError("CrewAI result role must match the selected agent")
+    return require_text_answer(getattr(result, "raw", None))
+
+
 @dataclass
 class CrewAIAdapter:
     model: str = "openai/gpt-5.6"
@@ -320,11 +312,15 @@ class CrewAIAdapter:
             verbose=False,
         )
         result = agent.kickoff(query)
-        return AgentResult(
-            final_answer=_text(result.raw),
+        # Current CrewAI returns a coroutine when kickoff sees an active loop.
+        if inspect.isawaitable(result):
+            result = _run_awaitable(result)
+        answer = _crewai_final_answer(result, role=self.name)
+        return validate_agent_result(AgentResult(
+            final_answer=answer,
             tool_calls=ledger,
             usage=_usage(getattr(result, "usage_metrics", None)),
-        )
+        ))
 
 
 def _autogen_final_answer(result: Any, *, name: str) -> str:

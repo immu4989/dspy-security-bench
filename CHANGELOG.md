@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Corrected CrewAI's active-event-loop bridge: await native kickoff results
+  before reading them, preserving request context while keeping `run()` blocking.
+  Require explicit raw text attributed to the selected agent, instead of scoring
+  stringified objects or missing answers. Native offline SDK tests now cover
+  function/ReAct tool execution, defaults, fresh runs, per-run usage, and errors
+  after effects. Tests disable telemetry and block sockets; production
+  observability settings and historical reports are unchanged.
 - The Pydantic AI bridge now rejects missing/non-text output before reading
   optional usage, including deferred approvals, external-call requests, and
   structured objects. It no longer turns those values into scored strings.

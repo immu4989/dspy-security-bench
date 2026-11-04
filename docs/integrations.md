@@ -454,6 +454,50 @@ and exception cleanup. This is deterministic compatibility evidence, not a live
 provider evaluation. Saved reports are not rewritten; retain producer revisions
 and recapture evidence when comparing changes to native execution behavior.
 
+## CrewAI native answers and active event loops
+
+These corrections are **on main after v0.19.0**. The built-in bridge uses
+CrewAI's standalone `Agent.kickoff`, with delegation disabled, rather than a
+multi-agent Crew/Flow workflow. Its returned `agent_role` must be a string
+matching the configured adapter name, and `raw` must be a string. Missing
+fields, mismatched roles, dictionaries, arrays, and other objects raise
+`AgentResultError` before optional usage is read; they are never coerced into
+scored answers. Prior tool effects are not rolled back.
+
+Intentional empty text remains valid at the adapter boundary. The native SDK
+may reject an empty model response before producing an output. The adapter
+evaluates the SDK's exposed `raw` text, including JSON already serialized by
+the SDK; it does not interpret a `pydantic` object as an answer or validate that
+object's schema. Role metadata is not authentication, and a text result is not
+proof of successful work, approved actions, or complete execution evidence.
+Custom team/approval/resumption behavior needs a reviewed `CallbackAdapter`.
+
+In the locked CrewAI SDK, `kickoff()` returns a coroutine when it detects an
+active event loop. The bridge now consumes that awaitable before reading the
+result. Its synchronous `run()` still **blocks**: inside an existing loop the
+coroutine runs in a worker with copied `ContextVar` bindings. This is not an
+async benchmark scheduler or support for resources bound to the caller's loop.
+Use [an async callback](#async-callbacks-in-notebooks-and-services) for integrations
+that need to await work on their own event loop. No timeout, cancellation policy,
+automatic approval, or resource sandbox is added.
+
+The optional-framework CI matrix runs the actual SDK executor with a canned
+[custom BaseLLM](https://docs.crewai.com/en/learn/custom-llm), blocked Python
+sockets, and temporary SDK storage. It covers native function calling and ReAct
+tool dispatch, required/defaulted arguments, repeated fresh agents, per-run
+usage, request context, empty-response errors, and model failure after tool
+effects, both inside and outside an event loop. CrewAI's strict provider schema
+can mark defaulted arguments required; the fixture also tests local dispatch
+when such an argument is omitted. This does not establish provider conformance
+or full JSON Schema fidelity.
+
+Fixtures disable telemetry, tracing, and version checks before importing CrewAI.
+The adapter does **not** change an application's global observability settings;
+review the SDK's [telemetry controls](https://docs.crewai.com/en/telemetry) for
+your deployment. These deterministic checks make no live provider requests and
+do not measure provider quality. Historical reports stay unchanged; retain
+producer revisions and recapture evidence when comparing behavior changes.
+
 ## What doctor checks
 
 The strengthened checks and `--manifest-only` mode are **on main after v0.19.0**;

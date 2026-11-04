@@ -16,6 +16,31 @@ from dspy_security_bench.causal.runtime import (
 from dspy_security_bench.integrations.frameworks import _tool_callable
 
 
+@pytest.fixture(autouse=True)
+def isolated_crewai_sdk(monkeypatch, tmp_path):
+    """Disable optional SDK egress before its first import, not just model calls."""
+    if os.environ.get("DSB_FRAMEWORK") != "crewai":
+        yield
+        return
+    monkeypatch.setenv("CREWAI_DISABLE_TELEMETRY", "true")
+    monkeypatch.setenv("OTEL_SDK_DISABLED", "true")
+    monkeypatch.setenv("CREWAI_TRACING_ENABLED", "false")
+    monkeypatch.setenv("CREWAI_DISABLE_VERSION_CHECK", "true")
+    monkeypatch.setenv("CREWAI_STORAGE_DIR", str(tmp_path / "storage"))
+    monkeypatch.chdir(tmp_path)
+    attempted_connections = []
+
+    def no_network(*args, **kwargs):
+        attempted_connections.append(True)
+        pytest.fail("native CrewAI fixture must not contact providers or telemetry services")
+
+    monkeypatch.setattr("socket.socket.connect", no_network)
+    monkeypatch.setattr("socket.socket.connect_ex", no_network)
+    monkeypatch.setattr("socket.getaddrinfo", no_network)
+    yield
+    assert not attempted_connections, "CrewAI attempted network access, even if its SDK caught the error"
+
+
 def _tool():
     return BenchTool(
         name="lookup_record",
@@ -162,6 +187,125 @@ def native_sync_loop():
         loop.run_until_complete(loop.shutdown_default_executor())
         loop.close()
         asyncio.set_event_loop(None)
+
+
+@pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "crewai", reason="optional CrewAI SDK matrix")
+@pytest.mark.parametrize("inside_loop", [False, True])
+@pytest.mark.parametrize("mode", ["answer", "tool", "react-tool", "error-after-tool", "empty-response"])
+def test_crewai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, tmp_path, mode, inside_loop):
+    import asyncio
+    from contextvars import ContextVar
+    from copy import deepcopy
+    from pathlib import Path
+
+    from crewai import Agent, BaseLLM
+    from crewai.lite_agent_output import LiteAgentOutput
+    from crewai_core.paths import db_storage_path
+
+    from dspy_security_bench.integrations import CrewAIAdapter
+
+    assert Path(db_storage_path()) == tmp_path / "storage"
+    calls, captured, agents, effects, returned_awaitables = [], [], [], [], []
+    request = ContextVar("native-crewai-request", default="missing")
+    tool_mode = mode in {"tool", "react-tool", "error-after-tool"}
+
+    class CannedLLM(BaseLLM):
+        def supports_function_calling(self):
+            return mode != "react-tool"
+
+        def call(self, messages, tools=None, available_functions=None, **kwargs):
+            assert request.get() == "request-1"
+            assert available_functions is None  # Execution belongs to the SDK, not this fixture.
+            calls.append(deepcopy(messages))
+            self._track_token_usage_internal({"prompt_tokens": 2, "completion_tokens": 3, "total_tokens": 5})
+            if mode == "empty-response":
+                return ""
+            if tool_mode and len(calls) % 2 == 1:
+                if mode == "react-tool":
+                    return 'Thought: record the action\nAction: record\nAction Input: {"record_id":"R-1"}'
+                # CrewAI's strict provider schema marks even defaulted fields
+                # required. Its local tool validator still supplies defaults.
+                assert "record_id" in tools[0]["function"]["parameters"]["required"]
+                assert tools[0]["function"]["parameters"]["properties"]["limit"]["type"] == "integer"
+                return [{"id": "fixture-call", "type": "function", "function": {
+                    "name": "record", "arguments": '{"record_id":"R-1"}',
+                }}]
+            if mode == "error-after-tool":
+                raise LookupError("synthetic model failure after a tool effect")
+            return "Final Answer: done" if mode == "react-tool" else "done"
+
+        async def acall(self, *args, **kwargs):
+            await asyncio.sleep(0)
+            return self.call(*args, **kwargs)
+
+    class CapturingAgent(Agent):
+        def kickoff(self, *args, **kwargs):
+            result = super().kickoff(*args, **kwargs)
+            returned_awaitables.append(inspect.isawaitable(result))
+            if inspect.isawaitable(result):
+                async def capture():
+                    output = await result
+                    captured.append(output)
+                    return output
+                return capture()
+            captured.append(result)
+            return result
+
+    def agent_factory(**kwargs):
+        schema = kwargs["tools"][0].args_schema.model_json_schema()
+        assert schema["required"] == ["record_id"]
+        assert schema["properties"]["limit"]["default"] == 1
+        agent = CapturingAgent(**kwargs)
+        agents.append(agent)
+        return agent
+
+    monkeypatch.setattr("crewai.Agent", agent_factory)
+    model = CannedLLM(model="fixture/no-provider")
+    adapter = CrewAIAdapter(model=model, name="fixture role")
+    tool = BenchTool("record", "Record a fictional action.", {
+        "type": "object", "properties": {"record_id": {"type": "string"}, "limit": {"type": "integer", "default": 1}},
+        "required": ["record_id"],
+    }, lambda **kwargs: effects.append(kwargs) or "recorded")
+
+    def invoke(query):
+        token = request.set("request-1")
+        try:
+            return adapter.run(query, [tool], system_directive="trusted synthetic directive")
+        finally:
+            request.reset(token)
+
+    async def invoke_inside_loop(query):
+        return invoke(query)
+
+    def run(query):
+        return asyncio.run(invoke_inside_loop(query)) if inside_loop else invoke(query)
+
+    if mode in {"error-after-tool", "empty-response"}:
+        error = LookupError if mode == "error-after-tool" else ValueError
+        with pytest.raises(error):
+            run("first request")
+        assert effects == ([{"record_id": "R-1", "limit": 1}] if tool_mode else [])
+        assert captured == []
+        return
+
+    for query in ("first request", "second request"):
+        result = run(query)
+        assert result.final_answer == "done"
+        assert len(result.tool_calls) == int(tool_mode)
+        if tool_mode:
+            assert result.tool_calls[0].args == {"record_id": "R-1", "limit": 1}
+            assert result.tool_calls[0].result == "recorded"
+        multiplier = 2 if tool_mode else 1
+        assert result.usage == {"prompt_tokens": 2 * multiplier, "completion_tokens": 3 * multiplier,
+                                "total_tokens": 5 * multiplier}
+        assert isinstance(captured[-1], LiteAgentOutput)
+        assert captured[-1].agent_role == "fixture role" and captured[-1].raw == "done"
+    assert returned_awaitables == [inside_loop, inside_loop]
+    assert len(agents) == 2 and agents[0] is not agents[1]
+    assert len(calls) == (4 if tool_mode else 2)
+    assert "first request" not in str(calls[2 if tool_mode else 1])
+    assert effects == ([{"record_id": "R-1", "limit": 1}] * 2 if tool_mode else [])
+    assert request.get() == "missing"
 
 
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "pydantic-ai", reason="optional Pydantic AI SDK matrix")
