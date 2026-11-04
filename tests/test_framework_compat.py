@@ -213,3 +213,91 @@ def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
         assert effects == [True] and model.calls == 2
         assert result.usage["total_tokens"] == 10
         assert captured[0].interruptions == []
+
+
+@pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "langchain", reason="optional LangChain SDK matrix")
+@pytest.mark.parametrize("mode", ["answer", "empty", "blocks", "approval", "static-pause"])
+def test_langchain_bridge_runs_native_agent_loop_without_provider_calls(monkeypatch, mode):
+    from types import SimpleNamespace
+
+    from langchain.agents import create_agent
+    from langchain.agents.middleware import HumanInTheLoopMiddleware
+    from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
+    from langchain_core.messages import AIMessage
+    from langgraph.checkpoint.memory import InMemorySaver
+    from langsmith import tracing_context
+
+    from dspy_security_bench.agents import AgentResultError
+    from dspy_security_bench.integrations.frameworks import LangChainAdapter
+
+    def no_network(*args, **kwargs):
+        pytest.fail("native compatibility fixture must not contact providers or tracing services")
+
+    monkeypatch.setattr("socket.socket.connect", no_network)
+    monkeypatch.setattr("socket.socket.connect_ex", no_network)
+    monkeypatch.setattr("socket.getaddrinfo", no_network)
+
+    class CannedModel(FakeMessagesListChatModel):
+        def bind_tools(self, tools, **kwargs):
+            return self
+
+    content = "" if mode == "empty" else "done"
+    if mode == "blocks":
+        content = [{"type": "reasoning", "reasoning": "PRIVATE"},
+                   {"type": "text", "text": "do"}, {"type": "text", "text": "ne"}]
+    model = CannedModel(responses=[
+        AIMessage(content="", tool_calls=[{"name": "record", "args": {}, "id": "fixture-call", "type": "tool_call"}]),
+        AIMessage(content=content),
+    ])
+    captured, effects = [], []
+
+    def native_create(**kwargs):
+        options = {}
+        if mode == "approval":
+            options["middleware"] = [HumanInTheLoopMiddleware(interrupt_on={"record": True})]
+            options["checkpointer"] = InMemorySaver()
+        elif mode == "static-pause":
+            options["interrupt_before"] = ["tools"]
+            options["checkpointer"] = InMemorySaver()
+        graph = create_agent(**kwargs, **options)
+
+        def invoke(payload):
+            with tracing_context(enabled=False):
+                result = graph.invoke(payload, config={"configurable": {"thread_id": "fixture"}})
+            captured.append(result)
+            return result
+
+        return SimpleNamespace(invoke=invoke)
+
+    monkeypatch.setattr("langchain.agents.create_agent", native_create)
+    tool = BenchTool("record", "Record a fictional action.", {"type": "object", "properties": {}},
+                     lambda: effects.append(True) or "recorded")
+    adapter = LangChainAdapter(model=model)
+    if mode in {"approval", "static-pause"}:
+        with pytest.raises(AgentResultError):
+            adapter.run("fixture", [tool])
+        assert effects == []
+        if mode == "approval":
+            assert captured[0]["__interrupt__"]
+        else:
+            assert captured[0]["messages"][-1].tool_calls
+    else:
+        result = adapter.run("fixture", [tool])
+        assert result.final_answer == ("" if mode == "empty" else "done")
+        assert effects == [True] and result.tool_calls[0].result == "recorded"
+        assert captured[0]["messages"][-1].type == "ai"
+
+
+@pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "langchain", reason="optional LangChain SDK matrix")
+def test_langchain_native_message_types_cannot_substitute_for_final_assistant_text():
+    from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, ToolMessage
+
+    from dspy_security_bench.agents import AgentResultError
+    from dspy_security_bench.integrations.frameworks import _langchain_output
+
+    for message in (HumanMessage(content="PRIVATE user text"), ToolMessage(content="PRIVATE tool data", tool_call_id="fixture"),
+                    AIMessageChunk(content="partial"), AIMessage(content_blocks=[{"type": "reasoning", "reasoning": "PRIVATE"}])):
+        with pytest.raises(AgentResultError):
+            _langchain_output({"messages": [message]})
+    message = AIMessage(content_blocks=[{"type": "reasoning", "reasoning": "PRIVATE"}, {"type": "text", "text": ""}])
+    assert _langchain_output({"messages": [message]}) == ""

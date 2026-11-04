@@ -43,6 +43,13 @@ preserve old artifacts and their original tool revision for historical review.
   incomplete/error paths, not substituted empty text. Custom test doubles must
   model the required completion state; structured-output applications need an
   explicit custom callback. No approvals or resumes are performed automatically.
+- The LangChain bridge now admits only an uninterrupted agent-state envelope
+  ending in an assistant message with empty valid tool-call state. It no longer
+  scores user/tool messages, chunks, arbitrary objects, or stale answers from
+  interrupted graphs. Text blocks concatenate without invented separators;
+  reasoning/other non-text metadata is excluded. Custom envelopes and serialized
+  messages require explicit callbacks. See the
+  [native attribution contract](integrations.md#langchain-final-answer-attribution).
 - The same required-result and fixed-error-code rules now apply to IncidentTwin
   and MissionPack. Their optional usage follows Procurement's existing behavior:
   nonnegative integer token fields and finite nonnegative USD cost are retained;

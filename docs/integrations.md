@@ -285,6 +285,37 @@ loop with a canned model, real tool invocation, empty output, and an approval
 pause. Sockets are blocked and tracing disabled in those fixtures. This is
 zero-provider compatibility evidence, not a live model or approval-policy test.
 
+## LangChain final-answer attribution
+
+On main after v0.19.0, the built-in `create_agent` bridge requires a state
+dictionary with a nonempty `messages` list ending in an assistant message
+(`type == "ai"`). Both `tool_calls` and `invalid_tool_calls` must be explicit
+empty lists. User/tool messages, streaming chunks, missing state, and pending
+or invalid tool calls raise `AgentResultError`; the bridge never searches back
+through history for an older assistant answer or stringifies an arbitrary result.
+
+LangGraph's default `invoke()` exposes dynamic pauses via `__interrupt__`;
+nonempty or malformed interruption state is rejected before reading an answer.
+An absent marker or an empty list/tuple is allowed, but still requires a complete
+terminal assistant message. The bridge does not approve, resume, or persist
+paused work. See the [official interrupt guide](https://docs.langchain.com/oss/python/langgraph/interrupts).
+
+Plain text is preserved exactly, including intentional empty text. For list
+content, the bridge uses LangChain's normalized `content_blocks`, concatenating
+only explicit text blocks without inserting separators. Reasoning, multimodal,
+and other non-text metadata are not stringified into the score. A list with no
+text, malformed blocks/text, or unfinished client-tool blocks is an error.
+This follows the distinction between text and other
+[standard message content](https://www.langchain.com/blog/standard-message-content),
+not a claim that non-text outputs were evaluated or traces authenticated.
+
+Custom graph envelopes, serialized message dictionaries, structured responses,
+and multimodal evaluation need an explicit custom callback. Test doubles for
+this bridge must expose the same required message and tool-state fields. Real
+SDK CI fixtures cover tool execution, empty/text-block answers, dynamic approval,
+and static pre-tool pauses using a canned model, blocked sockets, and disabled
+tracing; no provider or external approval service is used.
+
 ## What doctor checks
 
 The strengthened checks and `--manifest-only` mode are **on main after v0.19.0**;

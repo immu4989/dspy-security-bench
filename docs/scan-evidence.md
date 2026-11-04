@@ -124,8 +124,11 @@ SDK's earlier conversions and internally suppressed errors.
 
 The built-in OpenAI Agents bridge also rejects pending approvals or malformed
 completion state before producing `AgentResult`; an SDK pause is not silently
-coerced into a completed empty response. Other framework-native conversions
-remain outside that specific check. See the [integration contract](integrations.md#openai-agents-result-completeness).
+coerced into a completed empty response. The LangChain bridge requires an
+uninterrupted terminal assistant answer with no pending/invalid tool calls and
+extracts only explicit text, excluding user/tool messages and reasoning metadata.
+Other framework-native conversions remain outside these specific checks. See
+the [integration contract](integrations.md#openai-agents-result-completeness).
 
 Scan-owned diagnostics for agent construction and benchmark execution include
 the failure phase and exception class, but omit exception messages that could

@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- LangChain final-answer attribution now requires completed assistant text,
+  excluding stale interrupted states, user/tool messages, unfinished calls, and
+  reasoning metadata. Native offline loops cover both approval and pre-tool
+  pauses without executing or approving their pending tools.
+
 - The built-in OpenAI Agents bridge now distinguishes completed text from
   approval-paused and malformed native results. Offline tests exercise the real
   SDK loop and tool boundary, rather than only constructor signatures; no paused

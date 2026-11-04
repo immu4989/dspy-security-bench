@@ -133,14 +133,46 @@ def _usage(values: Any) -> dict[str, int | float]:
 
 
 def _langchain_output(result: Any) -> str:
-    if isinstance(result, dict):
-        messages = result.get("messages")
-        if isinstance(messages, list) and messages:
-            return _text(getattr(messages[-1], "content", messages[-1]))
-        for key in ("output", "final_output", "content"):
-            if key in result:
-                return _text(result[key])
-    return _text(getattr(result, "content", result))
+    """Extract only completed assistant text from create_agent's state envelope."""
+    if not isinstance(result, dict):
+        raise AgentResultError("LangChain result must be an agent-state dictionary")
+    if "__interrupt__" in result:
+        pending = result["__interrupt__"]
+        if not isinstance(pending, (list, tuple)) or pending:
+            raise AgentResultError("LangChain interruption state is pending or malformed; execution is incomplete")
+    messages = result.get("messages")
+    if not isinstance(messages, list) or not messages:
+        raise AgentResultError("LangChain result must contain a nonempty message list")
+    final = messages[-1]
+    if getattr(final, "type", None) != "ai":
+        raise AgentResultError("LangChain final message must be an assistant message, not a user/tool message or chunk")
+    for field in ("tool_calls", "invalid_tool_calls"):
+        calls = getattr(final, field, None)
+        if not isinstance(calls, list) or calls:
+            raise AgentResultError("LangChain final message has pending, invalid, or malformed tool calls")
+    content = getattr(final, "content", None)
+    if isinstance(content, str):
+        return content
+    if not isinstance(content, list) or any(not isinstance(item, (str, dict)) for item in content):
+        raise AgentResultError("LangChain final message has unsupported content")
+    try:
+        blocks = final.content_blocks
+    except Exception:
+        raise AgentResultError("LangChain final message content could not be normalized") from None
+    if not isinstance(blocks, list):
+        raise AgentResultError("LangChain normalized content must be a block list")
+    parts = []
+    for block in blocks:
+        if not isinstance(block, dict) or not isinstance(block.get("type"), str) or not block["type"]:
+            raise AgentResultError("LangChain normalized content has a malformed block")
+        if block["type"] in {"tool_call", "tool_call_chunk", "invalid_tool_call"}:
+            raise AgentResultError("LangChain final content contains an unfinished tool call")
+        if block["type"] == "text":
+            parts.append(require_text_answer(block.get("text")))
+    if not parts:
+        raise AgentResultError("LangChain final content contains no explicit text answer")
+    # Match text-block concatenation; do not insert separators or stringify metadata.
+    return "".join(parts)
 
 
 def _openai_final_answer(result: Any) -> str:
@@ -199,7 +231,7 @@ class LangChainAdapter:
             system_prompt=_instructions(self.instructions, system_directive),
         )
         result = agent.invoke({"messages": [{"role": "user", "content": query}]})
-        return AgentResult(final_answer=_langchain_output(result), tool_calls=ledger)
+        return validate_agent_result(AgentResult(final_answer=_langchain_output(result), tool_calls=ledger))
 
 
 @dataclass

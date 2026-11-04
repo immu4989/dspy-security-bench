@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Corrected LangChain final-answer attribution: require an uninterrupted state
+  with a completed terminal assistant message and no pending/invalid tool calls.
+  Extract only explicit text blocks, excluding reasoning and tool metadata;
+  user/tool messages, chunks, arbitrary envelopes, and stale paused answers are
+  errors. Real offline SDK loops exercise normal, empty, block-content, approval,
+  and static pre-tool pause paths with no providers or automatic approvals.
 - The OpenAI Agents bridge rejects pending approvals, missing/malformed
   interruption state, and non-text final output instead of coercing them to
   scored text. Empty text remains valid for completed runs. Real SDK-loop

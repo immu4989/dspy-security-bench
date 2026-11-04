@@ -41,6 +41,12 @@ execution even if a text value is present; it is not automatically approved or
 resumed. See [native bridge details](integrations.md#openai-agents-result-completeness).
 This check does not claim to detect every incomplete state in every framework.
 
+The built-in LangChain bridge requires a terminal assistant message with no
+pending/invalid tool calls and no graph interruption. It extracts explicit text
+blocks, never user/tool messages or reasoning metadata. See
+[LangChain attribution](integrations.md#langchain-final-answer-attribution) for
+the supported state shape and custom-callback migration path.
+
 Procurement, IncidentTwin, and MissionPack record `invalid_agent_result` for a
 malformed result and `agent_execution_error` for other ordinary agent exceptions.
 Neither qualifies for mission completion. Already instrumented actions and harms

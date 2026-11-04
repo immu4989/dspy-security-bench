@@ -100,7 +100,7 @@ def test_langchain_adapter_uses_create_agent(monkeypatch):
         def invoke(self, payload):
             self.tools[0](record_id="LC-1")
             assert payload["messages"][0]["content"] == "inspect"
-            return {"messages": [SimpleNamespace(content="langchain done")]}
+            return {"messages": [SimpleNamespace(type="ai", content="langchain done", tool_calls=[], invalid_tool_calls=[])]}
 
     def create_agent(*, model, tools, system_prompt):
         assert model == "openai:test"

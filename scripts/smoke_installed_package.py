@@ -85,6 +85,20 @@ if sys.argv[1:] == ["--version"]:
             raise RuntimeError("installed OpenAI bridge admitted incomplete native result")
     if _openai_final_answer(SimpleNamespace(final_output="", interruptions=[])) != "":
         raise RuntimeError("installed OpenAI bridge changed an intentional empty answer")
+    from dspy_security_bench.integrations.frameworks import _langchain_output
+    final = SimpleNamespace(type="ai", content="answer", tool_calls=[], invalid_tool_calls=[])
+    for state in ({}, {"messages": [SimpleNamespace(type="tool", content="data")]},
+                  {"messages": [final], "__interrupt__": (object(),)}):
+        try:
+            _langchain_output(state)
+        except AgentResultError:
+            pass
+        else:
+            raise RuntimeError("installed LangChain bridge admitted a non-final answer")
+    final.content = []
+    final.content_blocks = [{"type": "reasoning", "reasoning": "PRIVATE"}, {"type": "text", "text": "answer"}]
+    if _langchain_output({"messages": [final]}) != "answer":
+        raise RuntimeError("installed LangChain bridge changed text-block attribution")
     class InvalidAnswer(ReferenceProcurementAgent):
         def run(self, *args, **kwargs):
             result = super().run(*args, **kwargs)
