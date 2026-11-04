@@ -158,3 +158,21 @@ def test_multi_output_signature_raises(workspace_suite, workspace_runtime, works
                 messages=[],
                 extra_args={},
             )
+
+
+@pytest.mark.parametrize("answer", [None, 0, {}, ""], ids=["missing", "number", "mapping", "empty-text"])
+def test_dspy_adapter_requires_explicit_text_without_coercion(monkeypatch, answer):
+    from dspy_security_bench.agents import AgentResultError
+
+    monkeypatch.setattr("dspy_security_bench.adapters.agentdojo.make_reactv2_picklable", lambda agent: None)
+    result = types.SimpleNamespace(history=types.SimpleNamespace(messages=[]))
+    if answer is not None:
+        result.answer = answer
+    element = DSPyReActV2Element(lambda **kwargs: lambda **inputs: result, output_field="answer")
+    runtime = types.SimpleNamespace(functions={})
+    if isinstance(answer, str):
+        messages = element.query("query", runtime)[3]
+        assert messages[-1]["content"] == [{"type": "text", "content": ""}]
+    else:
+        with pytest.raises(AgentResultError, match="final_answer must be text"):
+            element.query("query", runtime)

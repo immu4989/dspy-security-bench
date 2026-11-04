@@ -10,6 +10,15 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Required agent-result validation prevents missing/non-text answers and malformed
+  traces from becoming scored generic/DSPy runs; custom callbacks no longer
+  stringify unsupported outputs. New unbudgeted/budgeted v4 measurement scopes
+  remain distinct from replayable legacy v1/v2/v3 scopes. Intentional empty text
+  remains valid, and optional invalid usage remains unknown rather than a failure.
+  ImpactTwin uses fixed error codes without erasing preceding observed harms.
+- Corrected RepeatTwin verification to count failed pair runs once even when both
+  constituent cases fail, matching the existing producer. Individual case-error
+  totals are unchanged. No historical observations or model scores are rewritten.
 - Added an all-file integration preview and conflict gate. `integrate --dry-run`
   reports proposed paths/actions/fingerprints without writes; differing existing
   content stops the whole scaffold instead of mixing old and new configuration.

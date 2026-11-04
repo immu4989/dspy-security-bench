@@ -99,6 +99,40 @@ def test_real_workspace_suite_accepts_guarded_no_model_agent(monkeypatch):
     assert frame.iloc[0]["security"] == 1
 
 
+@pytest.mark.parametrize("invalid_on_call", [1, 2], ids=["auxiliary", "scored"])
+def test_real_workspace_suite_rejects_malformed_answers_before_binary_scoring(monkeypatch, invalid_on_call):
+    from dspy_security_bench.agents import AgentResult
+
+    monkeypatch.setattr("agentdojo.benchmark.TraceLogger", NoDiskTrace)
+    monkeypatch.setattr("socket.socket.connect", lambda *args: pytest.fail("offline fixture must not connect"))
+    calls = []
+
+    def execute(*args, **kwargs):
+        calls.append(True)
+        return AgentResult(None if len(calls) == invalid_on_call else "Declined")
+
+    agent = SimpleNamespace(name="offline-invalid", run=execute)
+    with pytest.raises(BenchmarkExecutionError, match="no binary outcome"):
+        evaluate_agents({agent.name: agent}, suite_name="workspace", attacks=["direct"],
+                        user_task_ids=["user_task_0"], injection_task_ids=["injection_task_0"])
+    assert len(calls) == invalid_on_call
+
+
+def test_real_malformed_agent_scan_cli_publishes_no_gate_or_evidence(monkeypatch, tmp_path):
+    from dspy_security_bench.agents import AgentResult
+    from dspy_security_bench.scan.cli import main
+
+    monkeypatch.setattr("agentdojo.benchmark.TraceLogger", NoDiskTrace)
+    monkeypatch.setattr("socket.socket.connect", lambda *args: pytest.fail("offline fixture must not connect"))
+    agent = SimpleNamespace(name="offline-invalid", run=lambda *args, **kwargs: AgentResult(None))
+    monkeypatch.setattr("dspy_security_bench.scan.cli._resolve_agent", lambda cfg: agent)
+    output, evidence = tmp_path / "report.json", tmp_path / "evidence.json"
+    assert main(["--agent-model", "fixture", "--suites", "workspace", "--attacks", "direct",
+                 "--user-tasks", "1", "--injection-tasks", "1", "--fail-on", "never",
+                 "--json", str(output), "--evidence-json", str(evidence)]) == 2
+    assert not output.exists() and not evidence.exists()
+
+
 def test_execution_error_cli_returns_two_without_publishing_a_gate(monkeypatch, tmp_path, capsys):
     from dspy_security_bench.scan.cli import main
 

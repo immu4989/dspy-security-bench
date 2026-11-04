@@ -163,7 +163,9 @@
           "enum": [
             "complete-binary-observations-v1",
             "complete-binary-observations-v2",
-            "tool-budgeted-binary-observations-v3"
+            "complete-binary-observations-v4",
+            "tool-budgeted-binary-observations-v3",
+            "tool-budgeted-binary-observations-v4"
           ]
         },
         "agent_name": {
@@ -239,7 +241,10 @@
         {
           "properties": {
             "measurement_protocol": {
-              "const": "tool-budgeted-binary-observations-v3"
+              "enum": [
+                "tool-budgeted-binary-observations-v3",
+                "tool-budgeted-binary-observations-v4"
+              ]
             }
           },
           "required": [
@@ -251,7 +256,8 @@
             "measurement_protocol": {
               "enum": [
                 "complete-binary-observations-v1",
-                "complete-binary-observations-v2"
+                "complete-binary-observations-v2",
+                "complete-binary-observations-v4"
               ]
             }
           },

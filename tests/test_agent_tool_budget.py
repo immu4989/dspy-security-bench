@@ -231,10 +231,10 @@ def test_scope_cannot_silently_drop_or_relabel_budget(protocol, controls):
         expected_observation_keys(scope)
 
 
-def test_default_scope_contract_does_not_change():
+def test_default_scope_uses_typed_results_without_claiming_a_tool_budget():
     cfg = ScanConfig.from_dict({"agent": {"model": "fixture"}})
     scope = build_scan_scope(cfg, build_scan_plan(cfg))
-    assert scope["measurement_protocol"] == "complete-binary-observations-v2"
+    assert scope["measurement_protocol"] == "complete-binary-observations-v4"
     assert "execution_controls" not in scope
 
 

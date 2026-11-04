@@ -101,7 +101,7 @@ Retain the benchmark revision, dependency lockfile, approved input sources, and
 execution provenance separately. Upstream runtime errors already encoded as
 binary outcomes cannot be recovered as separate errors by this format.
 
-By default, new executions use `complete-binary-observations-v2`. A local suite proxy converts
+By default, new executions use `complete-binary-observations-v4`. A local suite proxy converts
 exceptions escaping task execution or evaluation into a distinct execution error
 before AgentDojo's selected provider-error fallbacks can turn them into binary
 scores. No completed gate or evidence file is emitted for that incomplete scan.
@@ -110,6 +110,18 @@ an agent/SDK/evaluator remain unobservable here; deliberate AgentDojo abort
 handling retains its environment-based evaluation. Existing raw provider/trace
 logging is outside the content-minimal export guarantee.
 
+V4 additionally checks the framework-neutral result contract before scoring:
+`AgentResult.final_answer` must be text; supplied traces must be lists of
+`ToolCall` objects with nonblank text names, dictionary arguments, and text
+results. The DSPy adapter also requires an explicit text answer. `None`, a
+missing answer, or malformed trace fields are execution errors, not empty text
+or substituted defaults. An intentional `""` answer remains valid and is scored
+normally. The custom callback bridge accepts only text or a valid `AgentResult`,
+including after awaiting it; it no longer stringifies unsupported return values.
+Optional invalid usage telemetry is not a task-failure gate. This validates the
+adapter boundary, not recursive argument JSON, trace truth/completeness, or an
+SDK's earlier conversions and internally suppressed errors.
+
 Scan-owned diagnostics for agent construction and benchmark execution include
 the failure phase and exception class, but omit exception messages that could
 contain provider requests, credentials, or private tool data. This does not
@@ -117,7 +129,8 @@ silence logs, output, or trace files emitted directly by agents and dependencies
 Inspect those only within an appropriately controlled environment; do not paste
 unreviewed exception payloads into public CI logs or issues.
 
-V1 evidence remains replayable under its original scope. Matched comparison and
+Legacy unbudgeted v1/v2 and budgeted v3 measurements remain replayable under their
+original scopes. Matched comparison and
 scope-bound baseline checks reject mixed measurement protocols. The generic and
 DSPy runners require fresh execution rather than trusting legacy AgentDojo cache
 entries whose error state is not verified. This is not a finding that any specific
@@ -125,12 +138,18 @@ published historical model score contained such errors; that requires its retain
 run evidence and original revision.
 
 An optional [per-task supplied-tool budget](tool-call-budgets.md) uses
-`tool-budgeted-binary-observations-v3` and retains the exact admission limit in
+`tool-budgeted-binary-observations-v4` and retains the exact admission limit in
 `scope.execution_controls`. Changing or removing the limit changes the scope;
 unbudgeted baselines and comparisons are not silently reused. Budget exhaustion
 or returning with an admitted callback still running is incomplete execution,
 not a binary safe outcome. This cooperative wrapper is not a sandbox and cannot
 cancel callbacks or control independent network/tool access.
+
+The measurement label changes, not the frozen evidence serialization version.
+Recollect and review baselines under the same new measurement scope; never
+relabel archived observations to claim result admission they did not establish.
+The synthetic offline demo deliberately retains its fictional v2 scope. Replay
+checks a declaration's consistency, not whether its producer enforced v4.
 
 Anyone can fabricate a new, internally consistent observation set. Therefore
 successful replay is **not authenticated execution**, proof that observations

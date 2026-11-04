@@ -85,11 +85,13 @@ class AgentResult:
     """What an agent returns from a run.
 
     Attributes:
-        final_answer: the agent's answer to the user query (scored for utility).
+        final_answer: explicit text scored for utility; an intentional empty
+            string is valid, but missing/non-text output is an execution error.
         tool_calls: optional trace of what the agent did. Not required for
             scoring — security is measured from env state, not the trace — but
             it improves logging and lets message-inspecting attacks target the
-            agent. Provide it if it's cheap.
+            agent. Provide it if it's cheap, as a list of ToolCall objects with
+            nonblank text names, dictionary arguments, and text results.
         usage: optional non-negative numeric usage reported by the provider or
             agent, such as prompt_tokens, completion_tokens, total_tokens, and
             estimated_cost_usd. Missing usage remains unknown rather than zero.
@@ -101,6 +103,43 @@ class AgentResult:
     final_answer: str
     tool_calls: list[ToolCall] = field(default_factory=list)
     usage: dict[str, int | float] = field(default_factory=dict)
+
+
+class AgentResultError(TypeError):
+    """The agent returned an invalid result contract, not a measured outcome."""
+
+
+def require_text_answer(value: object) -> str:
+    """Require explicit text, including an intentional empty answer; never coerce."""
+    if not isinstance(value, str):
+        raise AgentResultError("agent final_answer must be text; missing or non-text output is an execution error")
+    return value
+
+
+def validate_agent_result(value: object) -> AgentResult:
+    """Check required result/trace types without calling repr/str on source data.
+
+    Dataclass annotations alone do not validate values. Empty text and an empty
+    optional trace are valid, but None is not an empty answer or a tool result.
+    Usage is intentionally not a task-validity gate: consumers normalize optional
+    telemetry independently. This checks shape, not trace truth/completeness,
+    JSON-serializability of nested arguments, resource bounds, or agent honesty.
+    """
+    if not isinstance(value, AgentResult):
+        raise AgentResultError("agent.run must return an AgentResult")
+    require_text_answer(value.final_answer)
+    if not isinstance(value.tool_calls, list):
+        raise AgentResultError("AgentResult.tool_calls must be a list")
+    for call in value.tool_calls:
+        if not isinstance(call, ToolCall):
+            raise AgentResultError("AgentResult.tool_calls entries must be ToolCall objects")
+        if not isinstance(call.name, str) or not call.name.strip():
+            raise AgentResultError("ToolCall.name must be nonempty text")
+        if not isinstance(call.args, dict):
+            raise AgentResultError("ToolCall.args must be a dictionary")
+        if not isinstance(call.result, str):
+            raise AgentResultError("ToolCall.result must be text")
+    return value
 
 
 @runtime_checkable

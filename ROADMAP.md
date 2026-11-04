@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Explicit agent-result admission distinguishes missing/non-text answers and
+  malformed traces from measured outcomes. V4 scan scopes preserve comparison
+  boundaries with legacy evidence; procurement errors retain observed harms,
+  omit raw exception messages, and replay failed-pair counts consistently.
+
 - Integration scaffolding now has an all-file dry run with content-omitting previews,
   an all-writes-stop conflict gate, and explicit staged replacement. Exact reruns
   preserve files, partial I/O failures are surfaced, and generated identifiers

@@ -63,10 +63,12 @@ distributed budget authority.
 ## Preserve comparability
 
 Configured scans use measurement protocol
-`tool-budgeted-binary-observations-v3` and retain an exact
+`tool-budgeted-binary-observations-v4` and retain an exact
 `execution_controls.max_tool_calls_per_task` value in their frozen scope.
-Unconfigured scans keep `complete-binary-observations-v2` unchanged. Old v1/v2
-evidence remains replayable and cannot claim this additional control.
+Unconfigured scans use `complete-binary-observations-v4`. Both enforce the
+[typed agent-result boundary](scan-evidence.md) in addition to execution-error
+accounting. Legacy unbudgeted v1/v2 and budgeted v3 evidence remains replayable
+under its original scope; only budgeted protocols can claim this control.
 
 Scope-bound baselines, matched comparisons, and repeated studies require the
 same budgeted protocol **and the same limit**. Do not relabel old evidence or

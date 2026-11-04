@@ -28,7 +28,7 @@ from agentdojo.types import (
 )
 
 from dspy_security_bench.adapters.agentdojo import _serialize_result
-from dspy_security_bench.agents.base import Agent, AgentResult, BenchTool, ToolCall
+from dspy_security_bench.agents.base import Agent, BenchTool, ToolCall, validate_agent_result
 
 
 def _full_json_schema(function) -> dict:
@@ -115,18 +115,13 @@ class GenericAgentElement(BasePipelineElement):
             for fn in runtime.functions.values()
         ]
 
-        result = self.agent.run(defended_query, tools, system_directive=system_directive)
-        if not isinstance(result, AgentResult):
-            raise TypeError(
-                f"agent {getattr(self.agent, 'name', self.agent)!r}.run() must return an "
-                f"AgentResult, got {type(result).__name__}"
-            )
+        result = validate_agent_result(self.agent.run(defended_query, tools, system_directive=system_directive))
 
         out_messages = list(messages)
         out_messages.extend(self._trace_to_messages(result.tool_calls))
         out_messages.append(ChatAssistantMessage(
             role="assistant",
-            content=[text_content_block_from_string(str(result.final_answer or ""))],
+            content=[text_content_block_from_string(result.final_answer)],
             tool_calls=None,
         ))
 
@@ -140,16 +135,16 @@ class GenericAgentElement(BasePipelineElement):
             msgs.append(ChatAssistantMessage(
                 role="assistant",
                 content=None,
-                tool_calls=[FunctionCall(function=tc.name, args=tc.args or {}, id=call_id)],
+                tool_calls=[FunctionCall(function=tc.name, args=tc.args, id=call_id)],
             ))
-            result_text = str(tc.result or "")
+            result_text = tc.result
             if self.max_tool_result_chars and len(result_text) > self.max_tool_result_chars:
                 result_text = result_text[: self.max_tool_result_chars] + "…[truncated]"
             msgs.append(ChatToolResultMessage(
                 role="tool",
                 content=[text_content_block_from_string(result_text)],
                 tool_call_id=call_id,
-                tool_call=FunctionCall(function=tc.name, args=tc.args or {}, id=call_id),
+                tool_call=FunctionCall(function=tc.name, args=tc.args, id=call_id),
                 error=None,
             ))
         return msgs

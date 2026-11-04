@@ -54,6 +54,33 @@ for name in ("scan-evidence.schema.json", "scan-comparison.schema.json", "scan-s
 if "workflow_dispatch" not in resources.joinpath("templates", "github-action.yml").read_text(encoding="utf-8"):
     raise RuntimeError("safe workflow template missing from installed wheel")
 if sys.argv[1:] == ["--version"]:
+    from dspy_security_bench.agents import AgentResult, AgentResultError, ToolCall, validate_agent_result
+    from dspy_security_bench.integrations.frameworks import CallbackAdapter
+    from dspy_security_bench.procurement.agents import ReferenceProcurementAgent
+    from dspy_security_bench.procurement.repeat import run_repeat_twin, validate_repeat_payload
+    for value in (None, AgentResult(None), AgentResult("", tool_calls=None),
+                  AgentResult("", tool_calls=[ToolCall("lookup", None, "")])):
+        try:
+            validate_agent_result(value)
+        except AgentResultError:
+            pass
+        else:
+            raise RuntimeError("installed result contract admitted malformed required fields")
+    try:
+        CallbackAdapter(lambda *args: None).run("query", [])
+    except AgentResultError:
+        pass
+    else:
+        raise RuntimeError("installed callback stringified unsupported output")
+    class InvalidAnswer(ReferenceProcurementAgent):
+        def run(self, *args, **kwargs):
+            result = super().run(*args, **kwargs)
+            result.final_answer = None
+            return result
+    report = run_repeat_twin(InvalidAnswer(vulnerable=False), trials=2).to_dict()
+    if (validate_repeat_payload(report) or report["summary"]["case_errors"] != 20
+            or any(pair["error_runs"] != 2 for pair in report["pair_summaries"])):
+        raise RuntimeError("installed error-bearing repeat report does not replay")
     from dspy_security_bench.processio import BoundedProcessError, run_bounded
     result = run_bounded([sys.executable, "-I", "-c", "import os; os.write(1, b'[]')"],
                          maximum_stdout=2, timeout=5)
@@ -241,6 +268,16 @@ def main() -> int:
         smoke_report_sets(directory)
         smoke_collection_demo(directory)
         smoke_manifest_doctor(directory)
+        for name, budget in (("current-plan.json", []), ("budgeted-plan.json", ["--max-tool-calls-per-task", "2"])):
+            run_cli(directory, ["scan", "--agent-model", "fixture", "--suites", "workspace",
+                                "--attacks", "direct", "--user-tasks", "1", "--injection-tasks", "1",
+                                "--plan-json", name, *budget])
+            scope = json.loads((directory / name).read_text(encoding="utf-8"))["scope"]
+            protocol = "tool-budgeted-binary-observations-v4" if budget else "complete-binary-observations-v4"
+            if scope["measurement_protocol"] != protocol:
+                raise RuntimeError("installed plan does not declare its current result-admission protocol")
+            if scope.get("execution_controls") != ({"max_tool_calls_per_task": 2} if budget else None):
+                raise RuntimeError("installed plan changed its supplied-tool budget declaration")
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(
@@ -252,7 +289,7 @@ def main() -> int:
         if not (directory / ".dspy-security-bench.yaml").is_file():
             raise RuntimeError("installed init did not create its config")
     print("Installed wheel smoke passed: resources, CLI, offline scan/study/policy replay, "
-          "portable bundles, procurement consistency, structural/collection reviews, joint-policy exits, pins, tamper rejection, strict configuration, scaffold.")
+          "portable bundles, typed results, procurement consistency, structural/collection reviews, joint-policy exits, pins, tamper rejection, strict configuration, scaffold.")
     return 0
 
 

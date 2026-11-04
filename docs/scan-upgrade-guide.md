@@ -9,8 +9,8 @@ while upgrading. Keep the old revision and dependency lockfile alongside them.
 | Field | What it identifies | Upgrade action |
 | --- | --- | --- |
 | Plan `protocol_version`: `scan-plan-v2` | Reviewed execution scope, agent selection, gate, baseline, and configured task budget | Regenerate and independently review the plan. An old v1 digest is not a valid v2 approval pin. |
-| Scope `measurement_protocol`: `complete-binary-observations-v2` | Fresh execution with escaping task/evaluation exceptions separated from binary scores | Re-run authorized before/after systems under the same protocol to make a matched comparison. Do not relabel old cache entries. |
-| Scope `measurement_protocol`: `tool-budgeted-binary-observations-v3` | V2 execution accounting plus a declared supplied-tool admission limit per task | Requires `execution_controls.max_tool_calls_per_task`. Keep protocol and limit identical for baselines, comparisons, and studies. This is not a sandbox. |
+| Scope `measurement_protocol`: `complete-binary-observations-v4` | Fresh execution, escaping exceptions separated from binary scores, and typed required agent-result fields | Re-run authorized before/after systems under the same protocol. Old v1/v2 evidence replays without being relabeled. Missing/non-text answers are errors; intentional empty text is valid. |
+| Scope `measurement_protocol`: `tool-budgeted-binary-observations-v4` | V4 result/error accounting plus a declared supplied-tool admission limit per task | Requires `execution_controls.max_tool_calls_per_task`. Keep protocol and limit identical for baselines, comparisons, and studies. Old budgeted v3 still replays. This is not a sandbox. |
 | Evidence `protocol_version`: `scan-evidence-v1` or `scan-evidence-v2` | The frozen evidence/replay output contract | Security-only policies remain v1; an explicit utility floor uses v2. Both are replayable. Evidence version alone does not determine the measurement protocol. |
 
 A v1 evidence file can contain the new measurement protocol. Conversely, changing

@@ -6,17 +6,21 @@ dspy.ReActV2. Implement `Agent` (see base.py) or use a reference agent.
 from dspy_security_bench.agents.base import (
     Agent,
     AgentResult,
+    AgentResultError,
     BenchTool,
     ToolCall,
     apply_system_directive,
+    validate_agent_result,
 )
 
 __all__ = [
     "Agent",
     "AgentResult",
+    "AgentResultError",
     "BenchTool",
     "ToolCall",
     "apply_system_directive",
+    "validate_agent_result",
     "LiteLLMFunctionCallingAgent",
     "ToolBudgetAgent",
     "AgentToolBudgetError",

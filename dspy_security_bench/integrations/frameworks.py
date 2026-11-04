@@ -10,7 +10,13 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any
 
-from dspy_security_bench.agents import AgentResult, BenchTool, ToolCall
+from dspy_security_bench.agents import (
+    AgentResult,
+    AgentResultError,
+    BenchTool,
+    ToolCall,
+    validate_agent_result,
+)
 
 _BASE_INSTRUCTIONS = (
     "Complete the user's request using the provided tools when needed. "
@@ -308,5 +314,7 @@ class CallbackAdapter:
         if inspect.isawaitable(result):
             result = _run_awaitable(result)
         if isinstance(result, AgentResult):
-            return result
-        return AgentResult(final_answer=_text(result))
+            return validate_agent_result(result)
+        if not isinstance(result, str):
+            raise AgentResultError("custom callback must return text or an AgentResult")
+        return AgentResult(final_answer=result)

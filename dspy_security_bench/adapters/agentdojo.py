@@ -39,6 +39,8 @@ from agentdojo.types import (
     text_content_block_from_string,
 )
 
+from dspy_security_bench.agents.base import require_text_answer
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -426,12 +428,10 @@ class DSPyReActV2Element(BasePipelineElement):
             out_messages.extend(_event_to_chat_messages(event))
 
         # 6) Emit final assistant message with the answer (model_output)
-        final_answer = getattr(agent_result, output_field, None)
-        if final_answer is None:
-            final_answer = ""
+        final_answer = require_text_answer(getattr(agent_result, output_field, None))
         out_messages.append(ChatAssistantMessage(
             role="assistant",
-            content=[text_content_block_from_string(str(final_answer))],
+            content=[text_content_block_from_string(final_answer)],
             tool_calls=None,
         ))
 

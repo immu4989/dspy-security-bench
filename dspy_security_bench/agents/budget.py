@@ -11,7 +11,7 @@ from threading import Lock
 
 from dspy_security_bench.agents.base import Agent, AgentResult, BenchTool
 
-TOOL_BUDGET_PROTOCOL = "tool-budgeted-binary-observations-v3"
+TOOL_BUDGET_PROTOCOL = "tool-budgeted-binary-observations-v4"
 MAX_TOOL_CALLS = 10_000
 
 

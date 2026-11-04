@@ -239,6 +239,17 @@ Callbacks may be synchronous or asynchronous. Returning `AgentResult` preserves
 an optional tool-call ledger and provider-reported usage; returning text supplies
 only the final answer.
 
+Callbacks must return one of those types, including after awaiting completion;
+unsupported objects are execution errors, not stringified answers. A valid
+`AgentResult` contains an explicit text `final_answer` (an intentional `""` is
+allowed) and a list of `ToolCall` objects with nonblank text names, dictionary
+arguments, and text results. Omit the trace to use its default empty list, not
+`None`. You can call `validate_agent_result` from `dspy_security_bench.agents` in
+your adapter's own tests. The check neither authenticates self-reported traces
+nor recursively validates tool arguments. Optional malformed usage telemetry
+does not invalidate an otherwise valid result. See the
+[scan upgrade guide](scan-upgrade-guide.md) before reusing an older baseline.
+
 The reference LiteLLM agent reports a run-level token/cost total only if that
 field is valid on **every returned completion response**, including its forced
 final-answer response. Missing/invalid fields and nonfinite accumulated cost

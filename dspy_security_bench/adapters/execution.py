@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-MEASUREMENT_PROTOCOL = "complete-binary-observations-v2"
+MEASUREMENT_PROTOCOL = "complete-binary-observations-v4"
 
 
 class BenchmarkExecutionError(RuntimeError):

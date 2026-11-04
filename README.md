@@ -1907,6 +1907,12 @@ execution or production reliability. For live scans, optional
 [per-task tool admission limits](docs/tool-call-budgets.md) stop cooperative
 agents from exceeding their supplied-tool budget; they are not a sandbox.
 
+Current source scans also reject malformed required agent results before
+scoring: missing/non-text answers are execution errors, while intentional empty
+text remains valid. New v4 measurement scopes keep these runs distinct from
+older baselines; historical evidence still replays. Follow the
+[upgrade guide](docs/scan-upgrade-guide.md) when moving an existing CI gate.
+
 ### Run the research pipeline
 
 The full pipeline in Python:

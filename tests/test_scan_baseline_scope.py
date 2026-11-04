@@ -103,7 +103,7 @@ def test_legacy_baseline_does_not_claim_verified_scope():
 
 def test_execution_checked_protocol_does_not_reuse_older_baseline_scope():
     current = scope()
-    assert current["measurement_protocol"] == "complete-binary-observations-v2"
+    assert current["measurement_protocol"] == "complete-binary-observations-v4"
     old = deepcopy(current)
     old["measurement_protocol"] = "complete-binary-observations-v1"
     with pytest.raises(ValueError, match="scope differs"):

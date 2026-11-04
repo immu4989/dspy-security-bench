@@ -58,17 +58,18 @@ def expected_observation_keys(scope: dict) -> set[tuple[str, ...]]:
         raise ValueError("unsupported evidence scope fields")
     from dspy_security_bench.agents.budget import MAX_TOOL_CALLS, TOOL_BUDGET_PROTOCOL
 
-    if scope["measurement_protocol"] == TOOL_BUDGET_PROTOCOL:
+    if scope["measurement_protocol"] in {"tool-budgeted-binary-observations-v3", TOOL_BUDGET_PROTOCOL}:
         controls = scope.get("execution_controls")
         if (not isinstance(controls, dict) or set(controls) != {"max_tool_calls_per_task"}
                 or type(controls["max_tool_calls_per_task"]) is not int
                 or not 1 <= controls["max_tool_calls_per_task"] <= MAX_TOOL_CALLS):
             raise ValueError("tool-budgeted measurement requires its bounded per-task control")
     elif "execution_controls" in scope:
-        raise ValueError("legacy measurement protocols cannot claim execution controls")
+        raise ValueError("unbudgeted measurement protocols cannot claim execution controls")
     if (type(scope["scope_version"]) is not int or scope["scope_version"] != 1
             or scope["benchmark_version"] != "v1"
-            or scope["measurement_protocol"] not in {"complete-binary-observations-v1", "complete-binary-observations-v2", TOOL_BUDGET_PROTOCOL}
+            or scope["measurement_protocol"] not in {"complete-binary-observations-v1", "complete-binary-observations-v2",
+                                                     "complete-binary-observations-v4", "tool-budgeted-binary-observations-v3", TOOL_BUDGET_PROTOCOL}
             or not _label(scope["agentdojo_distribution_version"])
             or not _label(scope["agent_name"]) or not _labels(scope["defenses"], 50)):
         raise ValueError("unsupported evidence scope")

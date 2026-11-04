@@ -19,16 +19,33 @@ preserve old artifacts and their original tool revision for historical review.
 - Newly generated CLI baselines bind the resolved task scope. Legacy rate-only
   baselines warn that scope is unverified. Create a new reviewed baseline for
   a genuinely changed experiment rather than weakening the check.
-- By default, current scans use `complete-binary-observations-v2`: exceptions escaping task
-  execution/evaluation become execution errors, not binary attack outcomes.
-  Older v1 scope-bound baselines deliberately do not match; preserve them and
+- By default, current scans use `complete-binary-observations-v4`: exceptions escaping task
+  execution/evaluation and malformed required agent-result fields become execution
+  errors, not binary attack outcomes. Missing/non-text answers are no longer
+  converted to empty strings; intentional empty text remains a valid response.
+  Older v1/v2 scope-bound baselines deliberately do not match; preserve them and
   create a newly reviewed baseline. Cached AgentDojo result reuse
   (`force_rerun=False`) is rejected because those entries do not establish this
   error-accounting contract. Offline `scan verify` remains available for retained
-  v1 evidence without relabeling it as v2.
-- Optional supplied-tool admission limits use a distinct v3 measurement scope
-  with the exact per-task limit. See [tool-call budgets](tool-call-budgets.md)
+  v1/v2 evidence without relabeling it as v4.
+- Optional supplied-tool admission limits now use a distinct budgeted v4 measurement
+  scope with the exact per-task limit and the same typed result checks. Historical
+  budgeted v3 evidence still replays under its original scope. See [tool-call budgets](tool-call-budgets.md)
   before comparing or replacing scope-bound baselines.
+- Custom callbacks must return text or a valid `AgentResult`; unsupported objects
+  are no longer stringified. ImpactTwin records malformed results as
+  `invalid_agent_result`, and other ordinary agent exceptions as
+  `agent_execution_error`, without exporting raw exception messages. These cases
+  cannot claim mission completion; earlier instrumented effects and harms remain
+  observed. Invalid optional usage still means unknown, not task failure.
+- RepeatTwin replay now counts `pair_summaries.error_runs` once per trial with
+  either or both cases failing, matching the producer. Previously the verifier
+  incorrectly counted both cases separately. `summary.case_errors` still counts
+  individual cases. Correct producer reports with two failures per pair now
+  verify; incorrectly doubled derived counts are rejected. Preserve original
+  artifacts and revisions, and regenerate any affected derivative reports.
+  Neither fix rewrites historical observations, changes the frozen procurement
+  scenarios/scoring rules, nor establishes that published model scores changed.
 - Empty results, missing observations, nonbinary outcomes, invalid rates/counts,
   and incomplete requested matrices produce errors, not favorable defaults.
 - The built-in LiteLLM agent no longer converts a failed final-answer provider

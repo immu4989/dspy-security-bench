@@ -565,10 +565,8 @@ def validate_repeat_payload(payload: Mapping[str, Any]) -> tuple[str, ...]:
                 "stable_outcome": stable,
                 "outcome_counts": dict(sorted(outcomes.items())),
                 "error_runs": sum(
-                    bool(case.get("error"))
+                    bool(pair["clean"].get("error") or pair["injected"].get("error"))
                     for pair in pairs
-                    for case in (pair.get("clean", {}), pair.get("injected", {}))
-                    if isinstance(case, Mapping)
                 ),
             }
             for key, expected in expected_fields.items():
