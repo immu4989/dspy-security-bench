@@ -66,7 +66,8 @@ def integrate_main(argv: list[str]) -> int:
         print(f"[integrate] created {path}")
     for path in result.skipped:
         print(f"[integrate] kept existing {path} (use --force to replace)")
-    print(f"\nNext: dspy-security-bench doctor --root {args.root}")
+    print(f"\nNext: dspy-security-bench doctor --root {args.root} --manifest-only")
+    print("After reviewing and trusting the target imports and factory, omit --manifest-only to check construction.")
     return 0
 
 
@@ -77,8 +78,9 @@ def doctor_main(argv: list[str]) -> int:
     )
     parser.add_argument("--root", default=".", help="project root")
     parser.add_argument("--agent", help="override module:callable target")
+    parser.add_argument("--manifest-only", action="store_true", help="inspect declarations only; no target import, factory calls, import hooks, or credential lookup")
     parser.add_argument("--json", action="store_true", help="emit machine-readable output")
     args = parser.parse_args(argv)
-    report = run_doctor(args.root, agent_import=args.agent)
+    report = run_doctor(args.root, agent_import=args.agent, manifest_only=args.manifest_only)
     print(json.dumps(report.to_dict(), indent=2) if args.json else render_doctor(report))
     return 0 if report.passed else 1

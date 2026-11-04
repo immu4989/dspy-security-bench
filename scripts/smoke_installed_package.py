@@ -240,6 +240,7 @@ def main() -> int:
         smoke_html_reviews(directory)
         smoke_report_sets(directory)
         smoke_collection_demo(directory)
+        smoke_manifest_doctor(directory)
         # Invalid configuration must exit before the deliberately nonexistent
         # provider can be imported or contacted, even with fail_on=never.
         (directory / "invalid.yaml").write_text(
@@ -432,6 +433,25 @@ def smoke_report_sets(directory: Path) -> None:
                 raise RuntimeError("installed report export repeated review for an existing destination")
             if (output / "manifest.json").read_bytes() != manifest_raw:
                 raise RuntimeError("installed report export overwrote an existing report set")
+
+
+def smoke_manifest_doctor(directory: Path) -> None:
+    root = directory / "doctor-intake"
+    run_cli(directory, ["integrate", "--root", str(root), "--framework", "mcp", "--runner", "not_installed:run"])
+    result = json.loads(run_cli(directory, ["doctor", "--root", str(root), "--manifest-only", "--json"]))
+    if (not result["passed"] or result["mode"] != "manifest_only"
+            or result["target_import_attempted"] or result["factory_calls_attempted"]):
+        raise RuntimeError("installed declarative doctor attempted target execution")
+    workflow = root / ".github/workflows/dspy-proofrun.yml"
+    text = workflow.read_text(encoding="utf-8")
+    workflow.write_text(text.replace("  id-token: write", "  # id-token: write"), encoding="utf-8")
+    result = json.loads(run_cli(directory, ["doctor", "--root", str(root), "--json"], 1))
+    if result["passed"] or result["target_import_attempted"]:
+        raise RuntimeError("installed doctor trusted commented permissions or imported invalid configuration")
+    (root / ".dspy-security-bench/integration.json").write_bytes(b"[]")
+    result = json.loads(run_cli(directory, ["doctor", "--root", str(root), "--json"], 1))
+    if result["passed"] or result["target_import_attempted"]:
+        raise RuntimeError("installed doctor accepted malformed manifest")
 
 
 def smoke_collection_demo(directory: Path) -> None:

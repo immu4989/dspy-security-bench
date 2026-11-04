@@ -80,7 +80,9 @@ def test_smoke_exercises_negative_verdicts_and_digest_tampering(monkeypatch, cap
 
     monkeypatch.setattr(smoke, "run_cli", fixture_cli)
     assert smoke.main() == 0
-    assert len(calls) == 120
+    assert len(calls) == 124
+    assert any(args[0] == "doctor" and "--manifest-only" in args and expected == 0 for args, expected in calls)
+    assert any(args[0] == "doctor" and expected == 1 for args, expected in calls)
     for code in (0, 2):
         assert any(args[:2] == ["proofrun", "prepare-plan"] and expected == code for args, expected in calls)
         assert any(args[:2] == ["proofrun", "collection-demo"] and expected == code for args, expected in calls)

@@ -258,7 +258,8 @@ def test_mcp_scaffold_and_doctor_are_zero_key(tmp_path, monkeypatch):
     monkeypatch.syspath_prepend(str(tmp_path))
     report = run_doctor(tmp_path)
     assert report.passed
-    assert all(check.status == "pass" for check in report.checks)
+    assert all(check.status == "pass" for check in report.checks if check.name != "engine-ref")
+    assert next(check for check in report.checks if check.name == "engine-ref").status == "warn"
 
 
 def test_mcp_scaffold_rejects_malformed_runner_and_symlink_escape(tmp_path):

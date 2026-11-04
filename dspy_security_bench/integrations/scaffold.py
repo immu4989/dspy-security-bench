@@ -69,7 +69,7 @@ def _adapter_source(spec: FrameworkSpec, model: str | None, runner: str | None) 
 
 
 def _test_source(module: str) -> str:
-    return f'''"""Zero-network contract checks for the generated security target."""\n\nfrom {module} import build_agent\n\n\ndef test_security_target_returns_fresh_agents():\n    first = build_agent()\n    second = build_agent()\n    assert first is not second\n    assert isinstance(first.name, str) and first.name\n    assert callable(first.run)\n'''
+    return f'''"""Factory contract checks for a reviewed, side-effect-free target."""\n\nfrom {module} import build_agent\n\n\ndef test_security_target_returns_fresh_agents():\n    first = build_agent()\n    second = build_agent()\n    assert first is not second\n    for agent in (first, second):\n        assert isinstance(agent.name, str) and agent.name.strip()\n        assert callable(agent.run)\n'''
 
 
 def _provider_keys(spec: FrameworkSpec, model: str | None) -> tuple[str, ...]:

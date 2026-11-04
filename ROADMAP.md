@@ -17,6 +17,11 @@ compliance or safety overclaims.
 
 ## Delivered on main after v0.19
 
+- Declarative integration preflight lets users inspect manifests and actual
+  workflow permission settings before importing targets. Explicit unchecked
+  runtime states, static-before-factory ordering, bounded intake, and a separate
+  trusted-code runtime mode improve onboarding without a sandbox/readiness claim.
+
 - The collection-review action's source revision and runtime dependency lock
   now travel together: each invocation provisions a fresh non-editable runtime,
   rejects lock drift, records the lock fingerprint, and never falls back to the

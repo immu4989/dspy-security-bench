@@ -1052,6 +1052,11 @@ dspy-security-bench integrate
 dspy-security-bench doctor
 ```
 
+On main, start with `dspy-security-bench doctor --manifest-only` to check the
+manifest and parsed workflow without loading the target. Normal `doctor` imports
+trusted code and constructs two agents; it does not sandbox their side effects.
+See the [preflight trust boundary](docs/integrations.md#inspect-before-executing-target-code).
+
 Native bridges cover **OpenAI Agents SDK, LangChain/LangGraph, Pydantic AI,
 CrewAI, and Microsoft AutoGen AgentChat**. MCP and hand-rolled loops use an
 explicit callback bridge because MCP specifies tools, not one universal agent

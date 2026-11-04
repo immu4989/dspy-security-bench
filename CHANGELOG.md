@@ -10,6 +10,12 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Strengthened integration doctor with bounded typed manifests and parsed
+  effective workflow permissions instead of substring checks. Invalid static
+  configuration stops target loading; `--manifest-only` skips import hooks,
+  factories, and credential lookup. Runtime checks cover both instances, discard
+  ordinary target prints, and withhold raw exceptions. Version tags are explicitly
+  distinguished from immutable pins, and diagnostics no longer claim readiness.
 - The collection-review action now provisions a fresh non-editable reviewer
   environment from its unchanged `uv.lock` using a pinned uv version. Locked
   synchronization rejects drift, caller environments are not reused, and review
