@@ -327,7 +327,7 @@ def test_crewai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
 @pytest.mark.parametrize("mode", ["answer", "tool", "approval", "deferred", "structured", "empty-response", "tool-invalid", "tool-retry"])
 def test_pydantic_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, native_sync_loop, mode):
     from pydantic import BaseModel
-    from pydantic_ai import Agent, CallDeferred, DeferredToolRequests, ModelRetry, Tool, models
+    from pydantic_ai import Agent, CallDeferred, DeferredToolRequests, ModelRetry, models
     from pydantic_ai.exceptions import UnexpectedModelBehavior
     from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart, UserPromptPart
     from pydantic_ai.models.function import FunctionModel
@@ -372,7 +372,8 @@ def test_pydantic_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch
         if mode in {"approval", "deferred"}:
             kwargs["output_type"] = [str, DeferredToolRequests]
         if mode == "approval":
-            kwargs["tools"] = [Tool(tool, requires_approval=True) for tool in kwargs["tools"]]
+            for tool in kwargs["tools"]:
+                tool.requires_approval = True
         elif mode == "structured":
             kwargs["output_type"] = StructuredAnswer
         agent = CapturingAgent(*args, **kwargs)
@@ -398,7 +399,7 @@ def test_pydantic_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch
     if mode in {"tool-invalid", "tool-retry"}:
         with pytest.raises(AgentResultError if mode == "tool-invalid" else NativeToolExecutionError):
             adapter.run("fixture", [tool])
-        assert effects == [{"record_id": "R-1", "limit": 1}]
+        assert effects == [{"record_id": "R-1"}]
         if mode == "tool-retry":
             assert captured[0].output == "done"
     elif mode in {"approval", "deferred", "structured"}:
@@ -421,7 +422,7 @@ def test_pydantic_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch
         assert result.usage == {"prompt_tokens": 2 * multiplier, "completion_tokens": 3 * multiplier,
                                 "total_tokens": 5 * multiplier, "requests": multiplier}
         if mode == "tool":
-            assert effects == [{"record_id": "R-1", "limit": 1}]
+            assert effects == [{"record_id": "R-1"}]
             assert result.tool_calls[0].args == effects[0]
             assert result.tool_calls[0].result == "recorded"
             second = adapter.run("second fixture", [tool])

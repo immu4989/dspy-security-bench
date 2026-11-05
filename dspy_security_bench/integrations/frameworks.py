@@ -44,7 +44,7 @@ def _annotation(schema: dict[str, Any]) -> type:
 
 
 def _tool_callable(tool: BenchTool, ledger: list[ToolCall], *, asynchronous: bool = False,
-                   session: _ToolSession | None = None):
+                   session: _ToolSession | None = None, infer_signature: bool = True):
     properties = tool.parameters.get("properties", {}) if isinstance(tool.parameters, dict) else {}
     required = (
         set(tool.parameters.get("required", [])) if isinstance(tool.parameters, dict) else set()
@@ -72,6 +72,8 @@ def _tool_callable(tool: BenchTool, ledger: list[ToolCall], *, asynchronous: boo
     wrapper.__name__ = tool.name
     wrapper.__qualname__ = tool.name
     wrapper.__doc__ = tool.description or f"Execute the {tool.name} benchmark tool."
+    if not infer_signature:
+        return wrapper
     parameters = []
     for name, schema in properties.items():
         default = inspect.Parameter.empty if name in required else schema.get("default", None)
@@ -239,14 +241,36 @@ class PydanticAIAdapter:
     def run(self, query: str, tools: list[BenchTool], *, system_directive: str = "") -> AgentResult:
         try:
             from pydantic_ai import Agent as PydanticAgent
+            from pydantic_ai import ModelRetry, Tool
         except ImportError as exc:
             raise RuntimeError("Pydantic AI is missing; install pydantic-ai>=2.29") from exc
 
         ledger: list[ToolCall] = []
         with _ToolSession() as session:
+            from dspy_security_bench.integrations.schemas import _ToolArgumentsError, _ToolSchema
+
+            def native_tool(tool):
+                schema = _ToolSchema(tool.parameters)
+
+                def validate_arguments(ctx, **arguments):
+                    try:
+                        schema.validate(arguments)
+                    except _ToolArgumentsError:
+                        # Validation happens before the supplied callback, so
+                        # ordinary argument correction is not a session failure.
+                        raise ModelRetry("Tool arguments must satisfy the supplied JSON schema; no callback was executed.") from None
+
+                return Tool.from_schema(
+                    _tool_callable(tool, ledger, session=session, infer_signature=False),
+                    name=tool.name,
+                    description=tool.description or f"Execute the {tool.name} benchmark tool.",
+                    json_schema=schema.export(),
+                    args_validator=validate_arguments,
+                )
+
             agent = PydanticAgent(
                 self.model,
-                tools=[_tool_callable(tool, ledger, session=session) for tool in tools],
+                tools=[native_tool(tool) for tool in tools],
                 instructions=_instructions(self.instructions, system_directive),
             )
             result = agent.run_sync(query)

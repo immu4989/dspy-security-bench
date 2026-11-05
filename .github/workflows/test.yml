@@ -83,6 +83,7 @@ jobs:
           tests/test_agent_tool_budget.py
           tests/test_agent_result_contract.py
           tests/test_native_tool_session.py
+          tests/test_native_tool_schemas.py
           tests/test_generic_tool_session.py
           tests/test_tool_schema_fidelity.py
           tests/test_litellm_result_admission.py

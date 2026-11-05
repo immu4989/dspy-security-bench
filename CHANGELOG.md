@@ -10,6 +10,15 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- The Pydantic AI bridge now transports the complete source tool schema using
+  the SDK's raw-schema API and validates decoded arguments locally before any
+  supplied callback. Nested constraints/references and non-identifier aliases
+  survive; invalid arguments produce bounded retry feedback, while unusable
+  schemas remain execution/configuration errors without reference retrieval.
+  Omitted arguments now stay omitted: callback/runtime defaults, not synthesized
+  SDK defaults or coercions, own execution semantics. Schema snapshots, bounded
+  JSON intake, native offline retry loops, and package checks cover this change;
+  other native bridges and provider-specific schema conversion remain separate.
 - Extended supplied-tool lifecycle accounting to every agent run through the
   generic AgentDojo bridge: retained handles close at task exit, unfinished
   callbacks prevent binary scoring, and caught harness/defense failures cannot

@@ -137,7 +137,8 @@ def test_pydantic_ai_adapter_uses_agent_tools(monkeypatch):
             self.tools[0](record_id="PA-1")
             return SimpleNamespace(output=f"pydantic: {query}")
 
-    _install_module(monkeypatch, "pydantic_ai", Agent=FakeAgent)
+    _install_module(monkeypatch, "pydantic_ai", Agent=FakeAgent, ModelRetry=ValueError,
+                    Tool=SimpleNamespace(from_schema=lambda function, **kwargs: function))
     result = PydanticAIAdapter(model="openai:test").run(
         "inspect", [_bench_tool()], system_directive="trusted defense"
     )

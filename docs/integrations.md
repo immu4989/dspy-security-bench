@@ -299,10 +299,11 @@ rewrite subsequent rounds or later evaluations. The existing empty-`{}`
 compatibility certification, immutable tool sandbox, or semantic equivalence
 proof. AgentDojo continues to validate/coerce arguments and apply defaults under
 its own rules. Custom callbacks retain their existing validation behavior.
-Providers may reject unsupported schema features. The five built-in native SDK
-bridges currently derive signatures from primitive property types; they do
+Providers may reject unsupported schema features. OpenAI Agents, LangChain,
+CrewAI, and AutoGen bridges currently derive signatures from primitive property types; they do
 **not** preserve the full source schema's nested constraints, references, enums,
-or unions. This change does not repair those independent SDK conversions.
+or unions. [Pydantic AI now uses a separate source-schema path](#pydantic-ai-source-schema-tools).
+The generic-boundary change does not repair the other independent SDK conversions.
 Use a schema-aware custom callback and validate your integration when those
 features matter; do not assume cross-framework schema equivalence.
 
@@ -673,10 +674,64 @@ retain producer revisions and recapture runs when adopting the new boundary.
 Native CI uses the real Pydantic agent graph and
 [`FunctionModel`](https://pydantic.dev/docs/ai/guides/testing/) with model requests
 disabled, sockets blocked, and instrumentation disabled. It covers parameterized
-tools, default arguments, fresh per-run state, usage, deferred approvals/calls,
+tools, omitted arguments, fresh per-run state, usage, deferred approvals/calls,
 structured output, and empty-response errors. SDK-free tests additionally cover
 missing fields, intentional empty results, and objects that must never be
 represented. These are offline compatibility checks, not provider evaluations.
+
+## Pydantic AI source-schema tools
+
+**On main after v0.19.0**, this bridge uses `Tool.from_schema` instead of deriving
+primitive Python annotations from each property. The complete source schema is
+snapshotted once per run and given to the SDK, including local `$defs`/`$ref`,
+enums, unions, nested constraints, root keywords, and keys such as `external-id`
+that cannot be Python parameter identifiers. The SDK-facing copy is detached
+from the validator's copy and from the original `BenchTool.parameters`.
+
+The [Pydantic AI API](https://pydantic.dev/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool.from_schema)
+explicitly skips schema validation for raw-schema tools. The bridge therefore
+installs an `args_validator` using `jsonschema`'s Draft 2020-12 validator before
+the supplied callback executes. Invalid arguments produce a fixed, content-free
+`ModelRetry` message. A corrected call may execute normally; retry exhaustion
+remains the SDK's execution error. Rejected arguments do not create successful
+tool ledger entries or consume a supplied callback admission. Callback failures
+after admission still follow the existing session-failure rules.
+
+**Omissions remain omissions.** The adapter no longer injects `None` or schema
+`default` values, coerces strings to integers, or discards extra fields. The
+schema determines which supplied arguments are valid; the real callback or
+AgentDojo runtime owns application defaults. Put an executable default in that
+callback/runtime when one is required. JSON Schema's `integer` semantics can
+accept an integral JSON number such as `1.0`; no conversion to a Python `int`
+is performed. `format` and unknown/custom keywords remain annotations, not extra
+validators. See the [validator contract](https://python-jsonschema.readthedocs.io/en/stable/validate/).
+
+Schema and decoded-argument snapshots accept only plain JSON objects and values,
+up to 1,000,000 UTF-8 serialized bytes, 100 levels of nesting, and 100,000 visited
+nodes (including object keys). Cycles, Python-only values, non-string keys,
+invalid Unicode, nonfinite numbers, and numeric tokens over the shared 128-
+character limit are rejected without stringifying source objects. Empty `{}`
+parameters retain the existing empty object-schema shorthand. Root dialects
+other than Draft 2020-12 are rejected. These limits apply **after SDK decoding**;
+they cannot recover duplicate keys, raw token lengths, or distinctions already
+lost in provider/SDK normalization.
+
+Invalid schemas raise `NativeToolSchemaError` before agent construction where
+detectable; unresolved references or evaluation failures raise the same error
+when encountered, not model-retry feedback. Validation uses an explicit empty
+[reference registry](https://python-jsonschema.readthedocs.io/en/stable/referencing/)
+with no network or filesystem retrieval. Include definitions locally. Schema
+owners remain trusted: size/depth limits are not execution-time bounds for regex
+or general schema evaluation, nor a sandbox. Fixed diagnostics do not redact
+input that the SDK or application independently logs.
+
+Native tests inspect the actual schema handed to a local `FunctionModel`, drive
+invalid→corrected calls through the real graph, and check aliases, nested rules,
+nullable fields, callback defaults, retry exhaustion, and configuration errors.
+Existing native tests retain approval, deferred-output, callback-failure, usage,
+and fresh-run coverage. No provider requests are made. Provider-specific schema
+support or rewrites and the other four native bridges remain outside this claim.
+Record the producer revision and re-run affected baselines before comparisons.
 
 ## AutoGen execution and final-answer attribution
 

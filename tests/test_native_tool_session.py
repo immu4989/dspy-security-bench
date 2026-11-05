@@ -96,7 +96,8 @@ def bridge(monkeypatch, framework, execute):
         install("langchain.agents", create_agent=Agent)
         monkeypatch.setattr("dspy_security_bench.integrations.frameworks._langchain_usage_callback", Usage)
     elif framework == "pydantic":
-        install("pydantic_ai", Agent=Agent)
+        install("pydantic_ai", Agent=Agent, ModelRetry=ValueError,
+                Tool=SimpleNamespace(from_schema=lambda function, **kwargs: function))
     elif framework == "crewai":
         install("crewai", Agent=Agent)
         install("crewai.tools", tool=lambda name: lambda function: function)

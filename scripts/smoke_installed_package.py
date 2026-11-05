@@ -151,6 +151,18 @@ if sys.argv[1:] == ["--version"]:
     schema_tool.openai_schema()["function"]["parameters"]["$defs"].clear()
     if schema != SchemaArguments.model_json_schema():
         raise RuntimeError("installed exported tool schema aliases its source")
+    from dspy_security_bench.integrations.schemas import _ToolArgumentsError, _ToolSchema
+    native_schema = _ToolSchema(schema)
+    native_schema.validate({})
+    try:
+        native_schema.validate({"item": {"quantity": "invalid"}})
+    except _ToolArgumentsError:
+        pass
+    else:
+        raise RuntimeError("installed native schema validator ignored nested constraints")
+    native_schema.export()["$defs"].clear()
+    if native_schema.export() != schema:
+        raise RuntimeError("installed native schema validator exposes mutable state")
     from dspy_security_bench.integrations.frameworks import AutoGenAdapter, _autogen_final_answer, _tool_callable
     if AutoGenAdapter().name != "autogen_agent":
         raise RuntimeError("installed AutoGen default is not a valid native identifier")

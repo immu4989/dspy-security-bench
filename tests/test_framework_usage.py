@@ -209,7 +209,8 @@ def run_bridge(monkeypatch, framework, usage, *, broken_path=False, invalid_answ
         install("agents", Agent=Agent, function_tool=lambda f: f,
                 Runner=SimpleNamespace(run_sync=lambda agent, query: agent.run_sync(query)))
     elif framework == "pydantic":
-        install("pydantic_ai", Agent=Agent)
+        install("pydantic_ai", Agent=Agent, ModelRetry=ValueError,
+                Tool=SimpleNamespace(from_schema=lambda function, **kwargs: function))
     elif framework == "crewai":
         install("crewai", Agent=Agent)
         install("crewai.tools", tool=lambda name: lambda f: f)

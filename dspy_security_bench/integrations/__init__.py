@@ -18,6 +18,7 @@ from dspy_security_bench.integrations.frameworks import (
     OpenAIAgentsAdapter,
     PydanticAIAdapter,
 )
+from dspy_security_bench.integrations.schemas import NativeToolSchemaError
 from dspy_security_bench.integrations.tools import NativeToolExecutionError
 
 __all__ = [
@@ -28,6 +29,7 @@ __all__ = [
     "FrameworkSpec",
     "LangChainAdapter",
     "NativeToolExecutionError",
+    "NativeToolSchemaError",
     "OpenAIAgentsAdapter",
     "PydanticAIAdapter",
     "detect_frameworks",

@@ -30,6 +30,8 @@ def run(monkeypatch, native_result, effects):
 
     module = ModuleType("pydantic_ai")
     module.Agent = Agent
+    module.Tool = SimpleNamespace(from_schema=lambda function, **kwargs: function)
+    module.ModelRetry = ValueError
     monkeypatch.setitem(sys.modules, "pydantic_ai", module)
     return PydanticAIAdapter(model="fixture").run(
         "PRIVATE query", [BenchTool("record", "Synthetic action", {}, lambda: effects.append(True) or "recorded")],

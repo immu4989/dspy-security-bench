@@ -10,6 +10,8 @@ on:
       - "tests/test_framework_compat.py"
       - "tests/test_framework_usage.py"
       - "tests/test_native_tool_session.py"
+      - "tests/test_native_tool_schemas.py"
+      - "tests/test_pydantic_tool_schema.py"
       - "tests/test_langchain_usage_ledger.py"
       - "tests/test_openai_result_admission.py"
       - "tests/test_langchain_result_admission.py"
@@ -31,6 +33,8 @@ on:
       - "tests/test_framework_compat.py"
       - "tests/test_framework_usage.py"
       - "tests/test_native_tool_session.py"
+      - "tests/test_native_tool_schemas.py"
+      - "tests/test_pydantic_tool_schema.py"
       - "tests/test_langchain_usage_ledger.py"
       - "tests/test_openai_result_admission.py"
       - "tests/test_langchain_result_admission.py"
@@ -93,6 +97,7 @@ jobs:
         run: >-
           uv run --locked --no-sync pytest -q tests/test_framework_compat.py tests/test_framework_usage.py
           tests/test_native_tool_session.py
+          tests/test_native_tool_schemas.py tests/test_pydantic_tool_schema.py
           tests/test_langchain_usage_ledger.py
           tests/test_openai_result_admission.py tests/test_langchain_result_admission.py
           tests/test_autogen_result_admission.py tests/test_pydantic_result_admission.py
