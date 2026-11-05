@@ -312,6 +312,56 @@ are unchanged: retain producer revisions and recapture comparison evidence after
 adopting this boundary. Native response fixtures block sockets and do not claim
 live-provider evaluation.
 
+## Native supplied-tool failures and lifetime
+
+**On main after v0.19.0**, all five built-in native bridges require their supplied
+`BenchTool` callbacks to return explicit text. `None`, booleans, mappings, and
+arbitrary objects are not implicitly stringified. Serialize structured results
+deliberately in your tool, and use an explicit text success/error response for
+expected domain outcomes. An intentional empty string remains valid. The
+[OpenAI function-output guidance](https://developers.openai.com/api/docs/guides/function-calling#formatting-results)
+likewise recommends an explicit status string for functions without a return value;
+this benchmark's text-only contract is narrower than the API's multimodal outputs.
+
+A native SDK's final answer does not erase a failed supplied callback. Each run
+has an independent, lock-protected session that records failure categories without
+retaining exception messages or tracebacks. After native execution and required
+answer admission, an invalid tool return raises `AgentResultError`; a caught
+callback exception or unfinished callback raises `NativeToolExecutionError`
+(importable from `dspy_security_bench.integrations`). Validation precedes optional
+telemetry. Exceptions already escaping the SDK—including cancellation—keep their
+existing behavior. Result handling does not replace them with a new exception.
+
+This is deliberately stricter than conversational error recovery. For example,
+[LangChain middleware](https://reference.langchain.com/python/langchain/agents/middleware/types/AgentMiddleware/wrap_tool_call)
+can catch tool failures and continue. Pydantic AI can turn
+[`ModelRetry` into a retry prompt](https://pydantic.dev/docs/ai/tools-toolsets/tools-advanced/#requesting-a-tool-retry).
+If those signals come from inside a supplied `BenchTool`, they
+still mark this measurement incomplete even if the SDK later returns text.
+Schema rejection *before* the callback starts is outside this session, and a
+callback that returns explicit domain-error text does not fail merely because
+the text contains an error. The check does not inspect model semantics or certify
+successful task completion.
+
+New supplied-tool invocations are denied after a callback fails and after the
+native run exits. Already admitted concurrent callbacks may still finish; they
+are not cancelled or rolled back. Returning with one still active permanently
+marks the invocation incomplete, even if it finishes later. Successful tool
+records and instrumented harms already observed remain available, but an error
+report is not a claim to capture future background effects. A fresh run starts
+with fresh state. Client cleanup, pending approvals, and deferred-output admission
+keep their existing paths.
+
+This is a **cooperative boundary**, not a sandbox, wall-clock limit, tool budget,
+or prevention of access through tools/clients created outside the supplied
+callbacks. It does not add JSON Schema enforcement or undo SDK argument coercion.
+It does not sanitize SDK logs or original exceptions. Custom callback adapters
+retain their own tool-execution semantics; use the explicit tool-budget wrapper
+when a task needs an admission limit. Offline fixtures exercise all five real
+SDKs, caught errors, concurrency, fresh state, and mission replay without providers.
+Preserve producer revisions and recapture comparisons; historical reports are not
+rewritten.
+
 ## Native SDK telemetry
 
 The stricter native usage extraction is **on main after v0.19.0**. Required

@@ -147,6 +147,31 @@ if sys.argv[1:] == ["--version"]:
     for asynchronous in (False, True):
         if get_type_hints(_tool_callable(tool, [], asynchronous=asynchronous)) != {"record_id": str, "return": str}:
             raise RuntimeError("installed tool metadata is incomplete for SDK introspection")
+    from dspy_security_bench.integrations import NativeToolExecutionError
+    from dspy_security_bench.integrations.tools import _ToolSession
+    effects, ledger = [], []
+    with _ToolSession() as session:
+        callback = _tool_callable(BenchTool("invalid", "Synthetic action", {}, lambda: effects.append(True)), ledger, session=session)
+        try:
+            callback()
+        except AgentResultError:
+            pass
+        else:
+            raise RuntimeError("installed native callback stringified a missing result")
+    try:
+        session.validate()
+    except AgentResultError:
+        pass
+    else:
+        raise RuntimeError("installed native session forgot a caught callback failure")
+    try:
+        callback()
+    except NativeToolExecutionError:
+        pass
+    else:
+        raise RuntimeError("installed native callback remained open after the run")
+    if effects != [True] or ledger:
+        raise RuntimeError("installed native callback fabricated records or repeated effects")
     final = SimpleNamespace(type="TextMessage", source="autogen_agent", content="answer")
     for state in (SimpleNamespace(messages=[]),
                   SimpleNamespace(messages=[final], stop_reason="terminated"),

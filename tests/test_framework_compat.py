@@ -191,7 +191,7 @@ def native_sync_loop():
 
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "crewai", reason="optional CrewAI SDK matrix")
 @pytest.mark.parametrize("inside_loop", [False, True])
-@pytest.mark.parametrize("mode", ["answer", "tool", "react-tool", "error-after-tool", "empty-response"])
+@pytest.mark.parametrize("mode", ["answer", "tool", "react-tool", "error-after-tool", "empty-response", "tool-invalid", "tool-error"])
 def test_crewai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, tmp_path, mode, inside_loop):
     import asyncio
     from contextvars import ContextVar
@@ -202,12 +202,13 @@ def test_crewai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
     from crewai.lite_agent_output import LiteAgentOutput
     from crewai_core.paths import db_storage_path
 
-    from dspy_security_bench.integrations import CrewAIAdapter
+    from dspy_security_bench.agents import AgentResultError
+    from dspy_security_bench.integrations import CrewAIAdapter, NativeToolExecutionError
 
     assert Path(db_storage_path()) == tmp_path / "storage"
     calls, captured, agents, effects, returned_awaitables = [], [], [], [], []
     request = ContextVar("native-crewai-request", default="missing")
-    tool_mode = mode in {"tool", "react-tool", "error-after-tool"}
+    tool_mode = mode in {"tool", "react-tool", "error-after-tool", "tool-invalid", "tool-error"}
 
     class CannedLLM(BaseLLM):
         def supports_function_calling(self):
@@ -262,10 +263,17 @@ def test_crewai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
     monkeypatch.setattr("crewai.Agent", agent_factory)
     model = CannedLLM(model="fixture/no-provider")
     adapter = CrewAIAdapter(model=model, name="fixture role")
+
+    def record(**kwargs):
+        effects.append(kwargs)
+        if mode == "tool-error":
+            raise LookupError("synthetic tool callback failure")
+        return None if mode == "tool-invalid" else "recorded"
+
     tool = BenchTool("record", "Record a fictional action.", {
         "type": "object", "properties": {"record_id": {"type": "string"}, "limit": {"type": "integer", "default": 1}},
         "required": ["record_id"],
-    }, lambda **kwargs: effects.append(kwargs) or "recorded")
+    }, record)
 
     def invoke(query):
         token = request.set("request-1")
@@ -279,6 +287,13 @@ def test_crewai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
 
     def run(query):
         return asyncio.run(invoke_inside_loop(query)) if inside_loop else invoke(query)
+
+    if mode in {"tool-invalid", "tool-error"}:
+        with pytest.raises(AgentResultError if mode == "tool-invalid" else NativeToolExecutionError):
+            run("first request")
+        assert effects == [{"record_id": "R-1", "limit": 1}]
+        assert captured[0].raw == "done"  # Native recovery does not certify the supplied callback.
+        return
 
     if mode in {"error-after-tool", "empty-response"}:
         error = LookupError if mode == "error-after-tool" else ValueError
@@ -309,17 +324,17 @@ def test_crewai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
 
 
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "pydantic-ai", reason="optional Pydantic AI SDK matrix")
-@pytest.mark.parametrize("mode", ["answer", "tool", "approval", "deferred", "structured", "empty-response"])
+@pytest.mark.parametrize("mode", ["answer", "tool", "approval", "deferred", "structured", "empty-response", "tool-invalid", "tool-retry"])
 def test_pydantic_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, native_sync_loop, mode):
     from pydantic import BaseModel
-    from pydantic_ai import Agent, CallDeferred, DeferredToolRequests, Tool, models
+    from pydantic_ai import Agent, CallDeferred, DeferredToolRequests, ModelRetry, Tool, models
     from pydantic_ai.exceptions import UnexpectedModelBehavior
     from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart, UserPromptPart
     from pydantic_ai.models.function import FunctionModel
     from pydantic_ai.usage import RequestUsage
 
     from dspy_security_bench.agents import AgentResultError
-    from dspy_security_bench.integrations import PydanticAIAdapter
+    from dspy_security_bench.integrations import NativeToolExecutionError, PydanticAIAdapter
 
     def no_network(*args, **kwargs):
         pytest.fail("native Pydantic AI fixture must not contact providers or tracing services")
@@ -339,7 +354,7 @@ def test_pydantic_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch
             parts = []
         elif mode == "structured":
             parts = [ToolCallPart(info.output_tools[0].name, {"answer": "PRIVATE structured answer"})]
-        elif mode in {"tool", "approval", "deferred"} and len(calls) % 2 == 1:
+        elif mode in {"tool", "approval", "deferred", "tool-invalid", "tool-retry"} and len(calls) % 2 == 1:
             parts = [ToolCallPart("record", {"record_id": "R-1"}, tool_call_id="fixture-call")]
             if mode == "approval":
                 parts.insert(0, TextPart("PRIVATE stale answer alongside an unapproved call"))
@@ -371,14 +386,22 @@ def test_pydantic_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch
         if mode == "deferred":
             raise CallDeferred(metadata={"synthetic": True})
         effects.append(kwargs)
-        return "recorded"
+        if mode == "tool-retry":
+            raise ModelRetry("synthetic callback failure represented as model retry")
+        return None if mode == "tool-invalid" else "recorded"
 
     tool = BenchTool("record", "Record a fictional action.", {
         "type": "object", "properties": {"record_id": {"type": "string"}, "limit": {"type": "integer", "default": 1}},
         "required": ["record_id"],
     }, record)
     adapter = PydanticAIAdapter(model=FunctionModel(model_function))
-    if mode in {"approval", "deferred", "structured"}:
+    if mode in {"tool-invalid", "tool-retry"}:
+        with pytest.raises(AgentResultError if mode == "tool-invalid" else NativeToolExecutionError):
+            adapter.run("fixture", [tool])
+        assert effects == [{"record_id": "R-1", "limit": 1}]
+        if mode == "tool-retry":
+            assert captured[0].output == "done"
+    elif mode in {"approval", "deferred", "structured"}:
         with pytest.raises(AgentResultError, match="final_answer must be text"):
             adapter.run("fixture", [tool])
         assert not effects and len(calls) == 1
@@ -411,7 +434,7 @@ def test_pydantic_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch
 
 
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "autogen", reason="optional AutoGen SDK matrix")
-@pytest.mark.parametrize("mode", ["answer", "empty", "tool", "tool-limit", "handoff", "error"])
+@pytest.mark.parametrize("mode", ["answer", "empty", "tool", "tool-limit", "handoff", "error", "tool-invalid", "tool-error"])
 def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, mode):
     from autogen_agentchat.agents import AssistantAgent
     from autogen_core import FunctionCall
@@ -419,7 +442,7 @@ def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch,
     from autogen_ext.models.replay import ReplayChatCompletionClient
 
     from dspy_security_bench.agents import AgentResultError
-    from dspy_security_bench.integrations import AutoGenAdapter
+    from dspy_security_bench.integrations import AutoGenAdapter, NativeToolExecutionError
 
     def no_network(*args, **kwargs):
         pytest.fail("native AutoGen fixture must not contact providers or tracing services")
@@ -437,6 +460,7 @@ def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch,
     responses = {
         "answer": [finish], "empty": [finish], "tool": [calls, finish],
         "tool-limit": [calls], "handoff": [calls], "error": [],
+        "tool-invalid": [calls, finish], "tool-error": [calls, finish],
     }[mode]
     clients, captured, effects, closed = [], [], [], []
 
@@ -467,12 +491,24 @@ def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch,
 
     monkeypatch.setattr("autogen_ext.models.openai.OpenAIChatCompletionClient", client_factory)
     monkeypatch.setattr("autogen_agentchat.agents.AssistantAgent", agent_factory)
+
+    def record(**kwargs):
+        effects.append(kwargs)
+        if mode == "tool-error":
+            raise LookupError("synthetic tool callback failure")
+        return None if mode == "tool-invalid" else "recorded"
+
     tool = BenchTool("record", "Record a fictional action.", {
         "type": "object", "properties": {"record_id": {"type": "string"}, "limit": {"type": "integer", "default": 1}},
         "required": ["record_id"],
-    }, lambda **kwargs: effects.append(kwargs) or "recorded")
+    }, record)
     adapter = AutoGenAdapter(model="fixture", max_tool_iterations=1 if mode == "tool-limit" else 10)
-    if mode == "handoff":
+    if mode in {"tool-invalid", "tool-error"}:
+        with pytest.raises(AgentResultError if mode == "tool-invalid" else NativeToolExecutionError):
+            adapter.run("fixture", [tool])
+        assert effects == [{"record_id": "R-1", "limit": 1}]
+        assert captured[0].messages[-1].content == "done"
+    elif mode == "handoff":
         with pytest.raises(AgentResultError, match="terminal message"):
             adapter.run("fixture", [tool])
         assert captured[0].messages[-1].type == "HandoffMessage"
@@ -499,7 +535,7 @@ def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch,
         else:
             assert effects == [] and result.tool_calls == []
     assert closed == [True] and len(clients) == 1
-    assert len(clients[0].create_calls) == {"tool": 2, "error": 0}.get(mode, 1)
+    assert len(clients[0].create_calls) == {"tool": 2, "tool-invalid": 2, "tool-error": 2, "error": 0}.get(mode, 1)
     if mode == "tool":
         second = adapter.run("second fixture", [tool])
         assert len(clients) == 2 and clients[0] is not clients[1]
@@ -514,7 +550,7 @@ def test_autogen_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch,
 
 
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "openai-agents", reason="optional OpenAI SDK matrix")
-@pytest.mark.parametrize("mode", ["answer", "empty", "approval"])
+@pytest.mark.parametrize("mode", ["answer", "empty", "approval", "tool-invalid", "tool-error"])
 def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, native_sync_loop, mode):
     from agents import Model, ModelResponse, RunConfig, Runner, Usage
     from openai.types.responses import (
@@ -524,6 +560,7 @@ def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
     )
 
     from dspy_security_bench.agents import AgentResultError
+    from dspy_security_bench.integrations import NativeToolExecutionError
     from dspy_security_bench.integrations.frameworks import OpenAIAgentsAdapter
 
     def no_network(*args, **kwargs):
@@ -564,9 +601,20 @@ def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
     monkeypatch.setattr(Runner, "run_sync", staticmethod(offline_run))
     model = CannedModel()
     adapter = OpenAIAgentsAdapter(model=model)
+
+    def record():
+        effects.append(True)
+        if mode == "tool-error":
+            raise LookupError("synthetic tool callback failure")
+        return None if mode == "tool-invalid" else "recorded"
+
     tool = BenchTool("record", "Record a fictional action.", {"type": "object", "properties": {}},
-                     lambda: effects.append(True) or "recorded")
-    if mode == "approval":
+                     record)
+    if mode in {"tool-invalid", "tool-error"}:
+        with pytest.raises(AgentResultError if mode == "tool-invalid" else NativeToolExecutionError):
+            adapter.run("fixture", [tool])
+        assert effects == [True] and captured[0].final_output == "done" and model.calls == 2
+    elif mode == "approval":
         with pytest.raises(AgentResultError, match="awaits approval"):
             adapter.run("fixture", [tool])
         assert effects == [] and model.calls == 1
@@ -582,19 +630,20 @@ def test_openai_bridge_runs_native_sdk_loop_without_provider_calls(monkeypatch, 
 
 @pytest.mark.skipif(os.environ.get("DSB_FRAMEWORK") != "langchain", reason="optional LangChain SDK matrix")
 @pytest.mark.parametrize("mode", ["answer", "empty", "blocks", "approval", "static-pause",
-                                 "missing-usage", "partial-usage", "invalid-usage", "pruned-state", "error-recovered"])
+                                 "missing-usage", "partial-usage", "invalid-usage", "pruned-state", "error-recovered",
+                                 "tool-invalid", "tool-error"])
 def test_langchain_bridge_runs_native_agent_loop_without_provider_calls(monkeypatch, mode):
     from types import SimpleNamespace
 
     from langchain.agents import create_agent
-    from langchain.agents.middleware import HumanInTheLoopMiddleware
+    from langchain.agents.middleware import HumanInTheLoopMiddleware, wrap_tool_call
     from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
-    from langchain_core.messages import AIMessage
+    from langchain_core.messages import AIMessage, ToolMessage
     from langgraph.checkpoint.memory import InMemorySaver
     from langsmith import tracing_context
 
     from dspy_security_bench.agents import AgentResultError
-    from dspy_security_bench.integrations.frameworks import LangChainAdapter
+    from dspy_security_bench.integrations import LangChainAdapter, NativeToolExecutionError
 
     def no_network(*args, **kwargs):
         pytest.fail("native compatibility fixture must not contact providers or tracing services")
@@ -636,9 +685,18 @@ def test_langchain_bridge_runs_native_agent_loop_without_provider_calls(monkeypa
     model = CannedModel(responses=responses)
     captured, effects, callbacks = [], [], []
 
+    @wrap_tool_call
+    def recover_tool_failure(request, handler):
+        try:
+            return handler(request)
+        except Exception:
+            return ToolMessage(content="Synthetic recovery", tool_call_id=request.tool_call["id"])
+
     def native_create(**kwargs):
         options = {}
-        if mode == "approval":
+        if mode in {"tool-invalid", "tool-error"}:
+            options["middleware"] = [recover_tool_failure]
+        elif mode == "approval":
             options["middleware"] = [HumanInTheLoopMiddleware(interrupt_on={"record": True})]
             options["checkpointer"] = InMemorySaver()
         elif mode == "static-pause":
@@ -664,10 +722,21 @@ def test_langchain_bridge_runs_native_agent_loop_without_provider_calls(monkeypa
         return SimpleNamespace(invoke=invoke)
 
     monkeypatch.setattr("langchain.agents.create_agent", native_create)
+
+    def record():
+        effects.append(True)
+        if mode == "tool-error":
+            raise LookupError("synthetic tool callback failure")
+        return None if mode == "tool-invalid" else "recorded"
+
     tool = BenchTool("record", "Record a fictional action.", {"type": "object", "properties": {}},
-                     lambda: effects.append(True) or "recorded")
+                     record)
     adapter = LangChainAdapter(model=model)
-    if mode in {"approval", "static-pause"}:
+    if mode in {"tool-invalid", "tool-error"}:
+        with pytest.raises(AgentResultError if mode == "tool-invalid" else NativeToolExecutionError):
+            adapter.run("fixture", [tool])
+        assert effects == [True] and captured[0]["messages"][-1].content == "done"
+    elif mode in {"approval", "static-pause"}:
         with pytest.raises(AgentResultError):
             adapter.run("fixture", [tool])
         assert effects == []

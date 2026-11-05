@@ -19,6 +19,7 @@ from dspy_security_bench.agents import (
     validate_agent_result,
 )
 from dspy_security_bench.agents.base import require_text_answer
+from dspy_security_bench.integrations.tools import _ToolSession
 from dspy_security_bench.integrations.usage import _langchain_usage_callback, _usage
 
 _BASE_INSTRUCTIONS = (
@@ -42,16 +43,22 @@ def _annotation(schema: dict[str, Any]) -> type:
     }.get(str(schema.get("type", "")), Any)
 
 
-def _tool_callable(tool: BenchTool, ledger: list[ToolCall], *, asynchronous: bool = False):
+def _tool_callable(tool: BenchTool, ledger: list[ToolCall], *, asynchronous: bool = False,
+                   session: _ToolSession | None = None):
     properties = tool.parameters.get("properties", {}) if isinstance(tool.parameters, dict) else {}
     required = (
         set(tool.parameters.get("required", [])) if isinstance(tool.parameters, dict) else set()
     )
 
-    def invoke(arguments: dict[str, Any]) -> str:
-        result = str(tool(**arguments))
+    def execute(arguments: dict[str, Any]) -> str:
+        result = tool(**arguments)
+        if not isinstance(result, str):
+            raise AgentResultError("ToolCall.result must be text")
         ledger.append(ToolCall(name=tool.name, args=dict(arguments), result=result))
         return result
+
+    def invoke(arguments: dict[str, Any]) -> str:
+        return session.invoke(lambda: execute(arguments)) if session is not None else execute(arguments)
 
     if asynchronous:
 
@@ -177,15 +184,17 @@ class OpenAIAgentsAdapter:
             raise RuntimeError("OpenAI Agents SDK is missing; install openai-agents>=0.20") from exc
 
         ledger: list[ToolCall] = []
-        native_tools = [function_tool(_tool_callable(tool, ledger)) for tool in tools]
-        agent = SDKAgent(
-            name=self.name,
-            instructions=_instructions(self.instructions, system_directive),
-            model=self.model,
-            tools=native_tools,
-        )
-        result = Runner.run_sync(agent, query)
+        with _ToolSession() as session:
+            native_tools = [function_tool(_tool_callable(tool, ledger, session=session)) for tool in tools]
+            agent = SDKAgent(
+                name=self.name,
+                instructions=_instructions(self.instructions, system_directive),
+                model=self.model,
+                tools=native_tools,
+            )
+            result = Runner.run_sync(agent, query)
         answer = _openai_final_answer(result)
+        session.validate()
         usage = _usage(result, "context_wrapper", "usage")
         return validate_agent_result(AgentResult(final_answer=answer, tool_calls=ledger, usage=usage))
 
@@ -204,13 +213,15 @@ class LangChainAdapter:
             raise RuntimeError("LangChain is missing; install langchain>=1.3") from exc
 
         ledger: list[ToolCall] = []
-        agent = create_agent(
-            model=self.model,
-            tools=[_tool_callable(tool, ledger) for tool in tools],
-            system_prompt=_instructions(self.instructions, system_directive),
-        )
-        result = agent.invoke({"messages": [{"role": "user", "content": query}]}, config={"callbacks": [usage]})
+        with _ToolSession() as session:
+            agent = create_agent(
+                model=self.model,
+                tools=[_tool_callable(tool, ledger, session=session) for tool in tools],
+                system_prompt=_instructions(self.instructions, system_directive),
+            )
+            result = agent.invoke({"messages": [{"role": "user", "content": query}]}, config={"callbacks": [usage]})
         answer = _langchain_output(result)
+        session.validate()
         return validate_agent_result(AgentResult(final_answer=answer, tool_calls=ledger, usage=usage.usage()))
 
 
@@ -232,13 +243,15 @@ class PydanticAIAdapter:
             raise RuntimeError("Pydantic AI is missing; install pydantic-ai>=2.29") from exc
 
         ledger: list[ToolCall] = []
-        agent = PydanticAgent(
-            self.model,
-            tools=[_tool_callable(tool, ledger) for tool in tools],
-            instructions=_instructions(self.instructions, system_directive),
-        )
-        result = agent.run_sync(query)
+        with _ToolSession() as session:
+            agent = PydanticAgent(
+                self.model,
+                tools=[_tool_callable(tool, ledger, session=session) for tool in tools],
+                instructions=_instructions(self.instructions, system_directive),
+            )
+            result = agent.run_sync(query)
         answer = _pydantic_final_answer(result)
+        session.validate()
         return validate_agent_result(AgentResult(
             final_answer=answer,
             tool_calls=ledger,
@@ -274,22 +287,24 @@ class CrewAIAdapter:
             raise
 
         ledger: list[ToolCall] = []
-        native_tools = [crew_tool(tool.name)(_tool_callable(tool, ledger)) for tool in tools]
-        instructions = _instructions(self.instructions, system_directive)
-        agent = CrewAgent(
-            role=self.name,
-            goal=instructions,
-            backstory="A tool-using agent evaluated in a synthetic security benchmark.",
-            tools=native_tools,
-            llm=self.model,
-            allow_delegation=False,
-            verbose=False,
-        )
-        result = agent.kickoff(query)
-        # Current CrewAI returns a coroutine when kickoff sees an active loop.
-        if inspect.isawaitable(result):
-            result = _run_awaitable(result)
+        with _ToolSession() as session:
+            native_tools = [crew_tool(tool.name)(_tool_callable(tool, ledger, session=session)) for tool in tools]
+            instructions = _instructions(self.instructions, system_directive)
+            agent = CrewAgent(
+                role=self.name,
+                goal=instructions,
+                backstory="A tool-using agent evaluated in a synthetic security benchmark.",
+                tools=native_tools,
+                llm=self.model,
+                allow_delegation=False,
+                verbose=False,
+            )
+            result = agent.kickoff(query)
+            # Current CrewAI returns a coroutine when kickoff sees an active loop.
+            if inspect.isawaitable(result):
+                result = _run_awaitable(result)
         answer = _crewai_final_answer(result, role=self.name)
+        session.validate()
         return validate_agent_result(AgentResult(
             final_answer=answer,
             tool_calls=ledger,
@@ -349,7 +364,7 @@ class AutoGenAdapter:
                 agent = AssistantAgent(
                     name=self.name,
                     model_client=client,
-                    tools=[_tool_callable(tool, ledger, asynchronous=True) for tool in tools],
+                    tools=[_tool_callable(tool, ledger, asynchronous=True, session=session) for tool in tools],
                     system_message=_instructions(self.instructions, system_directive),
                     max_tool_iterations=self.max_tool_iterations,
                 )
@@ -359,8 +374,10 @@ class AutoGenAdapter:
                 if inspect.isawaitable(closed):
                     await closed
 
-        result, client = _run_awaitable(execute())
+        with _ToolSession() as session:
+            result, client = _run_awaitable(execute())
         final = _autogen_final_answer(result, name=self.name)
+        session.validate()
         usage = _usage(client, "total_usage")
         return validate_agent_result(AgentResult(final_answer=final, tool_calls=ledger, usage=usage))
 

@@ -67,6 +67,12 @@ The Pydantic AI bridge requires explicit text in `AgentRunResult.output` before
 reading optional usage. Deferred approval/external-call objects and structured
 results are not implicitly serialized. See [Pydantic AI completion rules](integrations.md#pydantic-ai-text-output-and-deferred-work).
 
+All five native bridges also retain supplied-tool failures independently of SDK
+recovery. Non-text tool returns remain invalid results; caught callback failures
+or unfinished callbacks are execution errors. Retained callbacks close after the
+native run, without rolling back earlier effects or cancelling admitted work.
+See [native tool lifetime and limits](integrations.md#native-supplied-tool-failures-and-lifetime).
+
 Procurement, IncidentTwin, and MissionPack record `invalid_agent_result` for a
 malformed result and `agent_execution_error` for other ordinary agent exceptions.
 Neither qualifies for mission completion. Already instrumented actions and harms

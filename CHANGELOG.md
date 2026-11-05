@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Native framework tools no longer stringify missing or structured return values.
+  Each built-in bridge now retains supplied-callback failure categories even when
+  the SDK recovers to a final answer, rejects callbacks still active at return,
+  and closes retained tool handles after a run. Already admitted effects remain;
+  this is cooperative accounting, not cancellation or a sandbox. Offline real-SDK
+  loops, cross-framework lifecycle/concurrency tests, and mission replay cover
+  invalid returns, caught failures, fresh runs, and preserved harms.
 - The reference LiteLLM loop now admits explicit completed assistant turns before
   reading telemetry or executing tool batches. Missing/non-text answers,
   truncation/filtering, pending final-step calls, ambiguous choices, and preserved

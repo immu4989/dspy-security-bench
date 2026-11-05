@@ -9,6 +9,7 @@ on:
       - "dspy_security_bench/causal/runtime.py"
       - "tests/test_framework_compat.py"
       - "tests/test_framework_usage.py"
+      - "tests/test_native_tool_session.py"
       - "tests/test_langchain_usage_ledger.py"
       - "tests/test_openai_result_admission.py"
       - "tests/test_langchain_result_admission.py"
@@ -29,6 +30,7 @@ on:
       - "dspy_security_bench/causal/runtime.py"
       - "tests/test_framework_compat.py"
       - "tests/test_framework_usage.py"
+      - "tests/test_native_tool_session.py"
       - "tests/test_langchain_usage_ledger.py"
       - "tests/test_openai_result_admission.py"
       - "tests/test_langchain_result_admission.py"
@@ -90,6 +92,7 @@ jobs:
           DSB_FRAMEWORK: ${{ matrix.framework }}
         run: >-
           uv run --locked --no-sync pytest -q tests/test_framework_compat.py tests/test_framework_usage.py
+          tests/test_native_tool_session.py
           tests/test_langchain_usage_ledger.py
           tests/test_openai_result_admission.py tests/test_langchain_result_admission.py
           tests/test_autogen_result_admission.py tests/test_pydantic_result_admission.py
