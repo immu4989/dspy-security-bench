@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Preserved complete AgentDojo argument schemas, including nested/recursive
+  definitions, constraints, aliases, and root metadata. Omitted `required` no
+  longer invents mandatory arguments for default-only tools. Exported tool
+  specs and each reference LiteLLM round are detached from mutable source
+  schemas. Offline tests cover real runtime defaults, nested validation, live
+  effects, and provider-side mutation; native SDK schema conversions remain
+  a separate documented limitation. Re-run affected baselines before comparing.
 - Native framework tools no longer stringify missing or structured return values.
   Each built-in bridge now retains supplied-callback failure categories even when
   the SDK recovers to a final answer, rejects callbacks still active at return,

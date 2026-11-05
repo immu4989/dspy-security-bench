@@ -30,6 +30,7 @@ Then benchmark it with `runner.evaluate_agents({"my-agent": MyAgent()}, ...)`.
 from __future__ import annotations
 
 from collections.abc import Callable
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 
@@ -45,8 +46,9 @@ class BenchTool:
     Attributes:
         name: tool name (matches the environment's function name).
         description: human/LLM-readable description.
-        parameters: JSON Schema (draft 2020-12 style dict) for the arguments,
-            suitable for an OpenAI/Anthropic `tools=[...]` spec.
+        parameters: JSON Schema (draft 2020-12 style dict) for the arguments.
+            Provider/native SDK schema subsets and conversions may differ;
+            exporting a spec is not a guarantee of downstream support.
         _call: harness-provided callable that runs the tool for real. Prefer
             calling the instance (`tool(**args)`) over touching `_call`.
     """
@@ -60,13 +62,13 @@ class BenchTool:
         return self._call(**kwargs)
 
     def openai_schema(self) -> dict:
-        """This tool as an OpenAI/Anthropic function-calling tool spec."""
+        """A detached function-calling spec; provider schema support may vary."""
         return {
             "type": "function",
             "function": {
                 "name": self.name,
                 "description": self.description,
-                "parameters": self.parameters or {"type": "object", "properties": {}},
+                "parameters": deepcopy(self.parameters) if self.parameters else {"type": "object", "properties": {}},
             },
         }
 

@@ -138,6 +138,19 @@ if sys.argv[1:] == ["--version"]:
         raise RuntimeError("installed LangChain bridge changed text-block attribution")
     from typing import get_type_hints
     from dspy_security_bench.agents import BenchTool
+    from dspy_security_bench.adapters.generic import _full_json_schema
+    from pydantic import BaseModel
+    class SchemaItem(BaseModel):
+        quantity: int
+    class SchemaArguments(BaseModel):
+        item: SchemaItem | None = None
+    schema = _full_json_schema(SimpleNamespace(parameters=SchemaArguments))
+    if schema != SchemaArguments.model_json_schema() or "required" in schema or "$defs" not in schema:
+        raise RuntimeError("installed generic bridge changed nested/optional argument schema")
+    schema_tool = BenchTool("schema", "Synthetic schema", schema, lambda **kwargs: "ok")
+    schema_tool.openai_schema()["function"]["parameters"]["$defs"].clear()
+    if schema != SchemaArguments.model_json_schema():
+        raise RuntimeError("installed exported tool schema aliases its source")
     from dspy_security_bench.integrations.frameworks import AutoGenAdapter, _autogen_final_answer, _tool_callable
     if AutoGenAdapter().name != "autogen_agent":
         raise RuntimeError("installed AutoGen default is not a valid native identifier")

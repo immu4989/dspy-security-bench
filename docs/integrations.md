@@ -271,6 +271,49 @@ missing cost. SDK defaults or computed fields cannot be distinguished from
 provider observations after that distinction is lost. Custom agents own the
 completeness of usage they supply.
 
+## Tool schema fidelity at the generic boundary
+
+**On main after v0.19.0**, the AgentDojo-to-`BenchTool` bridge snapshots the entire
+argument schema emitted by the runtime's Pydantic model. It preserves `$defs`
+and `$ref`, nested constraints, enums/unions, aliases, defaults, descriptions,
+and root-level keywords such as `additionalProperties`. It does not flatten
+references or reconstruct a schema from only `properties` and `required`.
+When Pydantic omits `required` for a default-only tool, those arguments remain
+optional; the bridge no longer declares every model field mandatory.
+
+For example, an order tool with nested line items keeps the definitions for
+each item's allowed fields and quantity bounds. A count tool with `count=2`
+can still be called with `{}`, and the live runtime applies its default. The
+bridge does not execute tools while inspecting schemas. This follows
+[Pydantic's JSON Schema representation](https://pydantic.dev/docs/validation/latest/concepts/json_schema/)
+and [AgentDojo's runtime validation boundary](https://agentdojo.spylab.ai/concepts/functions_runtime/).
+
+`BenchTool.openai_schema()` returns a deep, detached copy of nonempty parameters.
+Changes to nested definitions/defaults in that exported dictionary do not alter
+the source tool or another export. The reference LiteLLM loop also gives each
+completion round a fresh copy, so provider-side normalization cannot silently
+rewrite subsequent rounds or later evaluations. The existing empty-`{}`
+`BenchTool.parameters` shorthand still exports an empty object-argument schema.
+
+**Scope:** this is schema preservation, not a new argument validator, provider
+compatibility certification, immutable tool sandbox, or semantic equivalence
+proof. AgentDojo continues to validate/coerce arguments and apply defaults under
+its own rules. Custom callbacks retain their existing validation behavior.
+Providers may reject unsupported schema features. The five built-in native SDK
+bridges currently derive signatures from primitive property types; they do
+**not** preserve the full source schema's nested constraints, references, enums,
+or unions. This change does not repair those independent SDK conversions.
+Use a schema-aware custom callback and validate your integration when those
+features matter; do not assume cross-framework schema equivalence.
+
+Offline regressions compare real generated schemas, resolve local recursive
+references, exercise valid/invalid nested arguments in the real AgentDojo
+runtime, check live effects/defaults, and simulate mutation across LiteLLM
+rounds and repeated runs. They make no provider requests. Schema changes can
+affect model behavior: record the producer version and re-run affected baselines
+instead of comparing pre-fix and post-fix results as identical configurations.
+No historical scores are rewritten and no measured score improvement is claimed.
+
 ## LiteLLM completion and tool-turn admission
 
 **On main after v0.19.0**, the reference agent accepts exactly one non-streaming

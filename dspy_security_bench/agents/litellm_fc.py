@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import math
+from copy import deepcopy
 
 from dspy_security_bench.agents.base import (
     AgentResult,
@@ -81,7 +82,8 @@ class LiteLLMFunctionCallingAgent:
             resp = litellm.completion(
                 model=self.model,
                 messages=messages,
-                tools=tool_specs or None,
+                # Provider normalization must not rewrite later rounds' specs.
+                tools=deepcopy(tool_specs) if tool_specs else None,
                 tool_choice="auto" if tool_specs else None,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,

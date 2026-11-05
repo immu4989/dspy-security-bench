@@ -17,6 +17,7 @@ enforced harness-side (so the agent cannot bypass them):
 from __future__ import annotations
 
 from collections.abc import Sequence
+from copy import deepcopy
 
 from agentdojo.agent_pipeline.base_pipeline_element import BasePipelineElement
 from agentdojo.functions_runtime import EmptyEnv, Env, FunctionCall, FunctionsRuntime
@@ -32,17 +33,13 @@ from dspy_security_bench.agents.base import Agent, BenchTool, ToolCall, validate
 
 
 def _full_json_schema(function) -> dict:
-    """A complete JSON Schema object for an AgentDojo Function's arguments,
-    suitable for an OpenAI/Anthropic `tools=[...]` spec."""
-    model = function.parameters
-    schema = model.model_json_schema()
-    props = schema.get("properties", {})
-    required = schema.get("required", list(model.model_fields.keys()))
-    return {
-        "type": "object",
-        "properties": props,
-        "required": required,
-    }
+    """Snapshot the runtime's argument schema without changing its semantics.
+
+    References need their definitions; absent ``required`` does not mean all
+    fields are required. Provider-specific adaptation belongs downstream, not
+    in this framework-neutral handoff.
+    """
+    return deepcopy(function.parameters.model_json_schema())
 
 
 def _make_bench_tool(function, runtime: FunctionsRuntime, env: Env, defense, user_query: str) -> BenchTool:
