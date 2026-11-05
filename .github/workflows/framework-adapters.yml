@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "dspy_security_bench/integrations/**"
-      - "dspy_security_bench/agents/usage.py"
+      - "dspy_security_bench/agents/**"
       - "dspy_security_bench/causal/runtime.py"
       - "tests/test_framework_compat.py"
       - "tests/test_framework_usage.py"
@@ -26,7 +26,7 @@ on:
     branches: [main]
     paths:
       - "dspy_security_bench/integrations/**"
-      - "dspy_security_bench/agents/usage.py"
+      - "dspy_security_bench/agents/**"
       - "dspy_security_bench/causal/runtime.py"
       - "tests/test_framework_compat.py"
       - "tests/test_framework_usage.py"

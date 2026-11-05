@@ -10,6 +10,13 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Extended supplied-tool lifecycle accounting to every agent run through the
+  generic AgentDojo bridge: retained handles close at task exit, unfinished
+  callbacks prevent binary scoring, and caught harness/defense failures cannot
+  masquerade as completed runs. AgentDojo's explicit domain/validation-error
+  text remains recoverable. Shared logic preserves native bridge diagnostics;
+  offline runtime, concurrency, cancellation, and real workspace tests cover
+  the boundary without rolling back effects or cancelling admitted callbacks.
 - Preserved complete AgentDojo argument schemas, including nested/recursive
   definitions, constraints, aliases, and root metadata. Omitted `required` no
   longer invents mandatory arguments for default-only tools. Exported tool

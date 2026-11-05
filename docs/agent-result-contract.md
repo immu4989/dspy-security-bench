@@ -39,6 +39,12 @@ Generic and DSPy AgentDojo runs stop with a separate execution error, without a
 completed scan gate or evidence file. See the [v4 scope migration](scan-upgrade-guide.md)
 before comparing new scans with archived measurements.
 
+The generic AgentDojo bridge also closes supplied tool handles at task exit and
+rejects unfinished callbacks or caught harness/defense failures independently of
+the agent's optional ledger. Explicit runtime domain-error text remains normal
+feedback. See [generic tool lifetime](integrations.md#generic-agentdojo-tool-lifetime)
+for `AgentToolExecutionError`, cancellation behavior, and cooperative limits.
+
 The reference LiteLLM loop requires one completed assistant turn and explicit
 text before producing a result. Missing answers, unfinished generations, pending
 final-step tools, and supported detection of native error states cannot become

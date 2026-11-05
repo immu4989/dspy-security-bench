@@ -29,7 +29,14 @@ from agentdojo.types import (
 )
 
 from dspy_security_bench.adapters.agentdojo import _serialize_result
-from dspy_security_bench.agents.base import Agent, BenchTool, ToolCall, validate_agent_result
+from dspy_security_bench.agents.base import (
+    Agent,
+    AgentResultError,
+    BenchTool,
+    ToolCall,
+    validate_agent_result,
+)
+from dspy_security_bench.agents.tools import _ToolSession
 
 
 def _full_json_schema(function) -> dict:
@@ -42,18 +49,24 @@ def _full_json_schema(function) -> dict:
     return deepcopy(function.parameters.model_json_schema())
 
 
-def _make_bench_tool(function, runtime: FunctionsRuntime, env: Env, defense, user_query: str) -> BenchTool:
+def _make_bench_tool(function, runtime: FunctionsRuntime, env: Env, defense, user_query: str,
+                     *, session: _ToolSession | None = None) -> BenchTool:
     """Wrap an AgentDojo Function as a BenchTool whose call executes for real
     and passes the observation through the active defense."""
     name = function.name
     desc = (function.description or "").strip()
 
-    def _call(**kwargs) -> str:
+    def execute(kwargs) -> str:
         result, error = runtime.run_function(env, name, kwargs, raise_on_error=False)
         output = _serialize_result(result, error)
         if defense is not None:
             output = defense.wrap_tool_output(output, tool_name=name, user_query=user_query)
+        if not isinstance(output, str):
+            raise AgentResultError("ToolCall.result must be text")
         return output
+
+    def _call(**kwargs) -> str:
+        return session.invoke(lambda: execute(kwargs)) if session is not None else execute(kwargs)
 
     return BenchTool(
         name=name,
@@ -107,12 +120,15 @@ class GenericAgentElement(BasePipelineElement):
         system_directive = self.defense.rewrite_instructions("")
 
         # Defense — tool-output channel (harness-enforced).
-        tools = [
-            _make_bench_tool(fn, runtime, env, self.defense, defended_query)
-            for fn in runtime.functions.values()
-        ]
+        with _ToolSession() as session:
+            tools = [
+                _make_bench_tool(fn, runtime, env, self.defense, defended_query, session=session)
+                for fn in runtime.functions.values()
+            ]
 
-        result = validate_agent_result(self.agent.run(defended_query, tools, system_directive=system_directive))
+            result = self.agent.run(defended_query, tools, system_directive=system_directive)
+        result = validate_agent_result(result)
+        session.validate()
 
         out_messages = list(messages)
         out_messages.extend(self._trace_to_messages(result.tool_calls))

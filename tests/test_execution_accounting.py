@@ -133,6 +133,49 @@ def test_real_malformed_agent_scan_cli_publishes_no_gate_or_evidence(monkeypatch
     assert not output.exists() and not evidence.exists()
 
 
+@pytest.mark.parametrize("invalid_on_call", [1, 2], ids=["auxiliary", "scored"])
+@pytest.mark.parametrize("failure", ["invalid-return", "exception"])
+def test_real_workspace_does_not_score_recovered_harness_tool_failures(monkeypatch, invalid_on_call, failure):
+    from dspy_security_bench.agents import AgentResult, AgentToolExecutionError
+    from dspy_security_bench.defenses import NoDefense
+
+    monkeypatch.setattr("agentdojo.benchmark.TraceLogger", NoDiskTrace)
+    monkeypatch.setattr("socket.socket.connect", lambda *args: pytest.fail("offline fixture must not connect"))
+    captured, calls = [], []
+
+    class BrokenDefense(NoDefense):
+        def wrap_tool_output(self, value, **kwargs):
+            if len(calls) == invalid_on_call:
+                if failure == "exception":
+                    raise LookupError("PRIVATE harness details")
+                return None
+            return value
+
+    monkeypatch.setattr("dspy_security_bench.defenses.get_defense", lambda name: BrokenDefense())
+
+    def execute(query, tools, **kwargs):
+        calls.append(True)
+        # Deliberately invalid arguments: real runtime validation returns error
+        # text without invoking the function; the harness defense then fails.
+        tool = next(tool for tool in tools if tool.parameters.get("required"))
+        captured.append(tool)
+        try:
+            tool()
+        except Exception:
+            pass
+        return AgentResult("recovered", tool_calls=[])
+
+    agent = SimpleNamespace(name="offline-recovered", run=execute)
+    with pytest.raises(BenchmarkExecutionError, match="no binary outcome") as caught:
+        evaluate_agents({agent.name: agent}, suite_name="workspace", attacks=["direct"],
+                        user_task_ids=["user_task_0"], injection_task_ids=["injection_task_0"])
+    assert len(calls) == invalid_on_call
+    assert "PRIVATE" not in str(caught.value)
+    for tool in captured:
+        with pytest.raises(AgentToolExecutionError, match="closed"):
+            tool()
+
+
 def test_execution_error_cli_returns_two_without_publishing_a_gate(monkeypatch, tmp_path, capsys):
     from dspy_security_bench.scan.cli import main
 

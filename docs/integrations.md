@@ -355,6 +355,52 @@ are unchanged: retain producer revisions and recapture comparison evidence after
 adopting this boundary. Native response fixtures block sockets and do not claim
 live-provider evaluation.
 
+## Generic AgentDojo tool lifetime
+
+**On main after v0.19.0**, every `GenericAgentElement.query` uses a fresh supplied-
+tool session. This covers reference LiteLLM, native bridges, and custom agents
+when they run through `evaluate_agents` or the generic AgentDojo scan path; it
+does not require a tool-call budget or a self-reported tool ledger.
+
+Retained handles stop accepting calls when the task exits, including after an
+exception, cancellation, or malformed agent result. A callback still active at
+return makes the task incomplete, not a completed binary measurement. An
+exception escaping runtime invocation or output defense processing is remembered
+even if the agent catches it and supplies a final answer; subsequent supplied
+callbacks are denied. Defended tool output must be explicit text, including
+intentional empty text. An invalid output raises `AgentResultError` and cannot
+be hidden by omitting the returned ledger.
+
+Ordinary lifecycle failures raise `AgentToolExecutionError`, exported from
+`dspy_security_bench.agents`. Native adapters share the implementation and retain
+their existing `NativeToolExecutionError` specialization and diagnostics. An
+exception already escaping the agent/callback keeps its original identity;
+the session does not replace control-flow exceptions or store error text.
+
+This is deliberately distinct from **AgentDojo's normal error feedback**:
+`FunctionsRuntime.run_function(..., raise_on_error=False)` returns argument-
+validation and ordinary domain failures as explicit text. Those observations
+remain recoverable, so an agent may correct its arguments and retry. The bridge
+does not guess failure from words such as `error` in a string. An exception from
+the runtime/defense boundary itself, or a non-text defended observation, instead
+means the harness did not complete its callback contract.
+
+Already admitted callbacks may finish and earlier effects remain. The session
+does not cancel background work, undo changes, wait forever for callbacks, impose
+a time/token budget, or restrict tool access outside the supplied handles. Work
+scheduled only after the task exits is denied if it later uses a retained handle;
+work already admitted may still finish after the incomplete task has raised.
+Owners must join/cancel their background work. The lock protects accounting,
+not application data, and does not make a custom agent or runtime thread-safe.
+Direct custom `Agent.run`/`CallbackAdapter` calls outside this generic harness do
+not acquire this boundary automatically; native bridges retain their own scope.
+
+The existing execution-checked runner aborts an affected scan without publishing
+a completed gate or evidence file. Real offline workspace tests cover both
+auxiliary and scored phases, while runtime tests cover retained handles,
+concurrent task isolation, background calls, and preserved effects. No new score
+formula, historical result rewriting, or live provider evaluation is introduced.
+
 ## Native supplied-tool failures and lifetime
 
 **On main after v0.19.0**, all five built-in native bridges require their supplied

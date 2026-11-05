@@ -161,6 +161,20 @@ if sys.argv[1:] == ["--version"]:
         if get_type_hints(_tool_callable(tool, [], asynchronous=asynchronous)) != {"record_id": str, "return": str}:
             raise RuntimeError("installed tool metadata is incomplete for SDK introspection")
     from dspy_security_bench.integrations import NativeToolExecutionError
+    from dspy_security_bench.agents import AgentToolExecutionError
+    from dspy_security_bench.agents.tools import _ToolSession as GenericToolSession
+    if not issubclass(NativeToolExecutionError, AgentToolExecutionError):
+        raise RuntimeError("installed native callback errors lost their shared contract")
+    with GenericToolSession() as generic_session:
+        if generic_session.invoke(lambda: "observed") != "observed":
+            raise RuntimeError("installed generic callback lost its result")
+    generic_session.validate()
+    try:
+        generic_session.invoke(lambda: "late")
+    except AgentToolExecutionError:
+        pass
+    else:
+        raise RuntimeError("installed generic callback remained open after the task")
     from dspy_security_bench.integrations.tools import _ToolSession
     effects, ledger = [], []
     with _ToolSession() as session:

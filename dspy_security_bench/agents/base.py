@@ -111,6 +111,10 @@ class AgentResultError(TypeError):
     """The agent returned an invalid result contract, not a measured outcome."""
 
 
+class AgentToolExecutionError(RuntimeError):
+    """Supplied tool execution did not produce a complete task measurement."""
+
+
 def require_text_answer(value: object) -> str:
     """Require explicit text, including an intentional empty answer; never coerce."""
     if not isinstance(value, str):
