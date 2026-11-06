@@ -10,6 +10,10 @@ several of them changed published numbers.
 ## [Unreleased]
 
 ### Measurement improvements
+- Preserved literal tool argument names across Python/SDK call helpers: `self`,
+  `ctx`, and `func` no longer collide in the Pydantic AI source-schema path.
+  Synchronous callbacks and validation remain worker-executed, with native
+  regression cases for helper-like field names and the existing failure gates.
 - The Pydantic AI bridge now transports the complete source tool schema using
   the SDK's raw-schema API and validates decoded arguments locally before any
   supplied callback. Nested constraints/references and non-identifier aliases

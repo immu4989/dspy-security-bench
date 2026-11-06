@@ -127,6 +127,8 @@ def test_langchain_adapter_uses_create_agent(monkeypatch):
 
 
 def test_pydantic_ai_adapter_uses_agent_tools(monkeypatch):
+    from dspy_security_bench.integrations.frameworks import _run_awaitable
+
     class FakeAgent:
         def __init__(self, model, *, tools, instructions):
             assert model == "openai:test"
@@ -138,7 +140,8 @@ def test_pydantic_ai_adapter_uses_agent_tools(monkeypatch):
             return SimpleNamespace(output=f"pydantic: {query}")
 
     _install_module(monkeypatch, "pydantic_ai", Agent=FakeAgent, ModelRetry=ValueError,
-                    Tool=SimpleNamespace(from_schema=lambda function, **kwargs: function))
+                    Tool=SimpleNamespace(from_schema=lambda function, **kwargs:
+                                         lambda **arguments: _run_awaitable(function(**arguments))))
     result = PydanticAIAdapter(model="openai:test").run(
         "inspect", [_bench_tool()], system_directive="trusted defense"
     )

@@ -252,16 +252,24 @@ class PydanticAIAdapter:
             def native_tool(tool):
                 schema = _ToolSchema(tool.parameters)
 
-                def validate_arguments(ctx, **arguments):
+                async def validate_arguments(ctx, /, **arguments):
                     try:
-                        schema.validate(arguments)
+                        await asyncio.to_thread(schema.validate, arguments)
                     except _ToolArgumentsError:
                         # Validation happens before the supplied callback, so
                         # ordinary argument correction is not a session failure.
                         raise ModelRetry("Tool arguments must satisfy the supplied JSON schema; no callback was executed.") from None
 
+                callback = _tool_callable(tool, ledger, session=session, infer_signature=False)
+
+                async def execute(**arguments):
+                    # Pydantic AI's synchronous executor reserves `func`.
+                    # to_thread uses a positional-only callable parameter and
+                    # retains worker execution/context for our synchronous tool.
+                    return await asyncio.to_thread(callback, **arguments)
+
                 return Tool.from_schema(
-                    _tool_callable(tool, ledger, session=session, infer_signature=False),
+                    execute,
                     name=tool.name,
                     description=tool.description or f"Execute the {tool.name} benchmark tool.",
                     json_schema=schema.export(),

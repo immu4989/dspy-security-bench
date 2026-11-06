@@ -209,8 +209,11 @@ def run_bridge(monkeypatch, framework, usage, *, broken_path=False, invalid_answ
         install("agents", Agent=Agent, function_tool=lambda f: f,
                 Runner=SimpleNamespace(run_sync=lambda agent, query: agent.run_sync(query)))
     elif framework == "pydantic":
+        from dspy_security_bench.integrations.frameworks import _run_awaitable
+
         install("pydantic_ai", Agent=Agent, ModelRetry=ValueError,
-                Tool=SimpleNamespace(from_schema=lambda function, **kwargs: function))
+                Tool=SimpleNamespace(from_schema=lambda function, **kwargs:
+                                     lambda **arguments: _run_awaitable(function(**arguments))))
     elif framework == "crewai":
         install("crewai", Agent=Agent)
         install("crewai.tools", tool=lambda name: lambda f: f)

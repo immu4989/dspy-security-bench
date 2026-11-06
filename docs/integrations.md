@@ -687,6 +687,10 @@ snapshotted once per run and given to the SDK, including local `$defs`/`$ref`,
 enums, unions, nested constraints, root keywords, and keys such as `external-id`
 that cannot be Python parameter identifiers. The SDK-facing copy is detached
 from the validator's copy and from the original `BenchTool.parameters`.
+Helper-like names such as `self`, `ctx`, and `func` are passed literally rather
+than consumed as Python/SDK control parameters. Validation and synchronous tool
+execution use context-preserving workers; this does not add cancellation of
+already running callbacks.
 
 The [Pydantic AI API](https://pydantic.dev/docs/ai/api/pydantic-ai/tools/#pydantic_ai.tools.Tool.from_schema)
 explicitly skips schema validation for raw-schema tools. The bridge therefore

@@ -58,7 +58,7 @@ class BenchTool:
     parameters: dict
     _call: Callable[..., str]
 
-    def __call__(self, **kwargs) -> str:
+    def __call__(self, /, **kwargs) -> str:
         return self._call(**kwargs)
 
     def openai_schema(self) -> dict:

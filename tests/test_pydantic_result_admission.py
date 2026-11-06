@@ -18,6 +18,8 @@ class PrivateValue:
 
 
 def run(monkeypatch, native_result, effects):
+    from dspy_security_bench.integrations.frameworks import _run_awaitable
+
     class Agent:
         def __init__(self, model, *, tools, instructions):
             assert model == "fixture" and instructions.startswith("trusted")
@@ -30,7 +32,8 @@ def run(monkeypatch, native_result, effects):
 
     module = ModuleType("pydantic_ai")
     module.Agent = Agent
-    module.Tool = SimpleNamespace(from_schema=lambda function, **kwargs: function)
+    module.Tool = SimpleNamespace(from_schema=lambda function, **kwargs:
+                                  lambda **arguments: _run_awaitable(function(**arguments)))
     module.ModelRetry = ValueError
     monkeypatch.setitem(sys.modules, "pydantic_ai", module)
     return PydanticAIAdapter(model="fixture").run(

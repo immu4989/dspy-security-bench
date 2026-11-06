@@ -160,3 +160,15 @@ def test_invalid_schema_fails_before_constructing_agent_or_requesting_model(monk
     with pytest.raises(NativeToolSchemaError):
         adapter.run("query", [tool])
     assert not seen and not agents
+
+
+@pytest.mark.parametrize("name", ["self", "ctx", "func", "args", "kwargs", "config", "run_manager", "callbacks"])
+def test_argument_names_do_not_collide_with_adapter_or_sdk_helpers(monkeypatch, name):
+    effects = []
+    values = {name: "synthetic"}
+    tool = BenchTool("record", "Synthetic named argument", {
+        "type": "object", "properties": {name: {"type": "string"}}, "required": [name],
+    }, lambda **kwargs: effects.append(kwargs) or "recorded")
+    adapter, _, _, _ = runner(monkeypatch, tool, [values])
+    result = adapter.run("query", [tool])
+    assert effects == [values] and result.tool_calls[0].args == values
